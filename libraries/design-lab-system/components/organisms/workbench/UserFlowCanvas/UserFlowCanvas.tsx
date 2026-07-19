@@ -6,14 +6,17 @@ import {
   type CSSProperties,
   type HTMLAttributes,
   type PointerEvent as ReactPointerEvent,
+  type ReactNode,
 } from 'react'
 import { inspectionAttributes } from '@design-lab/system/inspection'
+import { WireframeScreenPreview } from '../../../molecules/workbench/WireframeScreenPreview/WireframeScreenPreview'
 
 export type UserFlowCanvasNode = {
   id: string
   title: string
   description: string
   eyebrow?: string
+  preview: ReactNode
   x: number
   y: number
 }
@@ -30,12 +33,13 @@ export type UserFlowCanvasProps = Omit<HTMLAttributes<HTMLDivElement>, 'onSelect
   edges: UserFlowCanvasEdge[]
   selectedId: string | null
   onSelect: (id: string) => void
+  onPreview?: (id: string) => void
 }
 
-const NODE_WIDTH = 260
-const NODE_HEIGHT = 148
-const WORLD_WIDTH = 1840
-const WORLD_HEIGHT = 720
+const NODE_WIDTH = 420
+const NODE_HEIGHT = 366
+const WORLD_WIDTH = 3600
+const WORLD_HEIGHT = 2200
 
 function clamp(value: number, min: number, max: number) {
   return Math.min(max, Math.max(min, value))
@@ -46,6 +50,7 @@ export function UserFlowCanvas({
   edges,
   selectedId,
   onSelect,
+  onPreview,
   className,
   ...props
 }: UserFlowCanvasProps) {
@@ -194,19 +199,30 @@ export function UserFlowCanvas({
             {nodes.map((node) => {
               const selected = node.id === selectedId
               return (
-                <button
-                  type="button"
+                <article
                   key={node.id}
                   className={`dl-user-flow-canvas__node${selected ? ' dl-user-flow-canvas__node--selected' : ''}`}
                   style={{ left: node.x, top: node.y }}
-                  aria-pressed={selected}
-                  onClick={() => onSelect(node.id)}
                 >
-                  <span>{node.eyebrow ?? 'State'}</span>
-                  <strong>{node.title}</strong>
-                  <p>{node.description}</p>
-                  <small>{selected ? 'Selected state' : 'Select state'}</small>
-                </button>
+                  <WireframeScreenPreview>{node.preview}</WireframeScreenPreview>
+                  <footer>
+                    <div>
+                      <span>{node.eyebrow ?? 'State'}</span>
+                      <strong>{node.title}</strong>
+                      <p>{node.description}</p>
+                    </div>
+                    <button
+                      type="button"
+                      aria-pressed={selected}
+                      onClick={() => {
+                        onSelect(node.id)
+                        onPreview?.(node.id)
+                      }}
+                    >
+                      Preview state
+                    </button>
+                  </footer>
+                </article>
               )
             })}
           </div>

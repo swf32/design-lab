@@ -2,7 +2,7 @@
   "id": "user-flow-canvas",
   "name": "User Flow Canvas",
   "status": "ready",
-  "description": "Pannable, zoomable state-transition graph with labeled directed edges and accessible node selection.",
+  "description": "Pannable, zoomable state-transition graph whose nodes show real inert Wireframe screens and open states through an explicit Preview action.",
   "aliases": ["flow graph", "state graph", "journey canvas"],
   "useWhen": [
     "A Wireframe or Page review needs to explain which user action causes each state transition."
@@ -19,6 +19,7 @@
     "nodes": { "type": "UserFlowCanvasNode[]", "required": true },
     "edges": { "type": "UserFlowCanvasEdge[]", "required": true },
     "selectedId": { "type": "string | null", "required": true },
-    "onSelect": { "type": "(id: string) => void", "required": true }
+    "onSelect": { "type": "(id: string) => void", "required": true },
+    "onPreview": { "type": "(id: string) => void", "required": false }
   }
 }

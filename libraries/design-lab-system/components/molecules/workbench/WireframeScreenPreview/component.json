@@ -1,0 +1,25 @@
+{
+  "id": "wireframe-screen-preview",
+  "name": "Wireframe Screen Preview",
+  "status": "ready",
+  "description": "Inert 16:9 viewport that scales an actual Wireframe renderer into catalog cards and user-flow nodes.",
+  "aliases": ["screen thumbnail", "wireframe viewport", "page state preview"],
+  "useWhen": [
+    "A real Wireframe screen must be shown at reduced size without duplicating or activating its UI."
+  ],
+  "avoidWhen": [
+    "The content is an illustrative Component preview or must remain interactive at its rendered size."
+  ],
+  "entry": "WireframeScreenPreview.tsx",
+  "preview": "WireframeScreenPreview.preview.tsx",
+  "stories": "WireframeScreenPreview.stories.tsx",
+  "docs": "README.md",
+  "changelog": "CHANGELOG.md",
+  "variants": ["16:9 viewport"],
+  "states": ["loading measurement", "rendered"],
+  "props": {
+    "children": { "type": "ReactNode", "required": true, "slot": "screen" },
+    "viewportWidth": { "type": "number", "default": 1440 },
+    "viewportHeight": { "type": "number", "default": 810 }
+  }
+}

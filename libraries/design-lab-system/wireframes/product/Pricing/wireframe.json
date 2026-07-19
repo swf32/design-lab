@@ -38,7 +38,7 @@
       "options": [
         { "value": "none", "label": "No subscription" },
         { "value": "starter", "label": "Starter" },
-        { "value": "medium", "label": "Medium" },
+        { "value": "team", "label": "Team" },
         { "value": "top", "label": "Top" }
       ]
     },
@@ -49,14 +49,14 @@
       "description": "Shows the discounted monthly equivalent."
     },
     {
-      "id": "teamSeats",
+      "id": "tokensUsed",
       "kind": "range",
-      "label": "Team seats",
-      "description": "Tests price density and pluralized account copy.",
-      "min": 1,
-      "max": 12,
+      "label": "Included tokens used",
+      "description": "Tests healthy, running-low, and exhausted plan allowance messaging.",
+      "min": 0,
+      "max": 100,
       "step": 1,
-      "unit": " seats"
+      "unit": "%"
     },
     {
       "id": "tokensPurchased",
@@ -75,47 +75,83 @@
       "id": "no-subscription",
       "name": "No subscription",
       "description": "A new buyer compares all available plans.",
-      "values": { "plan": "none", "annual": false, "teamSeats": 1, "tokensPurchased": 0 }
+      "values": {
+        "plan": "none",
+        "annual": false,
+        "tokensUsed": 0,
+        "tokensPurchased": 0,
+        "teamSeats": 2
+      }
     },
     {
       "id": "starter-annual",
       "name": "Starter · annual",
-      "description": "An annual Starter customer evaluates a larger plan.",
-      "values": { "plan": "starter", "annual": true, "teamSeats": 1, "tokensPurchased": 0 }
+      "description": "An annual Starter customer has exhausted all 40k included tokens.",
+      "values": {
+        "plan": "starter",
+        "annual": true,
+        "tokensUsed": 100,
+        "tokensPurchased": 0,
+        "teamSeats": 1
+      }
     },
     {
-      "id": "medium-team",
-      "name": "Medium · team",
-      "description": "A six-seat Medium account is approaching its included allowance.",
-      "values": { "plan": "medium", "annual": true, "teamSeats": 6, "tokensPurchased": 0 }
+      "id": "team-running-low",
+      "name": "Team · running low",
+      "description": "A six-seat Team account is approaching its included token allowance.",
+      "values": {
+        "plan": "team",
+        "annual": true,
+        "tokensUsed": 90,
+        "tokensPurchased": 0,
+        "teamSeats": 6
+      }
     },
     {
       "id": "top-empty",
       "name": "Top · no extra tokens",
       "description": "A Top customer can purchase the complete extra allowance.",
-      "values": { "plan": "top", "annual": true, "teamSeats": 8, "tokensPurchased": 0 }
+      "values": {
+        "plan": "top",
+        "annual": true,
+        "tokensUsed": 70,
+        "tokensPurchased": 0,
+        "teamSeats": 1
+      }
     },
     {
       "id": "top-half",
       "name": "Top · half purchased",
       "description": "Half of the optional token allowance remains available.",
-      "values": { "plan": "top", "annual": true, "teamSeats": 8, "tokensPurchased": 50 }
+      "values": {
+        "plan": "top",
+        "annual": true,
+        "tokensUsed": 82,
+        "tokensPurchased": 50,
+        "teamSeats": 1
+      }
     },
     {
       "id": "top-full",
       "name": "Top · allowance full",
       "description": "The customer has purchased the maximum extra allowance.",
-      "values": { "plan": "top", "annual": true, "teamSeats": 8, "tokensPurchased": 100 }
+      "values": {
+        "plan": "top",
+        "annual": true,
+        "tokensUsed": 96,
+        "tokensPurchased": 100,
+        "teamSeats": 1
+      }
     }
   ],
   "flow": {
     "nodes": [
-      { "id": "discover", "state": "no-subscription", "x": 80, "y": 220 },
-      { "id": "starter", "state": "starter-annual", "x": 430, "y": 40 },
-      { "id": "medium", "state": "medium-team", "x": 430, "y": 400 },
-      { "id": "top-ready", "state": "top-empty", "x": 790, "y": 220 },
-      { "id": "top-half", "state": "top-half", "x": 1140, "y": 80 },
-      { "id": "top-full", "state": "top-full", "x": 1490, "y": 220 }
+      { "id": "discover", "state": "no-subscription", "x": 80, "y": 360 },
+      { "id": "starter", "state": "starter-annual", "x": 620, "y": 80 },
+      { "id": "team", "state": "team-running-low", "x": 620, "y": 660 },
+      { "id": "top-ready", "state": "top-empty", "x": 1160, "y": 360 },
+      { "id": "top-half", "state": "top-half", "x": 1700, "y": 100 },
+      { "id": "top-full", "state": "top-full", "x": 2240, "y": 360 }
     ],
     "edges": [
       {
@@ -126,11 +162,11 @@
         "label": "Choose Starter"
       },
       {
-        "id": "choose-medium",
+        "id": "choose-team",
         "from": "discover",
-        "to": "medium",
-        "action": "choose-medium",
-        "label": "Choose Medium"
+        "to": "team",
+        "action": "choose-team",
+        "label": "Choose Team"
       },
       {
         "id": "choose-top",
@@ -147,8 +183,8 @@
         "label": "Upgrade to Top"
       },
       {
-        "id": "upgrade-medium",
-        "from": "medium",
+        "id": "upgrade-team",
+        "from": "team",
         "to": "top-ready",
         "action": "upgrade-top",
         "label": "Upgrade to Top"

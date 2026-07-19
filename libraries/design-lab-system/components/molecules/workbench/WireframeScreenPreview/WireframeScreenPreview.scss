@@ -1,0 +1,17 @@
+.dl-wireframe-screen-preview {
+  width: 100%;
+  aspect-ratio: var(--dl-wireframe-preview-ratio);
+  background: var(--color-canvas);
+  overflow: hidden;
+  position: relative;
+}
+.dl-wireframe-screen-preview__viewport {
+  pointer-events: none;
+  position: absolute;
+  inset: 0 auto auto 0;
+  transform-origin: left top;
+}
+.dl-wireframe-screen-preview__viewport > * {
+  width: 100%;
+  min-height: 100%;
+}

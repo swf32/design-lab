@@ -65,6 +65,7 @@ States are stable product snapshots with human-readable names and complete value
 
 Dev mode is a floating, dismissible production surface outside the Wireframe content. It provides:
 
+- back navigation, Screen/User flow switching, and share-link copying;
 - saved state selection;
 - layout selection;
 - typed controls;
@@ -72,6 +73,8 @@ Dev mode is a floating, dismissible production surface outside the Wireframe con
 - the current derived/custom state label.
 
 Dev mode never consumes permanent Page layout space. All touch targets are at least `44px`, it has a keyboard path, and it cannot rely on hover or drag.
+
+The closed Wireframe route has no permanent toolbar, title bar, Tab Switcher, status pill, or back button over the product screen. The quiet translucent Dev mode trigger is the only review-shell action outside the screen or flow content. Clipboard writing must include a manual selectable-link fallback because an IP-hosted HTTP deployment may not expose the secure Clipboard API.
 
 Control semantics:
 
@@ -85,11 +88,13 @@ Control semantics:
 The user-flow Canvas visualizes causality, not merely screen order.
 
 - Nodes reference saved states.
+- Every node renders the real adjacent Wireframe screen in an inert 16:9 viewport; do not author a separate node thumbnail.
 - Directed edges name the exact user action that moves between nodes.
 - Selecting a node updates the current state.
 - Activating Preview opens that state in the current layout.
 - Screen actions dispatch stable action ids and update state through authored flow semantics.
 - Pan and zoom are enhancements; visible buttons and keyboard navigation provide equivalent access.
+- The grid belongs to the transformed graph world and moves and scales with its nodes and edges.
 
 The graph must remain legible without relying on color alone. Edges use arrowheads and labels, selected nodes expose `aria-pressed`, and the Canvas respects reduced motion. Mobile may simplify node density but must not hide transitions or require horizontal document scrolling.
 
@@ -99,6 +104,8 @@ The Wireframe route is derived from its canonical directory: `/wireframes/<wiref
 
 Selected layout, state, view (`screen` or `flow`), and serializable control values live in the query string. Copying the URL restores the same review context.
 
+The Wireframes catalog uses the same adjacent renderer in an inert 16:9 `WireframeScreenPreview`. A `WireframeCard` follows the Component Card hierarchy: the real screen is primary, while the page name and lifecycle sit in a bottom gradient. Catalog and flow previews must never be separately drawn interpretations of the page.
+
 The application discovers `wireframe.json` recursively and loads the adjacent manifest-declared renderer through a build-time module glob. It must not add entity ids to a hand-written switch.
 
 ## Reuse and inspection
@@ -106,6 +113,8 @@ The application discovers `wireframe.json` recursively and loads the adjacent ma
 Use production Components from the active Library for established controls and patterns. Repeated review-shell patterns such as dev panels, graph Canvases, inspectors, and toolbars belong in the Library as production Components with manifests, previews, stories, documentation, and changelogs.
 
 Exploratory local blocks are allowed when they are the subject of layout evaluation. They must use Library tokens and remain visibly subordinate to established Components. Do not promote a one-off layout block into a Component merely to satisfy purity.
+
+Dev mode controls describe test conditions and entitlements, not actions the product user should perform. A target action such as choosing team seats, quantity, sorting, or checkout options belongs in the rendered screen. Its value may remain in saved-state snapshots and deep links without being exposed as a Dev mode control.
 
 The shared Playground/Page Inspector contract should be reusable on Wireframes. Component roots and named slots retain their purple and pink identities; raw exploratory blocks expose authored CSS.
 

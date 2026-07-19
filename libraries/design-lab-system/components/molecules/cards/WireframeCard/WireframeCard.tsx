@@ -1,5 +1,7 @@
 import './WireframeCard.scss'
+import type { ReactNode } from 'react'
 import { Chip, type ChipColor } from '../../../atoms/data-display/Chip/Chip'
+import { WireframeScreenPreview } from '../../workbench/WireframeScreenPreview/WireframeScreenPreview'
 import { inspectionAttributes } from '@design-lab/system/inspection'
 
 export type WireframeCardProps = {
@@ -9,6 +11,7 @@ export type WireframeCardProps = {
   layoutCount: number
   stateCount: number
   transitionCount: number
+  preview: ReactNode
   selected?: boolean
   onClick?: () => void
 }
@@ -26,15 +29,13 @@ export function WireframeCard({
   layoutCount,
   stateCount,
   transitionCount,
+  preview,
   selected = false,
   onClick,
 }: WireframeCardProps) {
   return (
-    <button
-      type="button"
+    <article
       className={`dl-wireframe-card${selected ? ' dl-wireframe-card--selected' : ''}`}
-      aria-current={selected ? 'page' : undefined}
-      onClick={onClick}
       {...inspectionAttributes('WireframeCard', {
         name,
         status,
@@ -44,31 +45,20 @@ export function WireframeCard({
         selected,
       })}
     >
-      <span className="dl-wireframe-card__preview" aria-hidden="true">
-        <i />
-        <span>
-          <b />
-          <b />
-          <b />
-        </span>
-      </span>
-      <span className="dl-wireframe-card__content">
-        <span className="dl-wireframe-card__header">
-          <span>
-            <small>{status}</small>
-            <strong>{name}</strong>
-          </span>
-          <Chip size="small" color={statusColors[status]} variant="soft">
-            {layoutCount} layouts
-          </Chip>
-        </span>
-        <span className="dl-wireframe-card__description">{description}</span>
-        <span className="dl-wireframe-card__footer">
-          <span>{stateCount} states</span>
-          <span>{transitionCount} transitions</span>
-          <b>Open review</b>
-        </span>
-      </span>
-    </button>
+      <WireframeScreenPreview>{preview}</WireframeScreenPreview>
+      <button
+        type="button"
+        className="dl-wireframe-card__action"
+        aria-current={selected ? 'page' : undefined}
+        aria-label={`Open ${name} Wireframe. ${description} ${layoutCount} layouts, ${stateCount} states, ${transitionCount} transitions.`}
+        onClick={onClick}
+      />
+      <footer className="dl-wireframe-card__footer">
+        <strong>{name}</strong>
+        <Chip size="small" color={statusColors[status]} variant="soft">
+          {status}
+        </Chip>
+      </footer>
+    </article>
   )
 }

@@ -58,6 +58,7 @@ import {
 } from '@design-lab/system/components'
 import { TokensIcon } from '@design-lab/system/icons'
 import type { ModuleData } from '../../api/projects'
+import { wireframeRendererFor } from '../../wireframes/registry'
 
 type ComponentEntity = Extract<ModuleData, { kind: 'components' }>['components'][number]
 
@@ -1833,14 +1834,9 @@ export function ModuleView({
         {wireframes.length ? (
           <div className="wireframe-catalog">
             {wireframes.map((wireframe) => (
-              <WireframeCard
+              <WireframeCatalogCard
                 key={wireframe.id}
-                name={wireframe.name}
-                description={wireframe.description}
-                status={wireframe.status}
-                layoutCount={wireframe.layouts.length}
-                stateCount={wireframe.states.length}
-                transitionCount={wireframe.flow.edges.length}
+                wireframe={wireframe}
                 onClick={() => onSelectEntity(wireframe.id)}
               />
             ))}
@@ -1883,4 +1879,34 @@ export function ModuleView({
     )
   }
   return <div className="module-state">{t('status.noEntities')}</div>
+}
+
+function WireframeCatalogCard({
+  wireframe,
+  onClick,
+}: {
+  wireframe: Extract<ModuleData, { kind: 'wireframes' }>['wireframes'][number]
+  onClick: () => void
+}) {
+  const renderer = wireframeRendererFor(wireframe)
+  const state =
+    wireframe.states.find((item) => item.id === wireframe.defaultState) ?? wireframe.states[0]
+  const preview = renderer?.renderWireframe({
+    layout: wireframe.defaultLayout,
+    state: state?.id ?? null,
+    values: { ...(state?.values ?? {}) },
+    onAction: () => undefined,
+  })
+  return (
+    <WireframeCard
+      name={wireframe.name}
+      description={wireframe.description}
+      status={wireframe.status}
+      layoutCount={wireframe.layouts.length}
+      stateCount={wireframe.states.length}
+      transitionCount={wireframe.flow.edges.length}
+      preview={preview ?? <div className="wireframe-catalog__missing">Renderer unavailable</div>}
+      onClick={onClick}
+    />
+  )
 }

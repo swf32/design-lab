@@ -3,11 +3,7 @@
   min-height: 0;
   border: 1px solid var(--color-border-subtle);
   border-radius: var(--radius-card);
-  background-color: var(--color-canvas);
-  background-image:
-    linear-gradient(var(--color-border-subtle) 1px, transparent 1px),
-    linear-gradient(90deg, var(--color-border-subtle) 1px, transparent 1px);
-  background-size: 24px 24px;
+  background: var(--color-canvas);
   overflow: hidden;
   position: relative;
 }
@@ -16,8 +12,8 @@
   padding: var(--spacing-1);
   border: 1px solid var(--color-border-default);
   border-radius: var(--radius-medium);
-  background: color-mix(in srgb, var(--color-surface-raised) 92%, transparent);
-  box-shadow: 0 12px 32px color-mix(in srgb, var(--color-overlay-scrim) 30%, transparent);
+  background: color-mix(in srgb, var(--color-surface-raised) 82%, transparent);
+  box-shadow: 0 12px 32px color-mix(in srgb, var(--color-overlay-scrim) 24%, transparent);
   backdrop-filter: blur(12px);
   position: absolute;
   z-index: 4;
@@ -40,6 +36,11 @@
   background: var(--color-surface-hover);
   color: var(--color-text-primary);
 }
+.dl-user-flow-canvas__tools button:focus-visible,
+.dl-user-flow-canvas__node footer button:focus-visible {
+  outline: 2px solid var(--color-accent-primary);
+  outline-offset: 2px;
+}
 .dl-user-flow-canvas__tools output {
   min-width: 48px;
   color: var(--color-text-muted);
@@ -59,6 +60,18 @@
   cursor: grabbing;
 }
 .dl-user-flow-canvas__world {
+  background-color: var(--color-canvas);
+  background-image:
+    linear-gradient(
+      color-mix(in srgb, var(--color-border-subtle) 58%, transparent) 1px,
+      transparent 1px
+    ),
+    linear-gradient(
+      90deg,
+      color-mix(in srgb, var(--color-border-subtle) 58%, transparent) 1px,
+      transparent 1px
+    );
+  background-size: 24px 24px;
   position: relative;
   transform-origin: 0 0;
   will-change: transform;
@@ -87,23 +100,20 @@
   font-weight: 600;
 }
 .dl-user-flow-canvas__node {
-  width: 260px;
-  height: 148px;
-  padding: var(--spacing-4);
+  width: 420px;
+  height: 366px;
   border: 1px solid var(--color-border-default);
   border-radius: var(--radius-card);
   background: var(--color-surface-primary);
   box-shadow: 0 14px 36px color-mix(in srgb, var(--color-overlay-scrim) 26%, transparent);
   color: var(--color-text-primary);
-  cursor: pointer;
-  text-align: left;
+  overflow: hidden;
   position: absolute;
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-}
-.dl-user-flow-canvas__node:hover {
-  border-color: var(--color-border-strong);
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr);
+  transition:
+    border-color var(--transition-fast),
+    box-shadow var(--transition-fast);
 }
 .dl-user-flow-canvas__node--selected {
   border-color: var(--color-accent-primary);
@@ -111,35 +121,60 @@
     0 0 0 2px color-mix(in srgb, var(--color-accent-primary) 24%, transparent),
     0 14px 36px color-mix(in srgb, var(--color-overlay-scrim) 32%, transparent);
 }
-.dl-user-flow-canvas__node > span {
+.dl-user-flow-canvas__node footer {
+  min-width: 0;
+  padding: var(--spacing-3);
+  border-top: 1px solid var(--color-border-subtle);
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: var(--spacing-3);
+}
+.dl-user-flow-canvas__node footer > div {
+  min-width: 0;
+  display: grid;
+  gap: 2px;
+}
+.dl-user-flow-canvas__node footer span {
   color: var(--color-accent-primary);
-  font-size: 9px;
+  font-size: 8px;
   font-weight: 700;
   letter-spacing: 0.1em;
   text-transform: uppercase;
 }
-.dl-user-flow-canvas__node strong {
-  margin-top: var(--spacing-2);
-  font-size: 15px;
+.dl-user-flow-canvas__node footer strong {
+  overflow: hidden;
+  font-size: 13px;
   font-weight: var(--typography-heading-weight);
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
-.dl-user-flow-canvas__node p {
-  margin: var(--spacing-1) 0 0;
+.dl-user-flow-canvas__node footer p {
+  margin: 0;
   overflow: hidden;
   color: var(--color-text-muted);
-  font-size: 10px;
-  line-height: 1.45;
+  font-size: 9px;
+  line-height: 1.4;
   display: -webkit-box;
   -webkit-box-orient: vertical;
   -webkit-line-clamp: 2;
 }
-.dl-user-flow-canvas__node small {
-  margin-top: auto;
-  color: var(--color-text-disabled);
-  font-size: 9px;
+.dl-user-flow-canvas__node footer button {
+  min-height: 44px;
+  padding: 0 var(--spacing-3);
+  border: 1px solid var(--color-border-default);
+  border-radius: var(--radius-small);
+  background: var(--color-surface-secondary);
+  color: var(--color-text-secondary);
+  cursor: pointer;
+  font-size: 10px;
+  font-weight: 600;
+  white-space: nowrap;
 }
-.dl-user-flow-canvas__node--selected small {
-  color: var(--color-accent-primary);
+.dl-user-flow-canvas__node footer button:hover,
+.dl-user-flow-canvas__node footer button[aria-pressed='true'] {
+  border-color: var(--color-accent-primary);
+  color: var(--color-text-primary);
 }
 @media (max-width: 760px) {
   .dl-user-flow-canvas {

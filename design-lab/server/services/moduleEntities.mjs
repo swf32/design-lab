@@ -212,12 +212,36 @@ function wireframeDiagnostics(wireframe) {
       message: `Default state "${wireframe.defaultState}" does not exist.`,
     })
   for (const state of states) {
-    for (const controlId of controlIds)
+    for (const controlId of controlIds) {
       if (!Object.hasOwn(state.values ?? {}, controlId))
         diagnostics.push({
           code: 'wireframe-state-value-missing',
           message: `State "${state.id}" does not define control "${controlId}".`,
         })
+      const control = controls.find((candidate) => candidate.id === controlId)
+      const value = state.values?.[controlId]
+      if (control?.kind === 'radio' && !control.options?.some((option) => option.value === value))
+        diagnostics.push({
+          code: 'wireframe-state-radio-value-invalid',
+          message: `State "${state.id}" uses an invalid value for radio control "${controlId}".`,
+        })
+      if (control?.kind === 'boolean' && typeof value !== 'boolean')
+        diagnostics.push({
+          code: 'wireframe-state-boolean-value-invalid',
+          message: `State "${state.id}" must use a boolean value for control "${controlId}".`,
+        })
+      if (
+        control?.kind === 'range' &&
+        (!Number.isFinite(value) ||
+          value < control.min ||
+          value > control.max ||
+          (value - control.min) % control.step !== 0)
+      )
+        diagnostics.push({
+          code: 'wireframe-state-range-value-invalid',
+          message: `State "${state.id}" uses an out-of-range or off-step value for control "${controlId}".`,
+        })
+    }
   }
   for (const control of controls) {
     if (!['radio', 'boolean', 'range'].includes(control.kind))

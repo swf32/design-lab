@@ -1,6 +1,6 @@
 # Wireframe Dev Panel
 
-Floating production shell for Wireframe state and layout controls. Desktop anchors the trigger at the viewport start edge and opens the panel beside it. Mobile turns the trigger into a bottom action and expands the panel within safe-area bounds.
+Floating production shell for all Wireframe review controls, including back navigation, Screen/User flow mode, share link, state, and layout. Desktop anchors its deliberately quiet translucent trigger at the viewport start edge and opens the panel beside it. Mobile turns the trigger into a safe-area bottom action.
 
 Header, content, and optional footer are named inspection slots. Escape, outside pointer dismissal, explicit Done, and focus restoration provide equivalent close paths.
 

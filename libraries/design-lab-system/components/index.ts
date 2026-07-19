@@ -24,6 +24,7 @@ export * from './molecules/workbench/ComponentReferencePanel/ComponentReferenceP
 export * from './molecules/workbench/InspectorCodePopover/InspectorCodePopover'
 export * from './molecules/workbench/ModuleHeader/ModuleHeader'
 export * from './molecules/workbench/StoryCanvas/StoryCanvas'
+export * from './molecules/workbench/WireframeScreenPreview/WireframeScreenPreview'
 export * from './organisms/dialogs/CreateProjectDialog/CreateProjectDialog'
 export * from './organisms/shell/AppSidebar/AppSidebar'
 export * from './organisms/shell/DirectoryPanel/DirectoryPanel'

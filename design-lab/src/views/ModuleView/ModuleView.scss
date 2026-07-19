@@ -189,8 +189,14 @@
 }
 .wireframe-catalog {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-  gap: var(--spacing-3);
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: var(--spacing-2);
+}
+.wireframe-catalog__missing {
+  min-height: 100%;
+  color: var(--color-text-muted);
+  display: grid;
+  place-content: center;
 }
 .module-filter-empty {
   min-height: 300px;

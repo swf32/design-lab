@@ -30,7 +30,15 @@ export function renderStoryExample(example: StoryExample) {
     status: (example.props.status ?? 'review') as 'draft' | 'review' | 'approved',
     layoutCount: 3,
     stateCount: 6,
-    transitionCount: 6,
+    transitionCount: 7,
+    preview: createElement('div', {
+      style: {
+        width: '100%',
+        minHeight: '100%',
+        background:
+          'linear-gradient(145deg, var(--color-surface-secondary), var(--color-surface-primary))',
+      },
+    }),
     onClick: () => undefined,
   })
 }

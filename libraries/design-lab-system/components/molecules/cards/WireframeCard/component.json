@@ -2,7 +2,7 @@
   "id": "wireframe-card",
   "name": "Wireframe Card",
   "status": "ready",
-  "description": "Catalog card for a discovered page Wireframe with lifecycle, layout, state, and flow counts.",
+  "description": "Catalog card that presents a discovered page Wireframe through its real inert 16:9 screen and a gradient title overlay.",
   "aliases": ["wireframe catalog item", "page direction card", "flow review card"],
   "useWhen": [
     "A Wireframes module lists reviewable filesystem entities with layout and flow metadata."
@@ -28,6 +28,7 @@
     "layoutCount": { "type": "number", "required": true },
     "stateCount": { "type": "number", "required": true },
     "transitionCount": { "type": "number", "required": true },
+    "preview": { "type": "ReactNode", "required": true, "slot": "screen" },
     "selected": { "type": "boolean", "default": false },
     "onClick": { "type": "() => void", "required": false }
   }

@@ -130,6 +130,68 @@
   color: var(--color-text-muted);
   font-size: 10px;
 }
+.pricing-wireframe__team-seats {
+  padding: var(--spacing-4) 0;
+  border-bottom: 1px solid var(--color-border-subtle);
+}
+.pricing-wireframe__usage {
+  margin-top: var(--spacing-4);
+  padding: var(--spacing-3);
+  border: 1px solid var(--color-border-subtle);
+  border-radius: var(--radius-medium);
+  background: var(--color-surface-secondary);
+}
+.pricing-wireframe__usage > header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--spacing-2);
+}
+.pricing-wireframe__usage > header > div {
+  display: grid;
+  gap: 2px;
+}
+.pricing-wireframe__usage > header span {
+  color: var(--color-text-disabled);
+  font-size: 8px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+.pricing-wireframe__usage > header strong {
+  color: var(--color-text-secondary);
+  font-size: 11px;
+}
+.pricing-wireframe__usage > header b {
+  color: var(--color-text-secondary);
+  font-size: 12px;
+  font-variant-numeric: tabular-nums;
+}
+.pricing-wireframe__usage > div {
+  height: 8px;
+  margin-top: var(--spacing-3);
+  border-radius: 999px;
+  background: var(--color-surface-raised);
+  overflow: hidden;
+}
+.pricing-wireframe__usage > div > span {
+  width: var(--pricing-usage);
+  height: 100%;
+  border-radius: inherit;
+  background: var(--color-accent-primary);
+  display: block;
+}
+.pricing-wireframe__usage--exhausted {
+  border-color: var(--color-status-danger);
+}
+.pricing-wireframe__usage--exhausted > div > span {
+  background: var(--color-status-danger);
+}
+.pricing-wireframe__usage > p {
+  margin: var(--spacing-2) 0 0;
+  color: var(--color-text-muted);
+  font-size: 9px;
+  line-height: 1.45;
+}
 .pricing-wireframe__plan ul {
   margin: var(--spacing-4) 0 calc(var(--spacing-4) * 1.5);
   padding: 0;
@@ -306,6 +368,9 @@
   border-block: 1px solid var(--color-border-subtle);
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+.pricing-wireframe__guided-layout > .pricing-wireframe__usage {
+  margin-top: calc(var(--spacing-4) * 2);
 }
 .pricing-wireframe__guided-summary > div {
   padding: calc(var(--spacing-4) * 1.5);

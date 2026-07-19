@@ -29,7 +29,7 @@ function WireframeDevPanelStory() {
         open={open}
         onOpenChange={setOpen}
         title="Pricing state"
-        description="Saved state · Medium team"
+        description="Saved state · Team running low"
         footer={
           <Button size="small" fullWidth>
             Reset state

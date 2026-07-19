@@ -1,12 +1,12 @@
 import './Pricing.wireframe.scss'
-import { Button, Checkbox, Chip } from '@design-lab/system/components'
+import { Button, Checkbox, Chip, Slider } from '@design-lab/system/components'
 import type {
   WireframeAction,
   WireframeRenderContext,
   WireframeValues,
 } from '@design-lab/system/wireframes'
 
-type PlanId = 'none' | 'starter' | 'medium' | 'top'
+type PlanId = 'none' | 'starter' | 'team' | 'top'
 
 type Plan = {
   id: Exclude<PlanId, 'none'>
@@ -14,7 +14,8 @@ type Plan = {
   description: string
   monthly: number
   features: string[]
-  allowance: string
+  allowance: number
+  team?: boolean
 }
 
 const plans: Plan[] = [
@@ -23,15 +24,16 @@ const plans: Plan[] = [
     name: 'Starter',
     description: 'For personal exploration and small prototypes.',
     monthly: 18,
-    allowance: '40k tokens / month',
+    allowance: 40000,
     features: ['1 workspace', 'Private projects', 'Community support'],
   },
   {
-    id: 'medium',
-    name: 'Medium',
+    id: 'team',
+    name: 'Team',
     description: 'For product teams shipping every week.',
     monthly: 42,
-    allowance: '140k tokens / month',
+    allowance: 140000,
+    team: true,
     features: ['Unlimited projects', 'Shared libraries', 'Priority support'],
   },
   {
@@ -39,20 +41,18 @@ const plans: Plan[] = [
     name: 'Top',
     description: 'For organizations standardizing product quality.',
     monthly: 86,
-    allowance: '400k tokens / month',
+    allowance: 400000,
     features: ['12 workspaces', 'Governance controls', 'Extra token packs'],
   },
 ]
 
 function readPlan(values: WireframeValues): PlanId {
-  return ['starter', 'medium', 'top'].includes(String(values.plan))
-    ? (values.plan as PlanId)
-    : 'none'
+  return ['starter', 'team', 'top'].includes(String(values.plan)) ? (values.plan as PlanId) : 'none'
 }
 
 function planPrice(plan: Plan, annual: boolean, seats: number) {
   const monthly = annual ? Math.round(plan.monthly * 0.8) : plan.monthly
-  return monthly * seats
+  return monthly * (plan.team ? seats : 1)
 }
 
 function actionForPlan(plan: Plan['id'], values: WireframeValues): WireframeAction {
@@ -60,6 +60,7 @@ function actionForPlan(plan: Plan['id'], values: WireframeValues): WireframeActi
     ...values,
     plan,
     annual: plan === 'starter' ? true : values.annual,
+    teamSeats: plan === 'team' ? Math.max(2, Number(values.teamSeats ?? 2)) : 1,
     tokensPurchased: plan === 'top' ? Number(values.tokensPurchased ?? 0) : 0,
   }
   return {
@@ -87,20 +88,21 @@ function PlanCard({
 }) {
   const selected = currentPlan === plan.id
   const price = planPrice(plan, annual, seats)
+  const tokensUsed = Math.max(0, Math.min(100, Number(values.tokensUsed ?? 0)))
   return (
     <article
       className={`pricing-wireframe__plan${prominent ? ' pricing-wireframe__plan--prominent' : ''}${selected ? ' pricing-wireframe__plan--current' : ''}`}
     >
       <header>
         <div>
-          <span>{plan.allowance}</span>
+          <span>{Math.round(plan.allowance / 1000)}k tokens / month</span>
           <h2>{plan.name}</h2>
         </div>
         {selected ? (
           <Chip size="small" color="success" variant="soft">
             Current
           </Chip>
-        ) : plan.id === 'medium' ? (
+        ) : plan.id === 'team' ? (
           <Chip size="small" color="accent" variant="soft">
             Recommended
           </Chip>
@@ -111,16 +113,36 @@ function PlanCard({
         <strong>${price}</strong>
         <span>
           / month
-          {seats > 1 ? ` · ${seats} seats` : ''}
+          {plan.team ? ` · ${Math.max(2, seats)} seats` : ''}
         </span>
       </div>
+      {plan.team && (
+        <div className="pricing-wireframe__team-seats">
+          <Slider
+            label="Team seats"
+            value={Math.max(2, seats)}
+            minValue={2}
+            maxValue={12}
+            step={1}
+            size="large"
+            formatValue={(value) => `${value} seats`}
+            onValueChange={(value) =>
+              onAction({
+                id: 'change-team-seats',
+                values: { ...values, teamSeats: value },
+              })
+            }
+          />
+        </div>
+      )}
+      {selected && <PlanUsage plan={plan} used={tokensUsed} />}
       <ul>
         {plan.features.map((feature) => (
           <li key={feature}>{feature}</li>
         ))}
       </ul>
       <Button
-        variant={prominent || plan.id === 'medium' ? 'primary' : 'secondary'}
+        variant={prominent || plan.id === 'team' ? 'primary' : 'secondary'}
         size="large"
         fullWidth
         disabled={selected}
@@ -133,6 +155,34 @@ function PlanCard({
             : `Move to ${plan.name}`}
       </Button>
     </article>
+  )
+}
+
+function PlanUsage({ plan, used }: { plan: Plan; used: number }) {
+  const remainingTokens = Math.round((plan.allowance * Math.max(0, 100 - used)) / 100)
+  const status =
+    used >= 100 ? 'Allowance exhausted' : used >= 80 ? 'Allowance running low' : 'On track'
+  return (
+    <section
+      className={`pricing-wireframe__usage${used >= 100 ? ' pricing-wireframe__usage--exhausted' : ''}`}
+      style={{ '--pricing-usage': `${used}%` } as React.CSSProperties}
+    >
+      <header>
+        <div>
+          <span>Included token usage</span>
+          <strong>{status}</strong>
+        </div>
+        <b>{used}%</b>
+      </header>
+      <div aria-hidden="true">
+        <span />
+      </div>
+      <p>
+        {used >= 100
+          ? `All ${Math.round(plan.allowance / 1000)}k included tokens are used.`
+          : `${remainingTokens.toLocaleString('en-US')} tokens remain this month.`}
+      </p>
+    </section>
   )
 }
 
@@ -248,7 +298,7 @@ function RecommendedLayout({
   const annual = Boolean(values.annual)
   const seats = Number(values.teamSeats ?? 1)
   const focusPlan = plans.find(
-    (plan) => plan.id === (currentPlan === 'none' ? 'medium' : currentPlan),
+    (plan) => plan.id === (currentPlan === 'none' ? 'team' : currentPlan),
   )!
   const alternatives = plans.filter((plan) => plan.id !== focusPlan.id)
   return (
@@ -259,7 +309,7 @@ function RecommendedLayout({
         </Chip>
         <h1>
           {currentPlan === 'none'
-            ? 'Medium is the clearest place to start.'
+            ? 'Team is the clearest place to start.'
             : `${focusPlan.name} fits your current work.`}
         </h1>
         <p>
@@ -292,7 +342,7 @@ function RecommendedLayout({
           >
             <div>
               <strong>{plan.name}</strong>
-              <small>{plan.allowance}</small>
+              <small>{Math.round(plan.allowance / 1000)}k tokens / month</small>
             </div>
             <b>${planPrice(plan, annual, seats)} / mo</b>
           </button>
@@ -313,6 +363,7 @@ function GuidedLayout({ values, onAction }: Pick<WireframeRenderContext, 'values
   const currentPlanId = readPlan(values)
   const currentPlan = plans.find((plan) => plan.id === currentPlanId)
   const tokens = Number(values.tokensPurchased ?? 0)
+  const tokensUsed = Number(values.tokensUsed ?? 0)
   const seats = Number(values.teamSeats ?? 1)
   return (
     <div className="pricing-wireframe__guided-layout">
@@ -323,7 +374,9 @@ function GuidedLayout({ values, onAction }: Pick<WireframeRenderContext, 'values
           </Chip>
           <h1>
             {currentPlan
-              ? `${currentPlan.name} is working for ${seats} ${seats === 1 ? 'seat' : 'seats'}.`
+              ? currentPlan.team
+                ? `${currentPlan.name} is working for ${seats} ${seats === 1 ? 'seat' : 'seats'}.`
+                : `${currentPlan.name} is active on this account.`
               : 'Choose the capacity your team needs.'}
           </h1>
         </div>
@@ -333,12 +386,16 @@ function GuidedLayout({ values, onAction }: Pick<WireframeRenderContext, 'values
         <div>
           <span>Current plan</span>
           <strong>{currentPlan?.name ?? 'None'}</strong>
-          <small>{currentPlan?.allowance ?? 'No monthly allowance'}</small>
+          <small>
+            {currentPlan
+              ? `${Math.round(currentPlan.allowance / 1000)}k tokens / month`
+              : 'No monthly allowance'}
+          </small>
         </div>
         <div>
-          <span>Team</span>
-          <strong>{seats}</strong>
-          <small>{seats === 1 ? 'active seat' : 'active seats'}</small>
+          <span>Account</span>
+          <strong>{currentPlan?.team ? `${seats} seats` : currentPlan ? 'Individual' : '—'}</strong>
+          <small>{currentPlan?.team ? 'Team billing' : 'Single billing account'}</small>
         </div>
         <div>
           <span>Billing</span>
@@ -346,6 +403,7 @@ function GuidedLayout({ values, onAction }: Pick<WireframeRenderContext, 'values
           <small>{values.annual ? '20% lower monthly equivalent' : 'Flexible renewal'}</small>
         </div>
       </section>
+      {currentPlan && <PlanUsage plan={currentPlan} used={tokensUsed} />}
       {currentPlanId === 'top' ? (
         <TokenAllowance purchased={tokens} values={values} onAction={onAction} />
       ) : (
@@ -355,7 +413,7 @@ function GuidedLayout({ values, onAction }: Pick<WireframeRenderContext, 'values
             <h2>
               {currentPlan
                 ? 'Unlock extra token capacity with Top.'
-                : 'Start with Medium and keep room to grow.'}
+                : 'Start with Team and keep room to grow.'}
             </h2>
             <p>The recommendation changes when account entitlement changes.</p>
           </div>
@@ -364,14 +422,14 @@ function GuidedLayout({ values, onAction }: Pick<WireframeRenderContext, 'values
             size="large"
             onClick={() =>
               onAction(
-                actionForPlan(currentPlan ? 'top' : 'medium', {
+                actionForPlan(currentPlan ? 'top' : 'team', {
                   ...values,
                   annual: true,
                 }),
               )
             }
           >
-            {currentPlan ? 'Upgrade to Top' : 'Choose Medium'}
+            {currentPlan ? 'Upgrade to Top' : 'Choose Team'}
           </Button>
         </section>
       )}

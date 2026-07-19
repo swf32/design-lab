@@ -4,7 +4,6 @@ import {
   Button,
   Checkbox,
   Chip,
-  IconButton,
   RadioButton,
   Slider,
   TabSwitcher,
@@ -12,26 +11,12 @@ import {
   WireframeDevPanel,
 } from '@design-lab/system/components'
 import { ArrowLeftIcon, LinkIcon } from '@design-lab/system/icons'
-import type {
-  WireframeAction,
-  WireframeModule,
-  WireframeValues,
-} from '@design-lab/system/wireframes'
+import type { WireframeAction, WireframeValues } from '@design-lab/system/wireframes'
 import type { ModuleData } from '../../api/projects'
+import { wireframeRendererFor } from '../../wireframes/registry'
 
 type WireframeEntity = Extract<ModuleData, { kind: 'wireframes' }>['wireframes'][number]
 type WireframeViewMode = 'screen' | 'flow'
-
-const wireframeModules = import.meta.glob<WireframeModule>(
-  '../../../../libraries/*/wireframes/**/*.wireframe.tsx',
-  { eager: true },
-)
-
-function rendererFor(wireframe: WireframeEntity) {
-  if (!wireframe.entry) return null
-  const suffix = `/libraries/${wireframe.sourceId}/wireframes/${wireframe.directory}/${wireframe.entry}`
-  return Object.entries(wireframeModules).find(([path]) => path.endsWith(suffix))?.[1] ?? null
-}
 
 function parseControlValue(
   value: string,
@@ -45,12 +30,17 @@ function parseControlValue(
   return value
 }
 
-function valuesMatch(
-  candidate: WireframeValues,
-  state: WireframeEntity['states'][number],
-  controls: WireframeEntity['controls'],
-) {
-  return controls.every((control) => candidate[control.id] === state.values[control.id])
+function parseStateValue(value: string, sample: unknown) {
+  if (typeof sample === 'boolean') return value === 'true'
+  if (typeof sample === 'number') {
+    const parsed = Number(value)
+    return Number.isFinite(parsed) ? parsed : sample
+  }
+  return value
+}
+
+function valuesMatch(candidate: WireframeValues, state: WireframeEntity['states'][number]) {
+  return Object.entries(state.values).every(([id, value]) => candidate[id] === value)
 }
 
 function initialContext(wireframe: WireframeEntity) {
@@ -68,9 +58,11 @@ function initialContext(wireframe: WireframeEntity) {
     const serialized = search.get(`control.${control.id}`)
     if (serialized != null) values[control.id] = parseControlValue(serialized, control)
   }
-  const matchedState = wireframe.states.find((item) =>
-    valuesMatch(values, item, wireframe.controls),
-  )
+  for (const [id, sample] of Object.entries(state?.values ?? {})) {
+    const serialized = search.get(`value.${id}`)
+    if (serialized != null) values[id] = parseStateValue(serialized, sample)
+  }
+  const matchedState = wireframe.states.find((item) => valuesMatch(values, item))
   const view: WireframeViewMode = search.get('view') === 'flow' ? 'flow' : 'screen'
   const node =
     wireframe.flow.nodes.find((item) => item.state === matchedState?.id) ??
@@ -101,10 +93,9 @@ export function WireframeView({
   const [view, setView] = useState<WireframeViewMode>(initial.view)
   const [selectedNodeId, setSelectedNodeId] = useState<string | null>(initial.selectedNodeId)
   const [devModeOpen, setDevModeOpen] = useState(false)
-  const [copied, setCopied] = useState(false)
-  const renderer = rendererFor(wireframe)
+  const [copyState, setCopyState] = useState<'idle' | 'copied' | 'failed'>('idle')
+  const renderer = wireframeRendererFor(wireframe)
   const currentState = wireframe.states.find((state) => state.id === stateId) ?? null
-  const selectedNode = wireframe.flow.nodes.find((node) => node.id === selectedNodeId) ?? null
 
   useEffect(() => {
     const search = new URLSearchParams()
@@ -112,8 +103,7 @@ export function WireframeView({
     search.set('layout', layout)
     search.set('view', view)
     search.set('state', stateId ?? 'custom')
-    for (const control of wireframe.controls)
-      search.set(`control.${control.id}`, String(values[control.id]))
+    for (const [id, value] of Object.entries(values)) search.set(`value.${id}`, String(value))
     const next = `${window.location.pathname}?${search.toString()}`
     if (`${window.location.pathname}${window.location.search}` !== next)
       window.history.replaceState(window.history.state, '', next)
@@ -129,9 +119,7 @@ export function WireframeView({
   }
 
   const applyValues = (nextValues: WireframeValues) => {
-    const matched = wireframe.states.find((state) =>
-      valuesMatch(nextValues, state, wireframe.controls),
-    )
+    const matched = wireframe.states.find((state) => valuesMatch(nextValues, state))
     setValues(nextValues)
     setStateId(matched?.id ?? null)
     if (matched) {
@@ -167,9 +155,30 @@ export function WireframeView({
   }
 
   const copyLink = async () => {
-    await navigator.clipboard.writeText(window.location.href)
-    setCopied(true)
-    window.setTimeout(() => setCopied(false), 1400)
+    const value = window.location.href
+    let copied = false
+    if (navigator.clipboard?.writeText && window.isSecureContext)
+      try {
+        await navigator.clipboard.writeText(value)
+        copied = true
+      } catch {
+        copied = false
+      }
+    if (!copied) {
+      const textarea = document.createElement('textarea')
+      textarea.value = value
+      textarea.readOnly = true
+      textarea.style.position = 'fixed'
+      textarea.style.inset = '0 auto auto -9999px'
+      textarea.style.fontSize = '16px'
+      document.body.append(textarea)
+      textarea.select()
+      textarea.setSelectionRange(0, value.length)
+      copied = document.execCommand('copy')
+      textarea.remove()
+    }
+    setCopyState(copied ? 'copied' : 'failed')
+    if (copied) window.setTimeout(() => setCopyState('idle'), 1800)
   }
 
   const nodes = wireframe.flow.nodes.map((node) => {
@@ -178,6 +187,15 @@ export function WireframeView({
       id: node.id,
       title: state?.name ?? node.state,
       description: state?.description ?? 'State definition unavailable.',
+      preview:
+        renderer && state
+          ? renderer.renderWireframe({
+              layout,
+              state: state.id,
+              values: { ...state.values },
+              onAction: () => undefined,
+            })
+          : null,
       eyebrow:
         wireframe.flow.edges.some((edge) => edge.to === node.id) &&
         wireframe.flow.edges.some((edge) => edge.from === node.id)
@@ -192,62 +210,18 @@ export function WireframeView({
 
   return (
     <main className="wireframe-view">
-      <header className="wireframe-view__toolbar">
-        <div className="wireframe-view__identity">
-          <IconButton type="button" aria-label="Back to Wireframes" onClick={onClose}>
-            <ArrowLeftIcon size={18} />
-          </IconButton>
-          <div>
-            <span>Wireframe · {wireframe.status}</span>
-            <strong>{wireframe.name}</strong>
-          </div>
-        </div>
-        <TabSwitcher
-          ariaLabel="Wireframe view"
-          value={view}
-          onChange={setView}
-          options={[
-            { value: 'screen', label: 'Screen' },
-            { value: 'flow', label: 'User flow' },
-          ]}
-        />
-        <div className="wireframe-view__context">
-          <div>
-            <span>{wireframe.layouts.find((item) => item.id === layout)?.name}</span>
-            <strong>{currentState?.name ?? 'Custom state'}</strong>
-          </div>
-          {view === 'flow' && selectedNode && (
-            <Button size="small" variant="primary" onClick={() => setView('screen')}>
-              Preview state
-            </Button>
-          )}
-          <IconButton
-            type="button"
-            aria-label={copied ? 'Link copied' : 'Copy review link'}
-            onClick={copyLink}
-          >
-            <LinkIcon size={18} />
-          </IconButton>
-        </div>
-      </header>
-
       <section className={`wireframe-view__stage wireframe-view__stage--${view}`}>
         {view === 'flow' ? (
-          <>
-            <UserFlowCanvas
-              nodes={nodes}
-              edges={wireframe.flow.edges}
-              selectedId={selectedNodeId}
-              onSelect={selectNode}
-            />
-            <Button
-              className="wireframe-view__mobile-preview"
-              variant="primary"
-              onClick={() => setView('screen')}
-            >
-              Preview state
-            </Button>
-          </>
+          <UserFlowCanvas
+            nodes={nodes}
+            edges={wireframe.flow.edges}
+            selectedId={selectedNodeId}
+            onSelect={selectNode}
+            onPreview={(nodeId) => {
+              selectNode(nodeId)
+              setView('screen')
+            }}
+          />
         ) : renderer ? (
           <div
             className="wireframe-view__screen"
@@ -287,6 +261,60 @@ export function WireframeView({
         }
       >
         <div className="wireframe-dev-controls">
+          <section>
+            <header>
+              <span>Review</span>
+              <Chip size="small" variant="soft">
+                {view === 'screen' ? 'Screen' : 'User flow'}
+              </Chip>
+            </header>
+            <div className="wireframe-dev-controls__review">
+              <Button
+                variant="ghost"
+                size="small"
+                fullWidth
+                leading={<ArrowLeftIcon size={16} aria-hidden="true" />}
+                onClick={onClose}
+              >
+                Back to Wireframes
+              </Button>
+              <TabSwitcher
+                ariaLabel="Wireframe view"
+                value={view}
+                onChange={(nextView) => {
+                  setView(nextView)
+                  setDevModeOpen(false)
+                }}
+                options={[
+                  { value: 'screen', label: 'Screen' },
+                  { value: 'flow', label: 'User flow' },
+                ]}
+              />
+              <Button
+                variant="secondary"
+                size="small"
+                fullWidth
+                leading={<LinkIcon size={16} aria-hidden="true" />}
+                onClick={copyLink}
+              >
+                {copyState === 'copied'
+                  ? 'Link copied'
+                  : copyState === 'failed'
+                    ? 'Copy manually below'
+                    : 'Copy review link'}
+              </Button>
+              {copyState === 'failed' && (
+                <input
+                  className="wireframe-dev-controls__copy-fallback"
+                  aria-label="Review link"
+                  value={window.location.href}
+                  readOnly
+                  onFocus={(event) => event.currentTarget.select()}
+                  onClick={(event) => event.currentTarget.select()}
+                />
+              )}
+            </div>
+          </section>
           <section>
             <header>
               <span>Layout direction</span>
@@ -390,9 +418,13 @@ export function WireframeView({
           </section>
         </div>
       </WireframeDevPanel>
-      <div className="wireframe-view__live-state" aria-live="polite">
-        {currentState?.name ?? 'Custom state'}
-      </div>
+      <span className="wireframe-view__copy-status" aria-live="polite">
+        {copyState === 'copied'
+          ? 'Review link copied'
+          : copyState === 'failed'
+            ? 'Copy is unavailable. Select the browser address.'
+            : ''}
+      </span>
     </main>
   )
 }

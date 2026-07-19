@@ -6,56 +6,10 @@
   color: var(--color-text-primary);
   overflow: hidden;
   position: relative;
-  display: grid;
-  grid-template-rows: 64px minmax(0, 1fr);
-}
-.wireframe-view__toolbar {
-  min-width: 0;
-  padding: 0 var(--spacing-3);
-  border-bottom: 1px solid var(--color-border-subtle);
-  background: var(--color-surface-primary);
-  position: relative;
-  z-index: 20;
-  display: grid;
-  grid-template-columns: minmax(220px, 1fr) auto minmax(220px, 1fr);
-  align-items: center;
-  gap: var(--spacing-3);
-}
-.wireframe-view__identity,
-.wireframe-view__context {
-  min-width: 0;
-  display: flex;
-  align-items: center;
-  gap: var(--spacing-3);
-}
-.wireframe-view__identity > div,
-.wireframe-view__context > div {
-  min-width: 0;
-  display: grid;
-  gap: 2px;
-}
-.wireframe-view__identity span,
-.wireframe-view__context span {
-  overflow: hidden;
-  color: var(--color-text-disabled);
-  font-size: 8px;
-  letter-spacing: 0.07em;
-  text-overflow: ellipsis;
-  text-transform: uppercase;
-  white-space: nowrap;
-}
-.wireframe-view__identity strong,
-.wireframe-view__context strong {
-  overflow: hidden;
-  font-size: 11px;
-  font-weight: 600;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-.wireframe-view__context {
-  justify-content: flex-end;
 }
 .wireframe-view__stage {
+  width: 100%;
+  height: 100%;
   min-width: 0;
   min-height: 0;
   overflow: hidden;
@@ -64,15 +18,11 @@
   overflow: auto;
   overscroll-behavior: contain;
 }
-.wireframe-view__stage--flow {
-  padding: var(--spacing-3);
-}
 .wireframe-view__stage--flow > .dl-user-flow-canvas {
   width: 100%;
   height: 100%;
-}
-.wireframe-view__mobile-preview {
-  display: none;
+  border: 0;
+  border-radius: 0;
 }
 .wireframe-view__screen {
   min-height: 100%;
@@ -121,6 +71,28 @@
   display: grid;
   gap: var(--spacing-3);
 }
+.wireframe-dev-controls__review > .dl-button {
+  justify-content: flex-start;
+}
+.wireframe-dev-controls__review > .dl-tab-switcher {
+  width: 100%;
+}
+.wireframe-dev-controls__copy-fallback {
+  width: 100%;
+  min-height: 44px;
+  padding: 0 var(--spacing-3);
+  border: 1px solid var(--color-border-default);
+  border-radius: var(--radius-small);
+  background: var(--color-surface-secondary);
+  color: var(--color-text-secondary);
+  font: inherit;
+  font-size: 16px;
+}
+.wireframe-dev-controls__copy-fallback:focus {
+  border-color: var(--color-accent-primary);
+  outline: 2px solid color-mix(in srgb, var(--color-accent-primary) 30%, transparent);
+  outline-offset: 1px;
+}
 .wireframe-dev-controls__radio {
   display: grid;
   gap: var(--spacing-1);
@@ -135,69 +107,19 @@
   font-size: 9px;
   line-height: 1.5;
 }
-.wireframe-view__live-state {
-  min-height: 28px;
-  padding: 0 var(--spacing-3);
-  border: 1px solid var(--color-border-default);
-  border-radius: 999px;
-  background: color-mix(in srgb, var(--color-surface-raised) 88%, transparent);
-  backdrop-filter: blur(12px);
-  color: var(--color-text-muted);
-  font-size: 9px;
-  pointer-events: none;
+.wireframe-view__copy-status {
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  border: 0;
+  overflow: hidden;
   position: absolute;
-  z-index: 12;
-  inset-block-end: max(var(--spacing-3), env(safe-area-inset-bottom));
-  inset-inline-start: 50%;
-  transform: translateX(-50%);
-  display: flex;
-  align-items: center;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
 }
 @media (max-width: 760px) {
-  .wireframe-view {
-    grid-template-rows: auto minmax(0, 1fr);
-  }
-  .wireframe-view__toolbar {
-    min-height: 112px;
-    padding: max(var(--spacing-2), env(safe-area-inset-top))
-      max(var(--spacing-3), env(safe-area-inset-right)) var(--spacing-2)
-      max(var(--spacing-3), env(safe-area-inset-left));
-    grid-template-columns: minmax(0, 1fr) auto;
-    grid-template-areas:
-      'identity context'
-      'switcher switcher';
-    gap: var(--spacing-2);
-  }
-  .wireframe-view__identity {
-    grid-area: identity;
-  }
-  .wireframe-view__context {
-    grid-area: context;
-  }
-  .wireframe-view__context > div,
-  .wireframe-view__context > .dl-button {
-    display: none;
-  }
-  .wireframe-view__toolbar > .dl-tab-switcher {
-    width: 100%;
-    grid-area: switcher;
-  }
-  .wireframe-view__toolbar > .dl-tab-switcher button {
+  .wireframe-dev-controls__review > .dl-tab-switcher button {
     min-height: 44px;
-  }
-  .wireframe-view__stage--flow {
-    padding: 0;
-    position: relative;
-  }
-  .wireframe-view__mobile-preview {
-    min-height: 48px;
-    position: absolute;
-    z-index: 12;
-    inset-block-end: max(var(--spacing-3), env(safe-area-inset-bottom));
-    inset-inline-end: max(var(--spacing-3), env(safe-area-inset-right));
-    display: inline-flex;
-  }
-  .wireframe-view__live-state {
-    display: none;
   }
 }

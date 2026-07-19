@@ -8,6 +8,7 @@ const nodes = [
     eyebrow: 'Entry',
     title: 'No subscription',
     description: 'A new buyer compares available plans.',
+    preview: <div style={{ minHeight: '100%', background: 'var(--color-surface-secondary)' }} />,
     x: 60,
     y: 180,
   },
@@ -16,6 +17,7 @@ const nodes = [
     eyebrow: 'Subscription',
     title: 'Top plan',
     description: 'Extra token allowance becomes available.',
+    preview: <div style={{ minHeight: '100%', background: 'var(--color-surface-raised)' }} />,
     x: 470,
     y: 180,
   },
@@ -24,6 +26,7 @@ const nodes = [
     eyebrow: 'Terminal',
     title: 'Allowance full',
     description: 'No more token purchases are available.',
+    preview: <div style={{ minHeight: '100%', background: 'var(--color-surface-primary)' }} />,
     x: 880,
     y: 180,
   },
@@ -57,6 +60,7 @@ function UserFlowCanvasStory() {
       ]}
       selectedId={selected}
       onSelect={setSelected}
+      onPreview={setSelected}
     />
   )
 }
