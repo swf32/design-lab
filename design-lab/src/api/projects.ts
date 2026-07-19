@@ -106,13 +106,15 @@ export type ModuleData =
   | {
       kind: 'components'
       folders: string[]
+      modes: string[]
+      themeVariables: Record<string, Record<string, string | number>>
       components: Array<{
         id: string
         sourceId?: string
         name: string
-        entry: string
+        entry?: string
         style?: string | null
-        status: string
+        status?: string
         variants: string[]
         states?: string[]
         previewMotion?: PreviewMotion
@@ -120,6 +122,7 @@ export type ModuleData =
         docs?: string
         stories?: string
         preview?: string
+        playground?: string | null
         changelog?: string
         documentation?: string | null
         changelogDocumentation?: string | null
@@ -127,7 +130,7 @@ export type ModuleData =
           symbol: string
           from: string
           statement: string
-        }
+        } | null
         files: Array<{
           role: string
           path: string

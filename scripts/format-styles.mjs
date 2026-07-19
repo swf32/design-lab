@@ -6,10 +6,7 @@ import * as prettier from 'prettier'
 
 const root = process.cwd()
 const mode = process.argv.includes('--check') ? 'check' : 'write'
-const styleRoots = [
-  join(root, 'design-lab/src'),
-  join(root, 'libraries/design-lab-system/components'),
-]
+const styleRoots = [join(root, 'design-lab/src'), join(root, 'libraries')]
 
 async function filesUnder(directory, predicate, result = []) {
   for (const entry of await readdir(directory, { withFileTypes: true })) {

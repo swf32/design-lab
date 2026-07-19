@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Added: Configurable start/end controls rail for full-route typed Component Playgrounds.
+- Responsive: Canvas remains first and controls move below it on phone layouts.
 - Changed: Added authored semantic retrieval metadata for MCP and CLI search.
 
 - Changed: Workbench stories now render automatically from the adjacent story module.

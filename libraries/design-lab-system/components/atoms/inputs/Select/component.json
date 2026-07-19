@@ -1,0 +1,53 @@
+{
+  "id": "select",
+  "name": "Select",
+  "description": "Chooses one value from a predefined option list using the platform-native picker and shared field anatomy.",
+  "aliases": ["dropdown", "select field", "option picker", "enum control"],
+  "useWhen": [
+    "choose one value from several options",
+    "render an enum Playground control",
+    "use a platform-native option picker"
+  ],
+  "avoidWhen": [
+    "switch between two highly visible modes",
+    "select several values",
+    "navigate between pages"
+  ],
+  "entry": "Select.tsx",
+  "preview": "Select.preview.tsx",
+  "stories": "Select.stories.ts",
+  "docs": "README.md",
+  "changelog": "CHANGELOG.md",
+  "status": "ready",
+  "variants": ["small", "medium", "large"],
+  "states": ["default", "hover", "focus", "invalid", "disabled"],
+  "props": {
+    "label": {
+      "type": "ReactNode",
+      "required": true
+    },
+    "options": {
+      "type": "readonly SelectOption[]",
+      "required": true
+    },
+    "size": {
+      "type": "SelectSize",
+      "values": ["small", "medium", "large"],
+      "default": "medium"
+    },
+    "fullWidth": {
+      "type": "boolean",
+      "default": false
+    },
+    "visuallyHideLabel": {
+      "type": "boolean",
+      "default": false
+    },
+    "helperText": {
+      "type": "ReactNode"
+    },
+    "errorMessage": {
+      "type": "ReactNode"
+    }
+  }
+}

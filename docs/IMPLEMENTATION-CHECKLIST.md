@@ -416,7 +416,10 @@ Components использует Tokens, Palette и Fonts и становится
 - [x] Общий component color axis использует `default | accent | success | warning | danger`; warning добавлен в canonical dark/light tokens.
 - [ ] Поиск по name, aliases, description, props и назначению.
 - [ ] Filters: status, completeness, dependencies, diagnostics, tags.
-- [ ] Карточка показывает name, preview, status и completeness.
+- [x] Карточка показывает name и lifecycle status; отсутствие или неизвестное значение не блокирует discovery.
+- [x] Typed `*.playground.tsx` автоматически создаёт multi-variant route без application registry.
+- [x] Wireframe-only Component обнаруживается без production entry и не попадает в generated package barrel.
+- [ ] Completeness badge/action помимо lifecycle status.
 - [x] Detail view: Canvas, Playground, Docs, Code, Dependencies, Changelog; Component Reference показывает import, discovered files и прямые production/example relationships.
 - [ ] Props controls для boolean, enum, string, number и slots. (Boolean, enum, string и slots реализованы для Button.)
 - [x] Самостоятельные полноширинные Stories для variants, sizes, fullWidth, loading и composition эталонного Button.

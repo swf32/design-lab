@@ -22,9 +22,9 @@
 |----|----|
 | Purpose | Хранить переиспользуемые UI-единицы с вариантами, состояниями, пропсами, preview и документацией |
 | Minimal data model | `id`, `name`, `status`, `description`, `props[]`, `variants[]`, `states[]`, `slots[]`, `tokensUsed[]`, `dependsOn[]`, `usedBy[]`, `docsRef`, `changelogRef` |
-| File examples | `Button.tsx`, `Button.scss`, `component.json`, `Button.preview.tsx`, `Button.stories.tsx`, `README.md`, `CHANGELOG.md`, `render.tsx` опционально |
-| UX flow | Создать компонент → задать props/variants/states → собрать preview → сохранить docs → использовать на pages/wireframes |
-| Features | **MVP**: metadata, static or optional manifest-declared animated preview, executable adjacent stories, docs, changelog, canonical import, direct production/example usage graph. **Next**: completeness diagnostics and composition authoring. **Future**: cross-platform contracts |
+| File examples | `component.json`, optional `Button.playground.tsx`, затем `Button.tsx`, `Button.scss`, `Button.preview.tsx`, `Button.stories.tsx`, `README.md`, `CHANGELOG.md` |
+| UX flow | Создать wireframe Component → сравнить Playground variants → выбрать направление → реализовать production Component → добавить preview/stories/docs → отметить ready |
+| Features | **MVP**: lifecycle status, typed Playground variants and controls, metadata, preview, executable adjacent stories, docs, changelog, canonical import, direct production/example usage graph. **Next**: approval metadata and richer completeness actions. **Future**: cross-platform contracts |
 
 Пример дерева:
 
@@ -35,6 +35,7 @@
                 ├── Button.tsx
                 ├── Button.scss
                 ├── component.json
+                ├── Button.playground.tsx
                 ├── Button.preview.tsx
                 ├── Button.stories.tsx
                 ├── README.md
@@ -44,6 +45,8 @@
 Папки над Component являются источником category и navigation path. `component.json` не повторяет category. Для package consumers производный `components/index.ts` автоматически строится из всех найденных manifests и может быть удалён и восстановлен без потери данных.
 
 Manifest-declared `*.stories.ts(x)` хранит и story metadata, и `renderStoryExample`. Workbench загружает его по обнаруженному component directory без центрального application registry. Scanner статически разбирает TypeScript/TSX imports и возвращает четыре прямых набора связей: production `uses` / `usedBy` и example-only `examplesUse` / `usedInExamplesBy`. Type-only imports игнорируются; production dependencies вычитаются из example graph, чтобы одна и та же связь не дублировалась. Preview imports production Components становятся diagnostics, потому что preview обязан оставаться самостоятельной illustrative composition.
+
+Соседний `ComponentName.playground.tsx` обнаруживается по соглашению об имени и использует общий typed control registry. Он может существовать до production entry, поэтому wireframe-only Component не попадает в generated package barrel, но остаётся полноценной filesystem entity. Поддерживаемый lifecycle: `wireframe → in-progress → ready`; отсутствующий status не блокирует discovery и превращается в diagnostic.
 
 ## Wireframes
 

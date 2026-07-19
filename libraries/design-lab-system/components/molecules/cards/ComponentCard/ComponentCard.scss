@@ -45,7 +45,10 @@
     transparent 100%
   );
   display: flex;
-  align-items: flex-end;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: flex-end;
+  gap: 5px;
   pointer-events: none;
 }
 .dl-component-card__footer strong {
@@ -58,4 +61,8 @@
   text-overflow: ellipsis;
   white-space: nowrap;
   transition: color var(--transition-fast);
+}
+
+.dl-component-card__footer .dl-chip {
+  align-self: flex-start;
 }

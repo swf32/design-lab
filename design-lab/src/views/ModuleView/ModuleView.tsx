@@ -57,12 +57,13 @@ import {
 } from '@design-lab/system/components'
 import { TokensIcon } from '@design-lab/system/icons'
 import type { ModuleData } from '../../api/projects'
+import { ComponentPlaygroundView } from '../ComponentPlaygroundView/ComponentPlaygroundView'
 
 type ComponentEntity = Extract<ModuleData, { kind: 'components' }>['components'][number]
 
 type PreviewModule = Record<string, ComponentType>
-const systemPreviewModules = import.meta.glob<PreviewModule>(
-  '../../../../libraries/design-lab-system/components/**/*.preview.tsx',
+const previewModules = import.meta.glob<PreviewModule>(
+  '../../../../libraries/*/components/**/*.preview.tsx',
   { eager: true },
 )
 
@@ -82,8 +83,8 @@ type StoryModule = {
   stories?: StoryDefinition[]
   renderStoryExample?: (example: StoryExample, story: StoryDefinition) => ReactNode
 }
-const systemStoryModules = import.meta.glob<StoryModule>(
-  '../../../../libraries/design-lab-system/components/**/*.stories.{ts,tsx}',
+const storyModules = import.meta.glob<StoryModule>(
+  '../../../../libraries/*/components/**/*.stories.{ts,tsx}',
   { eager: true },
 )
 
@@ -94,9 +95,9 @@ function DiscoveredComponentPreview({
   component: ComponentEntity
   sourceId: string
 }) {
-  if ((component.sourceId ?? sourceId) === 'design-lab-system' && component.preview) {
-    const suffix = `/components/${component.directory}/${component.preview}`
-    const module = Object.entries(systemPreviewModules).find(([path]) => path.endsWith(suffix))?.[1]
+  if (component.preview) {
+    const suffix = `/libraries/${component.sourceId ?? sourceId}/components/${component.directory}/${component.preview}`
+    const module = Object.entries(previewModules).find(([path]) => path.endsWith(suffix))?.[1]
     const Preview = module && Object.values(module).find((value) => typeof value === 'function')
     if (Preview) return <Preview />
   }
@@ -830,8 +831,8 @@ function Specimen({
 
 function DiscoveredComponentStories({ component }: { component: ComponentEntity }) {
   if (!component.stories) return null
-  const suffix = `/components/${component.directory}/${component.stories}`
-  const module = Object.entries(systemStoryModules).find(([path]) => path.endsWith(suffix))?.[1]
+  const suffix = `/libraries/${component.sourceId}/components/${component.directory}/${component.stories}`
+  const module = Object.entries(storyModules).find(([path]) => path.endsWith(suffix))?.[1]
   if (!module?.stories?.length || !module.renderStoryExample) return null
 
   return (
@@ -861,6 +862,7 @@ function DiscoveredComponentStories({ component }: { component: ComponentEntity 
 function ComponentWorkbench({
   component,
   onBack,
+  onOpenPlayground,
   onSelectComponent,
   canvasMode,
   canvasColor,
@@ -869,6 +871,7 @@ function ComponentWorkbench({
 }: {
   component: ComponentEntity
   onBack: () => void
+  onOpenPlayground: () => void
   onSelectComponent: (id: string) => void
   canvasMode: CanvasMode
   canvasColor: string
@@ -1325,10 +1328,17 @@ function ComponentWorkbench({
           backLabel={t('workbench.back')}
           onBack={onBack}
           meta={component.entry}
+          actions={
+            component.playground ? (
+              <Button type="button" variant="primary" size="small" onClick={onOpenPlayground}>
+                Open Playground
+              </Button>
+            ) : undefined
+          }
         />
       </div>
       <ComponentReferencePanel
-        importStatement={component.import.statement}
+        importStatement={component.import?.statement ?? ''}
         files={component.files}
         uses={component.relations.uses}
         usedBy={component.relations.usedBy}
@@ -1481,8 +1491,9 @@ function Catalog({
                     <ComponentCard
                       key={component.id}
                       name={component.name}
-                      entry={component.entry}
+                      entry={component.entry ?? ''}
                       meta={`${component.variants.length} variants`}
+                      status={component.status}
                       preview={
                         <DiscoveredComponentPreview component={component} sourceId={sourceId} />
                       }
@@ -1501,6 +1512,61 @@ function Catalog({
           <span>Choose All or another folder in the Directory Panel.</span>
         </div>
       )}
+    </div>
+  )
+}
+
+function ComponentConceptOverview({
+  component,
+  onBack,
+  onOpenPlayground,
+}: {
+  component: ComponentEntity
+  onBack: () => void
+  onOpenPlayground: () => void
+}) {
+  const status = component.status ?? 'wireframe'
+  return (
+    <div className="workbench">
+      <div className="workbench__top">
+        <ModuleHeader
+          eyebrow={component.directory}
+          title={component.name}
+          backLabel="Components"
+          onBack={onBack}
+          meta="Wireframe-only component"
+          actions={
+            component.playground ? (
+              <Button type="button" variant="primary" onClick={onOpenPlayground}>
+                Open Playground
+              </Button>
+            ) : (
+              <Chip color="warning" variant="soft">
+                {status}
+              </Chip>
+            )
+          }
+        />
+      </div>
+      <section className="workbench__rail">
+        <div className="workbench-section">
+          <span>Lifecycle</span>
+          <div className="workbench-markdown">
+            <p>
+              This component is intentionally discoverable before a production entry exists. Its
+              typed Playground is the review surface for choosing a direction.
+            </p>
+          </div>
+        </div>
+        <div className="workbench-section">
+          <span>Documentation</span>
+          <div className="workbench-markdown">
+            <ReactMarkdown components={markdownComponents}>
+              {component.documentation ?? 'Documentation has not been written yet.'}
+            </ReactMarkdown>
+          </div>
+        </div>
+      </section>
     </div>
   )
 }
@@ -1579,6 +1645,9 @@ export function ModuleView({
   canvasColor,
   onCanvasModeChange,
   onCanvasColorChange,
+  playgroundOpen,
+  onOpenPlayground,
+  onClosePlayground,
 }: {
   data: ModuleData | null
   loading: boolean
@@ -1592,6 +1661,9 @@ export function ModuleView({
   canvasColor: string
   onCanvasModeChange: (mode: CanvasMode) => void
   onCanvasColorChange: (color: string) => void
+  playgroundOpen: boolean
+  onOpenPlayground: () => void
+  onClosePlayground: () => void
 }) {
   const { t } = useDesignLabI18n()
   const modes = data && 'modes' in data ? data.modes : []
@@ -1749,15 +1821,34 @@ export function ModuleView({
     )
   if (data.kind === 'components') {
     const selected = data.components.find((item) => item.id === selectedEntityId)
-    return selected ? (
+    if (selected && playgroundOpen)
+      return (
+        <ComponentPlaygroundView
+          component={selected}
+          data={data}
+          canvasMode={canvasMode}
+          canvasColor={canvasColor}
+          onCanvasModeChange={onCanvasModeChange}
+          onCanvasColorChange={onCanvasColorChange}
+          onClose={onClosePlayground}
+        />
+      )
+    return selected?.entry ? (
       <ComponentWorkbench
         component={selected}
         onBack={onBack}
+        onOpenPlayground={onOpenPlayground}
         onSelectComponent={onSelectEntity}
         canvasMode={canvasMode}
         canvasColor={canvasColor}
         onCanvasModeChange={onCanvasModeChange}
         onCanvasColorChange={onCanvasColorChange}
+      />
+    ) : selected ? (
+      <ComponentConceptOverview
+        component={selected}
+        onBack={onBack}
+        onOpenPlayground={onOpenPlayground}
       />
     ) : (
       <Catalog

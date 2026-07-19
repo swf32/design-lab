@@ -58,6 +58,11 @@
       "values": ["none", "compact", "comfortable"],
       "default": "comfortable"
     },
+    "controlsPosition": {
+      "type": "WorkbenchPlaygroundControlsPosition",
+      "values": ["start", "end"],
+      "default": "end"
+    },
     "eventLog": {
       "type": "ReactNode",
       "slot": true

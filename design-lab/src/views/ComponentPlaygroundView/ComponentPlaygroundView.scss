@@ -1,0 +1,167 @@
+.component-playground-page {
+  width: 100%;
+  height: 100%;
+  overflow: auto;
+  align-self: stretch;
+  background: var(--color-surface-raised);
+}
+
+.component-playground-page__top {
+  padding: var(--spacing-2) var(--spacing-4) var(--spacing-4);
+  border-bottom: 1px solid var(--color-border-subtle);
+  background: var(--color-surface-primary);
+}
+
+.component-playground-page__selectors {
+  padding-top: var(--spacing-3);
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: var(--spacing-4);
+}
+
+.component-playground-page__selectors > div {
+  min-width: 0;
+  display: grid;
+  gap: var(--spacing-2);
+}
+
+.component-playground-page__selectors > div > span,
+.component-playground-controls > header span,
+.component-playground-controls__choice legend {
+  color: var(--color-text-disabled);
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.component-playground-controls {
+  height: 100%;
+  box-sizing: border-box;
+  padding: var(--spacing-4);
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-4);
+}
+
+.component-playground-controls > header {
+  padding-bottom: var(--spacing-3);
+  border-bottom: 1px solid var(--color-border-subtle);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.component-playground-controls > header strong {
+  color: var(--color-text-muted);
+  font-size: 11px;
+  font-weight: 500;
+}
+
+.component-playground-controls__choice {
+  min-width: 0;
+  padding: 0;
+  border: 0;
+  display: grid;
+  gap: var(--spacing-2);
+}
+
+.component-playground-controls__choice legend {
+  margin-bottom: var(--spacing-2);
+}
+
+.component-playground-page__specimen {
+  width: min(760px, 100%);
+  display: grid;
+  place-items: center;
+}
+
+.component-playground-page__notes {
+  padding: var(--spacing-4);
+  border-top: 1px solid var(--color-border-subtle);
+  background: var(--color-surface-primary);
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: var(--spacing-3);
+}
+
+.component-playground-page__notes > span {
+  color: var(--color-text-primary);
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.component-playground-page__notes p {
+  margin: 0;
+  color: var(--color-text-muted);
+  font-size: 11px;
+  line-height: 1.5;
+}
+
+.component-playground-missing {
+  padding: var(--spacing-4);
+}
+
+@media (max-width: 760px) {
+  .component-playground-page__top {
+    padding: var(--spacing-3) var(--spacing-4) var(--spacing-4);
+  }
+
+  .component-playground-page__selectors {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .component-playground-page__selectors .dl-tab-switcher {
+    width: 100%;
+    overflow-x: auto;
+  }
+
+  .component-playground-page__selectors .dl-tab-switcher button {
+    flex: 1 0 auto;
+  }
+
+  .component-playground-controls {
+    gap: calc(var(--spacing-4) + var(--spacing-1));
+  }
+
+  .component-playground-page .dl-button,
+  .component-playground-controls .dl-color-picker__trigger {
+    min-height: 44px;
+  }
+
+  .component-playground-page .dl-button {
+    font-size: 13px;
+  }
+
+  .component-playground-controls .dl-color-picker__trigger {
+    width: 44px;
+    height: 44px;
+  }
+
+  .component-playground-controls .dl-checkbox {
+    width: 100%;
+    min-height: 44px;
+    align-items: center;
+  }
+
+  .component-playground-controls .dl-checkbox input {
+    width: 100%;
+    height: 100%;
+  }
+
+  .component-playground-controls .dl-checkbox__label {
+    font-size: 13px;
+  }
+
+  .component-playground-page__notes {
+    grid-template-columns: 1fr;
+    padding-bottom: calc(var(--spacing-4) + env(safe-area-inset-bottom));
+  }
+
+  .component-playground-page__notes .dl-button {
+    width: 100%;
+  }
+}

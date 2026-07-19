@@ -197,7 +197,9 @@ async function componentEntities(source, sourceManifest) {
         states: component.states ?? [],
       },
       details: {
-        import: component.import ?? componentImport(source, sourceManifest, component),
+        import: component.entry
+          ? (component.import ?? componentImport(source, sourceManifest, component))
+          : null,
         files: component.files ?? [],
         relations: component.relations ?? {
           uses: [],
@@ -206,9 +208,10 @@ async function componentEntities(source, sourceManifest) {
           usedInExamplesBy: [],
           diagnostics: [],
         },
-        entry: join(directory, component.entry),
+        entry: component.entry ? join(directory, component.entry) : null,
         style: component.style ? join(directory, component.style) : null,
         manifest: join(directory, 'component.json'),
+        playground: component.playground ? join(directory, component.playground) : null,
         preview: component.preview ? join(directory, component.preview) : null,
         stories: component.stories ? join(directory, component.stories) : null,
         docs: component.docs ? join(directory, component.docs) : null,

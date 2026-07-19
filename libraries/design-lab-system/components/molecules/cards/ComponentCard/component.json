@@ -47,6 +47,9 @@
       "type": "boolean",
       "default": false
     },
+    "status": {
+      "type": "string | null"
+    },
     "onClick": {
       "type": "() => void"
     }

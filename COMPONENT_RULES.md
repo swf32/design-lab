@@ -6,23 +6,50 @@ This file is the shared source of truth for humans, Codex, Claude, and other cod
 
 Every component is a directory under `libraries/design-lab-system/components/<category-path>/<ComponentName>/`. Categories and nesting are semantic and may be changed by the library author. The default `design-lab-system` keeps Atomic Design as its top level (`atoms/`, `molecules/`, `organisms/`) and uses semantic subfolders such as `actions/`, `inputs/`, `navigation/`, `workbench/`, and `shell/`.
 
-Required files:
+Every Component starts with:
 
-- `ComponentName.tsx` — production implementation;
-- `ComponentName.scss` — production styles imported by the implementation;
 - `component.json` — discovery manifest;
-- `ComponentName.preview.tsx` — illustrative catalog preview;
-- `ComponentName.stories.ts` or `.tsx` — story definitions and behavior examples;
 - `README.md` — usage documentation;
 - `CHANGELOG.md` — append-only component history.
 
-Optional adjacent files include types, tests, accessibility fixtures, migration notes, and assets. Never require a hand-maintained global component or style registry: `component.json` and the implementation-named style file are discovered recursively. Category is derived from the folders above the component and must not be duplicated in its manifest. The Library package barrel is a generated, deletable artifact rebuilt from manifests.
+A `wireframe` Component may exist before production code when it also provides `ComponentName.playground.tsx`. A production-ready Component additionally requires:
+
+- `ComponentName.tsx` — production implementation;
+- `ComponentName.scss` — production styles imported by the implementation;
+- `ComponentName.preview.tsx` — illustrative catalog preview;
+- `ComponentName.stories.ts` or `.tsx` — story definitions and behavior examples.
+
+Optional adjacent files include a typed `ComponentName.playground.tsx`, types, tests, accessibility fixtures, migration notes, and assets. Never require a hand-maintained global component or style registry: `component.json` and adjacent conventionally named artifacts are discovered recursively. Category is derived from the folders above the component and must not be duplicated in its manifest. The Library package barrel is a generated, deletable artifact rebuilt only from manifests that have a production entry.
+
+## Lifecycle status
+
+Use `wireframe`, `in-progress`, or `ready`:
+
+- `wireframe` means the entity is an explorable component direction and may have only a manifest, Playground, README, and changelog;
+- `in-progress` means production implementation exists but is not yet approved as the Library contract;
+- `ready` means implementation, styles, preview, stories, docs, and changelog satisfy this contract.
+
+An absent or unknown status must not hide the entity or break discovery. Design Lab shows a completeness diagnostic and omits the status badge until the author chooses a supported value. `not-ready` is not a supported status because it does not distinguish ideation from implementation work.
+
+## Component Playground
+
+`ComponentName.playground.tsx` is an optional, typed, automatically discovered ideation artifact. It is separate from Stories:
+
+- Playground compares alternative directions and exposes reversible controls for discussion and approval;
+- Stories document focused behavior of an existing production implementation;
+- Preview is a non-interactive catalog identity specimen.
+
+The Playground exports a definition created with `definePlayground` plus `renderPlaygroundVariant`. Its controls must use the shared typed registry (`string`, `boolean`, `enum`, `number`, `choice`, and `color`) so Design Lab can render them with production Input, Checkbox, Select, Slider, Radio Button, and Color Picker controls. Do not author a component-specific control sidebar in application code.
+
+Playground variants have stable ids and names. Selected variant, design-system mode, and serializable control values are reflected in the route query so a copied URL restores the same review state. A Playground may render production Components, experimental compositions, or both. It does not require Stories and must not be counted as example usage.
+
+The route is derived from the Component path: `/components/<component-path>/playground`. Desktop places the typed controls rail before the Canvas. Mobile keeps the Canvas primary and moves controls into the single-column flow with touch targets of at least `44px`. Design-system modes come from the active Project or Library token files and remain independent of the Design Lab interface theme.
 
 ## Automatic discovery, imports, and agent context
 
-Creating a Component requires only its canonical directory, adjacent files, and `component.json`. Do not register it in an application switch, story map, style index, component list, dependency table, MCP catalog, CLI catalog, or hand-maintained package barrel.
+Creating a Component requires only its canonical directory, adjacent files, and `component.json`. Do not register it in an application switch, story map, Playground map, style index, component list, dependency table, MCP catalog, CLI catalog, or hand-maintained package barrel.
 
-The production entry must named-export the public Component symbol matching its filename, for example `Button.tsx` exports `Button`. The Library manifest supplies the package import root, and Design Lab derives `import { Button } from '@design-lab/system/components'` from that source metadata plus the adjacent entry. `components/index.ts` is generated recursively from manifests during dev, build, and test and may be deleted and rebuilt; never edit it by hand.
+When present, the production entry must named-export the public Component symbol matching its filename, for example `Button.tsx` exports `Button`. The Library manifest supplies the package import root, and Design Lab derives `import { Button } from '@design-lab/system/components'` from that source metadata plus the adjacent entry. `components/index.ts` is generated recursively from production entries during dev, build, and test and may be deleted and rebuilt; never edit it by hand. Wireframe-only entities are discoverable but are not package exports.
 
 Write only the imports that executable code genuinely needs. Those normal static TypeScript/TSX imports are the source of the direct `uses` / `usedBy` graph. Imports in the adjacent story module are the source of `examplesUse` / `usedInExamplesBy`. Never author reverse links, usage arrays, relation metadata, or a second dependency registry. Type-only imports are ignored, and importing a production Component from a preview is reported as a contract diagnostic.
 
@@ -36,7 +63,7 @@ Do not embed new SVG path data directly in a component or preview, redraw a prod
 
 ## Creating a component
 
-1. Decide whether the pattern is truly reusable and choose its filesystem category. In the default Library, choose the Atomic Design layer first and then a semantic subfolder.
+1. Decide whether the pattern is a production Component or a wireframe direction and choose its filesystem category. In the default Library, choose the Atomic Design layer first and then a semantic subfolder.
 2. Define the public props contract before styling. Prefer native element attributes and accessible semantics.
    Keep implementation, preview, and stories readable with `npm run format:code`; `npm run check:code` is the repository guard against compressed TS/TSX/MJS source.
 3. Use Design Lab semantic tokens for color, typography, spacing, radii, motion, and themes. Do not add one-off visual constants when an existing token expresses the role.
@@ -70,10 +97,10 @@ Do not embed new SVG path data directly in a component or preview, redraw a prod
    - Add a separate content-stress context when density can reveal defects: enough items to force overflow, long and short labels, meaningful nesting, disabled or selected rows where relevant, and content near both the start and end of the scroll region.
    - The stress scenario must make scroll ownership observable. Verify fixed and scrolling regions, scrollbar styling, clipping, overlays, focus visibility, and whether opening nested content changes the correct container.
    Fixtures should be deterministic and product-like, but they do not need to duplicate production data or connect to a live backend.
-8. Use the real production component in Workbench stories. Add interaction only when it explains real behavior.
+8. Use the real production component in Workbench stories. Add interaction only when it explains real behavior. Wireframe-only Components may omit Stories until a production implementation exists.
    A component is not ready while its Workbench falls back to a generic placeholder or repeats the same specimen for manifest labels that the component does not actually implement.
 9. Write `README.md` in clear English for the default library. Documentation content in user libraries may use any language chosen by their authors.
-10. Start `CHANGELOG.md` with the initial version and creation date.
+10. Start `CHANGELOG.md` with the initial version and creation date. Wireframe decisions belong here until a separate approved Decision is required.
 11. Verify automatic discovery through the API and run the normal dev/build/test workflow, which regenerates and checks the derived public barrel; never add a component export by hand. The Workbench file inventory must expose implementation, styles, manifest, preview, stories, docs, and changelog refs that were actually discovered.
     The scanner derives the canonical package import plus direct production `uses` / `usedBy` and example-only `examplesUse` / `usedInExamplesBy` relationships from static TypeScript/TSX imports. Type-only imports do not create runtime relationships. A preview importing any production component is a contract diagnostic, not a usage relationship.
 12. Run typecheck/build, inspect dark and light themes, inspect all Canvas modes, and check the browser console.
@@ -132,7 +159,7 @@ Fast review question: if the Component Card footer were hidden, would someone fa
 
 ## `component.json`
 
-The manifest must include `id`, `name`, `entry`, `preview`, `stories`, `docs`, `changelog`, `status`, `variants`, and `states`. Category is derived from the component directory and is never authored in the manifest. Describe public props when known, including type, required/default values, enum values, and slots. Paths are adjacent relative paths.
+The manifest always includes `id`, `name`, `status`, `variants`, `states`, `docs`, and `changelog`. A production Component also includes `entry`, `preview`, and `stories`; a wireframe-only Component instead requires the conventionally named typed Playground. Category is derived from the component directory and is never authored in the manifest. Describe public props when known, including type, required/default values, enum values, and slots. Paths are adjacent relative paths.
 
 `description`, `aliases`, `useWhen`, and `avoidWhen` are optional semantic retrieval fields, not registration fields. Prefer an authored `description`; without one the agent context gateway falls back to the first useful README paragraph.
 

@@ -1,0 +1,9 @@
+{
+  "id": "northstar-travel-system",
+  "kind": "library",
+  "name": "Northstar Travel System",
+  "schemaVersion": 1,
+  "version": "0.1.0",
+  "packageName": "@northstar/travel-system",
+  "componentImport": "@northstar/travel-system/components"
+}

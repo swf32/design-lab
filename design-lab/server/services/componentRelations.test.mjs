@@ -67,7 +67,32 @@ test('current illustrative previews do not import production components', async 
     (component) => component.relations.diagnostics,
   )
 
-  assert.deepEqual(diagnostics, [])
+  assert.deepEqual(
+    diagnostics.filter((diagnostic) => diagnostic.code === 'preview-imports-component'),
+    [],
+  )
+})
+
+test('wireframe-only components and product modes are discovered without production entries', async () => {
+  const result = await getModuleEntities('northstar-travel-system', 'components')
+  const components = new Map(result.components.map((component) => [component.id, component]))
+  const flightSearch = components.get('flight-search')
+  const tripCard = components.get('trip-card')
+
+  assert.deepEqual(result.modes, ['day', 'night', 'sunset'])
+  assert.equal(result.themeVariables.night['--ds-color-surface-primary'], '#102a31')
+  assert.equal(flightSearch.entry, undefined)
+  assert.equal(flightSearch.import, null)
+  assert.equal(flightSearch.playground, 'FlightSearch.playground.tsx')
+  assert.equal(flightSearch.status, 'wireframe')
+  assert.deepEqual(
+    flightSearch.files.map((file) => file.role),
+    ['manifest', 'playground', 'documentation', 'changelog'],
+  )
+  assert.deepEqual(flightSearch.relations.diagnostics, [])
+  assert.equal(tripCard.status, 'ready')
+  assert.equal(tripCard.playground, 'TripCard.playground.tsx')
+  assert.deepEqual(tripCard.relations.diagnostics, [])
 })
 
 test('source import parsing ignores type-only edges and localizes invalid TSX', async () => {

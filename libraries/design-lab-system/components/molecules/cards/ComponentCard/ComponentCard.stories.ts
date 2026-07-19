@@ -15,6 +15,7 @@ export function renderStoryExample(example: StoryExample) {
     }),
     previewAnimated: Boolean(props.previewAnimated),
     selected: Boolean(props.selected),
+    status: typeof props.status === 'string' ? props.status : undefined,
   })
 }
 
@@ -30,6 +31,18 @@ export const stories = [
         label: 'Selected',
         props: { name: 'Button', entry: 'Button.tsx', meta: '4 variants', selected: true },
       },
+    ],
+  },
+  {
+    id: 'lifecycle',
+    kind: 'state',
+    name: 'Lifecycle status',
+    description:
+      'Catalog cards show filesystem lifecycle without turning the badge into an action.',
+    examples: [
+      { label: 'Wireframe', props: { status: 'wireframe' } },
+      { label: 'In progress', props: { status: 'in-progress' } },
+      { label: 'Ready', props: { status: 'ready' } },
     ],
   },
   {

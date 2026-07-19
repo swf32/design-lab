@@ -6,6 +6,7 @@ import {
 } from '../../../molecules/workbench/CanvasBackgroundControl/CanvasBackgroundControl'
 
 export type WorkbenchPlaygroundPadding = 'none' | 'compact' | 'comfortable'
+export type WorkbenchPlaygroundControlsPosition = 'start' | 'end'
 
 export type WorkbenchPlaygroundProps = {
   children: ReactNode
@@ -16,6 +17,7 @@ export type WorkbenchPlaygroundProps = {
   onColorChange: (color: string) => void
   label?: string
   padding?: WorkbenchPlaygroundPadding
+  controlsPosition?: WorkbenchPlaygroundControlsPosition
   eventLog?: ReactNode
   className?: string
 }
@@ -29,12 +31,15 @@ export function WorkbenchPlayground({
   onColorChange,
   label = 'Playground',
   padding = 'comfortable',
+  controlsPosition = 'end',
   eventLog,
   className,
 }: WorkbenchPlaygroundProps) {
   const style = { '--canvas-solid': color } as CSSProperties
   return (
-    <section className={`dl-workbench-playground${className ? ` ${className}` : ''}`}>
+    <section
+      className={`dl-workbench-playground dl-workbench-playground--controls-${controlsPosition}${className ? ` ${className}` : ''}`}
+    >
       <div
         className={`dl-workbench-playground__canvas dl-workbench-playground__canvas--${mode} dl-workbench-playground__canvas--padding-${padding}`}
         style={style}

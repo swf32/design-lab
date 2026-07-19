@@ -7,5 +7,7 @@ dist/
 /libraries/*
 !/libraries/design-lab-system/
 !/libraries/design-lab-system/**
+!/libraries/northstar-travel-system/
+!/libraries/northstar-travel-system/**
 .DS_Store
 *.log

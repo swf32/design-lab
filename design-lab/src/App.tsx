@@ -116,6 +116,8 @@ export default function App() {
   const wasMobileNavigationOpen = useRef(false)
   const maxNavigationWidth = Math.max(MIN_NAVIGATION_WIDTH, window.innerWidth - MIN_WORKSPACE_WIDTH)
   const activeProject = projects.find((project) => project.id === activeProjectId) ?? null
+  const playgroundOpen = active === 'components' && routePath.endsWith('/playground')
+  const entityRoutePath = playgroundOpen ? routePath.replace(/\/playground$/, '') : routePath
   const directoryTree: ProjectTreeItem[] = ['components', 'assets', 'tokens'].includes(active)
     ? [{ name: 'All', path: ALL_FOLDER_PATH, kind: 'folder', level: 0, virtual: true }, ...tree]
     : tree
@@ -204,12 +206,12 @@ export default function App() {
 
   useEffect(() => {
     if (treeLoading) return
-    if (!routePath) {
+    if (!entityRoutePath) {
       setSelectedEntityId(null)
       setSelectedFolderPath(ALL_FOLDER_PATH)
       return
     }
-    const item = findRouteTreeItem(tree, routePath)
+    const item = findRouteTreeItem(tree, entityRoutePath)
     if (!item) {
       setSelectedEntityId(null)
       setSelectedFolderPath(ALL_FOLDER_PATH)
@@ -224,8 +226,9 @@ export default function App() {
       const parentPath = canonicalPath.split('/').slice(0, -1).join('/')
       setSelectedFolderPath(parentPath || ALL_FOLDER_PATH)
     }
-    if (canonicalPath !== routePath) navigate(active, canonicalPath, true)
-  }, [active, routePath, tree, treeLoading])
+    if (canonicalPath !== entityRoutePath)
+      navigate(active, playgroundOpen ? `${canonicalPath}/playground` : canonicalPath, true)
+  }, [active, entityRoutePath, playgroundOpen, tree, treeLoading])
 
   useEffect(() => {
     localStorage.setItem(NAVIGATION_WIDTH_KEY, String(navigationWidth))
@@ -494,6 +497,11 @@ export default function App() {
               canvasColor={canvasColor}
               onCanvasModeChange={setCanvasMode}
               onCanvasColorChange={setCanvasColor}
+              playgroundOpen={playgroundOpen}
+              onOpenPlayground={() => {
+                if (entityRoutePath) navigate('components', `${entityRoutePath}/playground`)
+              }}
+              onClosePlayground={() => navigate('components', entityRoutePath)}
             />
           ) : (
             <div className="workspace-stage__empty">

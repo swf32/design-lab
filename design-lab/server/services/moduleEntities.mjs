@@ -175,6 +175,22 @@ async function componentStyle(directory, manifest) {
   return null
 }
 
+async function componentPlayground(directory, manifest) {
+  const stem = basename(directory)
+  const candidates = [
+    manifest.playground,
+    `${stem}.playground.tsx`,
+    `${stem}.playground.ts`,
+  ].filter(Boolean)
+  for (const candidate of [...new Set(candidates)]) {
+    try {
+      await access(join(directory, candidate))
+      return candidate
+    } catch {}
+  }
+  return null
+}
+
 async function readSourceManifest(source) {
   const filename = source.kind === 'library' ? 'library.json' : 'project.json'
   try {
@@ -186,6 +202,7 @@ async function readSourceManifest(source) {
 }
 
 function componentImport(source, sourceManifest, component) {
+  if (!component.entry) return null
   const symbol = basename(component.entry ?? component.name, extname(component.entry ?? ''))
   const from =
     component.importFrom ??
@@ -201,11 +218,70 @@ function componentFiles(component) {
     { role: 'implementation', path: component.entry },
     { role: 'styles', path: component.style },
     { role: 'manifest', path: basename(component.file) },
+    { role: 'playground', path: component.playground },
     { role: 'preview', path: component.preview },
     { role: 'stories', path: component.stories },
     { role: 'documentation', path: component.docs },
     { role: 'changelog', path: component.changelog },
   ].filter((file) => file.path)
+}
+
+function componentCompletenessDiagnostics(component) {
+  const diagnostics = []
+  const supportedStatuses = new Set(['wireframe', 'in-progress', 'ready'])
+  if (!component.status)
+    diagnostics.push({
+      code: 'component-status-missing',
+      message: 'component.json does not declare a lifecycle status.',
+    })
+  else if (!supportedStatuses.has(component.status))
+    diagnostics.push({
+      code: 'component-status-unknown',
+      message: `Unsupported lifecycle status: ${component.status}.`,
+    })
+
+  if (component.status === 'wireframe' && !component.playground)
+    diagnostics.push({
+      code: 'wireframe-playground-missing',
+      message: 'A wireframe Component should provide an adjacent typed Playground.',
+    })
+
+  if (component.status === 'in-progress' && !component.entry)
+    diagnostics.push({
+      code: 'in-progress-entry-missing',
+      message: 'An in-progress Component should provide a production entry.',
+    })
+
+  if (component.status === 'ready') {
+    for (const [field, value] of [
+      ['entry', component.entry],
+      ['styles', component.style],
+      ['preview', component.preview],
+      ['stories', component.stories],
+      ['docs', component.docs],
+      ['changelog', component.changelog],
+    ])
+      if (!value)
+        diagnostics.push({
+          code: 'ready-component-incomplete',
+          message: `Ready Component is missing ${field}.`,
+        })
+  }
+  return diagnostics
+}
+
+function tokenVariablesByMode(tokenData) {
+  return Object.fromEntries(
+    tokenData.modes.map((mode) => [
+      mode,
+      Object.fromEntries(
+        tokenData.tokens.map((token) => [
+          `--ds-${token.path.replaceAll('.', '-')}`,
+          token.values[mode] ?? token.value,
+        ]),
+      ),
+    ]),
+  )
 }
 
 function isInside(path, directory) {
@@ -370,6 +446,7 @@ async function componentRelations(source, sourceManifest, components) {
       exampleScan.dependencies.filter((dependency) => !productionIds.has(dependency.id)),
     )
     previewDiagnostics.set(component.id, [
+      ...(component.completenessDiagnostics ?? []),
       ...productionScan.diagnostics,
       ...exampleScan.diagnostics,
       ...previewScan.diagnostics,
@@ -435,10 +512,11 @@ export async function getModuleEntities(sourceId, moduleId) {
   }
   if (moduleId === 'components') {
     const root = join(source.path, 'components')
-    const [manifests, discoveredFolders, sourceManifest] = await Promise.all([
+    const [manifests, discoveredFolders, sourceManifest, tokenData] = await Promise.all([
       filesUnder(root, (name) => name === 'component.json'),
       directoriesUnder(root),
       readSourceManifest(source),
+      tokensFor(source),
     ])
     const componentDirectories = manifests.map((filePath) => relative(root, dirname(filePath)))
     const folders = discoveredFolders.filter(
@@ -469,17 +547,24 @@ export async function getModuleEntities(sourceId, moduleId) {
       }
       const directory = file.split('/').slice(0, -1).join('/')
       const category = directory.split('/').slice(0, -1).join('/')
-      const style = await componentStyle(dirname(filePath), manifest)
+      const [style, playground] = await Promise.all([
+        componentStyle(dirname(filePath), manifest),
+        componentPlayground(dirname(filePath), manifest),
+      ])
       const component = {
         ...manifest,
+        variants: manifest.variants ?? [],
+        states: manifest.states ?? [],
         category,
         style,
+        playground,
         sourceId,
         documentation,
         changelogDocumentation,
         file,
         directory,
       }
+      component.completenessDiagnostics = componentCompletenessDiagnostics(component)
       components.push({
         ...component,
         import: componentImport(source, sourceManifest, component),
@@ -489,6 +574,8 @@ export async function getModuleEntities(sourceId, moduleId) {
     return {
       kind: 'components',
       folders,
+      modes: tokenData.modes,
+      themeVariables: tokenVariablesByMode(tokenData),
       components: await componentRelations(source, sourceManifest, components),
     }
   }

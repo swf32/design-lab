@@ -1,0 +1,19 @@
+{
+  "id": "trip-card",
+  "name": "Trip Card",
+  "status": "ready",
+  "entry": "TripCard.tsx",
+  "preview": "TripCard.preview.tsx",
+  "stories": "TripCard.stories.tsx",
+  "docs": "README.md",
+  "changelog": "CHANGELOG.md",
+  "variants": ["editorial", "compact", "deal"],
+  "states": ["default", "selected"],
+  "description": "Summarizes an available journey with route, schedule, carrier, and price.",
+  "props": {
+    "origin": { "type": "string", "required": true },
+    "destination": { "type": "string", "required": true },
+    "price": { "type": "string", "required": true },
+    "selected": { "type": "boolean", "default": false }
+  }
+}

@@ -2,7 +2,11 @@ import { createElement } from 'react'
 import { Button } from '../../../atoms/actions/Button/Button'
 import { Checkbox } from '../../../atoms/inputs/Checkbox/Checkbox'
 import type { StoryExample } from '../../../storyContract'
-import { WorkbenchPlayground, type WorkbenchPlaygroundPadding } from './WorkbenchPlayground'
+import {
+  WorkbenchPlayground,
+  type WorkbenchPlaygroundControlsPosition,
+  type WorkbenchPlaygroundPadding,
+} from './WorkbenchPlayground'
 
 export function renderStoryExample(example: StoryExample) {
   return createElement(WorkbenchPlayground, {
@@ -11,6 +15,9 @@ export function renderStoryExample(example: StoryExample) {
     onModeChange: () => undefined,
     onColorChange: () => undefined,
     padding: String(example.props.padding ?? 'comfortable') as WorkbenchPlaygroundPadding,
+    controlsPosition: String(
+      example.props.controlsPosition ?? 'end',
+    ) as WorkbenchPlaygroundControlsPosition,
     controls: createElement(Checkbox, {
       label: 'Disabled',
       defaultChecked: false,
@@ -29,6 +36,17 @@ export const stories = [
       { label: 'None', props: { padding: 'none' } },
       { label: 'Compact', props: { padding: 'compact' } },
       { label: 'Comfortable', props: { padding: 'comfortable' } },
+    ],
+  },
+  {
+    id: 'controls-position',
+    kind: 'variant',
+    name: 'Controls rail position',
+    description:
+      'Component detail keeps the rail at the end; a full-route concept Playground places it at the start.',
+    examples: [
+      { label: 'Detail rail', props: { controlsPosition: 'end' } },
+      { label: 'Concept rail', props: { controlsPosition: 'start' } },
     ],
   },
   {

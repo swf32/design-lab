@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Added: Optional lifecycle status badge using the production Chip component.
+- Visual: Status sits with the overlaid component name without creating another interactive target.
 - Changed: Added authored semantic retrieval metadata for MCP and CLI search.
 
 - Changed: Workbench stories now render automatically from the adjacent story module.

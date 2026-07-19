@@ -76,6 +76,10 @@ Design Lab автоматически отображает:
 
 - что использует сам компонент.
 
+Component lifecycle использует `wireframe`, `in-progress` и `ready`. Catalog показывает статус production `Chip` рядом с названием карточки. Если status отсутствует или неизвестен, entity остаётся доступной, а Workbench показывает completeness diagnostic.
+
+Соседний `ComponentName.playground.tsx` автоматически создаёт `/components/<path>/playground`. Playground является typed multi-variant review surface: варианты переключаются по stable ids, controls строятся из общего registry, а активный variant, mode и значения сериализуются в URL. Wireframe-only Component может существовать без production implementation, preview и Stories; после выбора направления он дополняется production-файлами в той же папке и проходит lifecycle до `ready`.
+
 Workbench начинает detail с автоматически вычисленного Component Reference: канонический package import через production `CodeBlock`, полный список фактически найденных файлов и четыре группы прямых связей. `Uses` / `Used by` строятся из production implementation, а `Examples use` / `Used in examples by` — только из импортов соседнего story module, исключая уже известные production dependencies. Это позволяет, например, показать Button как production dependency Create Project Dialog, но Button внутри Story Canvas — только как зависимость примера.
 
 Story JSX не хранится в `ModuleView`. Manifest указывает соседний `*.stories.ts(x)`, который экспортирует metadata `stories` и исполняемый `renderStoryExample`; Workbench автоматически находит модуль по filesystem directory. Добавление нового Component со Story не требует правки application registry или switch по component id.
