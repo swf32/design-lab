@@ -1,0 +1,30 @@
+name: Deploy Design Lab
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+concurrency:
+  group: design-lab-production
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    name: Deploy to nastavi
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Configure restricted SSH access
+        env:
+          DEPLOY_KEY: ${{ secrets.DESIGN_LAB_DEPLOY_KEY }}
+        run: |
+          install -d -m 700 ~/.ssh
+          printf '%s\n' "$DEPLOY_KEY" > ~/.ssh/design-lab-deploy
+          chmod 600 ~/.ssh/design-lab-deploy
+          printf '%s\n' '85.239.62.13 ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIEKs81OLeS4ah1QG7iFSlrXu0PkUvyen2+BKMqfx8SC5' > ~/.ssh/known_hosts
+
+      - name: Deploy pushed revision
+        run: ssh -i ~/.ssh/design-lab-deploy root@85.239.62.13 deploy
