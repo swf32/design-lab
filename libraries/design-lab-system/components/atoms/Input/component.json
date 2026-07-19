@@ -1,0 +1,29 @@
+{
+  "id": "input",
+  "name": "Input",
+  "category": "atoms",
+  "entry": "Input.tsx",
+  "preview": "Input.preview.tsx",
+  "stories": "Input.stories.tsx",
+  "docs": "README.md",
+  "changelog": "CHANGELOG.md",
+  "status": "ready",
+  "variants": ["text", "search", "textarea"],
+  "states": ["default", "hover", "focus", "invalid", "read-only", "disabled"],
+  "previewMotion": {"trigger":"card-hover-focus","kind":"state-transition","durationToken":"transition.preview","easingToken":"easing.preview","reducedMotion":"static-baseline"},
+  "props": {
+    "label": {"type": "ReactNode", "required": true},
+    "variant": {"type": "enum", "values": ["text", "search", "textarea"], "default": "text"},
+    "size": {"type": "enum", "values": ["small", "medium", "large"], "default": "medium"},
+    "helperText": {"type": "ReactNode"},
+    "errorMessage": {"type": "ReactNode"},
+    "startAdornment": {"type": "slot", "slot": true},
+    "endAdornment": {"type": "slot", "slot": true},
+    "fullWidth": {"type": "boolean", "default": false},
+    "visuallyHideLabel": {"type": "boolean", "default": false},
+    "showCount": {"type": "boolean", "default": false},
+    "disabled": {"type": "boolean", "default": false},
+    "readOnly": {"type": "boolean", "default": false},
+    "required": {"type": "boolean", "default": false}
+  }
+}

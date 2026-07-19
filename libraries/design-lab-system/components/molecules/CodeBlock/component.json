@@ -1,0 +1,18 @@
+{
+  "id":"code-block",
+  "name":"Code Block",
+  "category":"molecules",
+  "entry":"CodeBlock.tsx",
+  "preview":"CodeBlock.preview.tsx",
+  "stories":"CodeBlock.stories.ts",
+  "docs":"README.md",
+  "changelog":"CHANGELOG.md",
+  "status":"ready",
+  "variants":["default"],
+  "states":["ready","copied","overflow"],
+  "props":{
+    "code":{"type":"string","required":true},
+    "language":{"type":"string","default":"text"},
+    "showCopy":{"type":"boolean","default":true}
+  }
+}

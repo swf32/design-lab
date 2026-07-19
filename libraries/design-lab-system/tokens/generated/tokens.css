@@ -1,0 +1,72 @@
+/* Generated from tokens/base.tokens.json. */
+:root, [data-theme="dark"] {
+  --color-canvas: #0d0d0d;
+  --color-surface-primary: #1a1a19;
+  --color-surface-secondary: #151515;
+  --color-surface-raised: #20201f;
+  --color-surface-hover: #252524;
+  --color-border-subtle: rgba(255, 255, 255, 0.08);
+  --color-border-default: rgba(255, 255, 255, 0.14);
+  --color-border-strong: rgba(255, 255, 255, 0.4);
+  --color-text-primary: #ffffff;
+  --color-text-secondary: rgba(255, 255, 255, 0.7);
+  --color-text-muted: rgba(255, 255, 255, 0.5);
+  --color-text-disabled: rgba(255, 255, 255, 0.3);
+  --color-accent-primary: #26d9c7;
+  --color-accent-secondary: #ab31ee;
+  --color-code: #83c5b4;
+  --color-canvas-grid-dark-a: #111111;
+  --color-canvas-grid-dark-b: #1c1c1c;
+  --color-canvas-grid-light-a: #e8e8e3;
+  --color-canvas-grid-light-b: #d8d8d2;
+  --color-status-success: #52d89a;
+  --color-status-danger: #ff7b72;
+  --color-overlay-scrim: rgba(0, 0, 0, 0.68);
+  --size-icon: 24px;
+  --size-control-small: 32px;
+  --size-control-medium: 40px;
+  --size-control-large: 48px;
+  --size-sidebar-collapsed: 48px;
+  --size-sidebar-expanded: 72px;
+  --size-navigation: 340px;
+  --size-navigation-min: 260px;
+  --size-directory-panel-min: 188px;
+  --size-workspace-min: 360px;
+  --size-tab-height: 52px;
+  --spacing-1: 4px;
+  --spacing-2: 8px;
+  --spacing-3: 12px;
+  --spacing-4: 16px;
+  --radius-small: 6px;
+  --radius-medium: 8px;
+  --transition-fast: 140ms;
+  --transition-preview: 420ms;
+  --easing-preview: cubic-bezier(0.22, 1, 0.36, 1);
+  --typography-interface-family: Inter, ui-sans-serif, -apple-system, BlinkMacSystemFont, Segoe UI, sans-serif;
+  --typography-body-size: 12px;
+  --typography-body-line-height: 1.5;
+  --typography-heading-weight: 560;
+}
+
+[data-theme="light"] {
+  --color-canvas: #e8e8e4;
+  --color-surface-primary: #f7f7f3;
+  --color-surface-secondary: #eeeeea;
+  --color-surface-raised: #fbfbf8;
+  --color-surface-hover: #e2e2dc;
+  --color-border-subtle: rgba(20, 26, 23, 0.08);
+  --color-border-default: rgba(20, 26, 23, 0.15);
+  --color-border-strong: rgba(20, 26, 23, 0.36);
+  --color-text-primary: #171a18;
+  --color-text-secondary: rgba(20, 26, 23, 0.72);
+  --color-text-muted: rgba(20, 26, 23, 0.55);
+  --color-text-disabled: rgba(20, 26, 23, 0.36);
+  --color-accent-primary: #148f83;
+  --color-accent-secondary: #7651b8;
+  --color-code: #286f61;
+  --color-status-success: #23845c;
+  --color-status-danger: #c84f4a;
+  --color-overlay-scrim: rgba(20, 24, 22, 0.45);
+  --typography-body-line-height: 1.55;
+  --typography-heading-weight: 600;
+}

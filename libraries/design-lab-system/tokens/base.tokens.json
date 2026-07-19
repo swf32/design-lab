@@ -1,0 +1,41 @@
+{
+  "schemaVersion": 1,
+  "name": "Design Lab Base",
+  "defaultMode": "dark",
+  "tokens": {
+    "color": {
+      "canvas": {"type":"color","value":"#0d0d0d"},
+      "surface": {"primary":{"type":"color","value":"#1a1a19"},"secondary":{"type":"color","value":"#151515"},"raised":{"type":"color","value":"#20201f"},"hover":{"type":"color","value":"#252524"}},
+      "border": {"subtle":{"type":"color","value":"rgba(255, 255, 255, 0.08)"},"default":{"type":"color","value":"rgba(255, 255, 255, 0.14)"},"strong":{"type":"color","value":"rgba(255, 255, 255, 0.4)"}},
+      "text": {"primary":{"type":"color","value":"#ffffff"},"secondary":{"type":"color","value":"rgba(255, 255, 255, 0.7)"},"muted":{"type":"color","value":"rgba(255, 255, 255, 0.5)"},"disabled":{"type":"color","value":"rgba(255, 255, 255, 0.3)"}},
+      "accent": {"primary":{"type":"color","value":"#26d9c7"},"secondary":{"type":"color","value":"#ab31ee"}},
+      "code": {"type":"color","value":"#83c5b4"},
+      "canvas-grid": {"dark-a":{"type":"color","value":"#111111"},"dark-b":{"type":"color","value":"#1c1c1c"},"light-a":{"type":"color","value":"#e8e8e3"},"light-b":{"type":"color","value":"#d8d8d2"}},
+      "status": {"success":{"type":"color","value":"#52d89a"},"danger":{"type":"color","value":"#ff7b72"}},
+      "overlay": {"scrim":{"type":"color","value":"rgba(0, 0, 0, 0.68)"}}
+    },
+    "size": {"icon":{"type":"dimension","value":"24px"},"control":{"small":{"type":"dimension","value":"32px"},"medium":{"type":"dimension","value":"40px"},"large":{"type":"dimension","value":"48px"}},"sidebar":{"collapsed":{"type":"dimension","value":"48px"},"expanded":{"type":"dimension","value":"72px"}},"navigation":{"type":"dimension","value":"340px"},"navigation-min":{"type":"dimension","value":"260px"},"directory-panel-min":{"type":"dimension","value":"188px"},"workspace-min":{"type":"dimension","value":"360px"},"tab-height":{"type":"dimension","value":"52px"}},
+    "spacing": {"1":{"type":"dimension","value":"4px"},"2":{"type":"dimension","value":"8px"},"3":{"type":"dimension","value":"12px"},"4":{"type":"dimension","value":"16px"}},
+    "radius": {"small":{"type":"radius","value":"6px"},"medium":{"type":"radius","value":"8px"}},
+    "transition": {"fast":{"type":"duration","value":"140ms"},"preview":{"type":"duration","value":"420ms"}},
+    "easing": {"preview":{"type":"cubicBezier","value":"cubic-bezier(0.22, 1, 0.36, 1)"}},
+    "typography": {"interface":{"family":{"type":"fontFamily","value":"Inter, ui-sans-serif, -apple-system, BlinkMacSystemFont, Segoe UI, sans-serif"}},"body":{"size":{"type":"fontSize","value":"12px"},"line-height":{"type":"lineHeight","value":1.5}},"heading":{"weight":{"type":"fontWeight","value":560}}}
+  },
+  "themes": {
+    "light": {
+      "tokens": {
+        "color": {
+          "canvas":{"type":"color","value":"#e8e8e4"},
+          "surface":{"primary":{"type":"color","value":"#f7f7f3"},"secondary":{"type":"color","value":"#eeeeea"},"raised":{"type":"color","value":"#fbfbf8"},"hover":{"type":"color","value":"#e2e2dc"}},
+          "border":{"subtle":{"type":"color","value":"rgba(20, 26, 23, 0.08)"},"default":{"type":"color","value":"rgba(20, 26, 23, 0.15)"},"strong":{"type":"color","value":"rgba(20, 26, 23, 0.36)"}},
+          "text":{"primary":{"type":"color","value":"#171a18"},"secondary":{"type":"color","value":"rgba(20, 26, 23, 0.72)"},"muted":{"type":"color","value":"rgba(20, 26, 23, 0.55)"},"disabled":{"type":"color","value":"rgba(20, 26, 23, 0.36)"}},
+          "accent":{"primary":{"type":"color","value":"#148f83"},"secondary":{"type":"color","value":"#7651b8"}},
+          "code":{"type":"color","value":"#286f61"},
+          "status":{"success":{"type":"color","value":"#23845c"},"danger":{"type":"color","value":"#c84f4a"}},
+          "overlay":{"scrim":{"type":"color","value":"rgba(20, 24, 22, 0.45)"}}
+        },
+        "typography":{"body":{"line-height":{"type":"lineHeight","value":1.55}},"heading":{"weight":{"type":"fontWeight","value":600}}}
+      }
+    }
+  }
+}

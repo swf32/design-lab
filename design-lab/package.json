@@ -1,0 +1,37 @@
+{
+  "name": "design-lab",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "dev": "node scripts/dev.mjs",
+    "dev:ui": "vite",
+    "server": "node server/index.mjs",
+    "mcp": "node server/mcp/index.mjs",
+    "designlab": "node scripts/designlab.mjs",
+    "test": "node --test server/services/contextGateway.test.mjs server/mcp/index.test.mjs",
+    "build": "tsc -b && vite build",
+    "preview": "vite preview",
+    "typecheck": "tsc -b --pretty false"
+  },
+  "dependencies": {
+    "@design-lab/system": "*",
+    "@modelcontextprotocol/sdk": "^1.29.0",
+    "@vitejs/plugin-react": "latest",
+    "react": "latest",
+    "react-dom": "latest",
+    "react-markdown": "^10.1.0",
+    "vite": "latest",
+    "zod": "^3.25.76"
+  },
+  "devDependencies": {
+    "@types/node": "latest",
+    "@types/react": "latest",
+    "@types/react-dom": "latest",
+    "sass-embedded": "^1.100.0",
+    "typescript": "latest"
+  }
+}

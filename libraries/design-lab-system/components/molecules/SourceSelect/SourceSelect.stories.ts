@@ -1,0 +1,1 @@
+export const stories=[{id:'source-kinds',name:'Source kinds',examples:[{label:'Project',props:{kind:'project'}},{label:'Library',props:{kind:'library'}}]},{id:'availability',name:'Availability',examples:[{label:'Available',props:{available:true}},{label:'Unavailable',props:{available:false}}]}]

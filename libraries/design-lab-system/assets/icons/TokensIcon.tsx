@@ -1,0 +1,2 @@
+import type { IconProps } from './IconProps'
+export function TokensIcon({ size = 24, ...props }: IconProps) { return <svg width={size} height={size} viewBox="0 0 24 24" fill="none" {...props}><path d="M2.36 9.78V6.44L11.25 2l8.89 4.44v3.34M2.36 14.22v3.34L11.25 22l8.89-4.44v-3.34M11.25 22v-5.56" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/><circle cx="11.25" cy="12" r="4.44" stroke="currentColor" strokeWidth="1.5"/></svg> }

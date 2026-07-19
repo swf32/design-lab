@@ -1,0 +1,1 @@
+{"name":"design-lab-workspace","private":true,"workspaces":["design-lab","libraries/*"],"scripts":{"dev":"npm run dev --workspace=design-lab","build":"npm run build --workspace=design-lab","test":"npm run test --workspace=design-lab","mcp":"npm run mcp --workspace=design-lab","designlab":"npm run designlab --workspace=design-lab --"}}

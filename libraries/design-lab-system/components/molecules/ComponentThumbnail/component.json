@@ -1,0 +1,1 @@
+{"id":"component-thumbnail","name":"Component Thumbnail","category":"molecules","entry":"ComponentThumbnail.tsx","preview":"ComponentThumbnail.preview.tsx","stories":"ComponentThumbnail.stories.ts","docs":"README.md","changelog":"CHANGELOG.md","status":"ready","states":["default","generic-fallback"],"variants":["component-kind"],"props":{"kind":{"type":"string","required":true}}}

@@ -1,0 +1,1 @@
+{"name":"@design-lab/system","version":"0.1.0","private":true,"type":"module","exports":{"./components":"./components/index.ts","./icons":"./assets/icons/index.ts","./i18n":"./i18n/index.ts","./tokens.css":"./tokens/generated/tokens.css","./styles.css":"./components/styles.css"},"scripts":{"build:tokens":"node scripts/build-tokens.mjs"},"peerDependencies":{"react":">=19"}}

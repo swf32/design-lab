@@ -1,0 +1,1 @@
+{"id":"color-card","name":"Color Card","category":"atoms","entry":"ColorCard.tsx","preview":"ColorCard.preview.tsx","stories":"ColorCard.stories.ts","docs":"README.md","changelog":"CHANGELOG.md","status":"ready","states":["default"],"variants":["default"],"props":{"name":{"type":"string","required":true},"value":{"type":"string","required":true}}}

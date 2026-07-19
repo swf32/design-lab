@@ -1,0 +1,11 @@
+node_modules/
+dist/
+.designlab/
+**/.designlab/index/
+**/.designlab/embeddings/
+/projects/
+/libraries/*
+!/libraries/design-lab-system/
+!/libraries/design-lab-system/**
+.DS_Store
+*.log
