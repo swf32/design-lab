@@ -1,0 +1,21 @@
+.dl-playground-controls-rail {
+  min-width: 0;
+  min-height: 0;
+  border-right: 1px solid var(--color-border-subtle);
+  background: var(--color-surface-primary);
+  display: flex;
+  flex-direction: column;
+}
+
+.dl-playground-controls-rail__header,
+.dl-playground-controls-rail__footer {
+  flex: 0 0 auto;
+}
+
+.dl-playground-controls-rail__body {
+  min-height: 0;
+  flex: 1;
+  overflow: auto;
+  overscroll-behavior: contain;
+  scrollbar-width: thin;
+}

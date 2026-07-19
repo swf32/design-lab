@@ -21,13 +21,13 @@
   flex-direction: column;
 }
 
-.component-playground-panel__header {
+.component-playground-panel > .dl-playground-controls-rail__header {
   flex: 0 0 auto;
   padding: var(--spacing-3) var(--spacing-4) var(--spacing-4);
   border-bottom: 1px solid var(--color-border-subtle);
 }
 
-.component-playground-panel__header > .dl-button {
+.component-playground-panel > .dl-playground-controls-rail__header > .dl-button {
   margin-left: calc(var(--spacing-2) * -1);
 }
 
@@ -75,7 +75,7 @@
   white-space: nowrap;
 }
 
-.component-playground-panel__body {
+.component-playground-panel > .dl-playground-controls-rail__body {
   min-height: 0;
   flex: 1;
   overflow: auto;
@@ -146,7 +146,7 @@
   margin-bottom: var(--spacing-2);
 }
 
-.component-playground-panel__footer {
+.component-playground-panel > .dl-playground-controls-rail__footer {
   flex: 0 0 auto;
   padding: var(--spacing-3) var(--spacing-4) calc(var(--spacing-3) + env(safe-area-inset-bottom));
   border-top: 1px solid var(--color-border-subtle);
@@ -158,6 +158,19 @@
   min-height: 0;
   overflow: auto;
   position: relative;
+}
+
+.component-playground-canvas__tools {
+  position: absolute;
+  z-index: 7;
+  top: max(16px, env(safe-area-inset-top));
+  right: max(16px, env(safe-area-inset-right));
+  padding: 4px;
+  border: 1px solid color-mix(in srgb, var(--color-text-primary) 16%, transparent);
+  border-radius: var(--radius-medium);
+  background: color-mix(in srgb, var(--color-surface-primary) 78%, transparent);
+  box-shadow: 0 10px 32px color-mix(in srgb, var(--color-overlay-scrim) 48%, transparent);
+  backdrop-filter: blur(16px) saturate(1.2);
 }
 
 .component-playground-canvas__stage {
@@ -229,97 +242,32 @@
   left: var(--inspector-target-left);
   width: var(--inspector-target-width);
   height: var(--inspector-target-height);
-  border: 2px dashed var(--color-accent-primary);
+  border: 2px dashed var(--color-border-strong);
   border-radius: 3px;
-  background: color-mix(in srgb, var(--color-accent-primary) 10%, transparent);
+  background: color-mix(in srgb, var(--color-border-strong) 8%, transparent);
   box-shadow: 0 0 0 1px color-mix(in srgb, var(--color-canvas) 65%, transparent);
   pointer-events: none;
 }
 
+.playground-inspector__outline--component {
+  border-color: var(--color-inspection-component);
+  background: color-mix(in srgb, var(--color-inspection-component) 10%, transparent);
+}
+
+.playground-inspector__outline--slot {
+  border-color: var(--color-inspection-slot);
+  background: color-mix(in srgb, var(--color-inspection-slot) 10%, transparent);
+}
+
 .playground-inspector__card {
-  width: min(300px, calc(100vw - 32px));
-  max-height: min(420px, calc(100dvh - 112px));
-  box-sizing: border-box;
-  overflow: hidden;
   position: fixed;
   z-index: 31;
-  top: clamp(12px, var(--inspector-target-top), calc(100dvh - 432px));
+  top: clamp(12px, var(--inspector-target-top), calc(100dvh - 472px));
   right: clamp(
     12px,
     calc(var(--inspector-target-right) + var(--inspector-target-width) + 12px),
-    calc(100vw - 312px)
+    calc(100vw - 352px)
   );
-  border: 1px solid color-mix(in srgb, var(--color-accent-primary) 58%, var(--color-border-default));
-  border-radius: var(--radius-medium);
-  background: color-mix(in srgb, var(--color-surface-raised) 94%, transparent);
-  color: var(--color-text-primary);
-  box-shadow: 0 20px 64px color-mix(in srgb, var(--color-overlay-scrim) 72%, transparent);
-  backdrop-filter: blur(18px) saturate(1.16);
-  pointer-events: none;
-}
-
-.playground-inspector__card header {
-  padding: 12px 14px;
-  border-bottom: 1px solid var(--color-border-subtle);
-  display: grid;
-  gap: 3px;
-}
-
-.playground-inspector__card header span {
-  color: var(--color-accent-primary);
-  font-size: 9px;
-  font-weight: 750;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-}
-
-.playground-inspector__card header strong {
-  overflow: hidden;
-  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
-  font-size: 14px;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.playground-inspector__card dl {
-  max-height: 286px;
-  margin: 0;
-  overflow: auto;
-  scrollbar-width: thin;
-}
-
-.playground-inspector__card dl div {
-  min-width: 0;
-  padding: 8px 14px;
-  border-bottom: 1px solid var(--color-border-subtle);
-  display: grid;
-  grid-template-columns: minmax(82px, 0.8fr) minmax(0, 1.4fr);
-  gap: 10px;
-}
-
-.playground-inspector__card dt,
-.playground-inspector__card dd {
-  min-width: 0;
-  margin: 0;
-  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
-  font-size: 10px;
-  line-height: 1.45;
-}
-
-.playground-inspector__card dt {
-  color: var(--color-text-muted);
-}
-
-.playground-inspector__card dd {
-  overflow-wrap: anywhere;
-  color: var(--color-text-primary);
-}
-
-.playground-inspector__card footer {
-  padding: 9px 14px;
-  color: var(--color-text-disabled);
-  font-size: 9px;
-  line-height: 1.4;
 }
 
 .playground-inspector__trigger {
@@ -394,14 +342,14 @@
     transition-delay: 0s;
   }
 
-  .component-playground-panel__header {
+  .component-playground-panel > .dl-playground-controls-rail__header {
     padding-inline: var(--spacing-4);
     position: relative;
   }
 
-  .component-playground-panel__header > .dl-button,
+  .component-playground-panel > .dl-playground-controls-rail__header > .dl-button,
   .component-playground-panel__done,
-  .component-playground-panel__footer .dl-button {
+  .component-playground-panel > .dl-playground-controls-rail__footer .dl-button {
     min-height: 44px;
     font-size: 13px;
   }
@@ -467,6 +415,11 @@
   .component-playground-canvas {
     grid-column: 1;
     grid-row: 1;
+  }
+
+  .component-playground-canvas__tools {
+    top: max(12px, env(safe-area-inset-top));
+    right: max(12px, env(safe-area-inset-right));
   }
 
   .component-playground-canvas__stage {
@@ -545,7 +498,7 @@
     bottom: calc(84px + env(safe-area-inset-bottom));
   }
 
-  .playground-inspector__card dl {
+  .playground-inspector__card .dl-code-block pre {
     max-height: min(30dvh, 220px);
   }
 

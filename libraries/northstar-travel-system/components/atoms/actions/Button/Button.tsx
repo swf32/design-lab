@@ -1,6 +1,6 @@
 import './Button.scss'
 import type { ButtonHTMLAttributes, ReactNode } from 'react'
-import { inspectionAttributes } from '@design-lab/system/inspection'
+import { inspectionAttributes, slotAttributes } from '@design-lab/system/inspection'
 
 export type ButtonProps = ButtonHTMLAttributes<HTMLButtonElement> & {
   variant?: 'primary' | 'secondary'
@@ -31,7 +31,7 @@ export function Button({
       className={`northstar-button northstar-button--${variant}${fullWidth ? ' northstar-button--full' : ''}${className ? ` ${className}` : ''}`}
       disabled={disabled}
     >
-      {children}
+      <span {...slotAttributes('label')}>{children}</span>
     </button>
   )
 }

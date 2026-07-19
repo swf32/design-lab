@@ -8,6 +8,7 @@ import {
   ColorPicker,
   ControlField,
   Input,
+  PlaygroundControlsRail,
   RadioButton,
   Select,
   Slider,
@@ -323,90 +324,43 @@ function LoadedComponentPlayground({
         tabIndex={isCompact && controlsOpen ? 0 : -1}
         onClick={() => setControlsOpen(false)}
       />
-      <aside
+      <PlaygroundControlsRail
         id="component-playground-settings"
         className="component-playground-panel"
-        aria-label="Playground settings"
         aria-hidden={isCompact && !controlsOpen}
         inert={isCompact && !controlsOpen ? true : undefined}
-      >
-        <header className="component-playground-panel__header">
-          <Button
-            type="button"
-            variant="ghost"
-            size="small"
-            leading={<ArrowLeftIcon size={16} aria-hidden="true" />}
-            onClick={onClose}
-          >
-            Component
-          </Button>
-          <button
-            type="button"
-            className="component-playground-panel__done"
-            ref={closeControlsRef}
-            onClick={() => setControlsOpen(false)}
-          >
-            Done
-          </button>
-          <div className="component-playground-panel__identity">
-            <div>
-              <span>Playground</span>
-              <Chip color={status.color} variant="soft" size="small">
-                {status.label}
-              </Chip>
+        header={
+          <>
+            <Button
+              type="button"
+              variant="ghost"
+              size="small"
+              leading={<ArrowLeftIcon size={16} aria-hidden="true" />}
+              onClick={onClose}
+            >
+              Component
+            </Button>
+            <button
+              type="button"
+              className="component-playground-panel__done"
+              ref={closeControlsRef}
+              onClick={() => setControlsOpen(false)}
+            >
+              Done
+            </button>
+            <div className="component-playground-panel__identity">
+              <div>
+                <span>Playground</span>
+                <Chip color={status.color} variant="soft" size="small">
+                  {status.label}
+                </Chip>
+              </div>
+              <h1>{component.name}</h1>
+              <code>{component.directory}</code>
             </div>
-            <h1>{component.name}</h1>
-            <code>{component.directory}</code>
-          </div>
-        </header>
-
-        <div className="component-playground-panel__body">
-          <section className="component-playground-panel__section">
-            <span>Direction</span>
-            <TabSwitcher
-              ariaLabel="Playground direction"
-              options={module.playground.variants.map((item) => ({
-                value: item.id,
-                label: item.name,
-              }))}
-              value={variant}
-              onChange={setVariant}
-            />
-            <p>{selectedVariant?.description ?? module.playground.description}</p>
-          </section>
-
-          {availableModes.length > 1 && (
-            <section className="component-playground-panel__section">
-              <span>Product theme</span>
-              <TabSwitcher
-                ariaLabel="Product theme"
-                options={availableModes.map((item) => ({ value: item, label: item }))}
-                value={mode}
-                onChange={setMode}
-                size="small"
-              />
-            </section>
-          )}
-
-          <section className="component-playground-panel__section">
-            <span>Canvas</span>
-            <CanvasBackgroundControl
-              mode={canvasMode}
-              color={canvasColor}
-              onModeChange={onCanvasModeChange}
-              onColorChange={onCanvasColorChange}
-            />
-          </section>
-
-          <PlaygroundControls
-            component={component}
-            controls={module.playground.controls}
-            values={values}
-            onChange={(key, value) => setValues((current) => ({ ...current, [key]: value }))}
-          />
-        </div>
-
-        <footer className="component-playground-panel__footer">
+          </>
+        }
+        footer={
           <Button
             variant="secondary"
             fullWidth
@@ -414,8 +368,42 @@ function LoadedComponentPlayground({
           >
             Copy review link
           </Button>
-        </footer>
-      </aside>
+        }
+      >
+        <section className="component-playground-panel__section">
+          <span>Direction</span>
+          <TabSwitcher
+            ariaLabel="Playground direction"
+            options={module.playground.variants.map((item) => ({
+              value: item.id,
+              label: item.name,
+            }))}
+            value={variant}
+            onChange={setVariant}
+          />
+          <p>{selectedVariant?.description ?? module.playground.description}</p>
+        </section>
+
+        {availableModes.length > 1 && (
+          <section className="component-playground-panel__section">
+            <span>Product theme</span>
+            <TabSwitcher
+              ariaLabel="Product theme"
+              options={availableModes.map((item) => ({ value: item, label: item }))}
+              value={mode}
+              onChange={setMode}
+              size="small"
+            />
+          </section>
+        )}
+
+        <PlaygroundControls
+          component={component}
+          controls={module.playground.controls}
+          values={values}
+          onChange={(key, value) => setValues((current) => ({ ...current, [key]: value }))}
+        />
+      </PlaygroundControlsRail>
 
       <section
         ref={canvasRef}
@@ -424,6 +412,14 @@ function LoadedComponentPlayground({
         aria-hidden={isCompact && controlsOpen}
         inert={isCompact && controlsOpen ? true : undefined}
       >
+        <div className="component-playground-canvas__tools" data-playground-inspector-ui>
+          <CanvasBackgroundControl
+            mode={canvasMode}
+            color={canvasColor}
+            onModeChange={onCanvasModeChange}
+            onColorChange={onCanvasColorChange}
+          />
+        </div>
         <div className="component-playground-canvas__stage">
           <div className="component-playground-page__specimen">
             {module.renderPlaygroundVariant({ variant, values, mode })}

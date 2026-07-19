@@ -1,41 +1,111 @@
 import { useEffect, useRef, useState, type CSSProperties, type RefObject } from 'react'
+import { InspectorCodePopover, type InspectorKind } from '@design-lab/system/components'
 import { InspectIcon } from '@design-lab/system/icons'
 
 type Inspection = {
-  element: HTMLElement
   rect: DOMRect
-  kind: 'component' | 'element'
+  kind: InspectorKind
   name: string
-  details: Record<string, string>
+  code: string
+  language: 'tsx' | 'html' | 'scss'
 }
 
-const styleProperties = [
-  'display',
-  'position',
-  'box-sizing',
-  'width',
-  'height',
-  'padding',
-  'margin',
-  'gap',
-  'color',
-  'background-color',
-  'border',
-  'border-radius',
-  'font-family',
-  'font-size',
-  'font-weight',
-  'line-height',
-  'grid-template-columns',
-] as const
-
 function displayValue(value: unknown) {
-  if (typeof value === 'string') return value
-  if (value == null || typeof value === 'number' || typeof value === 'boolean') return String(value)
-  return JSON.stringify(value)
+  if (typeof value === 'string') return `"${value.replaceAll('"', '\\"')}"`
+  if (value == null) return '{null}'
+  if (typeof value === 'number' || typeof value === 'boolean') return `{${String(value)}}`
+  return `{${JSON.stringify(value)}}`
+}
+
+function componentCode(name: string, props: Record<string, unknown>) {
+  const children = props.children
+  const attributes = Object.entries(props)
+    .filter(([key]) => key !== 'children')
+    .map(([key, value]) => `  ${key}=${displayValue(value)}`)
+  if (children == null) {
+    return attributes.length ? `<${name}\n${attributes.join('\n')}\n/>` : `<${name} />`
+  }
+  const opening = attributes.length ? `<${name}\n${attributes.join('\n')}\n>` : `<${name}>`
+  return `${opening}\n  ${String(children)}\n</${name}>`
+}
+
+function authoredDeclarations(cssText: string) {
+  const openBrace = cssText.indexOf('{')
+  const closeBrace = cssText.lastIndexOf('}')
+  const body =
+    openBrace >= 0 && closeBrace > openBrace ? cssText.slice(openBrace + 1, closeBrace) : cssText
+  return body
+    .split(';')
+    .map((declaration) => declaration.trim())
+    .filter(Boolean)
+    .map((declaration) => `  ${declaration};`)
+    .join('\n')
+}
+
+function authoredCss(element: HTMLElement) {
+  const fragments: string[] = []
+  if (element.style.length) {
+    fragments.push(
+      `${element.tagName.toLowerCase()}[style] {\n${authoredDeclarations(element.getAttribute('style') ?? '')}\n}`,
+    )
+  }
+
+  const visitRules = (rules: CSSRuleList) => {
+    for (const rule of Array.from(rules)) {
+      const conditionalRule = rule as CSSConditionRule
+      if ('conditionText' in conditionalRule && typeof conditionalRule.conditionText === 'string') {
+        if (!window.matchMedia(conditionalRule.conditionText).matches) continue
+      }
+      if ('cssRules' in rule) {
+        try {
+          visitRules((rule as CSSGroupingRule).cssRules)
+        } catch {
+          continue
+        }
+      }
+      const styleRule = rule as CSSStyleRule
+      if (typeof styleRule.selectorText !== 'string' || !styleRule.style) continue
+      if (
+        styleRule.selectorText === '*' ||
+        styleRule.selectorText.includes('.playground-inspector') ||
+        styleRule.selectorText.includes('.component-playground-page')
+      )
+        continue
+      try {
+        if (!element.matches(styleRule.selectorText)) continue
+      } catch {
+        continue
+      }
+      const declarations = authoredDeclarations(styleRule.cssText)
+      if (declarations) fragments.push(`${styleRule.selectorText} {\n${declarations}\n}`)
+    }
+  }
+
+  for (const sheet of Array.from(document.styleSheets)) {
+    try {
+      visitRules(sheet.cssRules)
+    } catch {
+      continue
+    }
+  }
+
+  return fragments.length
+    ? fragments.join('\n\n')
+    : `${element.tagName.toLowerCase()} {\n  /* No authored rule directly targets this element. */\n}`
 }
 
 function inspectElement(element: HTMLElement): Inspection {
+  const slotName = element.dataset.dlSlot
+  if (slotName) {
+    return {
+      rect: element.getBoundingClientRect(),
+      kind: 'slot',
+      name: slotName,
+      code: element.outerHTML,
+      language: 'html',
+    }
+  }
+
   const componentName = element.dataset.dlComponent
   if (componentName) {
     let props: Record<string, unknown> = {}
@@ -45,27 +115,20 @@ function inspectElement(element: HTMLElement): Inspection {
       props = {}
     }
     return {
-      element,
       rect: element.getBoundingClientRect(),
       kind: 'component',
       name: componentName,
-      details: Object.fromEntries(
-        Object.entries(props).map(([key, value]) => [key, displayValue(value)]),
-      ),
+      code: componentCode(componentName, props),
+      language: 'tsx',
     }
   }
 
-  const styles = window.getComputedStyle(element)
   return {
-    element,
     rect: element.getBoundingClientRect(),
     kind: 'element',
     name: element.tagName.toLowerCase(),
-    details: Object.fromEntries(
-      styleProperties
-        .map((property) => [property, styles.getPropertyValue(property)] as const)
-        .filter(([, value]) => value && value !== 'normal' && value !== 'none' && value !== '0px'),
-    ),
+    code: authoredCss(element),
+    language: 'scss',
   }
 }
 
@@ -89,12 +152,14 @@ export function PlaygroundInspector({ canvasRef }: { canvasRef: RefObject<HTMLEl
       frameRef.current = requestAnimationFrame(() => select(event.target))
     }
     const choose = (event: PointerEvent) => {
+      if (
+        event.target instanceof HTMLElement &&
+        event.target.closest('[data-playground-inspector-ui]')
+      )
+        return
       event.preventDefault()
       event.stopPropagation()
       select(event.target)
-    }
-    const leave = (event: PointerEvent) => {
-      if (event.pointerType !== 'touch') setInspection(null)
     }
     const escape = (event: KeyboardEvent) => {
       if (event.key === 'Escape') setActive(false)
@@ -102,12 +167,10 @@ export function PlaygroundInspector({ canvasRef }: { canvasRef: RefObject<HTMLEl
 
     canvas.addEventListener('pointermove', move)
     canvas.addEventListener('pointerdown', choose, true)
-    canvas.addEventListener('pointerleave', leave)
     window.addEventListener('keydown', escape)
     return () => {
       canvas.removeEventListener('pointermove', move)
       canvas.removeEventListener('pointerdown', choose, true)
-      canvas.removeEventListener('pointerleave', leave)
       window.removeEventListener('keydown', escape)
       if (frameRef.current != null) cancelAnimationFrame(frameRef.current)
     }
@@ -139,30 +202,17 @@ export function PlaygroundInspector({ canvasRef }: { canvasRef: RefObject<HTMLEl
     >
       {inspection && (
         <>
-          <div className="playground-inspector__outline" aria-hidden="true" />
-          <section
+          <div
+            className={`playground-inspector__outline playground-inspector__outline--${inspection.kind}`}
+            aria-hidden="true"
+          />
+          <InspectorCodePopover
             className="playground-inspector__card"
-            aria-live="polite"
-            aria-label={`${inspection.kind} inspection`}
-          >
-            <header>
-              <span>{inspection.kind}</span>
-              <strong>{inspection.name}</strong>
-            </header>
-            <dl>
-              {Object.entries(inspection.details).map(([key, value]) => (
-                <div key={key}>
-                  <dt>{key}</dt>
-                  <dd>{value}</dd>
-                </div>
-              ))}
-            </dl>
-            <footer>
-              {inspection.kind === 'component'
-                ? 'Public props from the component contract'
-                : 'Computed styles from the rendered element'}
-            </footer>
-          </section>
+            kind={inspection.kind}
+            name={inspection.name}
+            code={inspection.code}
+            language={inspection.language}
+          />
         </>
       )}
       <button

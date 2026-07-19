@@ -8,7 +8,11 @@ export function renderStoryExample(example: StoryExample) {
     language === 'scss'
       ? '.component {\n  color: var(--color-text-primary);\n}'
       : "import { Button } from '@design-lab/system/components'"
-  return createElement(CodeBlock, { language, code })
+  return createElement(CodeBlock, {
+    language,
+    code,
+    copyOnClick: Boolean(example.props?.copyOnClick),
+  })
 }
 
 export const stories = [
@@ -28,7 +32,10 @@ export const stories = [
     name: 'Copy source',
     description: 'The action copies the complete source and acknowledges success.',
     interactive: true,
-    examples: [{ label: 'Ready', props: { showCopy: true } }],
+    examples: [
+      { label: 'Copy action', props: { showCopy: true } },
+      { label: 'Whole fragment', props: { copyOnClick: true } },
+    ],
   },
   {
     id: 'overflow',

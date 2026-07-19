@@ -419,7 +419,9 @@ Components использует Tokens, Palette и Fonts и становится
 - [x] Карточка показывает name и lifecycle status; отсутствие или неизвестное значение не блокирует discovery.
 - [x] Typed `*.playground.tsx` автоматически создаёт multi-variant route без application registry.
 - [x] Playground route является отдельным fullscreen review mode: desktop controls rail + Canvas, mobile Canvas + dismissible Settings rail.
-- [x] Playground Inspector различает inspectable production Components и обычные DOM elements, показывает public props или computed styles и работает через hover/tap.
+- [x] Playground Inspector различает Components, named slots и обычные DOM elements, показывает copyable JSX/HTML/authored CSS и работает через hover/tap.
+- [x] Component outline использует стабильный inspection purple, slot outline — inspection pink; оба не зависят от interface accent.
+- [x] Fullscreen Playground использует production `PlaygroundControlsRail` и `InspectorCodePopover`; Canvas Background Control плавает сверху справа над Canvas.
 - [x] Playground popovers портальны и viewport-aware: открытие не увеличивает scroll area controls rail.
 - [x] Wireframe-only Component обнаруживается без production entry и не попадает в generated package barrel.
 - [ ] Completeness badge/action помимо lifecycle status.

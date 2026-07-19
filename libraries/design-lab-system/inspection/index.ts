@@ -36,3 +36,11 @@ export function inspectionAttributes(
     'data-dl-props': JSON.stringify(sanitizeInspectableValue(publicProps) ?? {}),
   }
 }
+
+export function slotAttributes(slot: string): {
+  'data-dl-slot': string
+} {
+  return {
+    'data-dl-slot': slot,
+  }
+}

@@ -1,0 +1,25 @@
+{
+  "id": "playground-controls-rail",
+  "name": "Playground Controls Rail",
+  "status": "ready",
+  "entry": "PlaygroundControlsRail.tsx",
+  "preview": "PlaygroundControlsRail.preview.tsx",
+  "stories": "PlaygroundControlsRail.stories.tsx",
+  "docs": "README.md",
+  "changelog": "CHANGELOG.md",
+  "variants": ["default"],
+  "states": ["persistent", "overlay"],
+  "description": "Provides header, scrollable content, and footer slots for standalone Playground controls.",
+  "aliases": ["playground sidebar", "controls panel", "settings rail"],
+  "useWhen": [
+    "compose typed controls beside a Playground canvas",
+    "show controls as a mobile overlay"
+  ],
+  "avoidWhen": ["navigate application modules", "show filesystem entities"],
+  "props": {
+    "header": { "type": "ReactNode", "required": true, "slot": true },
+    "children": { "type": "ReactNode", "required": true, "slot": true },
+    "footer": { "type": "ReactNode", "slot": true },
+    "label": { "type": "string", "default": "Playground settings" }
+  }
+}

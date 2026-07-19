@@ -29,6 +29,10 @@
     "showCopy": {
       "type": "boolean",
       "default": true
+    },
+    "copyOnClick": {
+      "type": "boolean",
+      "default": false
     }
   }
 }

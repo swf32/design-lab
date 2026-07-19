@@ -57,7 +57,7 @@ test('production and example relationships stay separate and direct', async () =
   )
   assert.deepEqual(
     button.relations.usedInExamplesBy.map((relation) => relation.id),
-    ['story-canvas', 'workbench-playground'],
+    ['story-canvas', 'playground-controls-rail', 'workbench-playground'],
   )
 })
 

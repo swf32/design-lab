@@ -93,6 +93,24 @@
         "value": "#83c5b4",
         "description": "Foreground for source code, import statements, token values, and filesystem references."
       },
+      "inspection": {
+        "component": {
+          "type": "color",
+          "value": "#9747ff",
+          "description": "Stable purple identity for Component boundaries in visual inspection and developer handoff.",
+          "aliases": ["component purple", "Figma component outline"],
+          "useWhen": ["outline an inspectable Component root"],
+          "avoidWhen": ["style a theme accent", "outline an ordinary DOM element"]
+        },
+        "slot": {
+          "type": "color",
+          "value": "#f24eaa",
+          "description": "Stable pink identity for named Component slot boundaries in visual inspection and developer handoff.",
+          "aliases": ["slot pink", "Figma slot outline"],
+          "useWhen": ["outline an inspectable Component slot"],
+          "avoidWhen": ["style a theme accent", "outline a Component root"]
+        }
+      },
       "canvas-grid": {
         "dark-a": {
           "type": "color",

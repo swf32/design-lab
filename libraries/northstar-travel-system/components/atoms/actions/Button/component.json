@@ -16,6 +16,7 @@
   "props": {
     "variant": { "type": "\"primary\" | \"secondary\"", "default": "primary" },
     "fullWidth": { "type": "boolean", "default": false },
-    "disabled": { "type": "boolean", "default": false }
+    "disabled": { "type": "boolean", "default": false },
+    "children": { "type": "ReactNode", "required": true, "slot": true }
   }
 }

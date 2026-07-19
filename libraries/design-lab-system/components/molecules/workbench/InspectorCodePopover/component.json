@@ -1,0 +1,22 @@
+{
+  "id": "inspector-code-popover",
+  "name": "Inspector Code Popover",
+  "status": "ready",
+  "entry": "InspectorCodePopover.tsx",
+  "preview": "InspectorCodePopover.preview.tsx",
+  "stories": "InspectorCodePopover.stories.tsx",
+  "docs": "README.md",
+  "changelog": "CHANGELOG.md",
+  "variants": ["component", "slot", "element"],
+  "states": ["ready", "copied"],
+  "description": "Shows a selected Component, slot, or DOM element as a copyable developer handoff code fragment.",
+  "aliases": ["element inspector", "developer tooltip", "inspect code"],
+  "useWhen": ["show authored code for an inspected interface node", "copy component props or CSS"],
+  "avoidWhen": ["edit source code", "show general documentation prose"],
+  "props": {
+    "kind": { "type": "\"component\" | \"slot\" | \"element\"", "required": true },
+    "name": { "type": "string", "required": true },
+    "code": { "type": "string", "required": true },
+    "language": { "type": "\"tsx\" | \"html\" | \"scss\"", "required": true }
+  }
+}

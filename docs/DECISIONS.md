@@ -380,10 +380,20 @@ Playground route намеренно выходит из обычного shell D
 
 **Статус:** принято, 2026-07-19.
 
-Playground получает общий Inspector в нижнем правом углу. На desktop активный режим следует за pointer hover, на touch выбирает element по tap. Выбранная граница обозначается пунктирным accent outline. Если сам DOM node является production Component root, карточка показывает canonical Component name и разрешённые public presentational props; в остальных случаях показывает tag name и ограниченный набор computed layout, color, border и typography styles.
+Playground получает общий Inspector в нижнем правом углу. На desktop активный режим следует за pointer hover, на touch выбирает element по tap. Identity не зависит от interface accent: Component root получает стабильный фиолетовый пунктир `color.inspection.component`, named slot — розовый пунктир `color.inspection.slot`, обычный element — нейтральный пунктир. Текстовый kind label дублирует цветовую семантику.
 
-Определение Component не читает приватные поля React Fiber и не пытается считать любой вложенный element частью ближайшего Component. Production root явно распространяет `inspectionAttributes(ComponentName, publicProps)` из `@design-lab/system/inspection`. Автор передаёт только безопасный сериализуемый публичный subset без callbacks, credentials и application state; helper выполняет защитную сериализацию в общий `data-dl-component` / `data-dl-props` contract. Поэтому механизм остаётся переносимым на будущие Wireframes и Pages и не зависит от React runtime internals.
+Определение Component не читает приватные поля React Fiber и не пытается считать любой вложенный element частью ближайшего Component. Production root явно распространяет `inspectionAttributes(ComponentName, publicProps)`, а named slot — `slotAttributes(slotName)` из `@design-lab/system/inspection`. Автор передаёт только безопасный сериализуемый публичный subset без callbacks, credentials и application state; helpers создают общий `data-dl-component` / `data-dl-props` / `data-dl-slot` contract. Поэтому механизм остаётся переносимым на будущие Wireframes и Pages и не зависит от React runtime internals.
 
-Первым сквозным примером служит production `Button` Northstar Travel System: Flight Search wireframe и production Trip Card импортируют один и тот же Component, а Inspector показывает его реальные props. Сам Trip Card также публикует свой component-root contract. Обычные внутренние `div`, `span` и typography nodes продолжают инспектироваться как DOM styles.
+Inspector показывает source handoff как production `InspectorCodePopover` с `CodeBlock`. Component превращается в JSX с реальными public props, slot — в HTML fragment, обычный element — в совпавшие authored same-origin CSS declarations. Исходные `width: 100%`, shorthands и `var(--token)` сохраняются; computed pixel geometry и resolved RGB не выдаются за код. Click или keyboard activation копирует весь fragment.
+
+Первым сквозным примером служит production `Button` Northstar Travel System: Flight Search wireframe и production Trip Card импортируют один и тот же Component, а его content размечен named `label` slot. Сам Trip Card также публикует свой component-root contract.
 
 Floating controls не принадлежат scroll geometry rail. Color Picker рендерит palette через portal, выбирает доступную сторону относительно trigger, ограничивается visual viewport и использует mobile touch sizing; открытие palette не создаёт недоступное дополнительное пространство прокрутки.
+
+## D-040 — Fullscreen Playground shell состоит из production Components
+
+**Статус:** принято, 2026-07-19.
+
+Fullscreen Playground не владеет параллельной одноразовой реализацией sidebar или inspection window. Production `PlaygroundControlsRail` предоставляет header, independently scrollable content и optional footer slots и используется приложением как persistent desktop rail и mobile overlay. Production `InspectorCodePopover` владеет kind identity и copyable code presentation через общий `CodeBlock`.
+
+Canvas Background Control удалён из controls rail и закреплён отдельной плавающей surface сверху справа над Canvas. Поэтому настройка визуального поля находится рядом с самим полем, остаётся доступной при закрытом mobile Settings rail и переиспользует существующий production Component.
