@@ -1,0 +1,34 @@
+{
+  "id": "wireframe-card",
+  "name": "Wireframe Card",
+  "status": "ready",
+  "description": "Catalog card for a discovered page Wireframe with lifecycle, layout, state, and flow counts.",
+  "aliases": ["wireframe catalog item", "page direction card", "flow review card"],
+  "useWhen": [
+    "A Wireframes module lists reviewable filesystem entities with layout and flow metadata."
+  ],
+  "avoidWhen": [
+    "The entity is a Component, final Page, or arbitrary file without Wireframe semantics."
+  ],
+  "entry": "WireframeCard.tsx",
+  "preview": "WireframeCard.preview.tsx",
+  "stories": "WireframeCard.stories.ts",
+  "docs": "README.md",
+  "changelog": "CHANGELOG.md",
+  "variants": ["catalog"],
+  "states": ["default", "hover", "selected"],
+  "props": {
+    "name": { "type": "string", "required": true },
+    "description": { "type": "string", "required": true },
+    "status": {
+      "type": "draft | review | approved",
+      "required": true,
+      "values": ["draft", "review", "approved"]
+    },
+    "layoutCount": { "type": "number", "required": true },
+    "stateCount": { "type": "number", "required": true },
+    "transitionCount": { "type": "number", "required": true },
+    "selected": { "type": "boolean", "default": false },
+    "onClick": { "type": "() => void", "required": false }
+  }
+}

@@ -104,7 +104,8 @@
 ### P2 — product breadth
 
 - [ ] Add Rules, Decisions, and Prompts modules so indexed knowledge is authorable in UI.
-- [ ] Implement Wireframes, Pages, inspector, and handoff after the foundation contracts stop moving.
+- [x] Implement the first Wireframes vertical: hybrid filesystem contract, semantic discovery/navigation, fullscreen multi-layout review, typed saved/custom states, and user-flow Canvas.
+- [ ] Implement Pages and bring Inspector/handoff parity from Playground to Wireframes and Pages.
 - [ ] Add guarded AI write proposals only after diff, validation, and confirmation contracts exist.
 
 ---
@@ -517,7 +518,8 @@ Components использует Tokens, Palette и Fonts и становится
 - [ ] Embeddings и semantic retrieval.
 - [x] Внутренний context gateway и MCP-ready schema.
 - [x] Local read-only MCP stdio adapter и CLI fallback.
-- [ ] Wireframes и Pages.
+- [x] Wireframes: hybrid JSON+TSX contract, pricing reference entity, Dev mode, shareable state, and user-flow graph.
+- [ ] Pages.
 - [ ] Page inspector и handoff.
 - [ ] Storybook read-only ingestion.
 - [ ] Figma as context workflows.

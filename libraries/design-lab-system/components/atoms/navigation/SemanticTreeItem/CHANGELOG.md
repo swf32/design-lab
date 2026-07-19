@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- Added: Wireframe entity kind with the shared Wireframes icon.
 - Added: Independent `onExpandedChange` callback separates folder disclosure from label selection while preserving the previous fallback behavior.
 - Fixed: Folder disclosure no longer triggers navigation when the consumer provides the dedicated callback.
 - Accessibility: Mobile disclosure, color, label, and action targets now use a 44–48px touch geometry with larger row text.

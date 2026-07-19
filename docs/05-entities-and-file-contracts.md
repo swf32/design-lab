@@ -53,20 +53,23 @@ Manifest-declared `*.stories.ts(x)` хранит и story metadata, и `renderSt
 | Поле | Рекомендация |
 |----|----|
 | Purpose | Фиксировать несколько черновых вариантов будущей страницы или потока |
-| Minimal data model | `id`, `name`, `variants[]`, `notes`, `linkedPages[]`, `status`, `decisionRef` |
-| File examples | `checkout.wireframe.json`, `notes.md`, `variant-a.json`, `variant-b.json` |
-| UX flow | Создать wireframe → сделать A/B/C → сравнить → зафиксировать выбранное направление → превратить в page |
-| Features | **MVP**: multi-variant canvas, notes, compare. **Next**: review state, comments. **Future**: experiments binding |
+| Minimal data model | `id`, `name`, `status`, `layouts[]`, `controls[]`, `states[]`, `flow.nodes[]`, `flow.edges[]` |
+| File examples | `wireframe.json`, `Pricing.wireframe.tsx`, optional `Pricing.wireframe.scss`, `README.md`, `CHANGELOG.md` |
+| UX flow | Создать Wireframe → сделать разные layout directions → проверить saved/custom states → пройти user flow → зафиксировать выбранное направление → превратить в Page |
+| Features | **MVP**: hybrid JSON+TSX source, automatic discovery, multi-layout fullscreen review, typed state controls, shareable URL, user-flow Canvas. **Next**: review approval and inspector parity. **Future**: comments and experiments binding |
 
 Пример дерева:
 
     wireframes/
-    └── checkout/
-        ├── wireframe.meta.json
-        ├── variant-a.json
-        ├── variant-b.json
-        ├── variant-c.json
-        └── notes.md
+    └── product/
+        └── Pricing/
+            ├── wireframe.json
+            ├── Pricing.wireframe.tsx
+            ├── Pricing.wireframe.scss
+            ├── README.md
+            └── CHANGELOG.md
+
+`wireframe.json` хранит структуру и graph semantics, а typed TSX — render. Layout directions меняют information architecture, grouping, disclosure, density или action placement, но не дублируют state data. Saved state содержит полный набор control values; user-flow nodes ссылаются на states, а edges называют actions. Runtime загружает adjacent renderer по manifest без центрального реестра.
 
 ## Pages
 

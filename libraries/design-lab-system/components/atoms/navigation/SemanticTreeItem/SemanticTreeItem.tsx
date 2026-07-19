@@ -15,6 +15,7 @@ import {
   DirectoryIcon,
   MoreIcon,
   TokensIcon,
+  WireframesIcon,
   type IconProps,
 } from '../../../../assets/icons'
 import { useDesignLabI18n } from '../../../../i18n'
@@ -23,7 +24,7 @@ import { ColorPicker } from '../../../molecules/inputs/ColorPicker/ColorPicker'
 export type SemanticTreeNode = {
   name: string
   path: string
-  kind: 'folder' | 'file' | 'component' | 'token' | 'asset'
+  kind: 'folder' | 'file' | 'component' | 'token' | 'asset' | 'wireframe'
   level: number
   id?: string
   virtual?: boolean
@@ -48,6 +49,7 @@ function iconFor(kind: SemanticTreeNode['kind']): ComponentType<IconProps> {
   if (kind === 'component') return ComponentIcon
   if (kind === 'token') return TokensIcon
   if (kind === 'asset') return AssetsIcon
+  if (kind === 'wireframe') return WireframesIcon
   return CodeIcon
 }
 

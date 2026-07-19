@@ -1,0 +1,29 @@
+{
+  "id": "wireframe-dev-panel",
+  "name": "Wireframe Dev Panel",
+  "status": "ready",
+  "description": "Floating, dismissible Wireframe control surface with header, scrollable content, and footer slots.",
+  "aliases": ["wireframe controls", "dev mode", "state panel"],
+  "useWhen": [
+    "A fullscreen Wireframe needs reversible layout and state controls without consuming page space."
+  ],
+  "avoidWhen": [
+    "Controls are permanent product navigation or belong inside the rendered product screen."
+  ],
+  "entry": "WireframeDevPanel.tsx",
+  "preview": "WireframeDevPanel.preview.tsx",
+  "stories": "WireframeDevPanel.stories.tsx",
+  "docs": "README.md",
+  "changelog": "CHANGELOG.md",
+  "variants": ["floating"],
+  "states": ["closed", "open"],
+  "props": {
+    "open": { "type": "boolean", "required": true },
+    "onOpenChange": { "type": "(open: boolean) => void", "required": true },
+    "title": { "type": "ReactNode", "required": true, "slot": "header" },
+    "description": { "type": "ReactNode", "required": false, "slot": "header" },
+    "children": { "type": "ReactNode", "required": true, "slot": "content" },
+    "footer": { "type": "ReactNode", "required": false, "slot": "footer" },
+    "triggerLabel": { "type": "string", "default": "Dev mode" }
+  }
+}

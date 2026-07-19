@@ -19,6 +19,7 @@ import { useDesignLabI18n, type MessageKey } from '@design-lab/system/i18n'
 import { ModuleView } from './views/ModuleView/ModuleView'
 import { ComponentPlaygroundView } from './views/ComponentPlaygroundView/ComponentPlaygroundView'
 import { SettingsView } from './views/SettingsView/SettingsView'
+import { WireframeView } from './views/WireframeView/WireframeView'
 import { Button, IconButton } from '@design-lab/system/components'
 import { CodeIcon, DirectoryIcon, LinkIcon, StarIcon } from '@design-lab/system/icons'
 import {
@@ -118,8 +119,17 @@ export default function App() {
   const maxNavigationWidth = Math.max(MIN_NAVIGATION_WIDTH, window.innerWidth - MIN_WORKSPACE_WIDTH)
   const activeProject = projects.find((project) => project.id === activeProjectId) ?? null
   const playgroundOpen = active === 'components' && routePath.endsWith('/playground')
+  const wireframeOpen = active === 'wireframes' && Boolean(routePath)
+  const requestedWireframeSourceId = wireframeOpen
+    ? new URLSearchParams(window.location.search).get('source')
+    : null
   const entityRoutePath = playgroundOpen ? routePath.replace(/\/playground$/, '') : routePath
-  const directoryTree: ProjectTreeItem[] = ['components', 'assets', 'tokens'].includes(active)
+  const directoryTree: ProjectTreeItem[] = [
+    'components',
+    'assets',
+    'tokens',
+    'wireframes',
+  ].includes(active)
     ? [{ name: 'All', path: ALL_FOLDER_PATH, kind: 'folder', level: 0, virtual: true }, ...tree]
     : tree
   const labels = Object.fromEntries(
@@ -176,15 +186,19 @@ export default function App() {
     listProjects()
       .then((result) => {
         setProjects(result.projects)
+        const requested = result.projects.find(
+          (project) => project.id === requestedWireframeSourceId && project.available,
+        )
         const saved = result.projects.find(
           (project) => project.id === activeProjectId && project.available,
         )
-        const next = saved ?? result.projects.find((project) => project.available) ?? null
+        const next =
+          requested ?? saved ?? result.projects.find((project) => project.available) ?? null
         if (next) setActiveProjectId(next.id)
         else setProjectDialogOpen(true)
       })
       .catch((error: Error) => setProjectError(error.message))
-  }, [])
+  }, [requestedWireframeSourceId])
 
   useEffect(() => {
     if (!activeProjectId) {
@@ -371,6 +385,37 @@ export default function App() {
     )
   }
 
+  if (wireframeOpen) {
+    const wireframe =
+      moduleData?.kind === 'wireframes'
+        ? moduleData.wireframes.find((item) => item.directory === entityRoutePath)
+        : null
+    if (wireframe)
+      return (
+        <WireframeView
+          wireframe={wireframe}
+          sourceId={activeProjectId}
+          onClose={() => navigate('wireframes')}
+        />
+      )
+    const waitingForSource =
+      requestedWireframeSourceId && activeProjectId !== requestedWireframeSourceId
+    return (
+      <main className="component-playground-missing">
+        <span>
+          {moduleLoading || waitingForSource
+            ? t('status.loading')
+            : 'Wireframe could not be loaded.'}
+        </span>
+        {!moduleLoading && !waitingForSource && (
+          <Button variant="secondary" onClick={() => navigate('wireframes')}>
+            Back to Wireframes
+          </Button>
+        )}
+      </main>
+    )
+  }
+
   return (
     <main
       className={`design-lab${isResizing ? ' design-lab--resizing' : ''}${sidebarHovered ? ' design-lab--sidebar-expanded' : ''}${mobileNavigationOpen ? ' design-lab--mobile-navigation-open' : ''}`}
@@ -499,7 +544,9 @@ export default function App() {
           {settingsOpen ? (
             <SettingsView onClose={() => setSettingsOpen(false)} />
           ) : activeProject &&
-            ['tokens', 'palette', 'fonts', 'components', 'assets'].includes(active) ? (
+            ['tokens', 'palette', 'fonts', 'components', 'assets', 'wireframes'].includes(
+              active,
+            ) ? (
             <ModuleView
               data={moduleData}
               loading={moduleLoading}

@@ -9,6 +9,7 @@
     "./i18n": "./i18n/index.ts",
     "./inspection": "./inspection/index.ts",
     "./playground": "./playground/index.ts",
+    "./wireframes": "./wireframes/index.ts",
     "./tokens.css": "./tokens/generated/tokens.css"
   },
   "scripts": {

@@ -6,7 +6,14 @@ export function renderStoryExample(example: StoryExample) {
   const props = example.props
   const kind = String(props.kind ?? 'component') as SemanticTreeNode['kind']
   const node: SemanticTreeNode = {
-    name: kind === 'folder' ? 'Inputs' : kind === 'component' ? 'Button' : 'color.accent',
+    name:
+      kind === 'folder'
+        ? 'Inputs'
+        : kind === 'component'
+          ? 'Button'
+          : kind === 'wireframe'
+            ? 'Pricing'
+            : 'color.accent',
     path: kind === 'folder' ? 'atoms/inputs' : `atoms/inputs/${kind}`,
     kind,
     level: Number(props.level ?? 0),
@@ -37,6 +44,7 @@ export const stories = [
       { label: 'Folder', props: { kind: 'folder' } },
       { label: 'Component', props: { kind: 'component' } },
       { label: 'Token', props: { kind: 'token' } },
+      { label: 'Wireframe', props: { kind: 'wireframe' } },
       { label: 'File', props: { kind: 'file' } },
     ],
   },

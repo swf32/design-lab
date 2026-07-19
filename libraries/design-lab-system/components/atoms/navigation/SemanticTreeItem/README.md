@@ -1,6 +1,6 @@
 # Semantic Tree Item
 
-Row for the module-specific semantic tree. It represents a folder, component, token, asset, or relevant file entity rather than exposing every implementation file.
+Row for the module-specific semantic tree. It represents a folder, component, token, asset, Wireframe, or relevant file entity rather than exposing every implementation file.
 
 Real folder rows expose `aria-expanded`. Use `onExpandedChange` for disclosure and `onSelect` for navigation or filtering, so expanding a branch never changes location as a side effect. If `onExpandedChange` is omitted, the disclosure button falls back to `onSelect` for backwards compatibility. A virtual folder such as `All` is selectable but has no disclosure state because it does not exist on disk. Selectable folders and entities use the same active treatment. `Inside semantic tree` is a context story for indentation and sibling alignment, not a visual variant.
 

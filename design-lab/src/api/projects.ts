@@ -11,7 +11,7 @@ export type Project = {
 export type ProjectTreeItem = {
   name: string
   path: string
-  kind: 'folder' | 'file' | 'component' | 'token' | 'asset'
+  kind: 'folder' | 'file' | 'component' | 'token' | 'asset' | 'wireframe'
   level: number
   id?: string
   virtual?: boolean
@@ -138,6 +138,79 @@ export type ModuleData =
         relations: ComponentRelations
         file: string
         directory: string
+      }>
+    }
+  | {
+      kind: 'wireframes'
+      folders: string[]
+      wireframes: Array<{
+        schemaVersion: number
+        id: string
+        sourceId: string
+        name: string
+        status: 'draft' | 'review' | 'approved'
+        description: string
+        entry: string | null
+        docs: string
+        changelog: string
+        defaultLayout: string
+        defaultState: string
+        layouts: Array<{
+          id: string
+          name: string
+          description: string
+          hypothesis: string
+        }>
+        controls: Array<
+          | {
+              id: string
+              kind: 'radio'
+              label: string
+              description?: string
+              visibleWhen?: { control: string; equals: string | number | boolean }
+              options: Array<{ value: string; label: string; description?: string }>
+            }
+          | {
+              id: string
+              kind: 'boolean'
+              label: string
+              description?: string
+              visibleWhen?: { control: string; equals: string | number | boolean }
+            }
+          | {
+              id: string
+              kind: 'range'
+              label: string
+              description?: string
+              visibleWhen?: { control: string; equals: string | number | boolean }
+              min: number
+              max: number
+              step: number
+              unit?: string
+            }
+        >
+        states: Array<{
+          id: string
+          name: string
+          description: string
+          values: Record<string, string | number | boolean>
+        }>
+        flow: {
+          nodes: Array<{ id: string; state: string; x: number; y: number }>
+          edges: Array<{
+            id: string
+            from: string
+            to: string
+            action: string
+            label: string
+          }>
+        }
+        directory: string
+        file: string
+        documentation: string | null
+        changelogDocumentation: string | null
+        diagnostics: Array<{ code: string; message: string }>
+        files: Array<{ role: string; path: string }>
       }>
     }
   | { kind: 'assets'; folders: string[]; assets: AssetEntity[] }

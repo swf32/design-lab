@@ -158,6 +158,170 @@ async function tokensFor(source) {
   }
 }
 
+function wireframeDiagnostics(wireframe) {
+  const diagnostics = []
+  const diagnoseDuplicateIds = (items, entity) => {
+    const seen = new Set()
+    for (const item of items) {
+      if (!item?.id || seen.has(item.id))
+        diagnostics.push({
+          code: `wireframe-${entity}-id-invalid`,
+          message: item?.id
+            ? `Duplicate ${entity} id "${item.id}".`
+            : `Every ${entity} must define a stable id.`,
+        })
+      if (item?.id) seen.add(item.id)
+    }
+  }
+  const supportedStatuses = new Set(['draft', 'review', 'approved'])
+  if (!supportedStatuses.has(wireframe.status))
+    diagnostics.push({
+      code: 'wireframe-status-invalid',
+      message: `Unsupported Wireframe status: ${wireframe.status ?? 'missing'}.`,
+    })
+  if (!wireframe.entry)
+    diagnostics.push({
+      code: 'wireframe-entry-missing',
+      message: 'wireframe.json must declare an adjacent typed renderer entry.',
+    })
+
+  const layouts = wireframe.layouts ?? []
+  const states = wireframe.states ?? []
+  const controls = wireframe.controls ?? []
+  const layoutIds = new Set(layouts.map((layout) => layout.id))
+  const stateIds = new Set(states.map((state) => state.id))
+  const controlIds = new Set(controls.map((control) => control.id))
+  const nodes = wireframe.flow?.nodes ?? []
+  const nodeIds = new Set(nodes.map((node) => node.id))
+  const edges = wireframe.flow?.edges ?? []
+
+  diagnoseDuplicateIds(layouts, 'layout')
+  diagnoseDuplicateIds(states, 'state')
+  diagnoseDuplicateIds(controls, 'control')
+  diagnoseDuplicateIds(nodes, 'flow-node')
+  diagnoseDuplicateIds(edges, 'flow-edge')
+
+  if (!layoutIds.has(wireframe.defaultLayout))
+    diagnostics.push({
+      code: 'wireframe-default-layout-invalid',
+      message: `Default layout "${wireframe.defaultLayout}" does not exist.`,
+    })
+  if (!stateIds.has(wireframe.defaultState))
+    diagnostics.push({
+      code: 'wireframe-default-state-invalid',
+      message: `Default state "${wireframe.defaultState}" does not exist.`,
+    })
+  for (const state of states) {
+    for (const controlId of controlIds)
+      if (!Object.hasOwn(state.values ?? {}, controlId))
+        diagnostics.push({
+          code: 'wireframe-state-value-missing',
+          message: `State "${state.id}" does not define control "${controlId}".`,
+        })
+  }
+  for (const control of controls) {
+    if (!['radio', 'boolean', 'range'].includes(control.kind))
+      diagnostics.push({
+        code: 'wireframe-control-kind-invalid',
+        message: `Control "${control.id}" uses unsupported kind "${control.kind}".`,
+      })
+    if (
+      control.kind === 'range' &&
+      (!Number.isFinite(control.min) ||
+        !Number.isFinite(control.max) ||
+        !Number.isFinite(control.step) ||
+        control.min > control.max ||
+        control.step <= 0)
+    )
+      diagnostics.push({
+        code: 'wireframe-control-range-invalid',
+        message: `Range control "${control.id}" must define a valid min, max, and positive step.`,
+      })
+    if (control.visibleWhen && !controlIds.has(control.visibleWhen.control))
+      diagnostics.push({
+        code: 'wireframe-control-condition-invalid',
+        message: `Control "${control.id}" depends on unknown control "${control.visibleWhen.control}".`,
+      })
+  }
+  for (const node of nodes)
+    if (!stateIds.has(node.state))
+      diagnostics.push({
+        code: 'wireframe-flow-state-invalid',
+        message: `Flow node "${node.id}" references unknown state "${node.state}".`,
+      })
+  for (const edge of edges)
+    if (!nodeIds.has(edge.from) || !nodeIds.has(edge.to))
+      diagnostics.push({
+        code: 'wireframe-flow-edge-invalid',
+        message: `Flow edge "${edge.id}" references an unknown node.`,
+      })
+  return diagnostics
+}
+
+async function wireframesFor(source, sourceId) {
+  const root = join(source.path, 'wireframes')
+  const [manifests, discoveredFolders] = await Promise.all([
+    filesUnder(root, (name) => name === 'wireframe.json'),
+    directoriesUnder(root),
+  ])
+  const entityDirectories = manifests.map((filePath) => relative(root, dirname(filePath)))
+  const folders = discoveredFolders.filter(
+    (folder) =>
+      !entityDirectories.some(
+        (entityDirectory) => folder === entityDirectory || folder.startsWith(`${entityDirectory}/`),
+      ),
+  )
+  const wireframes = []
+  for (const filePath of manifests) {
+    const manifest = JSON.parse(await readFile(filePath, 'utf8'))
+    const directory = relative(root, dirname(filePath))
+    const readAdjacent = async (filename) => {
+      if (!filename) return null
+      try {
+        return await readFile(join(dirname(filePath), filename), 'utf8')
+      } catch {
+        return null
+      }
+    }
+    const [documentation, changelogDocumentation] = await Promise.all([
+      readAdjacent(manifest.docs),
+      readAdjacent(manifest.changelog),
+    ])
+    let entry = manifest.entry ?? null
+    if (entry) {
+      try {
+        await access(join(dirname(filePath), entry))
+      } catch {
+        entry = null
+      }
+    }
+    const wireframe = {
+      ...manifest,
+      entry,
+      sourceId,
+      directory,
+      file: relative(root, filePath),
+      documentation,
+      changelogDocumentation,
+    }
+    wireframes.push({
+      ...wireframe,
+      diagnostics: wireframeDiagnostics(wireframe),
+      files: [
+        { role: 'manifest', path: basename(filePath) },
+        { role: 'renderer', path: entry },
+        { role: 'documentation', path: manifest.docs },
+        { role: 'changelog', path: manifest.changelog },
+      ].filter((file) => file.path),
+    })
+  }
+  return {
+    kind: 'wireframes',
+    folders,
+    wireframes: wireframes.sort((a, b) => a.name.localeCompare(b.name)),
+  }
+}
+
 async function componentStyle(directory, manifest) {
   const stem = basename(manifest.entry ?? '', extname(manifest.entry ?? ''))
   const candidates = [
@@ -480,6 +644,7 @@ async function componentRelations(source, sourceManifest, components) {
 
 export async function getModuleEntities(sourceId, moduleId) {
   const source = await getSource(sourceId)
+  if (moduleId === 'wireframes') return wireframesFor(source, sourceId)
   if (moduleId === 'assets') return assetsFor(source, sourceId)
   if (moduleId === 'tokens') return tokensFor(source)
   if (moduleId === 'palette') {
@@ -615,6 +780,20 @@ function navigationFromPaths(entities, entityKind, folderPaths = []) {
 
 export async function getModuleNavigation(sourceId, moduleId) {
   const data = await getModuleEntities(sourceId, moduleId)
+  if (data.kind === 'wireframes')
+    return navigationFromPaths(
+      data.wireframes.map((wireframe) => {
+        const parts = wireframe.directory.split('/').filter(Boolean)
+        return {
+          id: wireframe.id,
+          name: wireframe.name,
+          path: wireframe.directory,
+          groups: parts.slice(0, -1),
+        }
+      }),
+      'wireframe',
+      data.folders,
+    )
   if (data.kind === 'components')
     return navigationFromPaths(
       data.components.map((component) => {

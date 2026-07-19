@@ -397,3 +397,15 @@ Floating controls не принадлежат scroll geometry rail. Color Picker
 Fullscreen Playground не владеет параллельной одноразовой реализацией sidebar или inspection window. Production `PlaygroundControlsRail` предоставляет header, independently scrollable content и optional footer slots и используется приложением как persistent desktop rail и mobile overlay. Production `InspectorCodePopover` владеет kind identity и copyable code presentation через общий `CodeBlock`.
 
 Canvas Background Control удалён из controls rail и закреплён отдельной плавающей surface сверху справа над Canvas. Поэтому настройка визуального поля находится рядом с самим полем, остаётся доступной при закрытом mobile Settings rail и переиспользует существующий production Component.
+
+## D-041 — Page Wireframe использует гибридный source contract и три независимые UX-оси
+
+**Статус:** принято, 2026-07-20.
+
+Page-level Wireframe является отдельной filesystem entity, а не lifecycle-состоянием Component и не Page. Каноническая папка `<source>/wireframes/<category>/<WireframeName>/` содержит `wireframe.json`, соседний typed `<WireframeName>.wireframe.tsx`, optional SCSS, README и CHANGELOG. JSON владеет машиночитаемыми layouts, controls, saved states и user-flow graph; TSX владеет реальным render и может собираться из production Components активной Library. Central renderer registry и entity switch не создаются: scanner обнаруживает manifest рекурсивно, а runtime загружает manifest-declared adjacent entry через build-time glob.
+
+Layout direction, state и flow являются независимыми axes. Layout проверяет другую information architecture, grouping, density, progressive disclosure или placement действий; косметическая смена цвета или radius не считается layout direction. Один saved state обязан воспроизводиться в разных layouts без дублирования данных. State является полным serializable snapshot typed controls; radio, Checkbox и Slider могут временно создать custom state, а точное совпадение значений возвращает saved identity.
+
+User flow является причинно-следственным directed graph. Node ссылается на saved state, edge называет конкретное user action, screen dispatch использует стабильный action id. Node selection меняет state, Preview возвращает к экрану, Canvas поддерживает pan/zoom и видимые keyboard-доступные альтернативы. Layout, state, view и control values сериализуются в shareable route query.
+
+Wireframe открывается fullscreen вне Application Sidebar, Directory Panel и workspace header. Production `WireframeDevPanel` остаётся плавающим слева на desktop и safe-area bottom action на mobile; production `UserFlowCanvas` владеет node/edge presentation, pan и zoom. Эталонная entity `design-lab-system/wireframes/product/Pricing` проверяет три layout-гипотезы, шесть entitlement states и переходы от отсутствующей подписки до полностью купленного token allowance.

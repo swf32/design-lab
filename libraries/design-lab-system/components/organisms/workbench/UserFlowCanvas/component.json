@@ -1,0 +1,24 @@
+{
+  "id": "user-flow-canvas",
+  "name": "User Flow Canvas",
+  "status": "ready",
+  "description": "Pannable, zoomable state-transition graph with labeled directed edges and accessible node selection.",
+  "aliases": ["flow graph", "state graph", "journey canvas"],
+  "useWhen": [
+    "A Wireframe or Page review needs to explain which user action causes each state transition."
+  ],
+  "avoidWhen": ["Content is a linear checklist or static hierarchy without state transitions."],
+  "entry": "UserFlowCanvas.tsx",
+  "preview": "UserFlowCanvas.preview.tsx",
+  "stories": "UserFlowCanvas.stories.tsx",
+  "docs": "README.md",
+  "changelog": "CHANGELOG.md",
+  "variants": ["grid"],
+  "states": ["default", "selected", "panning"],
+  "props": {
+    "nodes": { "type": "UserFlowCanvasNode[]", "required": true },
+    "edges": { "type": "UserFlowCanvasEdge[]", "required": true },
+    "selectedId": { "type": "string | null", "required": true },
+    "onSelect": { "type": "(id: string) => void", "required": true }
+  }
+}

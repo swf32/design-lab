@@ -37,6 +37,7 @@ import {
   SourceSelect,
   TabSwitcher,
   StoryCanvas,
+  WireframeCard,
   WorkbenchPlayground,
   type ButtonProps,
   type CanvasMode,
@@ -1814,6 +1815,45 @@ export function ModuleView({
         onSelectEntity={onSelectEntity}
       />
     )
+  if (data.kind === 'wireframes') {
+    const prefix = selectedFolderPath === '__all__' ? '' : selectedFolderPath
+    const wireframes = prefix
+      ? data.wireframes.filter(
+          (wireframe) =>
+            wireframe.directory === prefix || wireframe.directory.startsWith(`${prefix}/`),
+        )
+      : data.wireframes
+    return (
+      <div className="module-page">
+        <ModuleHeader
+          eyebrow="Page directions"
+          title={prefix ? (prefix.split('/').at(-1) ?? 'Wireframes') : 'Wireframes'}
+          count={wireframes.length}
+        />
+        {wireframes.length ? (
+          <div className="wireframe-catalog">
+            {wireframes.map((wireframe) => (
+              <WireframeCard
+                key={wireframe.id}
+                name={wireframe.name}
+                description={wireframe.description}
+                status={wireframe.status}
+                layoutCount={wireframe.layouts.length}
+                stateCount={wireframe.states.length}
+                transitionCount={wireframe.flow.edges.length}
+                onClick={() => onSelectEntity(wireframe.id)}
+              />
+            ))}
+          </div>
+        ) : (
+          <div className="module-filter-empty">
+            <strong>No Wireframes in this group</strong>
+            <span>Choose All or add a canonical wireframe.json directory.</span>
+          </div>
+        )}
+      </div>
+    )
+  }
   if (data.kind === 'components') {
     const selected = data.components.find((item) => item.id === selectedEntityId)
     return selected?.entry ? (

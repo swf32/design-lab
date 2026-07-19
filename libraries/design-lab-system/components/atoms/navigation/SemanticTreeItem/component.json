@@ -20,7 +20,7 @@
   "changelog": "CHANGELOG.md",
   "status": "ready",
   "states": ["default", "hover", "active", "collapsed", "actions-open", "color-override"],
-  "variants": ["folder", "virtual-folder", "component", "token", "asset", "file"],
+  "variants": ["folder", "virtual-folder", "component", "token", "asset", "wireframe", "file"],
   "props": {
     "node": {
       "type": "SemanticTreeNode",

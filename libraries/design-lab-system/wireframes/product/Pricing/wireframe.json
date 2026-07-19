@@ -1,0 +1,172 @@
+{
+  "schemaVersion": 1,
+  "id": "pricing",
+  "name": "Pricing",
+  "status": "review",
+  "description": "Explores comparison-first, recommendation-first, and guided pricing layouts across subscription and token allowance states.",
+  "entry": "Pricing.wireframe.tsx",
+  "docs": "README.md",
+  "changelog": "CHANGELOG.md",
+  "defaultLayout": "comparison",
+  "defaultState": "no-subscription",
+  "layouts": [
+    {
+      "id": "comparison",
+      "name": "Compare plans",
+      "description": "Three plans remain visible so buyers can compare limits before committing.",
+      "hypothesis": "Side-by-side comparison reduces uncertainty for buyers who already understand the product."
+    },
+    {
+      "id": "recommended",
+      "name": "Recommended path",
+      "description": "One plan leads while alternatives become a quieter supporting choice.",
+      "hypothesis": "A strong recommendation reduces decision cost for first-time buyers."
+    },
+    {
+      "id": "guided",
+      "name": "Guided upgrade",
+      "description": "Usage and the next available action lead; plan details become supporting evidence.",
+      "hypothesis": "Existing customers care more about remaining capacity than a repeated plan comparison."
+    }
+  ],
+  "controls": [
+    {
+      "id": "plan",
+      "kind": "radio",
+      "label": "Subscription",
+      "description": "Changes entitlement, highlighted pricing, and available token actions.",
+      "options": [
+        { "value": "none", "label": "No subscription" },
+        { "value": "starter", "label": "Starter" },
+        { "value": "medium", "label": "Medium" },
+        { "value": "top", "label": "Top" }
+      ]
+    },
+    {
+      "id": "annual",
+      "kind": "boolean",
+      "label": "Annual billing",
+      "description": "Shows the discounted monthly equivalent."
+    },
+    {
+      "id": "teamSeats",
+      "kind": "range",
+      "label": "Team seats",
+      "description": "Tests price density and pluralized account copy.",
+      "min": 1,
+      "max": 12,
+      "step": 1,
+      "unit": " seats"
+    },
+    {
+      "id": "tokensPurchased",
+      "kind": "range",
+      "label": "Extra tokens purchased",
+      "description": "Top subscribers can purchase up to the full extra allowance.",
+      "min": 0,
+      "max": 100,
+      "step": 10,
+      "unit": "%",
+      "visibleWhen": { "control": "plan", "equals": "top" }
+    }
+  ],
+  "states": [
+    {
+      "id": "no-subscription",
+      "name": "No subscription",
+      "description": "A new buyer compares all available plans.",
+      "values": { "plan": "none", "annual": false, "teamSeats": 1, "tokensPurchased": 0 }
+    },
+    {
+      "id": "starter-annual",
+      "name": "Starter · annual",
+      "description": "An annual Starter customer evaluates a larger plan.",
+      "values": { "plan": "starter", "annual": true, "teamSeats": 1, "tokensPurchased": 0 }
+    },
+    {
+      "id": "medium-team",
+      "name": "Medium · team",
+      "description": "A six-seat Medium account is approaching its included allowance.",
+      "values": { "plan": "medium", "annual": true, "teamSeats": 6, "tokensPurchased": 0 }
+    },
+    {
+      "id": "top-empty",
+      "name": "Top · no extra tokens",
+      "description": "A Top customer can purchase the complete extra allowance.",
+      "values": { "plan": "top", "annual": true, "teamSeats": 8, "tokensPurchased": 0 }
+    },
+    {
+      "id": "top-half",
+      "name": "Top · half purchased",
+      "description": "Half of the optional token allowance remains available.",
+      "values": { "plan": "top", "annual": true, "teamSeats": 8, "tokensPurchased": 50 }
+    },
+    {
+      "id": "top-full",
+      "name": "Top · allowance full",
+      "description": "The customer has purchased the maximum extra allowance.",
+      "values": { "plan": "top", "annual": true, "teamSeats": 8, "tokensPurchased": 100 }
+    }
+  ],
+  "flow": {
+    "nodes": [
+      { "id": "discover", "state": "no-subscription", "x": 80, "y": 220 },
+      { "id": "starter", "state": "starter-annual", "x": 430, "y": 40 },
+      { "id": "medium", "state": "medium-team", "x": 430, "y": 400 },
+      { "id": "top-ready", "state": "top-empty", "x": 790, "y": 220 },
+      { "id": "top-half", "state": "top-half", "x": 1140, "y": 80 },
+      { "id": "top-full", "state": "top-full", "x": 1490, "y": 220 }
+    ],
+    "edges": [
+      {
+        "id": "choose-starter",
+        "from": "discover",
+        "to": "starter",
+        "action": "choose-starter",
+        "label": "Choose Starter"
+      },
+      {
+        "id": "choose-medium",
+        "from": "discover",
+        "to": "medium",
+        "action": "choose-medium",
+        "label": "Choose Medium"
+      },
+      {
+        "id": "choose-top",
+        "from": "discover",
+        "to": "top-ready",
+        "action": "choose-top",
+        "label": "Choose Top"
+      },
+      {
+        "id": "upgrade-starter",
+        "from": "starter",
+        "to": "top-ready",
+        "action": "upgrade-top",
+        "label": "Upgrade to Top"
+      },
+      {
+        "id": "upgrade-medium",
+        "from": "medium",
+        "to": "top-ready",
+        "action": "upgrade-top",
+        "label": "Upgrade to Top"
+      },
+      {
+        "id": "buy-half",
+        "from": "top-ready",
+        "to": "top-half",
+        "action": "buy-half",
+        "label": "Buy 50% allowance"
+      },
+      {
+        "id": "buy-rest",
+        "from": "top-half",
+        "to": "top-full",
+        "action": "buy-rest",
+        "label": "Buy remaining 50%"
+      }
+    ]
+  }
+}

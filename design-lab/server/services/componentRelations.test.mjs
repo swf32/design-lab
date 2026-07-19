@@ -57,7 +57,7 @@ test('production and example relationships stay separate and direct', async () =
   )
   assert.deepEqual(
     button.relations.usedInExamplesBy.map((relation) => relation.id),
-    ['story-canvas', 'playground-controls-rail', 'workbench-playground'],
+    ['story-canvas', 'playground-controls-rail', 'wireframe-dev-panel', 'workbench-playground'],
   )
 })
 
@@ -93,6 +93,27 @@ test('wireframe-only components and product modes are discovered without product
   assert.equal(tripCard.status, 'ready')
   assert.equal(tripCard.playground, 'TripCard.playground.tsx')
   assert.deepEqual(tripCard.relations.diagnostics, [])
+})
+
+test('page Wireframes expose hybrid renderer, layouts, states, and user-flow diagnostics', async () => {
+  const result = await getModuleEntities('design-lab-system', 'wireframes')
+  const pricing = result.wireframes.find((wireframe) => wireframe.id === 'pricing')
+
+  assert.equal(result.kind, 'wireframes')
+  assert.deepEqual(result.folders, ['product'])
+  assert.equal(pricing.entry, 'Pricing.wireframe.tsx')
+  assert.deepEqual(
+    pricing.layouts.map((layout) => layout.id),
+    ['comparison', 'recommended', 'guided'],
+  )
+  assert.equal(pricing.states.length, 6)
+  assert.equal(pricing.flow.nodes.length, 6)
+  assert.equal(pricing.flow.edges.length, 7)
+  assert.deepEqual(pricing.diagnostics, [])
+  assert.deepEqual(
+    pricing.files.map((file) => file.role),
+    ['manifest', 'renderer', 'documentation', 'changelog'],
+  )
 })
 
 test('source import parsing ignores type-only edges and localizes invalid TSX', async () => {

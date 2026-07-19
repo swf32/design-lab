@@ -150,6 +150,10 @@ Wireframes — это черновые варианты страниц.
 
 Wireframe предназначен для обсуждения и аналитики.
 
+Канонический Wireframe использует гибридный контракт: `wireframe.json` хранит layout directions, typed controls, saved states и directed user-flow graph, а соседний `*.wireframe.tsx` рендерит варианты из реальных Library Components и exploratory blocks. Layout, state и flow не смешиваются: один state можно сравнивать в разных информационных архитектурах, а flow объясняет, какое действие переводит в следующий state.
+
+Fullscreen review route сохраняет layout, state, Screen/User flow view и control values в URL. Плавающий Dev mode предоставляет выбор saved state, radio, Checkbox и Slider controls; user-flow Canvas поддерживает node selection, Preview, pan, zoom и видимые keyboard alternatives.
+
 ## Pages
 
 Pages — итоговые страницы продукта.

@@ -1,0 +1,129 @@
+.dl-wireframe-dev-panel {
+  position: absolute;
+  z-index: 40;
+  inset-block-start: 50%;
+  inset-inline-start: max(var(--spacing-4), env(safe-area-inset-left));
+  transform: translateY(-50%);
+}
+.dl-wireframe-dev-panel__trigger {
+  width: 48px;
+  min-height: 108px;
+  padding: var(--spacing-2) 0;
+  border: 1px solid var(--color-border-default);
+  border-radius: var(--radius-medium);
+  background: color-mix(in srgb, var(--color-surface-raised) 88%, transparent);
+  box-shadow: 0 12px 36px color-mix(in srgb, var(--color-overlay-scrim) 34%, transparent);
+  backdrop-filter: blur(14px);
+  color: var(--color-text-secondary);
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--spacing-2);
+}
+.dl-wireframe-dev-panel__trigger:hover,
+.dl-wireframe-dev-panel--open .dl-wireframe-dev-panel__trigger {
+  border-color: var(--color-accent-primary);
+  color: var(--color-text-primary);
+}
+.dl-wireframe-dev-panel__trigger > svg {
+  color: var(--color-code);
+}
+.dl-wireframe-dev-panel__trigger > strong {
+  font-size: 10px;
+  font-weight: 600;
+  writing-mode: vertical-rl;
+  transform: rotate(180deg);
+}
+.dl-wireframe-dev-panel__surface {
+  width: min(360px, calc(100vw - 96px));
+  max-height: min(720px, calc(100dvh - 32px));
+  border: 1px solid var(--color-border-default);
+  border-radius: var(--radius-card);
+  background: var(--color-surface-primary);
+  box-shadow: 0 24px 64px color-mix(in srgb, var(--color-overlay-scrim) 62%, transparent);
+  overflow: hidden;
+  position: absolute;
+  inset-block-start: 50%;
+  inset-inline-start: calc(100% + var(--spacing-2));
+  transform: translateY(-50%);
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr) auto;
+}
+.dl-wireframe-dev-panel__surface > header {
+  padding: var(--spacing-4);
+  border-bottom: 1px solid var(--color-border-subtle);
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--spacing-3);
+}
+.dl-wireframe-dev-panel__surface h2 {
+  margin: 0;
+  font-size: 14px;
+  font-weight: var(--typography-heading-weight);
+}
+.dl-wireframe-dev-panel__surface h2:focus {
+  outline: 0;
+}
+.dl-wireframe-dev-panel__surface p {
+  margin: var(--spacing-1) 0 0;
+  color: var(--color-text-muted);
+  font-size: 10px;
+  line-height: 1.5;
+}
+.dl-wireframe-dev-panel__surface > header button {
+  min-width: 44px;
+  min-height: 44px;
+  margin: -10px -10px 0 0;
+  border: 0;
+  background: transparent;
+  color: var(--color-accent-primary);
+  cursor: pointer;
+  font-size: 11px;
+  font-weight: 600;
+}
+.dl-wireframe-dev-panel__body {
+  min-height: 0;
+  padding: var(--spacing-4);
+  overflow: auto;
+  overscroll-behavior: contain;
+}
+.dl-wireframe-dev-panel__surface > footer {
+  padding: var(--spacing-3) var(--spacing-4);
+  border-top: 1px solid var(--color-border-subtle);
+  background: var(--color-surface-secondary);
+}
+@media (max-width: 760px) {
+  .dl-wireframe-dev-panel {
+    inset-block: auto max(calc(var(--spacing-3) + env(safe-area-inset-bottom)), var(--spacing-3));
+    inset-inline-start: max(calc(var(--spacing-3) + env(safe-area-inset-left)), var(--spacing-3));
+    transform: none;
+  }
+  .dl-wireframe-dev-panel__trigger {
+    width: auto;
+    min-width: 112px;
+    min-height: 48px;
+    padding: 0 var(--spacing-4);
+    flex-direction: row;
+  }
+  .dl-wireframe-dev-panel__trigger > strong {
+    font-size: 12px;
+    writing-mode: initial;
+    transform: none;
+  }
+  .dl-wireframe-dev-panel__surface {
+    width: auto;
+    max-height: calc(100dvh - 96px - env(safe-area-inset-top));
+    position: fixed;
+    inset-block: max(calc(var(--spacing-3) + env(safe-area-inset-top)), var(--spacing-3))
+      calc(72px + env(safe-area-inset-bottom));
+    inset-inline: max(calc(var(--spacing-3) + env(safe-area-inset-left)), var(--spacing-3))
+      max(calc(var(--spacing-3) + env(safe-area-inset-right)), var(--spacing-3));
+    transform: none;
+  }
+  .dl-wireframe-dev-panel__body {
+    padding: var(--spacing-4);
+  }
+}

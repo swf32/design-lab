@@ -2,6 +2,8 @@
 
 For every component creation or modification, read and follow `COMPONENT_RULES.md`. It is the shared component contract for Codex, Claude, humans, and other agents.
 
+For every Wireframe creation or modification, read and follow `WIREFRAME_RULES.md`. It defines the canonical hybrid source contract, layout directions, states, controls, and user-flow graph.
+
 For every token, asset, or font creation or modification, read and follow `TOKEN_RULES.md`, `ASSET_RULES.md`, or `FONT_RULES.md` respectively. When a change crosses entity kinds, apply every relevant contract.
 
 ## Product questions
@@ -25,6 +27,7 @@ For every token, asset, or font creation or modification, read and follow `TOKEN
 - Do not add an immutable UI kernel or fallback design system. A broken customization may break Design Lab; recovery is reinstalling the default `design-lab-system` Library.
 - `assets/` owns images, video, SVG, and code-native icons such as TSX; do not create a separate Icons module.
 - A component is a directory with a `component.json` manifest and adjacent implementation, types, preview, stories/states, README, and changelog files. Component categories and nesting are arbitrary folders above component directories.
+- A Wireframe is a directory with `wireframe.json`, an adjacent typed `*.wireframe.tsx` renderer, README, and changelog. Its manifest owns layout directions, state snapshots, typed controls, and the user-flow graph.
 - Component and token navigation must be semantic. The directory panel shows categories, groups, and entity nodes, not every implementation file.
 - Component thumbnails and `*.preview.tsx` are illustrative, token-driven, non-interactive compositions. They must not import or render the real component.
 - The workbench Canvas renders the real component and owns interactive props/state controls. Preview and playground are different contracts.
