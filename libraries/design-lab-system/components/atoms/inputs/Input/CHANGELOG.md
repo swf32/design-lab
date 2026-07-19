@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Accessibility: Mobile single-line controls now use a minimum 48px height and 16px text across all visual sizes.
+- Visual: Mobile labels, feedback, and textarea heights use a more readable touch density.
 - Changed: Added authored semantic retrieval metadata for MCP and CLI search.
 
 - Changed: Workbench stories now render automatically from the adjacent story module.

@@ -222,16 +222,15 @@ export function DirectoryPanel({
               actionsEnabled={actionsEnabled}
               actions={renderItemActions?.(item)}
               onColorChange={(color) => changeColor(item, color)}
-              onSelect={() => {
-                if (item.kind === 'folder' && !item.virtual)
-                  setExpanded((current) => {
-                    const next = new Set(current)
-                    if (next.has(item.path)) next.delete(item.path)
-                    else next.add(item.path)
-                    return next
-                  })
-                onTreeItemSelect?.(item)
-              }}
+              onExpandedChange={(nextExpanded) =>
+                setExpanded((current) => {
+                  const next = new Set(current)
+                  if (nextExpanded) next.add(item.path)
+                  else next.delete(item.path)
+                  return next
+                })
+              }
+              onSelect={() => onTreeItemSelect?.(item)}
             />
           ))}
       </div>

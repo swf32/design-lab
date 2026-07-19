@@ -122,3 +122,42 @@
 .directory-panel__resizer:focus-visible {
   outline: 0;
 }
+
+@media (max-width: 760px) {
+  .directory-panel__header {
+    height: 64px;
+    flex-basis: 64px;
+    padding: 10px;
+  }
+
+  .directory-panel__toolbar {
+    height: 44px;
+    flex-basis: 44px;
+    padding-inline: 14px 8px;
+    font-size: 11px;
+  }
+
+  .directory-panel__toolbar button {
+    width: 44px;
+    height: 44px;
+    padding: 0;
+  }
+
+  .directory-panel__search {
+    padding: 6px 10px 8px;
+  }
+
+  .file-tree {
+    padding: 6px 8px 12px;
+  }
+
+  .file-tree__status {
+    font-size: 13px;
+  }
+
+  .directory-panel__footer {
+    height: 44px;
+    flex-basis: 44px;
+    font-size: 11px;
+  }
+}

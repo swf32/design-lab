@@ -141,3 +141,56 @@
   left: calc(-25px - var(--indent));
   width: min(216px, calc(100cqi - 14px));
 }
+
+@media (max-width: 760px) {
+  .file-tree__item {
+    --indent: calc(var(--tree-level) * 14px);
+    min-height: 48px;
+    height: 48px;
+    padding: 0 4px 0 calc(4px + var(--indent));
+    gap: 2px;
+    font-size: 14px;
+    touch-action: manipulation;
+  }
+
+  .file-tree__chevron-button,
+  .file-tree__chevron-spacer {
+    width: 44px;
+    height: 44px;
+    flex-basis: 44px;
+  }
+
+  .file-tree__entity-icon {
+    width: 28px;
+    height: 44px;
+    flex-basis: 28px;
+  }
+
+  .file-tree__label {
+    min-height: 44px;
+  }
+
+  .file-tree__actions {
+    width: 44px;
+    height: 44px;
+    flex-basis: 44px;
+    opacity: 1;
+    pointer-events: auto;
+  }
+
+  .file-tree__actions-trigger {
+    width: 44px;
+    height: 44px;
+  }
+
+  .file-tree__color-picker {
+    width: 44px;
+    height: 44px;
+    flex-basis: 44px;
+  }
+
+  .file-tree__color-picker .dl-color-picker__trigger {
+    width: 44px;
+    height: 44px;
+  }
+}

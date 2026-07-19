@@ -23,6 +23,7 @@ export function renderStoryExample(example: StoryExample) {
       coloringEnabled: Boolean(props.coloringEnabled),
       actionsEnabled: Boolean(props.actionsEnabled),
       onSelect: () => undefined,
+      onExpandedChange: () => undefined,
     }),
   )
 }
@@ -47,6 +48,15 @@ export const stories = [
       'Verify stronger indentation, disclosure, selection, and sibling alignment inside a tree.',
     interactive: true,
     examples: [{ label: 'Nested selection', props: { active: true, level: 2 } }],
+  },
+  {
+    id: 'folder-actions',
+    kind: 'behavior',
+    name: 'Disclosure and selection',
+    description:
+      'The disclosure button expands a folder without selecting it; the adjacent label remains an independent navigation target.',
+    interactive: true,
+    examples: [{ label: 'Expanded folder', props: { kind: 'folder' } }],
   },
   {
     id: 'optional-affordances',

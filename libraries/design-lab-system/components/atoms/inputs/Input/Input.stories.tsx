@@ -40,6 +40,17 @@ export const stories = [
     ],
   },
   {
+    id: 'mobile-entry',
+    kind: 'context',
+    name: 'Phone text entry',
+    description:
+      'Phone layouts keep every field at least 48px tall and use 16px control text across all visual sizes.',
+    examples: [
+      { label: 'Compact search', props: { variant: 'search', size: 'small' } },
+      { label: 'Component name', props: { variant: 'text', size: 'medium' } },
+    ],
+  },
+  {
     id: 'validation-states',
     kind: 'state',
     name: 'Validation and availability',

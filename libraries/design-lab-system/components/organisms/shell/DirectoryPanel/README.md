@@ -6,9 +6,11 @@ The source header and local-filesystem footer remain fixed. The semantic tree be
 
 The panel does not own an independent hover width. Application Sidebar and Directory Panel divide one navigation width in their parent shell. When the application rail discloses labels, both grid tracks interpolate together; when the resize handle moves, the shared navigation width changes directly and is persisted by the application.
 
-Folders are both disclosure controls and module filters. Selecting a folder updates the right-hand module view even when the same click also expands or collapses its children. `All` is a code-owned virtual folder above the filesystem tree; it resets filtering without creating an `All/` directory on disk.
+Folders expose two deliberate actions: the disclosure button expands or collapses children without navigation, while the label selects the folder and updates the right-hand module view. `All` is a code-owned virtual folder above the filesystem tree; it resets filtering without creating an `All/` directory on disk.
 
 The default presentation starts with real folders collapsed, so only virtual and top-level folders are visible. Search, icon coloring, remembered colors, and future item actions are enabled by default and can be disabled independently with `searchEnabled`, `coloringEnabled`, `persistItemColors`, and `actionsEnabled`. Search reveals matching descendants and their ancestor folders without mutating disclosure state. Color overrides are stored by source, entity kind, and canonical path.
+
+At phone widths, source, toolbar, search, tree rows, and footer switch to touch density. The tree remains the only scrolling region and every folder disclosure target is at least 44 CSS pixels.
 
 ## Stories
 

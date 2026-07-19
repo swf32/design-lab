@@ -10,6 +10,8 @@ Every icon-only option requires `accessibleLabel`. Product copy belongs to the c
 
 Both `small` and `medium` sizes apply to both visual variants. In `toggle`, size changes the track and moving thumb as a unit; the selected option is not drawn as a segmented button.
 
+At phone widths, visual size no longer reduces the interactive area: every option expands to a minimum 44 by 44 CSS pixels. Use `small` to express compact appearance, not a precision-only touch target.
+
 The catalog preview opts into the shared preview-motion contract. Hovering or keyboard-focusing its Component Card moves both miniature selectors to their next illustrative state; leaving the card restores the baseline.
 
 ## Usage

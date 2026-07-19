@@ -50,6 +50,17 @@ export const stories = [
     ],
   },
   {
+    id: 'touch-density',
+    kind: 'context',
+    name: 'Phone touch density',
+    description:
+      'At phone widths, both visual variants keep their compact appearance while each option expands to a minimum 44px touch target.',
+    examples: [
+      { label: 'Theme toggle', props: { variant: 'toggle', size: 'small' } },
+      { label: 'View selector', props: { variant: 'segmented', size: 'small' } },
+    ],
+  },
+  {
     id: 'states',
     kind: 'state',
     name: 'Selection and disabled state',

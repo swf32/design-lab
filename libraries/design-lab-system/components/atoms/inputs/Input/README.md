@@ -22,6 +22,8 @@ Use `startAdornment` and `endAdornment` for short, non-essential context such as
 
 `showCount` displays the current value length and optional `maxLength`. Sizes apply to all three control kinds; textarea sizes change minimum block height while `rows` can express content needs.
 
+At phone widths, every single-line size is at least 48 CSS pixels tall and control text is 16px. The mobile geometry prevents precision taps and browser zoom-on-focus while desktop retains the denser size scale.
+
 ```tsx
 <Input
   variant="search"

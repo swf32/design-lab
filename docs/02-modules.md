@@ -26,13 +26,13 @@
 
 ## Directory navigation
 
-Directory Panel показывает только semantic entities активного модуля. Реальные папки по умолчанию свёрнуты, поэтому первый экран содержит virtual rows и папки верхнего уровня; disclosure не меняет выбранный folder scope.
+Directory Panel показывает только semantic entities активного модуля. Реальные папки по умолчанию свёрнуты, поэтому первый экран содержит virtual rows и папки верхнего уровня. Стрелка disclosure только раскрывает или сворачивает ветку; отдельный tap по label выбирает folder scope и меняет URL.
 
 Поиск включён по умолчанию и показывает совпавшие сущности вместе с их родительскими папками. Icon coloring и future actions также включены по умолчанию, но каждый capability отключается отдельным prop. Клик по entity icon открывает общий Color Picker; выбранный presentation color сохраняется локально по source, kind и canonical path и не записывается в filesystem или design tokens. Trailing More control проявляется только при hover/focus и резервирует системный slot для будущих entity actions.
 
 На ширине телефона Application Sidebar и Directory Panel объединяются в modal navigation drawer поверх одноколоночного Workspace. Drawer открывается из постоянного workspace header, имеет явный Close, закрывается по backdrop и Escape, а выбор module, source, folder или entity сразу возвращает пользователя к контенту. Desktop сохраняет совместную изменяемую ширину двух navigation panels; resize handle на телефоне отсутствует.
 
-Мобильный Workspace использует один вертикальный scroll owner внутри активного Module/Workbench. Catalog cards складываются в одну колонку на узком телефоне и в две в landscape; token rows и props API переходят из широких таблиц в двухстрочные карточки. Safe-area insets, touch targets не меньше `44px` и отсутствие горизонтального overflow являются частью shell contract.
+Мобильный Workspace использует один вертикальный scroll owner внутри активного Module/Workbench. Catalog cards складываются в одну колонку на узком телефоне и в две в landscape; token rows и props API переходят из широких таблиц в двухстрочные карточки. Header и content сохраняют минимум `16px` боковых gutters, соседние catalog groups разделены усиленным vertical rhythm. Safe-area insets, touch targets не меньше `44px`, поля высотой минимум `48px` с текстом `16px` и отсутствие горизонтального overflow являются частью shell contract.
 
 ## Components
 

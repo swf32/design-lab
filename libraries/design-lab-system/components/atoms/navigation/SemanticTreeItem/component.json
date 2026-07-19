@@ -53,6 +53,9 @@
       "type": "() => void",
       "required": true
     },
+    "onExpandedChange": {
+      "type": "(expanded: boolean) => void"
+    },
     "onColorChange": {
       "type": "(color: string | null) => void"
     },

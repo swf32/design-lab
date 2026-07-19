@@ -193,3 +193,47 @@
     transition: none;
   }
 }
+
+@media (max-width: 760px) {
+  .dl-input {
+    font-size: 16px;
+  }
+
+  .dl-input__label {
+    font-size: 13px;
+  }
+
+  .dl-input__frame,
+  .dl-input--small .dl-input__frame {
+    min-height: 48px;
+  }
+
+  .dl-input__control,
+  .dl-input--small .dl-input__control {
+    min-height: 46px;
+    padding-inline: 12px;
+    font-size: 16px;
+  }
+
+  .dl-input--large .dl-input__frame {
+    min-height: 52px;
+  }
+
+  .dl-input--large .dl-input__control {
+    min-height: 50px;
+    font-size: 16px;
+  }
+
+  .dl-input__meta {
+    min-height: 20px;
+    font-size: 12px;
+  }
+
+  .dl-input--textarea .dl-input__control {
+    min-height: 112px;
+  }
+
+  .dl-input--textarea.dl-input--small .dl-input__control {
+    min-height: 96px;
+  }
+}

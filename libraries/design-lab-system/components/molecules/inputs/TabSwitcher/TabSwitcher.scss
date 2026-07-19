@@ -97,3 +97,35 @@
   background: transparent;
   box-shadow: none;
 }
+
+@media (max-width: 760px) {
+  .dl-tab-switcher,
+  .dl-tab-switcher--small {
+    padding: 3px;
+  }
+
+  .dl-tab-switcher button,
+  .dl-tab-switcher--small button {
+    min-width: 44px;
+    height: 44px;
+    padding-inline: 12px;
+    font-size: 13px;
+    touch-action: manipulation;
+  }
+
+  .dl-tab-switcher--toggle,
+  .dl-tab-switcher--toggle.dl-tab-switcher--small {
+    --tab-switcher-control: 44px;
+    --tab-switcher-padding: 3px;
+    height: 52px;
+  }
+
+  .dl-tab-switcher--toggle button,
+  .dl-tab-switcher--toggle.dl-tab-switcher--small button {
+    min-width: var(--tab-switcher-control);
+    width: var(--tab-switcher-control);
+    height: var(--tab-switcher-control);
+    padding: 0;
+    font-size: 16px;
+  }
+}

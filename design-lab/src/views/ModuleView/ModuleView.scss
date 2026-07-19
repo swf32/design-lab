@@ -1138,7 +1138,8 @@ html {
   }
 
   .module-page {
-    padding: var(--spacing-4) var(--spacing-3) calc(var(--spacing-6) + env(safe-area-inset-bottom));
+    padding: calc(var(--spacing-4) + var(--spacing-1)) var(--spacing-4)
+      calc(var(--spacing-4) + var(--spacing-2) + env(safe-area-inset-bottom));
     overscroll-behavior: contain;
   }
 
@@ -1148,7 +1149,30 @@ html {
 
   .component-groups,
   .asset-groups {
-    gap: var(--spacing-5);
+    gap: var(--spacing-4);
+  }
+
+  .component-group + .component-group,
+  .asset-group + .asset-group {
+    padding-top: calc(var(--spacing-4) + var(--spacing-1));
+    border-top: 1px solid var(--color-border-subtle);
+  }
+
+  .component-group > header,
+  .asset-group > header {
+    margin-bottom: var(--spacing-3);
+  }
+
+  .component-group > header h2,
+  .asset-group > header h2 {
+    font-size: 13px;
+  }
+
+  .component-group > header span,
+  .asset-group > header span {
+    min-width: 22px;
+    height: 22px;
+    font-size: 10px;
   }
 
   .component-grid,
@@ -1218,7 +1242,7 @@ html {
 
   .module-filter-empty {
     min-height: 220px;
-    padding: var(--spacing-5);
+    padding: calc(var(--spacing-4) + var(--spacing-1));
     text-align: center;
   }
 
@@ -1227,12 +1251,13 @@ html {
   }
 
   .workbench__top {
-    padding: var(--spacing-2) var(--spacing-3) 0;
+    padding: var(--spacing-3) var(--spacing-4) 0;
   }
 
   .workbench__rail {
-    padding: var(--spacing-4) var(--spacing-3) calc(var(--spacing-6) + env(safe-area-inset-bottom));
-    gap: var(--spacing-5);
+    padding: calc(var(--spacing-4) + var(--spacing-1)) var(--spacing-4)
+      calc(var(--spacing-4) + var(--spacing-2) + env(safe-area-inset-bottom));
+    gap: calc(var(--spacing-4) + var(--spacing-1));
   }
 
   .workbench__props-table {
@@ -1284,7 +1309,7 @@ html {
   }
 
   .story-comparison {
-    gap: var(--spacing-5);
+    gap: calc(var(--spacing-4) + var(--spacing-1));
   }
 
   .story-catalog-row,

@@ -355,3 +355,11 @@ Desktop Design Lab сохраняет три визуальные области
 Мобильный shell использует `100dvh`, safe-area insets и один вертикальный scroll owner внутри активного Module View, Settings View или Workbench. Узкие каталоги имеют одну колонку, landscape — две; широкие token и props tables переходят в stacked rows. Navigation и header controls получают touch area не меньше `44px`, search input использует мобильный читаемый размер, а document и workspace не создают горизонтальный overflow.
 
 Dark и light modes сохраняют один layout contract. Motion drawer использует общий transition rhythm и полностью отключается при `prefers-reduced-motion`.
+
+## D-037 — Mobile density и folder navigation разделяют визуальную компактность и touch behavior
+
+**Статус:** принято, 2026-07-19.
+
+На ширине до `760px` компактные desktop-размеры не определяют размер touch target. Header и основной content получают минимум `16px` боковых gutters; поля ввода имеют высоту минимум `48px` и текст `16px`; Tab Switcher, tree disclosure и вторичные действия имеют интерактивную область минимум `44px`. Catalog groups разделяются увеличенным vertical rhythm и явным divider, чтобы filesystem categories не слипались визуально.
+
+У реальной папки Directory Panel есть два независимых действия. Disclosure button только раскрывает или сворачивает потомков и не меняет URL, selection или состояние drawer. Label button выбирает folder scope и выполняет navigation. Это разделение действует для pointer, touch и keyboard и устраняет конфликт, при котором один tap одновременно раскрывал ветку, переходил в папку и закрывал мобильный drawer.

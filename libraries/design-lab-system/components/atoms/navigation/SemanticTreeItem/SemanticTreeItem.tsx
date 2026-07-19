@@ -38,6 +38,7 @@ export type SemanticTreeItemProps = {
   actionsEnabled?: boolean
   actions?: ReactNode
   onSelect: () => void
+  onExpandedChange?: (expanded: boolean) => void
   onColorChange?: (color: string | null) => void
   onActionClick?: () => void
 }
@@ -59,6 +60,7 @@ export function SemanticTreeItem({
   actionsEnabled = false,
   actions,
   onSelect,
+  onExpandedChange,
   onColorChange,
   onActionClick,
 }: SemanticTreeItemProps) {
@@ -101,7 +103,10 @@ export function SemanticTreeItem({
           className="file-tree__chevron-button"
           type="button"
           aria-label={t(expanded ? 'tree.collapse' : 'tree.expand')}
-          onClick={onSelect}
+          onClick={() => {
+            if (onExpandedChange) onExpandedChange(!expanded)
+            else onSelect()
+          }}
         >
           <ArrowDownIcon
             className={

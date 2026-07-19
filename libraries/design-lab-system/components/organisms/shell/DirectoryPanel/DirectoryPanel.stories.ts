@@ -118,9 +118,9 @@ export const stories = [
   {
     id: 'folder-filter',
     kind: 'integration',
-    name: 'Folder selection and filtering',
+    name: 'Folder disclosure and filtering',
     description:
-      'A folder click both updates disclosure and filters the active module view; the virtual All row restores the complete inventory.',
+      'The disclosure button only expands the branch; the folder label filters the active module view, and the virtual All row restores the complete inventory.',
     interactive: true,
     examples: [
       { label: 'All', props: { selectedFolderPath: '__all__' } },

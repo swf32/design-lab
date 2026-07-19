@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Accessibility: Phone layouts expand every segmented and toggle option to a minimum 44px touch target.
+- Visual: Mobile labels and icon glyphs use a readable size without changing desktop density.
 - Changed: Workbench stories now render automatically from the adjacent story module.
 - Breaking: Canonical filesystem and URL path moved to `components/molecules/inputs/TabSwitcher`; no legacy redirect is retained.
 - Changed: Category is derived from the component directory; the package barrel export remains automatic.

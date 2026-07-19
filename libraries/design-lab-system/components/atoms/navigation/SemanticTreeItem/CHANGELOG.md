@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+- Added: Independent `onExpandedChange` callback separates folder disclosure from label selection while preserving the previous fallback behavior.
+- Fixed: Folder disclosure no longer triggers navigation when the consumer provides the dedicated callback.
+- Accessibility: Mobile disclosure, color, label, and action targets now use a 44–48px touch geometry with larger row text.
 - Changed: Added authored semantic retrieval metadata for MCP and CLI search.
 
 - Changed: Workbench stories now render automatically from the adjacent story module.

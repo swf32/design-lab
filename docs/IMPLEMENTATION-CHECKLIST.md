@@ -38,6 +38,7 @@
 - [x] Canvas mode и solid color сохраняются глобально и синхронно применяются к Playground и Stories.
 - [x] Application Sidebar и Directory Panel синхронно анимируют разделение общей navigation width без изменения Workspace.
 - [x] Mobile shell объединяет Application Sidebar и Directory Panel в доступный drawer, сохраняет 44px touch targets, safe areas и одноколоночный Workspace без horizontal overflow.
+- [x] Mobile density сохраняет 16px gutters, 44–48px touch targets и раздельные действия disclosure/navigation в Directory Panel.
 - [x] Workbench Back восстанавливает предыдущее session-history состояние, включая исходную папку и переходы между связанными Components; direct deep link возвращается в корень module.
 - [x] Module Header использует production Button для действия Back, сохраняет 40px hit target, явный keyboard focus и адаптивную иерархию title/source/actions.
 - [x] Workbench Playground вынесен в production-организм с Canvas padding policy, controls rail и shared background control.

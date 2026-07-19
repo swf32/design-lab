@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Fixed: Folder disclosure now expands or collapses the tree without also selecting the folder or navigating the application.
+- Accessibility: Mobile toolbar, search, tree, and footer geometry now use readable touch density.
 - Changed: Added authored semantic retrieval metadata for MCP and CLI search.
 
 - Changed: Workbench stories now render automatically from the adjacent story module.
