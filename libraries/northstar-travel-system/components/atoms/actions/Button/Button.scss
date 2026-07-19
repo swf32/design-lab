@@ -1,0 +1,53 @@
+.northstar-button {
+  min-height: 44px;
+  padding: 0 18px;
+  border: 1px solid transparent;
+  border-radius: var(--ds-radius-control);
+  background: var(--ds-color-accent-primary);
+  color: var(--ds-color-accent-contrast);
+  font: inherit;
+  font-weight: 700;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  touch-action: manipulation;
+  transition:
+    filter 180ms ease-out,
+    background 180ms ease-out,
+    border-color 180ms ease-out;
+}
+
+.northstar-button:hover:not(:disabled) {
+  filter: brightness(1.08);
+}
+
+.northstar-button:active:not(:disabled) {
+  filter: brightness(0.94);
+}
+
+.northstar-button:focus-visible {
+  outline: 3px solid color-mix(in srgb, var(--ds-color-accent-primary) 28%, transparent);
+  outline-offset: 2px;
+}
+
+.northstar-button:disabled {
+  opacity: 0.48;
+  cursor: not-allowed;
+}
+
+.northstar-button--secondary {
+  border-color: var(--ds-color-border-default);
+  background: var(--ds-color-surface-secondary);
+  color: var(--ds-color-text-primary);
+}
+
+.northstar-button--full {
+  width: 100%;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .northstar-button {
+    transition: none;
+  }
+}

@@ -216,6 +216,152 @@
   display: none;
 }
 
+.component-playground-page:has(.playground-inspector.is-active) .component-playground-canvas,
+.component-playground-page:has(.playground-inspector.is-active) .component-playground-canvas * {
+  cursor: crosshair;
+}
+
+.playground-inspector__outline {
+  box-sizing: border-box;
+  position: fixed;
+  z-index: 30;
+  top: var(--inspector-target-top);
+  left: var(--inspector-target-left);
+  width: var(--inspector-target-width);
+  height: var(--inspector-target-height);
+  border: 2px dashed var(--color-accent-primary);
+  border-radius: 3px;
+  background: color-mix(in srgb, var(--color-accent-primary) 10%, transparent);
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--color-canvas) 65%, transparent);
+  pointer-events: none;
+}
+
+.playground-inspector__card {
+  width: min(300px, calc(100vw - 32px));
+  max-height: min(420px, calc(100dvh - 112px));
+  box-sizing: border-box;
+  overflow: hidden;
+  position: fixed;
+  z-index: 31;
+  top: clamp(12px, var(--inspector-target-top), calc(100dvh - 432px));
+  right: clamp(
+    12px,
+    calc(var(--inspector-target-right) + var(--inspector-target-width) + 12px),
+    calc(100vw - 312px)
+  );
+  border: 1px solid color-mix(in srgb, var(--color-accent-primary) 58%, var(--color-border-default));
+  border-radius: var(--radius-medium);
+  background: color-mix(in srgb, var(--color-surface-raised) 94%, transparent);
+  color: var(--color-text-primary);
+  box-shadow: 0 20px 64px color-mix(in srgb, var(--color-overlay-scrim) 72%, transparent);
+  backdrop-filter: blur(18px) saturate(1.16);
+  pointer-events: none;
+}
+
+.playground-inspector__card header {
+  padding: 12px 14px;
+  border-bottom: 1px solid var(--color-border-subtle);
+  display: grid;
+  gap: 3px;
+}
+
+.playground-inspector__card header span {
+  color: var(--color-accent-primary);
+  font-size: 9px;
+  font-weight: 750;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.playground-inspector__card header strong {
+  overflow: hidden;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-size: 14px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.playground-inspector__card dl {
+  max-height: 286px;
+  margin: 0;
+  overflow: auto;
+  scrollbar-width: thin;
+}
+
+.playground-inspector__card dl div {
+  min-width: 0;
+  padding: 8px 14px;
+  border-bottom: 1px solid var(--color-border-subtle);
+  display: grid;
+  grid-template-columns: minmax(82px, 0.8fr) minmax(0, 1.4fr);
+  gap: 10px;
+}
+
+.playground-inspector__card dt,
+.playground-inspector__card dd {
+  min-width: 0;
+  margin: 0;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-size: 10px;
+  line-height: 1.45;
+}
+
+.playground-inspector__card dt {
+  color: var(--color-text-muted);
+}
+
+.playground-inspector__card dd {
+  overflow-wrap: anywhere;
+  color: var(--color-text-primary);
+}
+
+.playground-inspector__card footer {
+  padding: 9px 14px;
+  color: var(--color-text-disabled);
+  font-size: 9px;
+  line-height: 1.4;
+}
+
+.playground-inspector__trigger {
+  min-width: 52px;
+  min-height: 52px;
+  padding: 0 16px;
+  position: fixed;
+  z-index: 32;
+  right: max(16px, env(safe-area-inset-right));
+  bottom: max(16px, env(safe-area-inset-bottom));
+  border: 1px solid color-mix(in srgb, var(--color-text-primary) 18%, transparent);
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--color-surface-primary) 74%, transparent);
+  color: var(--color-text-primary);
+  box-shadow: 0 12px 36px color-mix(in srgb, var(--color-overlay-scrim) 56%, transparent);
+  backdrop-filter: blur(16px) saturate(1.2);
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-2);
+  font: inherit;
+  font-size: 13px;
+  font-weight: 650;
+  cursor: pointer;
+  touch-action: manipulation;
+  transition:
+    background 180ms ease-out,
+    border-color 180ms ease-out,
+    color 180ms ease-out;
+}
+
+.playground-inspector__trigger:hover,
+.playground-inspector__trigger:focus-visible {
+  border-color: var(--color-accent-primary);
+  background: color-mix(in srgb, var(--color-surface-primary) 94%, transparent);
+}
+
+.playground-inspector__trigger[aria-pressed='true'] {
+  border-color: var(--color-accent-primary);
+  background: var(--color-accent-primary);
+  color: var(--color-canvas);
+}
+
 .component-playground-missing {
   min-height: 100dvh;
   padding: var(--spacing-4);
@@ -385,12 +531,35 @@
     opacity: 0;
     pointer-events: none;
   }
+
+  .component-playground-page.is-controls-open .playground-inspector {
+    opacity: 0;
+    pointer-events: none;
+  }
+
+  .playground-inspector__card {
+    width: calc(100vw - 32px);
+    max-height: min(48dvh, 360px);
+    top: auto;
+    right: 16px;
+    bottom: calc(84px + env(safe-area-inset-bottom));
+  }
+
+  .playground-inspector__card dl {
+    max-height: min(30dvh, 220px);
+  }
+
+  .playground-inspector__trigger {
+    min-width: 52px;
+    padding-inline: 14px;
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {
   .component-playground-panel,
   .component-playground-page__scrim,
-  .component-playground-page__settings {
+  .component-playground-page__settings,
+  .playground-inspector__trigger {
     transition: none;
   }
 }

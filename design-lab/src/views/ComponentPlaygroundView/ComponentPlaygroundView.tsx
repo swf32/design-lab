@@ -22,6 +22,7 @@ import type {
   PlaygroundValues,
 } from '@design-lab/system/playground'
 import type { ModuleData } from '../../api/projects'
+import { PlaygroundInspector } from './PlaygroundInspector'
 
 type ComponentsData = Extract<ModuleData, { kind: 'components' }>
 type ComponentEntity = ComponentsData['components'][number]
@@ -254,6 +255,7 @@ function LoadedComponentPlayground({
   const [controlsOpen, setControlsOpen] = useState(() => !window.matchMedia(compactQuery).matches)
   const closeControlsRef = useRef<HTMLButtonElement>(null)
   const openControlsRef = useRef<HTMLButtonElement>(null)
+  const canvasRef = useRef<HTMLElement>(null)
   const wasControlsOpenRef = useRef(controlsOpen)
   const selectedVariant =
     module.playground.variants.find((item) => item.id === variant) ?? module.playground.variants[0]
@@ -416,6 +418,7 @@ function LoadedComponentPlayground({
       </aside>
 
       <section
+        ref={canvasRef}
         className={`component-playground-canvas component-playground-canvas--${canvasMode}`}
         aria-label={`${component.name} ${selectedVariant?.name ?? 'Playground'} preview`}
         aria-hidden={isCompact && controlsOpen}
@@ -440,6 +443,7 @@ function LoadedComponentPlayground({
         <SettingsIcon size={20} aria-hidden="true" />
         <span>Settings</span>
       </button>
+      <PlaygroundInspector canvasRef={canvasRef} />
     </main>
   )
 }

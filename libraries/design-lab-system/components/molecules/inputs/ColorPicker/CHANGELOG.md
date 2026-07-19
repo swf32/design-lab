@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Changed: Palette now uses a viewport-aware portal so it remains reachable in scrolling rails and
+  on mobile without increasing the scroll area.
 - Changed: Added authored semantic retrieval metadata for MCP and CLI search.
 
 - Changed: Workbench stories now render automatically from the adjacent story module.

@@ -1,0 +1,7 @@
+{
+  "description": "Eyedropper inspection icon representing selection of rendered interface elements for developer handoff.",
+  "aliases": ["inspect element", "eyedropper", "picker", "developer tools"],
+  "useWhen": ["activate component inspection", "select rendered interface elements"],
+  "avoidWhen": ["choose a color value", "represent visual search"],
+  "tags": ["inspection", "developer tools", "selection", "handoff"]
+}

@@ -1,5 +1,6 @@
 import { control, definePlayground, type PlaygroundValues } from '@design-lab/system/playground'
 import type { CSSProperties } from 'react'
+import { Button } from '../../../atoms/actions/Button/Button'
 
 export const playground = definePlayground({
   name: 'Flight Search wireframes',
@@ -117,18 +118,12 @@ const prototypeStyles = String.raw`
   white-space: nowrap;
 }
 
-.northstar-search-prototype button {
+.northstar-search-prototype__action {
   min-height: 52px;
   padding: 0 22px;
-  border: 0;
-  border-radius: var(--ds-radius-control);
-  background: var(--prototype-action, var(--ds-color-accent-primary));
-  color: var(--ds-color-accent-contrast);
-  font: inherit;
-  font-weight: 750;
 }
 
-.northstar-search-prototype--stacked button {
+.northstar-search-prototype--stacked .northstar-search-prototype__action {
   grid-column: 1 / -1;
 }
 
@@ -160,7 +155,7 @@ const prototypeStyles = String.raw`
     grid-template-columns: 1fr;
   }
 
-  .northstar-search-prototype button {
+  .northstar-search-prototype__action {
     width: 100%;
     min-height: 48px;
     grid-column: auto;
@@ -179,12 +174,8 @@ function Field({ label, value }: { label: string; value: string }) {
 
 export function renderPlaygroundVariant({ variant, values }: { variant: string; values: Values }) {
   const meta = `${values.tripType} · ${values.travellers} travellers · ${values.cabin}`
-  const style = { '--prototype-action': values.actionColor } as CSSProperties
   return (
-    <section
-      className={`northstar-search-prototype northstar-search-prototype--${variant}`}
-      style={style}
-    >
+    <section className={`northstar-search-prototype northstar-search-prototype--${variant}`}>
       <style>{prototypeStyles}</style>
       <header>
         <div>
@@ -198,7 +189,12 @@ export function renderPlaygroundVariant({ variant, values }: { variant: string; 
           <p>
             Fly from <mark>Lisbon</mark> to <mark>Copenhagen</mark> in <mark>September</mark>.
           </p>
-          <button type="button">Explore fares</button>
+          <Button
+            className="northstar-search-prototype__action"
+            style={{ backgroundColor: values.actionColor } as CSSProperties}
+          >
+            Explore fares
+          </Button>
         </>
       ) : (
         <div className="northstar-search-prototype__fields">
@@ -206,7 +202,12 @@ export function renderPlaygroundVariant({ variant, values }: { variant: string; 
           <Field label="To" value="Copenhagen · CPH" />
           <Field label="Dates" value={values.flexible ? 'Flexible September' : '12–18 Sep'} />
           <Field label="Travellers" value={`${values.travellers} · ${values.cabin}`} />
-          <button type="button">Search flights</button>
+          <Button
+            className="northstar-search-prototype__action"
+            style={{ backgroundColor: values.actionColor } as CSSProperties}
+          >
+            Search flights
+          </Button>
         </div>
       )}
     </section>

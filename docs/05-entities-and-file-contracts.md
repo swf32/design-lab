@@ -24,7 +24,7 @@
 | Minimal data model | `id`, `name`, `status`, `description`, `props[]`, `variants[]`, `states[]`, `slots[]`, `tokensUsed[]`, `dependsOn[]`, `usedBy[]`, `docsRef`, `changelogRef` |
 | File examples | `component.json`, optional `Button.playground.tsx`, затем `Button.tsx`, `Button.scss`, `Button.preview.tsx`, `Button.stories.tsx`, `README.md`, `CHANGELOG.md` |
 | UX flow | Создать wireframe Component → сравнить Playground variants → выбрать направление → реализовать production Component → добавить preview/stories/docs → отметить ready |
-| Features | **MVP**: lifecycle status, typed Playground variants and controls, metadata, preview, executable adjacent stories, docs, changelog, canonical import, direct production/example usage graph. **Next**: approval metadata and richer completeness actions. **Future**: cross-platform contracts |
+| Features | **MVP**: lifecycle status, typed Playground variants and controls, component/element Inspector, metadata, preview, executable adjacent stories, docs, changelog, canonical import, direct production/example usage graph. **Next**: approval metadata and richer completeness actions. **Future**: cross-platform contracts |
 
 Пример дерева:
 

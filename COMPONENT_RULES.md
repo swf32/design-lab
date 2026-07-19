@@ -45,6 +45,14 @@ Playground variants have stable ids and names. Selected variant, design-system m
 
 The route is derived from the Component path: `/components/<component-path>/playground` and renders as a standalone fullscreen review mode outside the normal Design Lab application, directory, and workspace shell. Desktop keeps one persistent typed-controls rail at the left and gives every remaining pixel to the Canvas. Mobile opens directly on the unobstructed Canvas; a translucent bottom-start Settings action reveals the controls as a dismissible overlay rail. The overlay supports an explicit close action, scrim dismissal, and Escape, and all touch targets are at least `44px`. Design-system modes come from the active Project or Library token files and remain independent of the Design Lab interface theme.
 
+### Playground inspection
+
+Playground provides one shared Inspector mode for developer handoff. Its bottom-end inspect action activates pointer hover on fine-pointer devices and tap selection on touch devices. The selected DOM box receives a dashed accent outline. A production Component reports its canonical name and an explicitly selected set of public presentational props; an ordinary DOM element reports its tag and a focused subset of computed layout, color, border, and typography styles.
+
+Production Components opt into stable detection by spreading `inspectionAttributes(ComponentName, publicProps)` from `@design-lab/system/inspection` onto their semantic root. Pass only public, serializable, non-sensitive presentational props; never serialize callbacks, credentials, application state, arbitrary spread props, or React internals. The helper sanitizes supported values and writes the common `data-dl-component` / `data-dl-props` contract. Inspector must not depend on private React Fiber fields. Nested raw elements remain independently inspectable instead of inheriting the nearest ancestor Component identity.
+
+Floating palettes, menus, and similar controls inside Playground rails render in a viewport-aware overlay layer. They choose an available side, clamp to the visual viewport, remain usable at mobile touch sizes, and never expand the rail's scrollable content merely by opening.
+
 ## Automatic discovery, imports, and agent context
 
 Creating a Component requires only its canonical directory, adjacent files, and `component.json`. Do not register it in an application switch, story map, Playground map, style index, component list, dependency table, MCP catalog, CLI catalog, or hand-maintained package barrel.

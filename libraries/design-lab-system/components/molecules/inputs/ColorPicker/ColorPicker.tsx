@@ -1,5 +1,14 @@
 import './ColorPicker.scss'
-import { useEffect, useRef, useState, type ReactNode } from 'react'
+import {
+  useCallback,
+  useEffect,
+  useLayoutEffect,
+  useRef,
+  useState,
+  type CSSProperties,
+  type ReactNode,
+} from 'react'
+import { createPortal } from 'react-dom'
 import { useDesignLabI18n } from '../../../../i18n'
 
 const DEFAULT_PRESETS = [
@@ -52,23 +61,74 @@ export function ColorPicker({
   const safeColor = normalizeHex(color ?? '') ?? defaultValue
   const [draft, setDraft] = useState(safeColor)
   const rootRef = useRef<HTMLDivElement>(null)
+  const triggerRef = useRef<HTMLButtonElement>(null)
+  const popoverRef = useRef<HTMLDivElement>(null)
+  const [popoverPosition, setPopoverPosition] = useState<CSSProperties | null>(null)
 
   useEffect(() => setDraft(safeColor), [safeColor])
+  const positionPopover = useCallback(() => {
+    const triggerElement = triggerRef.current
+    const popoverElement = popoverRef.current
+    if (!triggerElement || !popoverElement) return
+    const triggerRect = triggerElement.getBoundingClientRect()
+    const popoverRect = popoverElement.getBoundingClientRect()
+    const viewport = window.visualViewport
+    const viewportLeft = viewport?.offsetLeft ?? 0
+    const viewportTop = viewport?.offsetTop ?? 0
+    const viewportRight = viewportLeft + (viewport?.width ?? window.innerWidth)
+    const viewportBottom = viewportTop + (viewport?.height ?? window.innerHeight)
+    const margin = 12
+    const gap = 6
+    const preferredTop = triggerRect.bottom + gap
+    const top =
+      preferredTop + popoverRect.height <= viewportBottom - margin
+        ? preferredTop
+        : Math.max(viewportTop + margin, triggerRect.top - popoverRect.height - gap)
+    const left = Math.min(
+      Math.max(triggerRect.left, viewportLeft + margin),
+      viewportRight - popoverRect.width - margin,
+    )
+    setPopoverPosition({ top, left })
+  }, [])
+
+  useLayoutEffect(() => {
+    if (!open) {
+      setPopoverPosition(null)
+      return
+    }
+    positionPopover()
+    const frame = requestAnimationFrame(positionPopover)
+    return () => cancelAnimationFrame(frame)
+  }, [open, positionPopover])
+
   useEffect(() => {
     if (!open) return
     const close = (event: PointerEvent) => {
-      if (!rootRef.current?.contains(event.target as Node)) setOpen(false)
+      const target = event.target as Node
+      if (!rootRef.current?.contains(target) && !popoverRef.current?.contains(target))
+        setOpen(false)
     }
     const escape = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') setOpen(false)
+      if (event.key === 'Escape') {
+        setOpen(false)
+        triggerRef.current?.focus()
+      }
     }
     document.addEventListener('pointerdown', close)
     document.addEventListener('keydown', escape)
+    window.addEventListener('resize', positionPopover)
+    window.addEventListener('scroll', positionPopover, true)
+    window.visualViewport?.addEventListener('resize', positionPopover)
+    window.visualViewport?.addEventListener('scroll', positionPopover)
     return () => {
       document.removeEventListener('pointerdown', close)
       document.removeEventListener('keydown', escape)
+      window.removeEventListener('resize', positionPopover)
+      window.removeEventListener('scroll', positionPopover, true)
+      window.visualViewport?.removeEventListener('resize', positionPopover)
+      window.visualViewport?.removeEventListener('scroll', positionPopover)
     }
-  }, [open])
+  }, [open, positionPopover])
 
   const commit = (next: string | null) => {
     if (value === undefined) setInternal(next)
@@ -87,6 +147,7 @@ export function ColorPicker({
       ref={rootRef}
     >
       <button
+        ref={triggerRef}
         className="dl-color-picker__trigger"
         type="button"
         aria-label={label}
@@ -98,61 +159,72 @@ export function ColorPicker({
       >
         {trigger ?? <span className="dl-color-picker__swatch" style={{ background: safeColor }} />}
       </button>
-      {open && (
-        <div className="dl-color-picker__popover" role="dialog" aria-label={label}>
-          <div className="dl-color-picker__heading">
-            <span className="dl-color-picker__preview" style={{ background: safeColor }} />
-            <strong>{label}</strong>
-          </div>
-          <label className="dl-color-picker__spectrum">
-            <span>{t('colorPicker.color')}</span>
-            <input
-              type="color"
-              value={safeColor}
-              onChange={(event) => commit(event.target.value)}
-            />
-          </label>
-          <div className="dl-color-picker__presets" aria-label={t('colorPicker.presets')}>
-            {presets.map((preset) => (
-              <button
-                key={preset}
-                type="button"
-                aria-label={preset}
-                aria-pressed={safeColor === preset.toLowerCase()}
-                style={{ background: preset }}
-                onClick={() => commit(preset.toLowerCase())}
+      {open &&
+        createPortal(
+          <div
+            ref={popoverRef}
+            className="dl-color-picker__popover"
+            role="dialog"
+            aria-label={label}
+            style={{
+              ...popoverPosition,
+              visibility: popoverPosition ? 'visible' : 'hidden',
+            }}
+          >
+            <div className="dl-color-picker__heading">
+              <span className="dl-color-picker__preview" style={{ background: safeColor }} />
+              <strong>{label}</strong>
+            </div>
+            <label className="dl-color-picker__spectrum">
+              <span>{t('colorPicker.color')}</span>
+              <input
+                type="color"
+                value={safeColor}
+                onChange={(event) => commit(event.target.value)}
               />
-            ))}
-          </div>
-          <label className="dl-color-picker__hex">
-            <span>{t('colorPicker.hex')}</span>
-            <input
-              value={draft}
-              spellCheck={false}
-              onChange={(event) => setDraft(event.target.value)}
-              onBlur={commitDraft}
-              onKeyDown={(event) => {
-                if (event.key === 'Enter') {
-                  event.preventDefault()
-                  commitDraft()
-                }
-              }}
-            />
-          </label>
-          {allowClear && (
-            <button
-              className="dl-color-picker__clear"
-              type="button"
-              onClick={() => {
-                commit(null)
-                setOpen(false)
-              }}
-            >
-              {t('colorPicker.reset')}
-            </button>
-          )}
-        </div>
-      )}
+            </label>
+            <div className="dl-color-picker__presets" aria-label={t('colorPicker.presets')}>
+              {presets.map((preset) => (
+                <button
+                  key={preset}
+                  type="button"
+                  aria-label={preset}
+                  aria-pressed={safeColor === preset.toLowerCase()}
+                  style={{ background: preset }}
+                  onClick={() => commit(preset.toLowerCase())}
+                />
+              ))}
+            </div>
+            <label className="dl-color-picker__hex">
+              <span>{t('colorPicker.hex')}</span>
+              <input
+                value={draft}
+                spellCheck={false}
+                onChange={(event) => setDraft(event.target.value)}
+                onBlur={commitDraft}
+                onKeyDown={(event) => {
+                  if (event.key === 'Enter') {
+                    event.preventDefault()
+                    commitDraft()
+                  }
+                }}
+              />
+            </label>
+            {allowClear && (
+              <button
+                className="dl-color-picker__clear"
+                type="button"
+                onClick={() => {
+                  commit(null)
+                  setOpen(false)
+                }}
+              >
+                {t('colorPicker.reset')}
+              </button>
+            )}
+          </div>,
+          document.body,
+        )}
     </div>
   )
 }
