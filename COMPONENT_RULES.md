@@ -43,7 +43,7 @@ The Playground exports a definition created with `definePlayground` plus `render
 
 Playground variants have stable ids and names. Selected variant, design-system mode, and serializable control values are reflected in the route query so a copied URL restores the same review state. A Playground may render production Components, experimental compositions, or both. It does not require Stories and must not be counted as example usage.
 
-The route is derived from the Component path: `/components/<component-path>/playground`. Desktop places the typed controls rail before the Canvas. Mobile keeps the Canvas primary and moves controls into the single-column flow with touch targets of at least `44px`. Design-system modes come from the active Project or Library token files and remain independent of the Design Lab interface theme.
+The route is derived from the Component path: `/components/<component-path>/playground` and renders as a standalone fullscreen review mode outside the normal Design Lab application, directory, and workspace shell. Desktop keeps one persistent typed-controls rail at the left and gives every remaining pixel to the Canvas. Mobile opens directly on the unobstructed Canvas; a translucent bottom-start Settings action reveals the controls as a dismissible overlay rail. The overlay supports an explicit close action, scrim dismissal, and Escape, and all touch targets are at least `44px`. Design-system modes come from the active Project or Library token files and remain independent of the Design Lab interface theme.
 
 ## Automatic discovery, imports, and agent context
 

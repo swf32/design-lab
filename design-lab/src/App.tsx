@@ -17,6 +17,7 @@ import {
 } from '@design-lab/system/components'
 import { useDesignLabI18n, type MessageKey } from '@design-lab/system/i18n'
 import { ModuleView } from './views/ModuleView/ModuleView'
+import { ComponentPlaygroundView } from './views/ComponentPlaygroundView/ComponentPlaygroundView'
 import { SettingsView } from './views/SettingsView/SettingsView'
 import { Button, IconButton } from '@design-lab/system/components'
 import { CodeIcon, DirectoryIcon, LinkIcon, StarIcon } from '@design-lab/system/icons'
@@ -341,6 +342,35 @@ export default function App() {
     setCanvasMode(next === 'light' ? 'light-grid' : 'dark-grid')
   }
 
+  if (playgroundOpen) {
+    const component =
+      moduleData?.kind === 'components'
+        ? moduleData.components.find((item) => item.directory === entityRoutePath)
+        : null
+    if (component && moduleData?.kind === 'components')
+      return (
+        <ComponentPlaygroundView
+          component={component}
+          data={moduleData}
+          canvasMode={canvasMode}
+          canvasColor={canvasColor}
+          onCanvasModeChange={setCanvasMode}
+          onCanvasColorChange={setCanvasColor}
+          onClose={() => navigate('components', entityRoutePath)}
+        />
+      )
+    return (
+      <main className="component-playground-missing">
+        <span>{moduleLoading ? t('status.loading') : 'Playground could not be loaded.'}</span>
+        {!moduleLoading && (
+          <Button variant="secondary" onClick={() => navigate('components')}>
+            Back to Components
+          </Button>
+        )}
+      </main>
+    )
+  }
+
   return (
     <main
       className={`design-lab${isResizing ? ' design-lab--resizing' : ''}${sidebarHovered ? ' design-lab--sidebar-expanded' : ''}${mobileNavigationOpen ? ' design-lab--mobile-navigation-open' : ''}`}
@@ -497,11 +527,9 @@ export default function App() {
               canvasColor={canvasColor}
               onCanvasModeChange={setCanvasMode}
               onCanvasColorChange={setCanvasColor}
-              playgroundOpen={playgroundOpen}
               onOpenPlayground={() => {
                 if (entityRoutePath) navigate('components', `${entityRoutePath}/playground`)
               }}
-              onClosePlayground={() => navigate('components', entityRoutePath)}
             />
           ) : (
             <div className="workspace-stage__empty">

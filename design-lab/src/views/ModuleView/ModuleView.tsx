@@ -57,7 +57,6 @@ import {
 } from '@design-lab/system/components'
 import { TokensIcon } from '@design-lab/system/icons'
 import type { ModuleData } from '../../api/projects'
-import { ComponentPlaygroundView } from '../ComponentPlaygroundView/ComponentPlaygroundView'
 
 type ComponentEntity = Extract<ModuleData, { kind: 'components' }>['components'][number]
 
@@ -1645,9 +1644,7 @@ export function ModuleView({
   canvasColor,
   onCanvasModeChange,
   onCanvasColorChange,
-  playgroundOpen,
   onOpenPlayground,
-  onClosePlayground,
 }: {
   data: ModuleData | null
   loading: boolean
@@ -1661,9 +1658,7 @@ export function ModuleView({
   canvasColor: string
   onCanvasModeChange: (mode: CanvasMode) => void
   onCanvasColorChange: (color: string) => void
-  playgroundOpen: boolean
   onOpenPlayground: () => void
-  onClosePlayground: () => void
 }) {
   const { t } = useDesignLabI18n()
   const modes = data && 'modes' in data ? data.modes : []
@@ -1821,18 +1816,6 @@ export function ModuleView({
     )
   if (data.kind === 'components') {
     const selected = data.components.find((item) => item.id === selectedEntityId)
-    if (selected && playgroundOpen)
-      return (
-        <ComponentPlaygroundView
-          component={selected}
-          data={data}
-          canvasMode={canvasMode}
-          canvasColor={canvasColor}
-          onCanvasModeChange={onCanvasModeChange}
-          onCanvasColorChange={onCanvasColorChange}
-          onClose={onClosePlayground}
-        />
-      )
     return selected?.entry ? (
       <ComponentWorkbench
         component={selected}

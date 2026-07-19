@@ -418,6 +418,7 @@ Components использует Tokens, Palette и Fonts и становится
 - [ ] Filters: status, completeness, dependencies, diagnostics, tags.
 - [x] Карточка показывает name и lifecycle status; отсутствие или неизвестное значение не блокирует discovery.
 - [x] Typed `*.playground.tsx` автоматически создаёт multi-variant route без application registry.
+- [x] Playground route является отдельным fullscreen review mode: desktop controls rail + Canvas, mobile Canvas + dismissible Settings rail.
 - [x] Wireframe-only Component обнаруживается без production entry и не попадает в generated package barrel.
 - [ ] Completeness badge/action помимо lifecycle status.
 - [x] Detail view: Canvas, Playground, Docs, Code, Dependencies, Changelog; Component Reference показывает import, discovered files и прямые production/example relationships.

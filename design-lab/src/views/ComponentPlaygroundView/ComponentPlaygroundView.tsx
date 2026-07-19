@@ -1,21 +1,21 @@
 import './ComponentPlaygroundView.scss'
-import { useEffect, useMemo, useState, type CSSProperties } from 'react'
+import { useEffect, useMemo, useRef, useState, type CSSProperties } from 'react'
 import {
   Button,
+  CanvasBackgroundControl,
   Checkbox,
   Chip,
   ColorPicker,
   ControlField,
   Input,
-  ModuleHeader,
   RadioButton,
   Select,
   Slider,
   TabSwitcher,
-  WorkbenchPlayground,
   type CanvasMode,
   type ChipColor,
 } from '@design-lab/system/components'
+import { ArrowLeftIcon, SettingsIcon } from '@design-lab/system/icons'
 import type {
   ComponentPlaygroundModule,
   PlaygroundControl,
@@ -85,7 +85,7 @@ function PlaygroundControls({
   onChange: (key: string, value: string | number | boolean) => void
 }) {
   return (
-    <aside className="component-playground-controls">
+    <div className="component-playground-controls">
       <header>
         <span>Typed controls</span>
         <strong>{Object.keys(controls).length}</strong>
@@ -173,7 +173,7 @@ function PlaygroundControls({
           </ControlField>
         )
       })}
-    </aside>
+    </div>
   )
 }
 
@@ -249,10 +249,49 @@ function LoadedComponentPlayground({
     initialMode && availableModes.includes(initialMode) ? initialMode : availableModes[0],
   )
   const [values, setValues] = useState<PlaygroundValues>(() => initialValues(module))
+  const compactQuery = '(max-width: 760px), (max-height: 560px) and (max-width: 960px)'
+  const [isCompact, setIsCompact] = useState(() => window.matchMedia(compactQuery).matches)
+  const [controlsOpen, setControlsOpen] = useState(() => !window.matchMedia(compactQuery).matches)
+  const closeControlsRef = useRef<HTMLButtonElement>(null)
+  const openControlsRef = useRef<HTMLButtonElement>(null)
+  const wasControlsOpenRef = useRef(controlsOpen)
   const selectedVariant =
     module.playground.variants.find((item) => item.id === variant) ?? module.playground.variants[0]
   const status = statusPresentation(component.status)
-  const themeStyle = (data.themeVariables[mode] ?? {}) as CSSProperties
+  const themeStyle = {
+    ...(data.themeVariables[mode] ?? {}),
+    '--canvas-solid': canvasColor,
+  } as CSSProperties
+
+  useEffect(() => {
+    const media = window.matchMedia(compactQuery)
+    const updateLayout = () => {
+      setIsCompact(media.matches)
+      setControlsOpen(!media.matches)
+    }
+    updateLayout()
+    media.addEventListener('change', updateLayout)
+    return () => media.removeEventListener('change', updateLayout)
+  }, [])
+
+  useEffect(() => {
+    if (!isCompact) return
+    if (controlsOpen) {
+      window.requestAnimationFrame(() => closeControlsRef.current?.focus())
+    } else if (wasControlsOpenRef.current) {
+      openControlsRef.current?.focus()
+    }
+    wasControlsOpenRef.current = controlsOpen
+  }, [controlsOpen, isCompact])
+
+  useEffect(() => {
+    if (!isCompact || !controlsOpen) return
+    const closeWithEscape = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') setControlsOpen(false)
+    }
+    window.addEventListener('keydown', closeWithEscape)
+    return () => window.removeEventListener('keydown', closeWithEscape)
+  }, [controlsOpen, isCompact])
 
   useEffect(() => {
     const next = new URLSearchParams()
@@ -270,22 +309,57 @@ function LoadedComponentPlayground({
   }, [mode, module.playground.controls, values, variant])
 
   return (
-    <div className="component-playground-page" style={themeStyle}>
-      <div className="component-playground-page__top">
-        <ModuleHeader
-          eyebrow={`${component.directory} · Playground`}
-          title={component.name}
-          backLabel="Component"
-          onBack={onClose}
-          meta={component.entry ?? 'Wireframe only'}
-          actions={
-            <Chip color={status.color} variant="soft" size="small">
-              {status.label}
-            </Chip>
-          }
-        />
-        <div className="component-playground-page__selectors">
-          <div>
+    <main
+      className={`component-playground-page${controlsOpen ? ' is-controls-open' : ''}`}
+      style={themeStyle}
+    >
+      <button
+        type="button"
+        className="component-playground-page__scrim"
+        aria-label="Close Playground settings"
+        aria-hidden={!isCompact || !controlsOpen}
+        tabIndex={isCompact && controlsOpen ? 0 : -1}
+        onClick={() => setControlsOpen(false)}
+      />
+      <aside
+        id="component-playground-settings"
+        className="component-playground-panel"
+        aria-label="Playground settings"
+        aria-hidden={isCompact && !controlsOpen}
+        inert={isCompact && !controlsOpen ? true : undefined}
+      >
+        <header className="component-playground-panel__header">
+          <Button
+            type="button"
+            variant="ghost"
+            size="small"
+            leading={<ArrowLeftIcon size={16} aria-hidden="true" />}
+            onClick={onClose}
+          >
+            Component
+          </Button>
+          <button
+            type="button"
+            className="component-playground-panel__done"
+            ref={closeControlsRef}
+            onClick={() => setControlsOpen(false)}
+          >
+            Done
+          </button>
+          <div className="component-playground-panel__identity">
+            <div>
+              <span>Playground</span>
+              <Chip color={status.color} variant="soft" size="small">
+                {status.label}
+              </Chip>
+            </div>
+            <h1>{component.name}</h1>
+            <code>{component.directory}</code>
+          </div>
+        </header>
+
+        <div className="component-playground-panel__body">
+          <section className="component-playground-panel__section">
             <span>Direction</span>
             <TabSwitcher
               ariaLabel="Playground direction"
@@ -296,9 +370,11 @@ function LoadedComponentPlayground({
               value={variant}
               onChange={setVariant}
             />
-          </div>
+            <p>{selectedVariant?.description ?? module.playground.description}</p>
+          </section>
+
           {availableModes.length > 1 && (
-            <div>
+            <section className="component-playground-panel__section">
               <span>Product theme</span>
               <TabSwitcher
                 ariaLabel="Product theme"
@@ -307,41 +383,63 @@ function LoadedComponentPlayground({
                 onChange={setMode}
                 size="small"
               />
-            </div>
+            </section>
           )}
-        </div>
-      </div>
-      <WorkbenchPlayground
-        mode={canvasMode}
-        color={canvasColor}
-        onModeChange={onCanvasModeChange}
-        onColorChange={onCanvasColorChange}
-        controlsPosition="start"
-        label={selectedVariant?.name ?? 'Playground'}
-        controls={
+
+          <section className="component-playground-panel__section">
+            <span>Canvas</span>
+            <CanvasBackgroundControl
+              mode={canvasMode}
+              color={canvasColor}
+              onModeChange={onCanvasModeChange}
+              onColorChange={onCanvasColorChange}
+            />
+          </section>
+
           <PlaygroundControls
             component={component}
             controls={module.playground.controls}
             values={values}
             onChange={(key, value) => setValues((current) => ({ ...current, [key]: value }))}
           />
-        }
-      >
-        <div className="component-playground-page__specimen">
-          {module.renderPlaygroundVariant({ variant, values, mode })}
         </div>
-      </WorkbenchPlayground>
-      <footer className="component-playground-page__notes">
-        <span>{selectedVariant?.name}</span>
-        <p>{selectedVariant?.description ?? module.playground.description}</p>
-        <Button
-          variant="secondary"
-          size="small"
-          onClick={() => navigator.clipboard.writeText(window.location.href)}
-        >
-          Copy review link
-        </Button>
-      </footer>
-    </div>
+
+        <footer className="component-playground-panel__footer">
+          <Button
+            variant="secondary"
+            fullWidth
+            onClick={() => navigator.clipboard.writeText(window.location.href)}
+          >
+            Copy review link
+          </Button>
+        </footer>
+      </aside>
+
+      <section
+        className={`component-playground-canvas component-playground-canvas--${canvasMode}`}
+        aria-label={`${component.name} ${selectedVariant?.name ?? 'Playground'} preview`}
+        aria-hidden={isCompact && controlsOpen}
+        inert={isCompact && controlsOpen ? true : undefined}
+      >
+        <div className="component-playground-canvas__stage">
+          <div className="component-playground-page__specimen">
+            {module.renderPlaygroundVariant({ variant, values, mode })}
+          </div>
+        </div>
+      </section>
+
+      <button
+        type="button"
+        className="component-playground-page__settings"
+        ref={openControlsRef}
+        aria-label="Open Playground settings"
+        aria-controls="component-playground-settings"
+        aria-expanded={controlsOpen}
+        onClick={() => setControlsOpen(true)}
+      >
+        <SettingsIcon size={20} aria-hidden="true" />
+        <span>Settings</span>
+      </button>
+    </main>
   )
 }
