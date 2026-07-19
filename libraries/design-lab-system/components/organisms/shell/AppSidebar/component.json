@@ -1,0 +1,50 @@
+{
+  "id": "app-sidebar",
+  "name": "Application Sidebar",
+  "description": "Provides primary Design Lab module navigation in a collapsible rail with fixed application Settings access.",
+  "aliases": ["app navigation", "module sidebar", "navigation rail", "primary sidebar"],
+  "useWhen": [
+    "navigate between Design Lab modules",
+    "compose the application shell",
+    "expose global settings outside project modules"
+  ],
+  "avoidWhen": [
+    "navigate a project entity hierarchy",
+    "show contextual in-page actions",
+    "select a local display preference"
+  ],
+  "entry": "AppSidebar.tsx",
+  "preview": "AppSidebar.preview.tsx",
+  "stories": "AppSidebar.stories.ts",
+  "docs": "README.md",
+  "changelog": "CHANGELOG.md",
+  "status": "ready",
+  "states": ["collapsed", "expanded", "settings-active"],
+  "variants": ["default"],
+  "props": {
+    "active": {
+      "type": "ModuleId",
+      "required": true
+    },
+    "expanded": {
+      "type": "boolean",
+      "default": false
+    },
+    "settingsActive": {
+      "type": "boolean",
+      "default": false
+    },
+    "onChange": {
+      "type": "(id: ModuleId) => void",
+      "required": true
+    },
+    "onSettings": {
+      "type": "() => void",
+      "description": "Opens application-level settings without changing the active project module."
+    },
+    "onExpandedChange": {
+      "type": "(expanded: boolean) => void",
+      "description": "Notifies the application shell when pointer disclosure changes."
+    }
+  }
+}

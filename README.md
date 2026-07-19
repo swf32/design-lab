@@ -10,7 +10,7 @@ npm install
 npm run dev
 ```
 
-- UI: `http://localhost:5173`
+- UI: `http://localhost:5317`
 - локальный Node.js API: `http://127.0.0.1:4173`
 
 ## Проверка production-сборки
@@ -20,12 +20,23 @@ cd design-lab
 npm run build
 ```
 
+## Форматирование
+
+```bash
+npm run format
+```
+
+`format:code` приводит к единому виду JSON, TS, TSX и MJS; `format:styles` форматирует SCSS и CSS внутри component preview. Соответствующие `check:*` автоматически выполняются перед root build/test.
+
 ## Структура
 
-- `design-lab/src/` — React-интерфейс и SCSS.
+- `design-lab/src/views/` — route-level экраны приложения; переиспользуемых UI-компонентов внутри приложения нет.
 - `design-lab/server/` — локальный Node.js API, registry проектов и filesystem gateway.
 - `design-lab/scripts/dev.mjs` — запускает API и Vite вместе.
 - `libraries/design-lab-system/` — редактируемая дизайн-система самого приложения и её единственный source of truth.
+- `libraries/design-lab-system/components/index.ts` — автоматически генерируемый package barrel из найденных `component.json`, а не ручной реестр.
+- `libraries/design-lab-system/assets/icons/index.ts` — автоматически генерируемый barrel code-native иконок.
+- `COMPONENT_RULES.md`, `TOKEN_RULES.md`, `ASSET_RULES.md`, `FONT_RULES.md` — обязательные entity-authoring контракты для людей и агентов.
 - `projects/` — дизайн-системы по каноническому файловому контракту Design Lab.
 - `docs/` — product definition проекта.
 

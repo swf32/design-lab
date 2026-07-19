@@ -1,0 +1,7 @@
+{
+  "description": "Stacked layers icon representing the Components module and a collection of reusable components.",
+  "aliases": ["layers icon", "component library", "stack icon"],
+  "useWhen": ["navigate to the Components module", "represent a component collection"],
+  "avoidWhen": ["represent one Component entity", "represent tokens"],
+  "tags": ["module", "components", "library", "layers"]
+}

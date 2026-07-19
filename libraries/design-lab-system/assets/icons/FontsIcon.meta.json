@@ -1,0 +1,7 @@
+{
+  "description": "Typography glyph icon representing font families, weights, and the Fonts module.",
+  "aliases": ["type icon", "typography icon", "font module"],
+  "useWhen": ["navigate to Fonts", "represent typography assets or font families"],
+  "avoidWhen": ["format text", "represent prose content"],
+  "tags": ["module", "fonts", "typography"]
+}

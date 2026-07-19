@@ -1,0 +1,7 @@
+{
+  "description": "Downward directional icon for expanding disclosure or indicating an openable menu.",
+  "aliases": ["chevron down", "dropdown arrow", "expand icon"],
+  "useWhen": ["indicate collapsed content can expand", "mark a dropdown trigger"],
+  "avoidWhen": ["navigate back", "communicate a download action"],
+  "tags": ["direction", "disclosure", "navigation"]
+}

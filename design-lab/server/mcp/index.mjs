@@ -26,13 +26,21 @@ server.registerTool(
   'designlab_sources',
   {
     title: 'List Design Lab sources',
-    description: 'List canonical Projects and Libraries available to Design Lab. Call this when the source id is unknown.',
+    description:
+      'List canonical Projects and Libraries available to Design Lab. Call this when the source id is unknown.',
     inputSchema: {},
-    annotations: { readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: false },
+    annotations: {
+      readOnlyHint: true,
+      destructiveHint: false,
+      idempotentHint: true,
+      openWorldHint: false,
+    },
   },
   async () => {
     const result = await listSources()
-    return text(result.sources.map(({ id, name, kind, available }) => ({ id, name, kind, available })))
+    return text(
+      result.sources.map(({ id, name, kind, available }) => ({ id, name, kind, available })),
+    )
   },
 )
 
@@ -40,30 +48,65 @@ server.registerTool(
   'designlab_search',
   {
     title: 'Search the design system by intent',
-    description: 'Rank existing Design Lab entities by their purpose, description, aliases, tags, props, and fuzzy relevance. Names stay hidden to reduce name-led reuse mistakes; use the returned ref with designlab_get.',
+    description:
+      'Rank existing Design Lab entities by their purpose, description, aliases, tags, props, and fuzzy relevance. Names stay hidden to reduce name-led reuse mistakes; use the returned ref with designlab_get.',
     inputSchema: {
-      query: z.string().min(2).describe('Natural-language intent, such as "text entry with validation" or "switch between themes".'),
-      sourceId: z.string().optional().describe('Optional Project or Library id. Omit to search every available source.'),
-      kinds: z.array(kindSchema).optional().describe('Optional entity kinds. Use ["component"] before creating UI code.'),
+      query: z
+        .string()
+        .min(2)
+        .describe(
+          'Natural-language intent, such as "text entry with validation" or "switch between themes".',
+        ),
+      sourceId: z
+        .string()
+        .optional()
+        .describe('Optional Project or Library id. Omit to search every available source.'),
+      kinds: z
+        .array(kindSchema)
+        .optional()
+        .describe('Optional entity kinds. Use ["component"] before creating UI code.'),
       limit: z.number().int().min(1).max(25).default(8),
     },
-    annotations: { readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: false },
+    annotations: {
+      readOnlyHint: true,
+      destructiveHint: false,
+      idempotentHint: true,
+      openWorldHint: false,
+    },
   },
-  async ({ query, sourceId, kinds, limit }) => text(await searchContext({ query, sourceId, kinds, limit })),
+  async ({ query, sourceId, kinds, limit }) =>
+    text(await searchContext({ query, sourceId, kinds, limit })),
 )
 
 server.registerTool(
   'designlab_get',
   {
     title: 'Get a verified Design Lab entity',
-    description: 'Resolve a search ref or catalog index into the complete filesystem-backed entity, including its name, import, props, variants, states, documentation, and source paths.',
+    description:
+      'Resolve a search ref or catalog index into the complete filesystem-backed entity, including its name, import, props, variants, states, documentation, and source paths.',
     inputSchema: {
-      ref: z.string().optional().describe('Stable ref returned by designlab_search. Preferred over a numeric index.'),
-      index: z.number().int().positive().optional().describe('Catalog index from the same source and entity-kind scope.'),
-      sourceId: z.string().optional().describe('Required for an unambiguous numeric index; optional with a stable ref.'),
+      ref: z
+        .string()
+        .optional()
+        .describe('Stable ref returned by designlab_search. Preferred over a numeric index.'),
+      index: z
+        .number()
+        .int()
+        .positive()
+        .optional()
+        .describe('Catalog index from the same source and entity-kind scope.'),
+      sourceId: z
+        .string()
+        .optional()
+        .describe('Required for an unambiguous numeric index; optional with a stable ref.'),
       kinds: z.array(kindSchema).optional(),
     },
-    annotations: { readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: false },
+    annotations: {
+      readOnlyHint: true,
+      destructiveHint: false,
+      idempotentHint: true,
+      openWorldHint: false,
+    },
   },
   async ({ ref, index, sourceId, kinds }) => {
     if (!ref && !index) {

@@ -1,0 +1,8 @@
+{
+  "description": "Wide coastal landscape with cliffs and open water for travel, place, and expansive editorial context.",
+  "aliases": ["sea cliffs", "coast landscape", "ocean view"],
+  "useWhen": ["illustrate travel or destination content", "create an expansive scenic hero"],
+  "avoidWhen": ["show a product close-up", "depict an indoor team"],
+  "tags": ["photography", "coast", "landscape", "travel", "ocean"],
+  "alt": "Coastal cliffs overlooking open water"
+}

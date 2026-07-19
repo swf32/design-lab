@@ -1,1 +1,24 @@
-{"name":"@design-lab/system","version":"0.1.0","private":true,"type":"module","exports":{"./components":"./components/index.ts","./icons":"./assets/icons/index.ts","./i18n":"./i18n/index.ts","./tokens.css":"./tokens/generated/tokens.css","./styles.css":"./components/styles.css"},"scripts":{"build:tokens":"node scripts/build-tokens.mjs"},"peerDependencies":{"react":">=19"}}
+{
+  "name": "@design-lab/system",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    "./components": "./components/index.ts",
+    "./icons": "./assets/icons/index.ts",
+    "./i18n": "./i18n/index.ts",
+    "./tokens.css": "./tokens/generated/tokens.css"
+  },
+  "scripts": {
+    "build:components-index": "node scripts/build-component-index.mjs --write",
+    "check:components-index": "node scripts/build-component-index.mjs --check",
+    "watch:components-index": "node scripts/build-component-index.mjs --watch",
+    "build:icon-index": "node scripts/build-icon-index.mjs --write",
+    "check:icon-index": "node scripts/build-icon-index.mjs --check",
+    "watch:icon-index": "node scripts/build-icon-index.mjs --watch",
+    "build:tokens": "node scripts/build-tokens.mjs"
+  },
+  "peerDependencies": {
+    "react": ">=19"
+  }
+}

@@ -1,0 +1,7 @@
+{
+  "description": "Folder icon representing a filesystem category or directory in semantic navigation.",
+  "aliases": ["folder icon", "directory folder", "category icon"],
+  "useWhen": ["represent a filesystem folder", "mark a component or asset category"],
+  "avoidWhen": ["represent an individual file", "represent the full project source"],
+  "tags": ["folder", "directory", "filesystem", "category"]
+}

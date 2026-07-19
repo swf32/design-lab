@@ -311,6 +311,36 @@
     },
     {
       "index": 11,
+      "ref": "design-lab-system:asset:icons/MoreIcon.tsx",
+      "id": "icons/MoreIcon.tsx",
+      "kind": "asset",
+      "source": {
+        "id": "design-lab-system",
+        "name": "Design Lab System",
+        "kind": "library"
+      },
+      "name": "MoreIcon.tsx",
+      "description": "icon asset stored in icons as TSX.",
+      "path": "assets/icons/MoreIcon.tsx",
+      "status": null,
+      "tags": [
+        "icon",
+        "tsx",
+        "icons"
+      ],
+      "search": {},
+      "details": {
+        "id": "icons/MoreIcon.tsx",
+        "name": "MoreIcon.tsx",
+        "path": "icons/MoreIcon.tsx",
+        "directory": "icons",
+        "extension": "tsx",
+        "type": "icon",
+        "previewUrl": "/api/sources/design-lab-system/asset-previews/icons/MoreIcon.tsx"
+      }
+    },
+    {
+      "index": 12,
       "ref": "design-lab-system:asset:icons/PagesIcon.tsx",
       "id": "icons/PagesIcon.tsx",
       "kind": "asset",
@@ -340,7 +370,7 @@
       }
     },
     {
-      "index": 12,
+      "index": 13,
       "ref": "design-lab-system:asset:icons/PaletteIcon.tsx",
       "id": "icons/PaletteIcon.tsx",
       "kind": "asset",
@@ -370,7 +400,7 @@
       }
     },
     {
-      "index": 13,
+      "index": 14,
       "ref": "design-lab-system:asset:icons/SearchIcon.tsx",
       "id": "icons/SearchIcon.tsx",
       "kind": "asset",
@@ -400,7 +430,37 @@
       }
     },
     {
-      "index": 14,
+      "index": 15,
+      "ref": "design-lab-system:asset:icons/SettingsIcon.tsx",
+      "id": "icons/SettingsIcon.tsx",
+      "kind": "asset",
+      "source": {
+        "id": "design-lab-system",
+        "name": "Design Lab System",
+        "kind": "library"
+      },
+      "name": "SettingsIcon.tsx",
+      "description": "icon asset stored in icons as TSX.",
+      "path": "assets/icons/SettingsIcon.tsx",
+      "status": null,
+      "tags": [
+        "icon",
+        "tsx",
+        "icons"
+      ],
+      "search": {},
+      "details": {
+        "id": "icons/SettingsIcon.tsx",
+        "name": "SettingsIcon.tsx",
+        "path": "icons/SettingsIcon.tsx",
+        "directory": "icons",
+        "extension": "tsx",
+        "type": "icon",
+        "previewUrl": "/api/sources/design-lab-system/asset-previews/icons/SettingsIcon.tsx"
+      }
+    },
+    {
+      "index": 16,
       "ref": "design-lab-system:asset:icons/StarIcon.tsx",
       "id": "icons/StarIcon.tsx",
       "kind": "asset",
@@ -430,7 +490,7 @@
       }
     },
     {
-      "index": 15,
+      "index": 17,
       "ref": "design-lab-system:asset:icons/TokensIcon.tsx",
       "id": "icons/TokensIcon.tsx",
       "kind": "asset",
@@ -460,7 +520,7 @@
       }
     },
     {
-      "index": 16,
+      "index": 18,
       "ref": "design-lab-system:asset:icons/VideoIcon.tsx",
       "id": "icons/VideoIcon.tsx",
       "kind": "asset",
@@ -490,7 +550,7 @@
       }
     },
     {
-      "index": 17,
+      "index": 19,
       "ref": "design-lab-system:asset:icons/WireframesIcon.tsx",
       "id": "icons/WireframesIcon.tsx",
       "kind": "asset",
@@ -520,7 +580,7 @@
       }
     },
     {
-      "index": 18,
+      "index": 20,
       "ref": "design-lab-system:asset:images/stock/botanical-dew.png",
       "id": "images/stock/botanical-dew.png",
       "kind": "asset",
@@ -551,7 +611,7 @@
       }
     },
     {
-      "index": 19,
+      "index": 21,
       "ref": "design-lab-system:asset:images/stock/coastal-cliffs.webp",
       "id": "images/stock/coastal-cliffs.webp",
       "kind": "asset",
@@ -582,7 +642,7 @@
       }
     },
     {
-      "index": 20,
+      "index": 22,
       "ref": "design-lab-system:asset:images/stock/cosmetics-still-life.webp",
       "id": "images/stock/cosmetics-still-life.webp",
       "kind": "asset",
@@ -613,7 +673,7 @@
       }
     },
     {
-      "index": 21,
+      "index": 23,
       "ref": "design-lab-system:asset:images/stock/creative-team.jpg",
       "id": "images/stock/creative-team.jpg",
       "kind": "asset",
@@ -644,7 +704,7 @@
       }
     },
     {
-      "index": 22,
+      "index": 24,
       "ref": "design-lab-system:asset:images/stock/geometric-architecture.webp",
       "id": "images/stock/geometric-architecture.webp",
       "kind": "asset",
@@ -675,7 +735,7 @@
       }
     },
     {
-      "index": 23,
+      "index": 25,
       "ref": "design-lab-system:asset:images/stock/lavender-fabric.png",
       "id": "images/stock/lavender-fabric.png",
       "kind": "asset",
@@ -706,7 +766,7 @@
       }
     },
     {
-      "index": 24,
+      "index": 26,
       "ref": "design-lab-system:asset:images/stock/modern-workspace.jpg",
       "id": "images/stock/modern-workspace.jpg",
       "kind": "asset",
@@ -737,7 +797,7 @@
       }
     },
     {
-      "index": 25,
+      "index": 27,
       "ref": "design-lab-system:asset:images/stock/pottery-hands.webp",
       "id": "images/stock/pottery-hands.webp",
       "kind": "asset",
@@ -768,7 +828,7 @@
       }
     },
     {
-      "index": 26,
+      "index": 28,
       "ref": "design-lab-system:asset:images/stock/rainy-city.jpg",
       "id": "images/stock/rainy-city.jpg",
       "kind": "asset",
@@ -799,7 +859,7 @@
       }
     },
     {
-      "index": 27,
+      "index": 29,
       "ref": "design-lab-system:asset:images/stock/seasonal-fruit.png",
       "id": "images/stock/seasonal-fruit.png",
       "kind": "asset",
@@ -830,7 +890,7 @@
       }
     },
     {
-      "index": 28,
+      "index": 30,
       "ref": "design-lab-system:component:button",
       "id": "button",
       "kind": "component",
@@ -841,10 +901,10 @@
       },
       "name": "Button",
       "description": "Primary action primitive. Use one primary Button per local decision area; use secondary and ghost variants for supporting actions.",
-      "path": "components/atoms/Button",
+      "path": "components/atoms/actions/Button",
       "status": "ready",
       "tags": [
-        "atoms",
+        "atoms/actions",
         "primary",
         "secondary",
         "ghost",
@@ -895,12 +955,13 @@
           "from": "@design-lab/system/components",
           "statement": "import { Button } from '@design-lab/system/components'"
         },
-        "entry": "components/atoms/Button/Button.tsx",
-        "manifest": "components/atoms/Button/component.json",
-        "preview": "components/atoms/Button/Button.preview.tsx",
-        "stories": "components/atoms/Button/Button.stories.ts",
-        "docs": "components/atoms/Button/README.md",
-        "changelog": "components/atoms/Button/CHANGELOG.md",
+        "entry": "components/atoms/actions/Button/Button.tsx",
+        "style": "components/atoms/actions/Button/Button.scss",
+        "manifest": "components/atoms/actions/Button/component.json",
+        "preview": "components/atoms/actions/Button/Button.preview.tsx",
+        "stories": "components/atoms/actions/Button/Button.stories.ts",
+        "docs": "components/atoms/actions/Button/README.md",
+        "changelog": "components/atoms/actions/Button/CHANGELOG.md",
         "props": {
           "label": {
             "type": "string",
@@ -958,11 +1019,271 @@
           "loading"
         ],
         "documentation": "# Button\n\nPrimary action primitive. Use one primary Button per local decision area; use secondary and ghost variants for supporting actions.\n\n## Variants\n\n- `primary` — the main action in a local decision area;\n- `secondary` — a neutral supporting action;\n- `ghost` — an action with minimal visual weight;\n- `danger` — an irreversible or destructive action.\n\n## States and composition\n\nButton supports small, medium and large sizes, disabled and loading states, full-width layout, and optional leading/trailing slots. While loading it becomes disabled and exposes `aria-busy`.\n\nThe illustrative catalog preview is deliberately separate from this implementation. Interactive validation happens in the Workbench Canvas.\n",
-        "changelogDocumentation": "# Changelog\n\n## 0.3.0 — 2026-07-16\n\n- Visual: catalog preview now shows larger labeled primary, secondary, and icon-only button treatments.\n\n## 0.2.0 — 2026-07-16\n\n- Added: small, medium, and large sizes.\n- Added: danger variant, loading, full-width layout, and leading/trailing slots.\n- Added: focused Variants, Sizes, Full width, Loading, and composition stories.\n- Accessibility: loading now disables the button and exposes `aria-busy`.\n\n## 0.1.0 — 2026-07-16\n\n- Added primary, secondary and ghost variants.\n"
+        "changelogDocumentation": "# Changelog\n\n## Unreleased\n\n- Breaking: Canonical filesystem and URL path moved to `components/atoms/actions/Button`; no legacy redirect is retained.\n- Changed: Category is derived from the component directory; the package barrel export remains automatic.\n\n## 0.3.1 — 2026-07-19\n\n- Changed: Colocated production styles in `Button.scss`; catalog-only CSS now lives in `Button.preview.tsx`.\n\n## 0.3.0 — 2026-07-16\n\n- Visual: catalog preview now shows larger labeled primary, secondary, and icon-only button treatments.\n\n## 0.2.0 — 2026-07-16\n\n- Added: small, medium, and large sizes.\n- Added: danger variant, loading, full-width layout, and leading/trailing slots.\n- Added: focused Variants, Sizes, Full width, Loading, and composition stories.\n- Accessibility: loading now disables the button and exposes `aria-busy`.\n\n## 0.1.0 — 2026-07-16\n\n- Added primary, secondary and ghost variants.\n"
       }
     },
     {
-      "index": 29,
+      "index": 31,
+      "ref": "design-lab-system:component:icon-button",
+      "id": "icon-button",
+      "kind": "component",
+      "source": {
+        "id": "design-lab-system",
+        "name": "Design Lab System",
+        "kind": "library"
+      },
+      "name": "Icon Button",
+      "description": "Compact action for toolbars. An accessible label is always required.",
+      "path": "components/atoms/actions/IconButton",
+      "status": "ready",
+      "tags": [
+        "atoms/actions",
+        "default",
+        "hover",
+        "focus",
+        "disabled"
+      ],
+      "search": {
+        "aliases": [],
+        "useWhen": [],
+        "avoidWhen": [],
+        "props": [],
+        "variants": [
+          "default"
+        ],
+        "states": [
+          "default",
+          "hover",
+          "focus",
+          "disabled"
+        ]
+      },
+      "details": {
+        "import": {
+          "symbol": "IconButton",
+          "from": "@design-lab/system/components",
+          "statement": "import { IconButton } from '@design-lab/system/components'"
+        },
+        "entry": "components/atoms/actions/IconButton/IconButton.tsx",
+        "style": "components/atoms/actions/IconButton/IconButton.scss",
+        "manifest": "components/atoms/actions/IconButton/component.json",
+        "preview": "components/atoms/actions/IconButton/IconButton.preview.tsx",
+        "stories": "components/atoms/actions/IconButton/IconButton.stories.ts",
+        "docs": "components/atoms/actions/IconButton/README.md",
+        "changelog": "components/atoms/actions/IconButton/CHANGELOG.md",
+        "props": {},
+        "variants": [
+          "default"
+        ],
+        "states": [
+          "default",
+          "hover",
+          "focus",
+          "disabled"
+        ],
+        "documentation": "# Icon Button\n\nCompact action for toolbars. An accessible label is always required.\n",
+        "changelogDocumentation": "# Changelog\n\n## Unreleased\n\n- Breaking: Canonical filesystem and URL path moved to `components/atoms/actions/IconButton`; no legacy redirect is retained.\n- Changed: Category is derived from the component directory; the package barrel export remains automatic.\n\n## 0.1.1 — 2026-07-19\n\n- Changed: Colocated production styles in `IconButton.scss`; catalog-only CSS now lives in `IconButton.preview.tsx`.\n\n## 0.1.0\n\n- Added default state and accessible label contract.\n"
+      }
+    },
+    {
+      "index": 32,
+      "ref": "design-lab-system:component:chip",
+      "id": "chip",
+      "kind": "component",
+      "source": {
+        "id": "design-lab-system",
+        "name": "Design Lab System",
+        "kind": "library"
+      },
+      "name": "Chip",
+      "description": "Compact informational label for categories, statuses, and concise metadata. Its API follows the current HeroUI color and treatment model while using Design Lab semantic tokens.",
+      "path": "components/atoms/data-display/Chip",
+      "status": "ready",
+      "tags": [
+        "atoms/data-display",
+        "primary",
+        "secondary",
+        "tertiary",
+        "soft",
+        "default",
+        "disabled",
+        "children",
+        "color",
+        "variant",
+        "size",
+        "startContent",
+        "endContent"
+      ],
+      "search": {
+        "aliases": [],
+        "useWhen": [],
+        "avoidWhen": [],
+        "props": [
+          "children",
+          "color",
+          "variant",
+          "size",
+          "startContent",
+          "endContent",
+          "disabled"
+        ],
+        "variants": [
+          "primary",
+          "secondary",
+          "tertiary",
+          "soft"
+        ],
+        "states": [
+          "default",
+          "disabled"
+        ]
+      },
+      "details": {
+        "import": {
+          "symbol": "Chip",
+          "from": "@design-lab/system/components",
+          "statement": "import { Chip } from '@design-lab/system/components'"
+        },
+        "entry": "components/atoms/data-display/Chip/Chip.tsx",
+        "style": "components/atoms/data-display/Chip/Chip.scss",
+        "manifest": "components/atoms/data-display/Chip/component.json",
+        "preview": "components/atoms/data-display/Chip/Chip.preview.tsx",
+        "stories": "components/atoms/data-display/Chip/Chip.stories.ts",
+        "docs": "components/atoms/data-display/Chip/README.md",
+        "changelog": "components/atoms/data-display/Chip/CHANGELOG.md",
+        "props": {
+          "children": {
+            "type": "ReactNode",
+            "required": true,
+            "slot": true
+          },
+          "color": {
+            "type": "ChipColor",
+            "values": [
+              "default",
+              "accent",
+              "success",
+              "warning",
+              "danger"
+            ],
+            "default": "default"
+          },
+          "variant": {
+            "type": "ChipVariant",
+            "values": [
+              "primary",
+              "secondary",
+              "tertiary",
+              "soft"
+            ],
+            "default": "secondary"
+          },
+          "size": {
+            "type": "ChipSize",
+            "values": [
+              "small",
+              "medium",
+              "large"
+            ],
+            "default": "medium"
+          },
+          "startContent": {
+            "type": "ReactNode",
+            "slot": true
+          },
+          "endContent": {
+            "type": "ReactNode",
+            "slot": true
+          },
+          "disabled": {
+            "type": "boolean",
+            "default": false
+          }
+        },
+        "variants": [
+          "primary",
+          "secondary",
+          "tertiary",
+          "soft"
+        ],
+        "states": [
+          "default",
+          "disabled"
+        ],
+        "documentation": "# Chip\n\nCompact informational label for categories, statuses, and concise metadata. Its API follows the current HeroUI color and treatment model while using Design Lab semantic tokens.\n\n## Colors\n\n- `default` — neutral metadata;\n- `accent` — highlighted product information;\n- `success` — completed or healthy state;\n- `warning` — attention without failure;\n- `danger` — failed, destructive, or blocked state.\n\n## Variants\n\n`primary` is filled, `secondary` is outlined, `tertiary` is text-only, and `soft` uses a quiet tinted surface. Sizes are `small`, `medium`, and `large`.\n\n```tsx\n<Chip color=\"success\" variant=\"soft\">\n  Ready\n</Chip>\n```\n\nChip is informational rather than interactive. Use a Button when clicking the surface performs an action.\n",
+        "changelogDocumentation": "# Changelog\n\n## 0.1.0 — 2026-07-19\n\n- Added: Chip with four visual variants, three sizes, content slots, and five semantic colors.\n- Accessibility: unavailable informational chips expose `aria-disabled`.\n"
+      }
+    },
+    {
+      "index": 33,
+      "ref": "design-lab-system:component:color-card",
+      "id": "color-card",
+      "kind": "component",
+      "source": {
+        "id": "design-lab-system",
+        "name": "Design Lab System",
+        "kind": "library"
+      },
+      "name": "Color Card",
+      "description": "Displays a color token as a swatch with its semantic name and resolved value.",
+      "path": "components/atoms/data-display/ColorCard",
+      "status": "ready",
+      "tags": [
+        "atoms/data-display",
+        "default",
+        "name",
+        "value"
+      ],
+      "search": {
+        "aliases": [],
+        "useWhen": [],
+        "avoidWhen": [],
+        "props": [
+          "name",
+          "value"
+        ],
+        "variants": [
+          "default"
+        ],
+        "states": [
+          "default"
+        ]
+      },
+      "details": {
+        "import": {
+          "symbol": "ColorCard",
+          "from": "@design-lab/system/components",
+          "statement": "import { ColorCard } from '@design-lab/system/components'"
+        },
+        "entry": "components/atoms/data-display/ColorCard/ColorCard.tsx",
+        "style": "components/atoms/data-display/ColorCard/ColorCard.scss",
+        "manifest": "components/atoms/data-display/ColorCard/component.json",
+        "preview": "components/atoms/data-display/ColorCard/ColorCard.preview.tsx",
+        "stories": "components/atoms/data-display/ColorCard/ColorCard.stories.ts",
+        "docs": "components/atoms/data-display/ColorCard/README.md",
+        "changelog": "components/atoms/data-display/ColorCard/CHANGELOG.md",
+        "props": {
+          "name": {
+            "type": "string",
+            "required": true
+          },
+          "value": {
+            "type": "string",
+            "required": true
+          }
+        },
+        "variants": [
+          "default"
+        ],
+        "states": [
+          "default"
+        ],
+        "documentation": "# Color Card\n\nDisplays a color token as a swatch with its semantic name and resolved value.\n\nThe component displays resolved values only; Palette remains a semantic view over color tokens and does not own a second color value. Stories cover semantic grouping and long token paths as layout context, not visual variants.\n",
+        "changelogDocumentation": "# Changelog\n\n## Unreleased\n\n- Breaking: Canonical filesystem and URL path moved to `components/atoms/data-display/ColorCard`; no legacy redirect is retained.\n- Changed: Category is derived from the component directory; the package barrel export remains automatic.\n\n## 0.3.1 — 2026-07-19\n\n- Changed: Colocated production styles in `ColorCard.scss`; catalog-only CSS now lives in `ColorCard.preview.tsx`.\n\n## 0.3.0 — 2026-07-16\n\n- Visual: catalog preview now illustrates complete cards with swatches, token names, and resolved HEX values.\n\n## 0.2.0 — 2026-07-16\n\n- Added: executable semantic-role and long-token-path stories.\n\n## 0.1.0\n\n- Added the default palette card.\n"
+      }
+    },
+    {
+      "index": 34,
       "ref": "design-lab-system:component:checkbox",
       "id": "checkbox",
       "kind": "component",
@@ -973,10 +1294,10 @@
       },
       "name": "Checkbox",
       "description": "Token driven boolean control built on a native checkbox. Use label and description for standalone form composition, or provide an accessible name when the control is placed inside ControlField.",
-      "path": "components/atoms/Checkbox",
+      "path": "components/atoms/inputs/Checkbox",
       "status": "ready",
       "tags": [
-        "atoms",
+        "atoms/inputs",
         "small",
         "medium",
         "unchecked",
@@ -1020,12 +1341,13 @@
           "from": "@design-lab/system/components",
           "statement": "import { Checkbox } from '@design-lab/system/components'"
         },
-        "entry": "components/atoms/Checkbox/Checkbox.tsx",
-        "manifest": "components/atoms/Checkbox/component.json",
-        "preview": "components/atoms/Checkbox/Checkbox.preview.tsx",
-        "stories": "components/atoms/Checkbox/Checkbox.stories.ts",
-        "docs": "components/atoms/Checkbox/README.md",
-        "changelog": "components/atoms/Checkbox/CHANGELOG.md",
+        "entry": "components/atoms/inputs/Checkbox/Checkbox.tsx",
+        "style": "components/atoms/inputs/Checkbox/Checkbox.scss",
+        "manifest": "components/atoms/inputs/Checkbox/component.json",
+        "preview": "components/atoms/inputs/Checkbox/Checkbox.preview.tsx",
+        "stories": "components/atoms/inputs/Checkbox/Checkbox.stories.ts",
+        "docs": "components/atoms/inputs/Checkbox/README.md",
+        "changelog": "components/atoms/inputs/Checkbox/CHANGELOG.md",
         "props": {
           "label": {
             "type": "ReactNode",
@@ -1071,78 +1393,11 @@
           "disabled"
         ],
         "documentation": "# Checkbox\n\nToken-driven boolean control built on a native checkbox. Use `label` and `description` for standalone form composition, or provide an accessible name when the control is placed inside `ControlField`.\n\n## Behavior\n\n- Supports controlled and uncontrolled native input behavior.\n- `indeterminate` updates the native DOM property and has a distinct visual state.\n- The hidden native input retains focus, keyboard, form, and assistive-technology semantics.\n- `small` is intended for dense inspector rows; `medium` is the standard form size.\n\n```tsx\n<Checkbox\n  checked={enabled}\n  onChange={(event) => setEnabled(event.target.checked)}\n  label=\"Include documentation\"\n/>\n```\n",
-        "changelogDocumentation": "# Changelog\n\n## 0.2.0 — 2026-07-19\n\n- Visual: optically centered the checked and indeterminate marks in the catalog preview.\n\n## 0.1.0 — 2026-07-16\n\n- Added: accessible, token-driven Checkbox with small and medium sizes.\n- Added: checked, indeterminate, disabled, label, and description states.\n"
+        "changelogDocumentation": "# Changelog\n\n## Unreleased\n\n- Breaking: Canonical filesystem and URL path moved to `components/atoms/inputs/Checkbox`; no legacy redirect is retained.\n- Changed: Category is derived from the component directory; the package barrel export remains automatic.\n\n## 0.2.1 — 2026-07-19\n\n- Changed: Colocated production styles in `Checkbox.scss`; catalog-only CSS now lives in `Checkbox.preview.tsx`.\n\n## 0.2.0 — 2026-07-19\n\n- Visual: optically centered the checked and indeterminate marks in the catalog preview.\n\n## 0.1.0 — 2026-07-16\n\n- Added: accessible, token-driven Checkbox with small and medium sizes.\n- Added: checked, indeterminate, disabled, label, and description states.\n"
       }
     },
     {
-      "index": 30,
-      "ref": "design-lab-system:component:color-card",
-      "id": "color-card",
-      "kind": "component",
-      "source": {
-        "id": "design-lab-system",
-        "name": "Design Lab System",
-        "kind": "library"
-      },
-      "name": "Color Card",
-      "description": "Displays a color token as a swatch with its semantic name and resolved value.",
-      "path": "components/atoms/ColorCard",
-      "status": "ready",
-      "tags": [
-        "atoms",
-        "default",
-        "name",
-        "value"
-      ],
-      "search": {
-        "aliases": [],
-        "useWhen": [],
-        "avoidWhen": [],
-        "props": [
-          "name",
-          "value"
-        ],
-        "variants": [
-          "default"
-        ],
-        "states": [
-          "default"
-        ]
-      },
-      "details": {
-        "import": {
-          "symbol": "ColorCard",
-          "from": "@design-lab/system/components",
-          "statement": "import { ColorCard } from '@design-lab/system/components'"
-        },
-        "entry": "components/atoms/ColorCard/ColorCard.tsx",
-        "manifest": "components/atoms/ColorCard/component.json",
-        "preview": "components/atoms/ColorCard/ColorCard.preview.tsx",
-        "stories": "components/atoms/ColorCard/ColorCard.stories.ts",
-        "docs": "components/atoms/ColorCard/README.md",
-        "changelog": "components/atoms/ColorCard/CHANGELOG.md",
-        "props": {
-          "name": {
-            "type": "string",
-            "required": true
-          },
-          "value": {
-            "type": "string",
-            "required": true
-          }
-        },
-        "variants": [
-          "default"
-        ],
-        "states": [
-          "default"
-        ],
-        "documentation": "# Color Card\n\nDisplays a color token as a swatch with its semantic name and resolved value.\n\nThe component displays resolved values only; Palette remains a semantic view over color tokens and does not own a second color value. Stories cover semantic grouping and long token paths as layout context, not visual variants.\n",
-        "changelogDocumentation": "# Changelog\n\n## 0.3.0 — 2026-07-16\n\n- Visual: catalog preview now illustrates complete cards with swatches, token names, and resolved HEX values.\n\n## 0.2.0 — 2026-07-16\n\n- Added: executable semantic-role and long-token-path stories.\n\n## 0.1.0\n\n- Added the default palette card.\n"
-      }
-    },
-    {
-      "index": 31,
+      "index": 35,
       "ref": "design-lab-system:component:control-field",
       "id": "control-field",
       "kind": "component",
@@ -1153,10 +1408,10 @@
       },
       "name": "Control Field",
       "description": "Associates a concise label with a native form control supplied through the child slot. The field owns label layout; the native input, select, or checkbox owns its value and interaction semantics.",
-      "path": "components/atoms/ControlField",
+      "path": "components/atoms/inputs/ControlField",
       "status": "ready",
       "tags": [
-        "atoms",
+        "atoms/inputs",
         "text",
         "select",
         "boolean",
@@ -1193,12 +1448,13 @@
           "from": "@design-lab/system/components",
           "statement": "import { ControlField } from '@design-lab/system/components'"
         },
-        "entry": "components/atoms/ControlField/ControlField.tsx",
-        "manifest": "components/atoms/ControlField/component.json",
-        "preview": "components/atoms/ControlField/ControlField.preview.tsx",
-        "stories": "components/atoms/ControlField/ControlField.stories.tsx",
-        "docs": "components/atoms/ControlField/README.md",
-        "changelog": "components/atoms/ControlField/CHANGELOG.md",
+        "entry": "components/atoms/inputs/ControlField/ControlField.tsx",
+        "style": "components/atoms/inputs/ControlField/ControlField.scss",
+        "manifest": "components/atoms/inputs/ControlField/component.json",
+        "preview": "components/atoms/inputs/ControlField/ControlField.preview.tsx",
+        "stories": "components/atoms/inputs/ControlField/ControlField.stories.tsx",
+        "docs": "components/atoms/inputs/ControlField/README.md",
+        "changelog": "components/atoms/inputs/ControlField/CHANGELOG.md",
         "props": {
           "label": {
             "type": "string",
@@ -1222,73 +1478,11 @@
           "disabled"
         ],
         "documentation": "# Control Field\n\nAssociates a concise label with a native form control supplied through the child slot. The field owns label layout; the native input, select, or checkbox owns its value and interaction semantics.\n\nUse a focused story for control type and a separate state story for focus and disabled behavior.\n",
-        "changelogDocumentation": "# Changelog\n\n## 0.1.0 — 2026-07-16\n\n- Added: labeled control wrapper with text, select, boolean, and color compositions.\n"
+        "changelogDocumentation": "# Changelog\n\n## Unreleased\n\n- Breaking: Canonical filesystem and URL path moved to `components/atoms/inputs/ControlField`; no legacy redirect is retained.\n- Changed: Category is derived from the component directory; the package barrel export remains automatic.\n\n## 0.1.1 — 2026-07-19\n\n- Changed: Colocated production styles in `ControlField.scss`; catalog-only CSS now lives in `ControlField.preview.tsx`.\n\n## 0.1.0 — 2026-07-16\n\n- Added: labeled control wrapper with text, select, boolean, and color compositions.\n"
       }
     },
     {
-      "index": 32,
-      "ref": "design-lab-system:component:icon-button",
-      "id": "icon-button",
-      "kind": "component",
-      "source": {
-        "id": "design-lab-system",
-        "name": "Design Lab System",
-        "kind": "library"
-      },
-      "name": "Icon Button",
-      "description": "Compact action for toolbars. An accessible label is always required.",
-      "path": "components/atoms/IconButton",
-      "status": "ready",
-      "tags": [
-        "atoms",
-        "default",
-        "hover",
-        "focus",
-        "disabled"
-      ],
-      "search": {
-        "aliases": [],
-        "useWhen": [],
-        "avoidWhen": [],
-        "props": [],
-        "variants": [
-          "default"
-        ],
-        "states": [
-          "default",
-          "hover",
-          "focus",
-          "disabled"
-        ]
-      },
-      "details": {
-        "import": {
-          "symbol": "IconButton",
-          "from": "@design-lab/system/components",
-          "statement": "import { IconButton } from '@design-lab/system/components'"
-        },
-        "entry": "components/atoms/IconButton/IconButton.tsx",
-        "manifest": "components/atoms/IconButton/component.json",
-        "preview": "components/atoms/IconButton/IconButton.preview.tsx",
-        "stories": "components/atoms/IconButton/IconButton.stories.ts",
-        "docs": "components/atoms/IconButton/README.md",
-        "changelog": "components/atoms/IconButton/CHANGELOG.md",
-        "props": {},
-        "variants": [
-          "default"
-        ],
-        "states": [
-          "default",
-          "hover",
-          "focus",
-          "disabled"
-        ],
-        "documentation": "# Icon Button\n\nCompact action for toolbars. An accessible label is always required.\n",
-        "changelogDocumentation": "# Changelog\n\n## 0.1.0\n\n- Added default state and accessible label contract.\n"
-      }
-    },
-    {
-      "index": 33,
+      "index": 36,
       "ref": "design-lab-system:component:input",
       "id": "input",
       "kind": "component",
@@ -1299,10 +1493,10 @@
       },
       "name": "Input",
       "description": "Input is the atomic text entry family for single line text, search, and multiline content. It keeps field anatomy and accessibility consistent while preserving the native input or textarea element.",
-      "path": "components/atoms/Input",
+      "path": "components/atoms/inputs/Input",
       "status": "ready",
       "tags": [
-        "atoms",
+        "atoms/inputs",
         "text",
         "search",
         "textarea",
@@ -1364,12 +1558,13 @@
           "from": "@design-lab/system/components",
           "statement": "import { Input } from '@design-lab/system/components'"
         },
-        "entry": "components/atoms/Input/Input.tsx",
-        "manifest": "components/atoms/Input/component.json",
-        "preview": "components/atoms/Input/Input.preview.tsx",
-        "stories": "components/atoms/Input/Input.stories.tsx",
-        "docs": "components/atoms/Input/README.md",
-        "changelog": "components/atoms/Input/CHANGELOG.md",
+        "entry": "components/atoms/inputs/Input/Input.tsx",
+        "style": "components/atoms/inputs/Input/Input.scss",
+        "manifest": "components/atoms/inputs/Input/component.json",
+        "preview": "components/atoms/inputs/Input/Input.preview.tsx",
+        "stories": "components/atoms/inputs/Input/Input.stories.tsx",
+        "docs": "components/atoms/inputs/Input/README.md",
+        "changelog": "components/atoms/inputs/Input/CHANGELOG.md",
         "props": {
           "label": {
             "type": "ReactNode",
@@ -1446,11 +1641,160 @@
           "disabled"
         ],
         "documentation": "# Input\n\nInput is the atomic text-entry family for single-line text, search, and multiline content. It keeps field anatomy and accessibility consistent while preserving the native `input` or `textarea` element.\n\n## Control kinds\n\n- `text` renders an `input` and accepts native input types such as `email`, `url`, `password`, and `number`;\n- `search` renders `input type=\"search\"` with the shared Search icon;\n- `textarea` renders a native `textarea` for longer content.\n\nUse a visible `label` by default. `visuallyHideLabel` is only for layouts where equivalent surrounding context remains clear; the accessible label is still rendered. Placeholder text is an example, never a label replacement.\n\n## Feedback and states\n\n`helperText` explains format or consequence. `errorMessage` takes precedence, sets `aria-invalid`, connects through `aria-describedby`, and is announced with `role=\"alert\"`. Validate after blur or submission rather than showing errors before the user has had a chance to finish.\n\nDisabled fields are unavailable. Read-only fields remain focusable and selectable. Do not use these states interchangeably.\n\n## Composition\n\nUse `startAdornment` and `endAdornment` for short, non-essential context such as a unit or namespace. Search supplies its own decorative search icon unless `startAdornment` overrides it. Interactive actions in an adornment must provide their own accessible name and should remain at least 44 by 44 CSS pixels in touch layouts.\n\n`showCount` displays the current value length and optional `maxLength`. Sizes apply to all three control kinds; textarea sizes change minimum block height while `rows` can express content needs.\n\n```tsx\n<Input\n  variant=\"search\"\n  label=\"Search components\"\n  placeholder=\"Button, dialog, navigation…\"\n  helperText=\"Searches names and component metadata.\"\n/>\n\n<Input\n  variant=\"textarea\"\n  label=\"Description\"\n  maxLength={160}\n  showCount\n  rows={5}\n/>\n```\n",
-        "changelogDocumentation": "# Changelog\n\n## 0.4.0 — 2026-07-19\n\n- Visual: reorganized the catalog preview into aligned text/search and textarea columns with shared label and bottom guide lines.\n- Visual: removed the invented search-copy transition; preview motion now changes focus treatment without changing field anatomy or content.\n\n## 0.3.0 — 2026-07-16\n\n- Visual: removed the redundant component name and variant legend from the catalog preview.\n- Added: token-driven preview motion that transfers focus from text entry to search and reveals a query on card hover or focus.\n- Accessibility: reduced-motion users keep the deterministic focused-text baseline.\n\n## 0.2.0 — 2026-07-16\n\n- Visual: replaced the abstract catalog thumbnail with a recognizable text, search, and textarea specimen using the shared Search icon asset.\n\n## 0.1.0 — 2026-07-16\n\n- Added: native text, search, and textarea variants with three shared sizes.\n- Added: label, helper, error, character-count, and adornment composition.\n- Accessibility: associated descriptions, invalid announcements, visible focus, and distinct read-only and disabled semantics.\n"
+        "changelogDocumentation": "# Changelog\n\n## Unreleased\n\n- Breaking: Canonical filesystem and URL path moved to `components/atoms/inputs/Input`; no legacy redirect is retained.\n- Changed: Category is derived from the component directory; the package barrel export remains automatic.\n\n## 0.4.1 — 2026-07-19\n\n- Changed: Colocated production styles in `Input.scss`; catalog-only CSS now lives in `Input.preview.tsx`.\n\n## 0.4.0 — 2026-07-19\n\n- Visual: reorganized the catalog preview into aligned text/search and textarea columns with shared label and bottom guide lines.\n- Visual: removed the invented search-copy transition; preview motion now changes focus treatment without changing field anatomy or content.\n\n## 0.3.0 — 2026-07-16\n\n- Visual: removed the redundant component name and variant legend from the catalog preview.\n- Added: token-driven preview motion that transfers focus from text entry to search and reveals a query on card hover or focus.\n- Accessibility: reduced-motion users keep the deterministic focused-text baseline.\n\n## 0.2.0 — 2026-07-16\n\n- Visual: replaced the abstract catalog thumbnail with a recognizable text, search, and textarea specimen using the shared Search icon asset.\n\n## 0.1.0 — 2026-07-16\n\n- Added: native text, search, and textarea variants with three shared sizes.\n- Added: label, helper, error, character-count, and adornment composition.\n- Accessibility: associated descriptions, invalid announcements, visible focus, and distinct read-only and disabled semantics.\n"
       }
     },
     {
-      "index": 34,
+      "index": 37,
+      "ref": "design-lab-system:component:radio-button",
+      "id": "radio-button",
+      "kind": "component",
+      "source": {
+        "id": "design-lab-system",
+        "name": "Design Lab System",
+        "kind": "library"
+      },
+      "name": "Radio Button",
+      "description": "Native single choice control with a visible label, optional description, three sizes, and five semantic colors.",
+      "path": "components/atoms/inputs/RadioButton",
+      "status": "ready",
+      "tags": [
+        "atoms/inputs",
+        "default",
+        "accent",
+        "success",
+        "warning",
+        "danger",
+        "unchecked",
+        "checked",
+        "hover",
+        "focus",
+        "invalid",
+        "disabled",
+        "label",
+        "description",
+        "color",
+        "size",
+        "defaultChecked",
+        "name",
+        "value",
+        "onChange"
+      ],
+      "search": {
+        "aliases": [],
+        "useWhen": [],
+        "avoidWhen": [],
+        "props": [
+          "label",
+          "description",
+          "color",
+          "size",
+          "checked",
+          "defaultChecked",
+          "disabled",
+          "name",
+          "value",
+          "onChange"
+        ],
+        "variants": [
+          "default",
+          "accent",
+          "success",
+          "warning",
+          "danger"
+        ],
+        "states": [
+          "unchecked",
+          "checked",
+          "hover",
+          "focus",
+          "invalid",
+          "disabled"
+        ]
+      },
+      "details": {
+        "import": {
+          "symbol": "RadioButton",
+          "from": "@design-lab/system/components",
+          "statement": "import { RadioButton } from '@design-lab/system/components'"
+        },
+        "entry": "components/atoms/inputs/RadioButton/RadioButton.tsx",
+        "style": "components/atoms/inputs/RadioButton/RadioButton.scss",
+        "manifest": "components/atoms/inputs/RadioButton/component.json",
+        "preview": "components/atoms/inputs/RadioButton/RadioButton.preview.tsx",
+        "stories": "components/atoms/inputs/RadioButton/RadioButton.stories.ts",
+        "docs": "components/atoms/inputs/RadioButton/README.md",
+        "changelog": "components/atoms/inputs/RadioButton/CHANGELOG.md",
+        "props": {
+          "label": {
+            "type": "ReactNode",
+            "required": true
+          },
+          "description": {
+            "type": "ReactNode",
+            "slot": true
+          },
+          "color": {
+            "type": "RadioButtonColor",
+            "values": [
+              "default",
+              "accent",
+              "success",
+              "warning",
+              "danger"
+            ],
+            "default": "accent"
+          },
+          "size": {
+            "type": "RadioButtonSize",
+            "values": [
+              "small",
+              "medium",
+              "large"
+            ],
+            "default": "medium"
+          },
+          "checked": {
+            "type": "boolean"
+          },
+          "defaultChecked": {
+            "type": "boolean"
+          },
+          "disabled": {
+            "type": "boolean",
+            "default": false
+          },
+          "name": {
+            "type": "string"
+          },
+          "value": {
+            "type": "string"
+          },
+          "onChange": {
+            "type": "ChangeEventHandler<HTMLInputElement>"
+          }
+        },
+        "variants": [
+          "default",
+          "accent",
+          "success",
+          "warning",
+          "danger"
+        ],
+        "states": [
+          "unchecked",
+          "checked",
+          "hover",
+          "focus",
+          "invalid",
+          "disabled"
+        ],
+        "documentation": "# Radio Button\n\nNative single-choice control with a visible label, optional description, three sizes, and five semantic colors.\n\nUse multiple Radio Buttons with the same `name` when exactly one option may be selected. The component keeps the native `<input type=\"radio\">` in the activation area, so arrow-key navigation, form submission, focus, and screen-reader semantics work without a parallel JavaScript selection model.\n\n## Usage\n\n```tsx\n<RadioButton name=\"release\" value=\"draft\" label=\"Draft\" />\n<RadioButton name=\"release\" value=\"published\" label=\"Published\" defaultChecked />\n```\n\n`default` is neutral; `accent` is the standard selection color. Use `success`, `warning`, and `danger` only when the choice itself carries that semantic meaning.\n",
+        "changelogDocumentation": "# Changelog\n\n## 0.1.0 — 2026-07-19\n\n- Added: native Radio Button with labels, descriptions, three sizes, and five semantic colors.\n- Accessibility: preserved native grouping, keyboard navigation, form, focus, invalid, and disabled semantics.\n"
+      }
+    },
+    {
+      "index": 38,
       "ref": "design-lab-system:component:semantic-tree-item",
       "id": "semantic-tree-item",
       "kind": "component",
@@ -1461,10 +1805,10 @@
       },
       "name": "Semantic Tree Item",
       "description": "Row for the module specific semantic tree. It represents a folder, component, token, asset, or relevant file entity rather than exposing every implementation file.",
-      "path": "components/atoms/SemanticTreeItem",
+      "path": "components/atoms/navigation/SemanticTreeItem",
       "status": "ready",
       "tags": [
-        "atoms",
+        "atoms/navigation",
         "folder",
         "virtual-folder",
         "component",
@@ -1475,9 +1819,17 @@
         "hover",
         "active",
         "collapsed",
+        "actions-open",
+        "color-override",
         "node",
         "expanded",
-        "onSelect"
+        "color",
+        "coloringEnabled",
+        "actionsEnabled",
+        "actions",
+        "onSelect",
+        "onColorChange",
+        "onActionClick"
       ],
       "search": {
         "aliases": [],
@@ -1487,7 +1839,13 @@
           "node",
           "active",
           "expanded",
-          "onSelect"
+          "color",
+          "coloringEnabled",
+          "actionsEnabled",
+          "actions",
+          "onSelect",
+          "onColorChange",
+          "onActionClick"
         ],
         "variants": [
           "folder",
@@ -1501,7 +1859,9 @@
           "default",
           "hover",
           "active",
-          "collapsed"
+          "collapsed",
+          "actions-open",
+          "color-override"
         ]
       },
       "details": {
@@ -1510,12 +1870,13 @@
           "from": "@design-lab/system/components",
           "statement": "import { SemanticTreeItem } from '@design-lab/system/components'"
         },
-        "entry": "components/atoms/SemanticTreeItem/SemanticTreeItem.tsx",
-        "manifest": "components/atoms/SemanticTreeItem/component.json",
-        "preview": "components/atoms/SemanticTreeItem/SemanticTreeItem.preview.tsx",
-        "stories": "components/atoms/SemanticTreeItem/SemanticTreeItem.stories.ts",
-        "docs": "components/atoms/SemanticTreeItem/README.md",
-        "changelog": "components/atoms/SemanticTreeItem/CHANGELOG.md",
+        "entry": "components/atoms/navigation/SemanticTreeItem/SemanticTreeItem.tsx",
+        "style": "components/atoms/navigation/SemanticTreeItem/SemanticTreeItem.scss",
+        "manifest": "components/atoms/navigation/SemanticTreeItem/component.json",
+        "preview": "components/atoms/navigation/SemanticTreeItem/SemanticTreeItem.preview.tsx",
+        "stories": "components/atoms/navigation/SemanticTreeItem/SemanticTreeItem.stories.ts",
+        "docs": "components/atoms/navigation/SemanticTreeItem/README.md",
+        "changelog": "components/atoms/navigation/SemanticTreeItem/CHANGELOG.md",
         "props": {
           "node": {
             "type": "SemanticTreeNode",
@@ -1527,11 +1888,32 @@
           },
           "expanded": {
             "type": "boolean",
-            "default": true
+            "default": false
+          },
+          "color": {
+            "type": "string | null",
+            "default": null
+          },
+          "coloringEnabled": {
+            "type": "boolean",
+            "default": false
+          },
+          "actionsEnabled": {
+            "type": "boolean",
+            "default": false
+          },
+          "actions": {
+            "type": "ReactNode"
           },
           "onSelect": {
             "type": "() => void",
             "required": true
+          },
+          "onColorChange": {
+            "type": "(color: string | null) => void"
+          },
+          "onActionClick": {
+            "type": "() => void"
           }
         },
         "variants": [
@@ -1546,14 +1928,16 @@
           "default",
           "hover",
           "active",
-          "collapsed"
+          "collapsed",
+          "actions-open",
+          "color-override"
         ],
-        "documentation": "# Semantic Tree Item\n\nRow for the module-specific semantic tree. It represents a folder, component, token, asset, or relevant file entity rather than exposing every implementation file.\n\nReal folder rows expose `aria-expanded`; selecting one may also filter the active module view. A virtual folder such as `All` is selectable but has no disclosure state because it does not exist on disk. Selectable folders and entities use the same active treatment. `Inside semantic tree` is a context story for indentation and sibling alignment, not a visual variant.\n",
-        "changelogDocumentation": "# Changelog\n\n## 0.4.0 — 2026-07-19\n\n- Visual: made the full-width catalog specimen border-box aware so it remains visibly inset inside the shared card safe area.\n\n## 0.3.0 — 2026-07-16\n\n- Added: asset entity presentation and selectable virtual folder support for the `All` filter.\n- Changed: folders can be active independently of their expanded state.\n\n## 0.2.0 — 2026-07-16\n\n- Changed: production tree-row styles are now owned by the Library stylesheet.\n- Fixed: long entity labels shrink and truncate without widening the tree.\n\n## 0.1.0 — 2026-07-16\n\n- Added: semantic entity kinds, nested indentation, selection, and folder disclosure.\n"
+        "documentation": "# Semantic Tree Item\n\nRow for the module-specific semantic tree. It represents a folder, component, token, asset, or relevant file entity rather than exposing every implementation file.\n\nReal folder rows expose `aria-expanded`; selecting one may also filter the active module view. A virtual folder such as `All` is selectable but has no disclosure state because it does not exist on disk. Selectable folders and entities use the same active treatment. `Inside semantic tree` is a context story for indentation and sibling alignment, not a visual variant.\n\n`coloringEnabled` turns the semantic entity icon into a Color Picker trigger while preserving label selection as a separate action. `actionsEnabled` reveals a trailing More control on row hover or keyboard focus. Consumers may provide real menu content through `actions`; the default menu deliberately communicates that actions are reserved for future behavior.\n",
+        "changelogDocumentation": "# Changelog\n\n## Unreleased\n\n- Breaking: Canonical filesystem and URL path moved to `components/atoms/navigation/SemanticTreeItem`; no legacy redirect is retained.\n- Changed: Category is derived from the component directory; the package barrel export remains automatic.\n\n## 0.5.1 — 2026-07-19\n\n- Changed: Colocated production styles in `SemanticTreeItem.scss`; catalog-only CSS now lives in `SemanticTreeItem.preview.tsx`.\n\n## 0.5.0 — 2026-07-19\n\n- Added: optional icon coloring through the shared Color Picker.\n- Added: optional hover/focus More action with a future-actions menu slot.\n- Changed: separated disclosure, color, label selection, and row actions into valid interactive targets.\n- Visual: increased semantic indentation so adjacent tree levels read more clearly.\n- Accessibility: each affordance now has its own accessible name and keyboard target.\n\n## 0.4.0 — 2026-07-19\n\n- Visual: made the full-width catalog specimen border-box aware so it remains visibly inset inside the shared card safe area.\n\n## 0.3.0 — 2026-07-16\n\n- Added: asset entity presentation and selectable virtual folder support for the `All` filter.\n- Changed: folders can be active independently of their expanded state.\n\n## 0.2.0 — 2026-07-16\n\n- Changed: production tree-row styles are now owned by the Library stylesheet.\n- Fixed: long entity labels shrink and truncate without widening the tree.\n\n## 0.1.0 — 2026-07-16\n\n- Added: semantic entity kinds, nested indentation, selection, and folder disclosure.\n"
       }
     },
     {
-      "index": 35,
+      "index": 39,
       "ref": "design-lab-system:component:sidebar-tab",
       "id": "sidebar-tab",
       "kind": "component",
@@ -1564,10 +1948,10 @@
       },
       "name": "Sidebar Tab",
       "description": "Module navigation item used by AppSidebar. Its 20px icon remains visible at both widths; the label is disclosed when the application sidebar expands while the tab retains its fixed height. Active tabs retain full opacity and use the hover surface when pointed at.",
-      "path": "components/atoms/SidebarTab",
+      "path": "components/atoms/navigation/SidebarTab",
       "status": "ready",
       "tags": [
-        "atoms",
+        "atoms/navigation",
         "default",
         "hover",
         "active",
@@ -1603,12 +1987,13 @@
           "from": "@design-lab/system/components",
           "statement": "import { SidebarTab } from '@design-lab/system/components'"
         },
-        "entry": "components/atoms/SidebarTab/SidebarTab.tsx",
-        "manifest": "components/atoms/SidebarTab/component.json",
-        "preview": "components/atoms/SidebarTab/SidebarTab.preview.tsx",
-        "stories": "components/atoms/SidebarTab/SidebarTab.stories.ts",
-        "docs": "components/atoms/SidebarTab/README.md",
-        "changelog": "components/atoms/SidebarTab/CHANGELOG.md",
+        "entry": "components/atoms/navigation/SidebarTab/SidebarTab.tsx",
+        "style": "components/atoms/navigation/SidebarTab/SidebarTab.scss",
+        "manifest": "components/atoms/navigation/SidebarTab/component.json",
+        "preview": "components/atoms/navigation/SidebarTab/SidebarTab.preview.tsx",
+        "stories": "components/atoms/navigation/SidebarTab/SidebarTab.stories.ts",
+        "docs": "components/atoms/navigation/SidebarTab/README.md",
+        "changelog": "components/atoms/navigation/SidebarTab/CHANGELOG.md",
         "props": {
           "icon": {
             "type": "ComponentType<IconProps>",
@@ -1640,11 +2025,11 @@
           "expanded"
         ],
         "documentation": "# Sidebar Tab\n\nModule navigation item used by `AppSidebar`. Its 20px icon remains visible at both widths; the label is disclosed when the application sidebar expands while the tab retains its fixed height. Active tabs retain full opacity and use the hover surface when pointed at.\n\n## Usage\n\nPass a code-native icon, a concise localized label, and whether the destination is current. `active` maps to `aria-current=\"page\"`. Use `expanded` only when the parent controls disclosure explicitly, including deterministic Workbench stories.\n\n## Stories\n\n`Selection states` is a state story. `Inside application sidebar` is a context story: it verifies the real tab against the parent's clipping, width, hover, and focus behavior and is not a component variant.\n",
-        "changelogDocumentation": "# Changelog\n\n## 0.4.0 — 2026-07-19\n\n- Visual: replaced the miniature sidebar composition with component-only collapsed and expanded Sidebar Tab specimens using the canonical Components icon.\n\n## 0.3.5 — 2026-07-18\n\n- Visual: added a 2px gap between the tab icon and label.\n\n## 0.3.4 — 2026-07-18\n\n- Fixed: restored the shared fixed height for collapsed and expanded tabs; the hidden label keeps its layout space.\n\n## 0.3.3 — 2026-07-18\n\n- Fixed: removed the fixed tab height so the reduced vertical padding changes the rendered tab height.\n\n## 0.3.2 — 2026-07-18\n\n- Fixed: active tabs now retain their hover surface and full opacity when pointed at.\n- Visual: reduced vertical tab padding from 8px to 4px.\n\n## 0.3.1 — 2026-07-18\n\n- Visual: reduced the navigation icon from 24px to 20px in collapsed and expanded tabs.\n\n## 0.3.0 — 2026-07-16\n\n- Visual: catalog preview now places tabs in their vertical sidebar context and exposes the active-edge treatment.\n\n## 0.2.0 — 2026-07-16\n\n- Added: optional controlled expanded state for deterministic context stories.\n- Fixed: active treatment stays visible inside the clipped application sidebar.\n- Accessibility: current navigation destination now uses `aria-current=\"page\"`.\n\n## 0.1.0\n\n- Added collapsed and expanded navigation states.\n"
+        "changelogDocumentation": "# Changelog\n\n## Unreleased\n\n- Breaking: Canonical filesystem and URL path moved to `components/atoms/navigation/SidebarTab`; no legacy redirect is retained.\n- Changed: Category is derived from the component directory; the package barrel export remains automatic.\n\n## 0.4.1 — 2026-07-19\n\n- Changed: Colocated production styles in `SidebarTab.scss`; catalog-only CSS now lives in `SidebarTab.preview.tsx`.\n\n## 0.4.0 — 2026-07-19\n\n- Visual: replaced the miniature sidebar composition with component-only collapsed and expanded Sidebar Tab specimens using the canonical Components icon.\n\n## 0.3.5 — 2026-07-18\n\n- Visual: added a 2px gap between the tab icon and label.\n\n## 0.3.4 — 2026-07-18\n\n- Fixed: restored the shared fixed height for collapsed and expanded tabs; the hidden label keeps its layout space.\n\n## 0.3.3 — 2026-07-18\n\n- Fixed: removed the fixed tab height so the reduced vertical padding changes the rendered tab height.\n\n## 0.3.2 — 2026-07-18\n\n- Fixed: active tabs now retain their hover surface and full opacity when pointed at.\n- Visual: reduced vertical tab padding from 8px to 4px.\n\n## 0.3.1 — 2026-07-18\n\n- Visual: reduced the navigation icon from 24px to 20px in collapsed and expanded tabs.\n\n## 0.3.0 — 2026-07-16\n\n- Visual: catalog preview now places tabs in their vertical sidebar context and exposes the active-edge treatment.\n\n## 0.2.0 — 2026-07-16\n\n- Added: optional controlled expanded state for deterministic context stories.\n- Fixed: active treatment stays visible inside the clipped application sidebar.\n- Accessibility: current navigation destination now uses `aria-current=\"page\"`.\n\n## 0.1.0\n\n- Added collapsed and expanded navigation states.\n"
       }
     },
     {
-      "index": 36,
+      "index": 40,
       "ref": "design-lab-system:component:asset-card",
       "id": "asset-card",
       "kind": "component",
@@ -1655,10 +2040,10 @@
       },
       "name": "Asset Card",
       "description": "Catalog representation for an automatically discovered asset. It keeps filesystem identity visible and uses a real raster thumbnail when a safe local preview URL is available.",
-      "path": "components/molecules/AssetCard",
+      "path": "components/molecules/cards/AssetCard",
       "status": "ready",
       "tags": [
-        "molecules",
+        "molecules/cards",
         "icon",
         "image",
         "video",
@@ -1702,12 +2087,13 @@
           "from": "@design-lab/system/components",
           "statement": "import { AssetCard } from '@design-lab/system/components'"
         },
-        "entry": "components/molecules/AssetCard/AssetCard.tsx",
-        "manifest": "components/molecules/AssetCard/component.json",
-        "preview": "components/molecules/AssetCard/AssetCard.preview.tsx",
-        "stories": "components/molecules/AssetCard/AssetCard.stories.ts",
-        "docs": "components/molecules/AssetCard/README.md",
-        "changelog": "components/molecules/AssetCard/CHANGELOG.md",
+        "entry": "components/molecules/cards/AssetCard/AssetCard.tsx",
+        "style": "components/molecules/cards/AssetCard/AssetCard.scss",
+        "manifest": "components/molecules/cards/AssetCard/component.json",
+        "preview": "components/molecules/cards/AssetCard/AssetCard.preview.tsx",
+        "stories": "components/molecules/cards/AssetCard/AssetCard.stories.ts",
+        "docs": "components/molecules/cards/AssetCard/README.md",
+        "changelog": "components/molecules/cards/AssetCard/CHANGELOG.md",
         "props": {
           "name": {
             "type": "string",
@@ -1752,185 +2138,11 @@
           "selected"
         ],
         "documentation": "# Asset Card\n\nCatalog representation for an automatically discovered asset. It keeps filesystem identity visible and uses a real raster thumbnail when a safe local preview URL is available.\n\n## Variants\n\n- `icon` represents SVG and code-native TSX icons. Both receive a real SVG preview URL from the local renderer; TSX source is normalized without executing its React module.\n- `image` represents raster images and may render `previewUrl`.\n- `video` uses the shared Video asset icon until playable previews are introduced.\n- `other` is the explicit fallback for supported files without a specialized presentation.\n\nAsset Card does not move, rename, or mutate the source file. The filesystem remains the source of truth.\n\nIf a preview is unsupported or fails validation, the card falls back to its type icon instead of displaying a broken image.\n\nThe card is a native button so catalogs can use `onClick` for navigation. Set `selected` when its persistent route is active; the component exposes that state through `aria-current=\"page\"`.\n",
-        "changelogDocumentation": "# Changelog\n\n## 0.3.0 — 2026-07-18\n\n- Added: native button navigation, persistent selected styling, and `aria-current` semantics for deep-linked assets.\n\n## 0.2.1 — 2026-07-16\n\n- Fixed: rendered icons now use a restrained 48×48px optical size instead of filling the preview area.\n\n## 0.2.0 — 2026-07-16\n\n- Added: real previews for canonical TSX and SVG icons through the safe local icon renderer.\n- Added: automatic type-icon fallback when a preview cannot be rendered.\n\n## 0.1.0 — 2026-07-16\n\n- Added: token-driven catalog card for icon, image, video, and fallback assets.\n- Added: safe local raster preview, extension metadata, and long-path clipping.\n"
+        "changelogDocumentation": "# Changelog\n\n## Unreleased\n\n- Breaking: Canonical filesystem and URL path moved to `components/molecules/cards/AssetCard`; no legacy redirect is retained.\n- Changed: Category is derived from the component directory; the package barrel export remains automatic.\n\n## 0.3.1 — 2026-07-19\n\n- Changed: Colocated production styles in `AssetCard.scss`; catalog-only CSS now lives in `AssetCard.preview.tsx`.\n\n## 0.3.0 — 2026-07-18\n\n- Added: native button navigation, persistent selected styling, and `aria-current` semantics for deep-linked assets.\n\n## 0.2.1 — 2026-07-16\n\n- Fixed: rendered icons now use a restrained 48×48px optical size instead of filling the preview area.\n\n## 0.2.0 — 2026-07-16\n\n- Added: real previews for canonical TSX and SVG icons through the safe local icon renderer.\n- Added: automatic type-icon fallback when a preview cannot be rendered.\n\n## 0.1.0 — 2026-07-16\n\n- Added: token-driven catalog card for icon, image, video, and fallback assets.\n- Added: safe local raster preview, extension metadata, and long-path clipping.\n"
       }
     },
     {
-      "index": 37,
-      "ref": "design-lab-system:component:canvas-background-control",
-      "id": "canvas-background-control",
-      "kind": "component",
-      "source": {
-        "id": "design-lab-system",
-        "name": "Design Lab System",
-        "kind": "library"
-      },
-      "name": "Canvas Background Control",
-      "description": "Controls the shared Workbench background preference. One change updates the Playground and every Story Canvas, and persists when another component is opened.",
-      "path": "components/molecules/CanvasBackgroundControl",
-      "status": "ready",
-      "tags": [
-        "molecules",
-        "default",
-        "dark-grid",
-        "light-grid",
-        "solid",
-        "solid-picker-open",
-        "mode",
-        "color",
-        "onModeChange",
-        "onColorChange"
-      ],
-      "search": {
-        "aliases": [],
-        "useWhen": [],
-        "avoidWhen": [],
-        "props": [
-          "mode",
-          "color",
-          "onModeChange",
-          "onColorChange"
-        ],
-        "variants": [
-          "default"
-        ],
-        "states": [
-          "dark-grid",
-          "light-grid",
-          "solid",
-          "solid-picker-open"
-        ]
-      },
-      "details": {
-        "import": {
-          "symbol": "CanvasBackgroundControl",
-          "from": "@design-lab/system/components",
-          "statement": "import { CanvasBackgroundControl } from '@design-lab/system/components'"
-        },
-        "entry": "components/molecules/CanvasBackgroundControl/CanvasBackgroundControl.tsx",
-        "manifest": "components/molecules/CanvasBackgroundControl/component.json",
-        "preview": "components/molecules/CanvasBackgroundControl/CanvasBackgroundControl.preview.tsx",
-        "stories": "components/molecules/CanvasBackgroundControl/CanvasBackgroundControl.stories.ts",
-        "docs": "components/molecules/CanvasBackgroundControl/README.md",
-        "changelog": "components/molecules/CanvasBackgroundControl/CHANGELOG.md",
-        "props": {
-          "mode": {
-            "type": "CanvasMode",
-            "required": true,
-            "values": [
-              "dark-grid",
-              "light-grid",
-              "solid"
-            ]
-          },
-          "color": {
-            "type": "string",
-            "required": true
-          },
-          "onModeChange": {
-            "type": "(mode: CanvasMode) => void",
-            "required": true
-          },
-          "onColorChange": {
-            "type": "(color: string) => void",
-            "required": true
-          }
-        },
-        "variants": [
-          "default"
-        ],
-        "states": [
-          "dark-grid",
-          "light-grid",
-          "solid",
-          "solid-picker-open"
-        ],
-        "documentation": "# Canvas Background Control\n\nControls the shared Workbench background preference. One change updates the Playground and every Story Canvas, and persists when another component is opened.\n\n`Background modes` is an interactive state story. `Solid color picker` is a behavior story that verifies draft HEX input, presets, and committed color changes.\n\nThe mode row composes the production `TabSwitcher`; this component owns only Canvas-specific labels, samples, persistence events, and the solid color picker.\n",
-        "changelogDocumentation": "# Changelog\n\n## 0.5.0 — 2026-07-16\n\n- Visual: catalog preview now shows dark grid, light grid, solid mode, and the compact color-picker composition.\n\n## 0.4.0 — 2026-07-16\n\n- Fixed: dark grid tokens are neutral charcoal values without a green cast.\n\n## 0.2.0 — 2026-07-16\n\n- Added: executable Workbench stories for background modes and solid color editing.\n\n## 0.3.0 — 2026-07-16\n\n- Changed: composed the shared `TabSwitcher` for mutually exclusive Canvas modes instead of maintaining another segmented-control implementation.\n\n## 0.2.0 — 2026-07-16\n\n- Changed: localized control labels through the shared i18n provider.\n- Changed: Canvas mode now participates in a persisted, component-wide preference.\n- Changed: light and dark grids now use dedicated semantic grid tokens.\n"
-      }
-    },
-    {
-      "index": 38,
-      "ref": "design-lab-system:component:code-block",
-      "id": "code-block",
-      "kind": "component",
-      "source": {
-        "id": "design-lab-system",
-        "name": "Design Lab System",
-        "kind": "library"
-      },
-      "name": "Code Block",
-      "description": "Displays fenced source code as a distinct documentation surface with a language label and optional copy action.",
-      "path": "components/molecules/CodeBlock",
-      "status": "ready",
-      "tags": [
-        "molecules",
-        "default",
-        "ready",
-        "copied",
-        "overflow",
-        "code",
-        "language",
-        "showCopy"
-      ],
-      "search": {
-        "aliases": [],
-        "useWhen": [],
-        "avoidWhen": [],
-        "props": [
-          "code",
-          "language",
-          "showCopy"
-        ],
-        "variants": [
-          "default"
-        ],
-        "states": [
-          "ready",
-          "copied",
-          "overflow"
-        ]
-      },
-      "details": {
-        "import": {
-          "symbol": "CodeBlock",
-          "from": "@design-lab/system/components",
-          "statement": "import { CodeBlock } from '@design-lab/system/components'"
-        },
-        "entry": "components/molecules/CodeBlock/CodeBlock.tsx",
-        "manifest": "components/molecules/CodeBlock/component.json",
-        "preview": "components/molecules/CodeBlock/CodeBlock.preview.tsx",
-        "stories": "components/molecules/CodeBlock/CodeBlock.stories.ts",
-        "docs": "components/molecules/CodeBlock/README.md",
-        "changelog": "components/molecules/CodeBlock/CHANGELOG.md",
-        "props": {
-          "code": {
-            "type": "string",
-            "required": true
-          },
-          "language": {
-            "type": "string",
-            "default": "text"
-          },
-          "showCopy": {
-            "type": "boolean",
-            "default": true
-          }
-        },
-        "variants": [
-          "default"
-        ],
-        "states": [
-          "ready",
-          "copied",
-          "overflow"
-        ],
-        "documentation": "# Code Block\n\nDisplays fenced source code as a distinct documentation surface with a language label and optional copy action.\n\n`CodeBlock` preserves whitespace and scrolls long lines inside its own boundary. Use inline Markdown code for identifiers and short values; use fenced Markdown code when the snippet is meant to be read or copied as source.\n\n## Usage\n\n```tsx\n<CodeBlock code={'const mode = \"dark\"'} language=\"tsx\" />\n```\n",
-        "changelogDocumentation": "# Changelog\n\n## 0.1.0 — 2026-07-16\n\n- Added: fenced source presentation with language label and optional copy action.\n- Added: internal overflow for long lines and token-based dark/light styling.\n- Accessibility: copy status is exposed through the action's accessible name and visible label.\n- Fixed: copy falls back to a temporary selection when the modern Clipboard API is unavailable or denied.\n"
-      }
-    },
-    {
-      "index": 39,
+      "index": 41,
       "ref": "design-lab-system:component:component-card",
       "id": "component-card",
       "kind": "component",
@@ -1940,13 +2152,12 @@
         "kind": "library"
       },
       "name": "Component Card",
-      "description": "Inventory entry that combines a live preview, component identity, source entry and variant summary.",
-      "path": "components/molecules/ComponentCard",
+      "description": "Borderless catalog entry that uses the authored preview as its full visual surface and overlays the component name on a bottom gradient.",
+      "path": "components/molecules/cards/ComponentCard",
       "status": "ready",
       "tags": [
-        "molecules",
+        "molecules/cards",
         "default",
-        "hover",
         "focus-visible",
         "selected",
         "preview-animated",
@@ -1975,7 +2186,6 @@
         ],
         "states": [
           "default",
-          "hover",
           "focus-visible",
           "selected",
           "preview-animated"
@@ -1987,12 +2197,13 @@
           "from": "@design-lab/system/components",
           "statement": "import { ComponentCard } from '@design-lab/system/components'"
         },
-        "entry": "components/molecules/ComponentCard/ComponentCard.tsx",
-        "manifest": "components/molecules/ComponentCard/component.json",
-        "preview": "components/molecules/ComponentCard/ComponentCard.preview.tsx",
-        "stories": "components/molecules/ComponentCard/ComponentCard.stories.ts",
-        "docs": "components/molecules/ComponentCard/README.md",
-        "changelog": "components/molecules/ComponentCard/CHANGELOG.md",
+        "entry": "components/molecules/cards/ComponentCard/ComponentCard.tsx",
+        "style": "components/molecules/cards/ComponentCard/ComponentCard.scss",
+        "manifest": "components/molecules/cards/ComponentCard/component.json",
+        "preview": "components/molecules/cards/ComponentCard/ComponentCard.preview.tsx",
+        "stories": "components/molecules/cards/ComponentCard/ComponentCard.stories.ts",
+        "docs": "components/molecules/cards/ComponentCard/README.md",
+        "changelog": "components/molecules/cards/ComponentCard/CHANGELOG.md",
         "props": {
           "name": {
             "type": "string",
@@ -2028,17 +2239,97 @@
         ],
         "states": [
           "default",
-          "hover",
           "focus-visible",
           "selected",
           "preview-animated"
         ],
-        "documentation": "# Component Card\n\nInventory entry that combines a live preview, component identity, source entry and variant summary.\n\nThe card is a single interactive target. Its preview slot accepts an illustrative `ComponentThumbnail`, while selection communicates the current catalog entity. `Catalog row` is a context story rather than a card variant.\n\nSet `previewAnimated` only when the component manifest declares `previewMotion`. The card then exposes the shared hover/focus trigger to the authored preview; it does not invent motion or animate generic fallbacks.\n",
-        "changelogDocumentation": "# Changelog\n\n## 0.4.0 — 2026-07-19\n\n- Visual: added a shared token-driven safe area around authored catalog previews so full-width specimens remain visibly inset from card edges.\n\n## 0.3.0 — 2026-07-16\n\n- Added: optional `previewAnimated` state that activates authored preview motion on pointer hover and keyboard focus.\n- Accessibility: motion activation remains opt-in and respects the global reduced-motion contract.\n\n## 0.2.0 — 2026-07-16\n\n- Added: executable selection and catalog-context stories.\n\n## 0.1.0\n\n- Added default, hover and selected states.\n"
+        "documentation": "# Component Card\n\nBorderless catalog entry that uses the authored preview as its full visual surface and overlays the component name on a bottom gradient.\n\nThe card is a single interactive target with a 12px radius on every corner. The card itself has no visual hover treatment: it does not lift, add a border or shadow, or change the surface fill. Keyboard focus keeps an explicit focus outline. Selection uses the same stable geometry with an accented title.\n\nSet `previewAnimated` only when the component manifest declares `previewMotion`. The card then exposes the shared hover/focus trigger to the authored preview; it does not invent motion or animate generic fallbacks.\n\n`entry` and `meta` remain accepted for API compatibility but are not rendered. Source filename and variant count belong in details and filtering surfaces, not in the visual card footer.\n",
+        "changelogDocumentation": "# Changelog\n\n## Unreleased\n\n- Breaking: Canonical filesystem and URL path moved to `components/molecules/cards/ComponentCard`; no legacy redirect is retained.\n- Changed: Category is derived from the component directory; the package barrel export remains automatic.\n\n## 0.5.1 — 2026-07-19\n\n- Changed: Colocated production styles in `ComponentCard.scss`; catalog-only CSS now lives in `ComponentCard.preview.tsx`.\n\n## 0.5.0 — 2026-07-19\n\n- Visual: replaced the separate metadata footer with a bottom gradient overlay containing only the component name.\n- Visual: removed the border and all card-level hover changes, including lift, fill, and shadow.\n- Visual: set every card corner to the semantic 12px card radius and reduced catalog grid spacing to 4px.\n- Changed: source entry and variant count remain accepted for compatibility but are no longer rendered.\n- Accessibility: retained the explicit keyboard focus outline while keeping pointer hover visually stable.\n\n## 0.4.0 — 2026-07-19\n\n- Visual: added a shared token-driven safe area around authored catalog previews so full-width specimens remain visibly inset from card edges.\n\n## 0.3.0 — 2026-07-16\n\n- Added: optional `previewAnimated` state that activates authored preview motion on pointer hover and keyboard focus.\n- Accessibility: motion activation remains opt-in and respects the global reduced-motion contract.\n\n## 0.2.0 — 2026-07-16\n\n- Added: executable selection and catalog-context stories.\n\n## 0.1.0\n\n- Added default, hover and selected states.\n"
       }
     },
     {
-      "index": 40,
+      "index": 42,
+      "ref": "design-lab-system:component:code-block",
+      "id": "code-block",
+      "kind": "component",
+      "source": {
+        "id": "design-lab-system",
+        "name": "Design Lab System",
+        "kind": "library"
+      },
+      "name": "Code Block",
+      "description": "Displays fenced source code as a distinct documentation surface with a language label and optional copy action.",
+      "path": "components/molecules/data-display/CodeBlock",
+      "status": "ready",
+      "tags": [
+        "molecules/data-display",
+        "default",
+        "ready",
+        "copied",
+        "overflow",
+        "code",
+        "language",
+        "showCopy"
+      ],
+      "search": {
+        "aliases": [],
+        "useWhen": [],
+        "avoidWhen": [],
+        "props": [
+          "code",
+          "language",
+          "showCopy"
+        ],
+        "variants": [
+          "default"
+        ],
+        "states": [
+          "ready",
+          "copied",
+          "overflow"
+        ]
+      },
+      "details": {
+        "import": {
+          "symbol": "CodeBlock",
+          "from": "@design-lab/system/components",
+          "statement": "import { CodeBlock } from '@design-lab/system/components'"
+        },
+        "entry": "components/molecules/data-display/CodeBlock/CodeBlock.tsx",
+        "style": "components/molecules/data-display/CodeBlock/CodeBlock.scss",
+        "manifest": "components/molecules/data-display/CodeBlock/component.json",
+        "preview": "components/molecules/data-display/CodeBlock/CodeBlock.preview.tsx",
+        "stories": "components/molecules/data-display/CodeBlock/CodeBlock.stories.ts",
+        "docs": "components/molecules/data-display/CodeBlock/README.md",
+        "changelog": "components/molecules/data-display/CodeBlock/CHANGELOG.md",
+        "props": {
+          "code": {
+            "type": "string",
+            "required": true
+          },
+          "language": {
+            "type": "string",
+            "default": "text"
+          },
+          "showCopy": {
+            "type": "boolean",
+            "default": true
+          }
+        },
+        "variants": [
+          "default"
+        ],
+        "states": [
+          "ready",
+          "copied",
+          "overflow"
+        ],
+        "documentation": "# Code Block\n\nDisplays fenced source code as a distinct documentation surface with a language label and optional copy action.\n\n`CodeBlock` preserves whitespace and scrolls long lines inside its own boundary. Use inline Markdown code for identifiers and short values; use fenced Markdown code when the snippet is meant to be read or copied as source.\n\n## Usage\n\n```tsx\n<CodeBlock code={'const mode = \"dark\"'} language=\"tsx\" />\n```\n",
+        "changelogDocumentation": "# Changelog\n\n## Unreleased\n\n- Breaking: Canonical filesystem and URL path moved to `components/molecules/data-display/CodeBlock`; no legacy redirect is retained.\n- Changed: Category is derived from the component directory; the package barrel export remains automatic.\n\n## 0.1.1 — 2026-07-19\n\n- Changed: Colocated production styles in `CodeBlock.scss`; catalog-only CSS now lives in `CodeBlock.preview.tsx`.\n\n## 0.1.0 — 2026-07-16\n\n- Added: fenced source presentation with language label and optional copy action.\n- Added: internal overflow for long lines and token-based dark/light styling.\n- Accessibility: copy status is exposed through the action's accessible name and visible label.\n- Fixed: copy falls back to a temporary selection when the modern Clipboard API is unavailable or denied.\n"
+      }
+    },
+    {
+      "index": 43,
       "ref": "design-lab-system:component:component-thumbnail",
       "id": "component-thumbnail",
       "kind": "component",
@@ -2049,10 +2340,10 @@
       },
       "name": "Component Thumbnail",
       "description": "Token driven catalog illustration selected by component kind. It is intentionally non interactive and does not render the production component.",
-      "path": "components/molecules/ComponentThumbnail",
+      "path": "components/molecules/data-display/ComponentThumbnail",
       "status": "ready",
       "tags": [
-        "molecules",
+        "molecules/data-display",
         "component-kind",
         "default",
         "generic-fallback",
@@ -2079,12 +2370,13 @@
           "from": "@design-lab/system/components",
           "statement": "import { ComponentThumbnail } from '@design-lab/system/components'"
         },
-        "entry": "components/molecules/ComponentThumbnail/ComponentThumbnail.tsx",
-        "manifest": "components/molecules/ComponentThumbnail/component.json",
-        "preview": "components/molecules/ComponentThumbnail/ComponentThumbnail.preview.tsx",
-        "stories": "components/molecules/ComponentThumbnail/ComponentThumbnail.stories.ts",
-        "docs": "components/molecules/ComponentThumbnail/README.md",
-        "changelog": "components/molecules/ComponentThumbnail/CHANGELOG.md",
+        "entry": "components/molecules/data-display/ComponentThumbnail/ComponentThumbnail.tsx",
+        "style": "components/molecules/data-display/ComponentThumbnail/ComponentThumbnail.scss",
+        "manifest": "components/molecules/data-display/ComponentThumbnail/component.json",
+        "preview": "components/molecules/data-display/ComponentThumbnail/ComponentThumbnail.preview.tsx",
+        "stories": "components/molecules/data-display/ComponentThumbnail/ComponentThumbnail.stories.ts",
+        "docs": "components/molecules/data-display/ComponentThumbnail/README.md",
+        "changelog": "components/molecules/data-display/ComponentThumbnail/CHANGELOG.md",
         "props": {
           "kind": {
             "type": "string",
@@ -2099,114 +2391,287 @@
           "generic-fallback"
         ],
         "documentation": "# Component Thumbnail\n\nToken-driven catalog illustration selected by component kind. It is intentionally non-interactive and does not render the production component.\n\nKnown kinds use recognizable silhouettes. Unknown kinds fall back to a neutral composition so automatic discovery never requires a global thumbnail registry.\n",
-        "changelogDocumentation": "# Changelog\n\n## 0.1.0 — 2026-07-16\n\n- Added: known component silhouettes and a generic discovery fallback.\n"
+        "changelogDocumentation": "# Changelog\n\n## Unreleased\n\n- Breaking: Canonical filesystem and URL path moved to `components/molecules/data-display/ComponentThumbnail`; no legacy redirect is retained.\n- Changed: Category is derived from the component directory; the package barrel export remains automatic.\n\n## 0.1.1 — 2026-07-19\n\n- Changed: Colocated production styles in `ComponentThumbnail.scss`; catalog-only CSS now lives in `ComponentThumbnail.preview.tsx`.\n\n## 0.1.0 — 2026-07-16\n\n- Added: known component silhouettes and a generic discovery fallback.\n"
       }
     },
     {
-      "index": 41,
-      "ref": "design-lab-system:component:module-header",
-      "id": "module-header",
+      "index": 44,
+      "ref": "design-lab-system:component:color-picker",
+      "id": "color-picker",
       "kind": "component",
       "source": {
         "id": "design-lab-system",
         "name": "Design Lab System",
         "kind": "library"
       },
-      "name": "Module Header",
-      "description": "Shared identity header for module indexes and component workbenches. It combines an eyebrow, title, and one contextual trailing role: count, source metadata, or actions.",
-      "path": "components/molecules/ModuleHeader",
+      "name": "Color Picker",
+      "description": "Compact color override control with a custom trigger, native spectrum input, preset swatches, editable HEX value, and nullable reset.",
+      "path": "components/molecules/inputs/ColorPicker",
       "status": "ready",
       "tags": [
-        "molecules",
-        "module",
-        "workbench",
+        "molecules/inputs",
         "default",
-        "with-back",
-        "with-actions",
-        "eyebrow",
-        "title",
-        "count",
-        "backLabel",
-        "onBack",
-        "meta",
-        "actions"
+        "closed",
+        "open",
+        "selected",
+        "empty",
+        "disabled",
+        "label",
+        "value",
+        "defaultValue",
+        "onChange",
+        "trigger",
+        "presets",
+        "allowClear",
+        "className"
       ],
       "search": {
         "aliases": [],
         "useWhen": [],
         "avoidWhen": [],
         "props": [
-          "eyebrow",
-          "title",
-          "count",
-          "backLabel",
-          "onBack",
-          "meta",
-          "actions"
+          "label",
+          "value",
+          "defaultValue",
+          "onChange",
+          "trigger",
+          "presets",
+          "allowClear",
+          "disabled",
+          "className"
         ],
         "variants": [
-          "module",
-          "workbench"
+          "default"
         ],
         "states": [
-          "default",
-          "with-back",
-          "with-actions"
+          "closed",
+          "open",
+          "selected",
+          "empty",
+          "disabled"
         ]
       },
       "details": {
         "import": {
-          "symbol": "ModuleHeader",
+          "symbol": "ColorPicker",
           "from": "@design-lab/system/components",
-          "statement": "import { ModuleHeader } from '@design-lab/system/components'"
+          "statement": "import { ColorPicker } from '@design-lab/system/components'"
         },
-        "entry": "components/molecules/ModuleHeader/ModuleHeader.tsx",
-        "manifest": "components/molecules/ModuleHeader/component.json",
-        "preview": "components/molecules/ModuleHeader/ModuleHeader.preview.tsx",
-        "stories": "components/molecules/ModuleHeader/ModuleHeader.stories.ts",
-        "docs": "components/molecules/ModuleHeader/README.md",
-        "changelog": "components/molecules/ModuleHeader/CHANGELOG.md",
+        "entry": "components/molecules/inputs/ColorPicker/ColorPicker.tsx",
+        "style": "components/molecules/inputs/ColorPicker/ColorPicker.scss",
+        "manifest": "components/molecules/inputs/ColorPicker/component.json",
+        "preview": "components/molecules/inputs/ColorPicker/ColorPicker.preview.tsx",
+        "stories": "components/molecules/inputs/ColorPicker/ColorPicker.stories.ts",
+        "docs": "components/molecules/inputs/ColorPicker/README.md",
+        "changelog": "components/molecules/inputs/ColorPicker/CHANGELOG.md",
         "props": {
-          "eyebrow": {
+          "label": {
             "type": "string",
             "required": true
           },
-          "title": {
+          "value": {
+            "type": "string | null"
+          },
+          "defaultValue": {
             "type": "string",
-            "required": true
+            "default": "#3b82f6"
           },
-          "count": {
-            "type": "number"
+          "onChange": {
+            "type": "(color: string | null) => void"
           },
-          "backLabel": {
+          "trigger": {
+            "type": "ReactNode"
+          },
+          "presets": {
+            "type": "string[]"
+          },
+          "allowClear": {
+            "type": "boolean",
+            "default": true
+          },
+          "disabled": {
+            "type": "boolean",
+            "default": false
+          },
+          "className": {
             "type": "string"
-          },
-          "onBack": {
-            "type": "() => void"
-          },
-          "meta": {
-            "type": "string"
-          },
-          "actions": {
-            "type": "ReactNode",
-            "slot": true
           }
         },
         "variants": [
-          "module",
-          "workbench"
+          "default"
         ],
         "states": [
-          "default",
-          "with-back",
-          "with-actions"
+          "closed",
+          "open",
+          "selected",
+          "empty",
+          "disabled"
         ],
-        "documentation": "# Module Header\n\nShared identity header for module indexes and component workbenches. It combines an eyebrow, title, and one contextual trailing role: count, source metadata, or actions.\n\nWorkbench back navigation is a context story because it verifies the header inside the component-detail flow.\n",
-        "changelogDocumentation": "# Changelog\n\n## 0.1.0 — 2026-07-16\n\n- Added: module summary and workbench navigation compositions.\n"
+        "documentation": "# Color Picker\n\nCompact color override control with a custom trigger, native spectrum input, preset swatches, editable HEX value, and nullable reset.\n\nUse a controlled `value` when color belongs to another entity. `null` means that the consumer's semantic default remains active. The popover closes on outside pointer interaction or Escape and keeps every color choice accessible by name.\n",
+        "changelogDocumentation": "# Changelog\n\n## Unreleased\n\n- Breaking: Canonical filesystem and URL path moved to `components/molecules/inputs/ColorPicker`; no legacy redirect is retained.\n- Changed: Category is derived from the component directory; the package barrel export remains automatic.\n\n## 0.1.1 — 2026-07-19\n\n- Changed: Colocated production styles in `ColorPicker.scss`; catalog-only CSS now lives in `ColorPicker.preview.tsx`.\n\n## 0.1.0 — 2026-07-19\n\n- Added: controlled and uncontrolled color selection with custom trigger composition.\n- Added: spectrum input, preset palette, HEX editing, reset, outside dismissal, and Escape handling.\n- Accessibility: the trigger exposes dialog state and every preset has a readable color name.\n"
       }
     },
     {
-      "index": 42,
+      "index": 45,
+      "ref": "design-lab-system:component:slider",
+      "id": "slider",
+      "kind": "component",
+      "source": {
+        "id": "design-lab-system",
+        "name": "Design Lab System",
+        "kind": "library"
+      },
+      "name": "Slider",
+      "description": "Token driven native range input for selecting one numeric value from a bounded interval. Its anatomy follows the HeroUI pattern: an optional label and output share the header, while fill, track, and thumb form one clear control below.",
+      "path": "components/molecules/inputs/Slider",
+      "status": "ready",
+      "tags": [
+        "molecules/inputs",
+        "default",
+        "accent",
+        "success",
+        "warning",
+        "danger",
+        "hover",
+        "focus",
+        "dragging",
+        "disabled",
+        "label",
+        "value",
+        "defaultValue",
+        "minValue",
+        "maxValue",
+        "step",
+        "color",
+        "size",
+        "showValue",
+        "formatValue",
+        "onValueChange"
+      ],
+      "search": {
+        "aliases": [],
+        "useWhen": [],
+        "avoidWhen": [],
+        "props": [
+          "label",
+          "value",
+          "defaultValue",
+          "minValue",
+          "maxValue",
+          "step",
+          "color",
+          "size",
+          "showValue",
+          "formatValue",
+          "disabled",
+          "onValueChange"
+        ],
+        "variants": [
+          "default",
+          "accent",
+          "success",
+          "warning",
+          "danger"
+        ],
+        "states": [
+          "default",
+          "hover",
+          "focus",
+          "dragging",
+          "disabled"
+        ]
+      },
+      "details": {
+        "import": {
+          "symbol": "Slider",
+          "from": "@design-lab/system/components",
+          "statement": "import { Slider } from '@design-lab/system/components'"
+        },
+        "entry": "components/molecules/inputs/Slider/Slider.tsx",
+        "style": "components/molecules/inputs/Slider/Slider.scss",
+        "manifest": "components/molecules/inputs/Slider/component.json",
+        "preview": "components/molecules/inputs/Slider/Slider.preview.tsx",
+        "stories": "components/molecules/inputs/Slider/Slider.stories.ts",
+        "docs": "components/molecules/inputs/Slider/README.md",
+        "changelog": "components/molecules/inputs/Slider/CHANGELOG.md",
+        "props": {
+          "label": {
+            "type": "ReactNode"
+          },
+          "value": {
+            "type": "number"
+          },
+          "defaultValue": {
+            "type": "number",
+            "default": 0
+          },
+          "minValue": {
+            "type": "number",
+            "default": 0
+          },
+          "maxValue": {
+            "type": "number",
+            "default": 100
+          },
+          "step": {
+            "type": "number",
+            "default": 1
+          },
+          "color": {
+            "type": "SliderColor",
+            "values": [
+              "default",
+              "accent",
+              "success",
+              "warning",
+              "danger"
+            ],
+            "default": "accent"
+          },
+          "size": {
+            "type": "SliderSize",
+            "values": [
+              "small",
+              "medium",
+              "large"
+            ],
+            "default": "medium"
+          },
+          "showValue": {
+            "type": "boolean",
+            "default": true
+          },
+          "formatValue": {
+            "type": "(value: number) => ReactNode"
+          },
+          "disabled": {
+            "type": "boolean",
+            "default": false
+          },
+          "onValueChange": {
+            "type": "(value: number) => void"
+          }
+        },
+        "variants": [
+          "default",
+          "accent",
+          "success",
+          "warning",
+          "danger"
+        ],
+        "states": [
+          "default",
+          "hover",
+          "focus",
+          "dragging",
+          "disabled"
+        ],
+        "documentation": "# Slider\n\nToken-driven native range input for selecting one numeric value from a bounded interval. Its anatomy follows the HeroUI pattern: an optional label and output share the header, while fill, track, and thumb form one clear control below.\n\n## Usage\n\n```tsx\n<Slider\n  label=\"Volume\"\n  value={volume}\n  onValueChange={setVolume}\n  minValue={0}\n  maxValue={100}\n/>\n```\n\nThe component supports controlled and uncontrolled values, native keyboard interaction, form attributes, custom output formatting, three sizes, and the shared semantic color scale.\n\nUse `formatValue` for domain output such as percentages or units. Keep an accessible `label` or supply `aria-label` when the visible label is omitted.\n",
+        "changelogDocumentation": "# Changelog\n\n## 0.1.0 — 2026-07-19\n\n- Added: HeroUI-inspired Slider with label, output, fill, track, and high-contrast thumb.\n- Added: controlled and uncontrolled values, custom formatting, three sizes, and five semantic colors.\n- Accessibility: preserved native range keyboard, focus, form, and screen-reader semantics.\n"
+      }
+    },
+    {
+      "index": 46,
       "ref": "design-lab-system:component:source-select",
       "id": "source-select",
       "kind": "component",
@@ -2217,10 +2682,10 @@
       },
       "name": "Source Select",
       "description": "Переключает канонический источник данных между проектами и библиотеками и открывает создание проекта. Компонент не принимает произвольный путь.",
-      "path": "components/molecules/SourceSelect",
+      "path": "components/molecules/inputs/SourceSelect",
       "status": "ready",
       "tags": [
-        "molecules",
+        "molecules/inputs",
         "project",
         "library",
         "closed",
@@ -2250,12 +2715,13 @@
           "from": "@design-lab/system/components",
           "statement": "import { SourceSelect } from '@design-lab/system/components'"
         },
-        "entry": "components/molecules/SourceSelect/SourceSelect.tsx",
-        "manifest": "components/molecules/SourceSelect/component.json",
-        "preview": "components/molecules/SourceSelect/SourceSelect.preview.tsx",
-        "stories": "components/molecules/SourceSelect/SourceSelect.stories.ts",
-        "docs": "components/molecules/SourceSelect/README.md",
-        "changelog": "components/molecules/SourceSelect/CHANGELOG.md",
+        "entry": "components/molecules/inputs/SourceSelect/SourceSelect.tsx",
+        "style": "components/molecules/inputs/SourceSelect/SourceSelect.scss",
+        "manifest": "components/molecules/inputs/SourceSelect/component.json",
+        "preview": "components/molecules/inputs/SourceSelect/SourceSelect.preview.tsx",
+        "stories": "components/molecules/inputs/SourceSelect/SourceSelect.stories.ts",
+        "docs": "components/molecules/inputs/SourceSelect/README.md",
+        "changelog": "components/molecules/inputs/SourceSelect/CHANGELOG.md",
         "props": {},
         "variants": [
           "project",
@@ -2268,97 +2734,11 @@
           "unavailable"
         ],
         "documentation": "# Source Select\n\nПереключает канонический источник данных между проектами и библиотеками и открывает создание проекта. Компонент не принимает произвольный путь.\n",
-        "changelogDocumentation": "# Changelog\n\n## 0.4.0 — 2026-07-19\n\n- Visual: made the full-width catalog specimen border-box aware so its own padding and border remain inside the shared card safe area.\n\n## 0.3.0 — 2026-07-16\n\n- Changed: production source-selector and menu styles are now owned by the Library stylesheet so context stories render the same component as the application.\n\n## 0.2.0 — 2026-07-16\n\n- Changed: moved interface copy to the shared i18n dictionary.\n"
+        "changelogDocumentation": "# Changelog\n\n## Unreleased\n\n- Breaking: Canonical filesystem and URL path moved to `components/molecules/inputs/SourceSelect`; no legacy redirect is retained.\n- Changed: Category is derived from the component directory; the package barrel export remains automatic.\n\n## 0.4.1 — 2026-07-19\n\n- Changed: Colocated production styles in `SourceSelect.scss`; catalog-only CSS now lives in `SourceSelect.preview.tsx`.\n\n## 0.4.0 — 2026-07-19\n\n- Visual: made the full-width catalog specimen border-box aware so its own padding and border remain inside the shared card safe area.\n\n## 0.3.0 — 2026-07-16\n\n- Changed: production source-selector and menu styles are now owned by the Library stylesheet so context stories render the same component as the application.\n\n## 0.2.0 — 2026-07-16\n\n- Changed: moved interface copy to the shared i18n dictionary.\n"
       }
     },
     {
-      "index": 43,
-      "ref": "design-lab-system:component:story-canvas",
-      "id": "story-canvas",
-      "kind": "component",
-      "source": {
-        "id": "design-lab-system",
-        "name": "Design Lab System",
-        "kind": "library"
-      },
-      "name": "Story Canvas",
-      "description": "A full width, task specific specimen. Each canvas explains one component axis such as variants, sizes, loading, or full width behavior without mixing unrelated comparisons.",
-      "path": "components/molecules/StoryCanvas",
-      "status": "ready",
-      "tags": [
-        "molecules",
-        "comparison",
-        "interactive",
-        "single",
-        "default",
-        "title",
-        "description",
-        "children",
-        "meta"
-      ],
-      "search": {
-        "aliases": [],
-        "useWhen": [],
-        "avoidWhen": [],
-        "props": [
-          "title",
-          "description",
-          "children",
-          "meta"
-        ],
-        "variants": [
-          "comparison",
-          "interactive",
-          "single"
-        ],
-        "states": [
-          "default"
-        ]
-      },
-      "details": {
-        "import": {
-          "symbol": "StoryCanvas",
-          "from": "@design-lab/system/components",
-          "statement": "import { StoryCanvas } from '@design-lab/system/components'"
-        },
-        "entry": "components/molecules/StoryCanvas/StoryCanvas.tsx",
-        "manifest": "components/molecules/StoryCanvas/component.json",
-        "preview": "components/molecules/StoryCanvas/StoryCanvas.preview.tsx",
-        "stories": "components/molecules/StoryCanvas/StoryCanvas.stories.ts",
-        "docs": "components/molecules/StoryCanvas/README.md",
-        "changelog": "components/molecules/StoryCanvas/CHANGELOG.md",
-        "props": {
-          "title": {
-            "type": "string",
-            "required": true
-          },
-          "description": {
-            "type": "string"
-          },
-          "children": {
-            "type": "ReactNode",
-            "required": true,
-            "slot": true
-          },
-          "meta": {
-            "type": "ReactNode",
-            "slot": true
-          }
-        },
-        "variants": [
-          "comparison",
-          "interactive",
-          "single"
-        ],
-        "states": [
-          "default"
-        ],
-        "documentation": "# Story Canvas\n\nA full-width, task-specific specimen. Each canvas explains one component axis such as variants, sizes, loading, or full-width behavior without mixing unrelated comparisons.\n\nThe header names the scenario and its story kind. The stage renders the real subject component. Context and integration fixtures must remain visibly subordinate to that subject.\n",
-        "changelogDocumentation": "# Changelog\n\n## 0.1.0 — 2026-07-16\n\n- Added: full-width story header and token-driven specimen stage.\n"
-      }
-    },
-    {
-      "index": 44,
+      "index": 47,
       "ref": "design-lab-system:component:tab-switcher",
       "id": "tab-switcher",
       "kind": "component",
@@ -2369,10 +2749,10 @@
       },
       "name": "Tab Switcher",
       "description": "Select one value from a small mutually exclusive set using a segmented control or compact toggle.",
-      "path": "components/molecules/TabSwitcher",
+      "path": "components/molecules/inputs/TabSwitcher",
       "status": "ready",
       "tags": [
-        "molecules",
+        "molecules/inputs",
         "segmented control",
         "toggle switch",
         "theme switcher",
@@ -2438,12 +2818,13 @@
           "from": "@design-lab/system/components",
           "statement": "import { TabSwitcher } from '@design-lab/system/components'"
         },
-        "entry": "components/molecules/TabSwitcher/TabSwitcher.tsx",
-        "manifest": "components/molecules/TabSwitcher/component.json",
-        "preview": "components/molecules/TabSwitcher/TabSwitcher.preview.tsx",
-        "stories": "components/molecules/TabSwitcher/TabSwitcher.stories.ts",
-        "docs": "components/molecules/TabSwitcher/README.md",
-        "changelog": "components/molecules/TabSwitcher/CHANGELOG.md",
+        "entry": "components/molecules/inputs/TabSwitcher/TabSwitcher.tsx",
+        "style": "components/molecules/inputs/TabSwitcher/TabSwitcher.scss",
+        "manifest": "components/molecules/inputs/TabSwitcher/component.json",
+        "preview": "components/molecules/inputs/TabSwitcher/TabSwitcher.preview.tsx",
+        "stories": "components/molecules/inputs/TabSwitcher/TabSwitcher.stories.ts",
+        "docs": "components/molecules/inputs/TabSwitcher/README.md",
+        "changelog": "components/molecules/inputs/TabSwitcher/CHANGELOG.md",
         "props": {
           "options": {
             "type": "readonly TabSwitcherOption[]",
@@ -2494,93 +2875,297 @@
           "disabled"
         ],
         "documentation": "# Tab Switcher\n\nSelects one value from a small set of mutually exclusive options. Use the `segmented` variant when labels carry meaning and the compact `toggle` variant for two familiar icon-led modes.\n\n## Semantics\n\n`TabSwitcher` is a selection control, not navigation and not a boolean switch. It exposes a labelled group of pressed buttons, so it can represent interface theme, design-system mode, view density, or another reversible local preference.\n\nEvery icon-only option requires `accessibleLabel`. Product copy belongs to the caller and should come from the i18n dictionary.\n\nBoth `small` and `medium` sizes apply to both visual variants. In `toggle`, size changes the track and moving thumb as a unit; the selected option is not drawn as a segmented button.\n\nThe catalog preview opts into the shared preview-motion contract. Hovering or keyboard-focusing its Component Card moves both miniature selectors to their next illustrative state; leaving the card restores the baseline.\n\n## Usage\n\n```tsx\n<TabSwitcher\n  ariaLabel=\"Design-system mode\"\n  options={modes.map((mode) => ({ value: mode, label: mode }))}\n  value={mode}\n  onChange={setMode}\n/>\n```\n\nUse a native checkbox or switch when a setting is independently on or off. Use real tabs when selection controls an associated tab panel with tab keyboard semantics.\n",
-        "changelogDocumentation": "# Changelog\n\n## 0.3.1 — 2026-07-19\n\n- Added: semantic `description`, `aliases`, `useWhen`, and `avoidWhen` manifest metadata for AI retrieval.\n\n## 0.3.0 — 2026-07-16\n\n- Added: optional authored catalog motion that demonstrates a selection change on card hover or keyboard focus.\n- Accessibility: reduced-motion users keep the static baseline preview.\n\n## 0.2.0 — 2026-07-16\n\n- Fixed: `small` and `medium` now produce distinct geometry for both segmented and toggle variants.\n- Visual: toggle now uses a single moving thumb beneath transparent option hit areas instead of selected-button styling.\n- Changed: size stories now cover the complete `variant × size` matrix.\n\n## 0.1.0 — 2026-07-16\n\n- Added: one generic mutually exclusive selector with segmented and compact toggle variants.\n- Added: typed arbitrary string values, text or icon labels, sizes, disabled options, and accessible labels.\n- Added: real Workbench controls and focused stories for variants, sizes, and disabled state.\n- Accessibility: exposed selected state with `aria-pressed` inside a named control group.\n"
+        "changelogDocumentation": "# Changelog\n\n## Unreleased\n\n- Breaking: Canonical filesystem and URL path moved to `components/molecules/inputs/TabSwitcher`; no legacy redirect is retained.\n- Changed: Category is derived from the component directory; the package barrel export remains automatic.\n\n## 0.3.2 — 2026-07-19\n\n- Changed: Colocated production styles in `TabSwitcher.scss`; catalog-only CSS now lives in `TabSwitcher.preview.tsx`.\n\n## 0.3.1 — 2026-07-19\n\n- Added: semantic `description`, `aliases`, `useWhen`, and `avoidWhen` manifest metadata for AI retrieval.\n\n## 0.3.0 — 2026-07-16\n\n- Added: optional authored catalog motion that demonstrates a selection change on card hover or keyboard focus.\n- Accessibility: reduced-motion users keep the static baseline preview.\n\n## 0.2.0 — 2026-07-16\n\n- Fixed: `small` and `medium` now produce distinct geometry for both segmented and toggle variants.\n- Visual: toggle now uses a single moving thumb beneath transparent option hit areas instead of selected-button styling.\n- Changed: size stories now cover the complete `variant × size` matrix.\n\n## 0.1.0 — 2026-07-16\n\n- Added: one generic mutually exclusive selector with segmented and compact toggle variants.\n- Added: typed arbitrary string values, text or icon labels, sizes, disabled options, and accessible labels.\n- Added: real Workbench controls and focused stories for variants, sizes, and disabled state.\n- Accessibility: exposed selected state with `aria-pressed` inside a named control group.\n"
       }
     },
     {
-      "index": 45,
-      "ref": "design-lab-system:component:app-sidebar",
-      "id": "app-sidebar",
+      "index": 48,
+      "ref": "design-lab-system:component:canvas-background-control",
+      "id": "canvas-background-control",
       "kind": "component",
       "source": {
         "id": "design-lab-system",
         "name": "Design Lab System",
         "kind": "library"
       },
-      "name": "Application Sidebar",
-      "description": "Primary module navigation. It expands on hover while preserving the combined navigation width.",
-      "path": "components/organisms/AppSidebar",
+      "name": "Canvas Background Control",
+      "description": "Controls the shared Workbench background preference. One change updates the Playground and every Story Canvas, and persists when another component is opened.",
+      "path": "components/molecules/workbench/CanvasBackgroundControl",
       "status": "ready",
       "tags": [
-        "organisms",
+        "molecules/workbench",
         "default",
-        "collapsed",
-        "expanded",
-        "active",
-        "onChange",
-        "onExpandedChange"
+        "dark-grid",
+        "light-grid",
+        "solid",
+        "solid-picker-open",
+        "mode",
+        "color",
+        "onModeChange",
+        "onColorChange"
       ],
       "search": {
         "aliases": [],
         "useWhen": [],
         "avoidWhen": [],
         "props": [
-          "active",
-          "expanded",
-          "onChange",
-          "onExpandedChange"
+          "mode",
+          "color",
+          "onModeChange",
+          "onColorChange"
         ],
         "variants": [
           "default"
         ],
         "states": [
-          "collapsed",
-          "expanded"
+          "dark-grid",
+          "light-grid",
+          "solid",
+          "solid-picker-open"
         ]
       },
       "details": {
         "import": {
-          "symbol": "AppSidebar",
+          "symbol": "CanvasBackgroundControl",
           "from": "@design-lab/system/components",
-          "statement": "import { AppSidebar } from '@design-lab/system/components'"
+          "statement": "import { CanvasBackgroundControl } from '@design-lab/system/components'"
         },
-        "entry": "components/organisms/AppSidebar/AppSidebar.tsx",
-        "manifest": "components/organisms/AppSidebar/component.json",
-        "preview": "components/organisms/AppSidebar/AppSidebar.preview.tsx",
-        "stories": "components/organisms/AppSidebar/AppSidebar.stories.ts",
-        "docs": "components/organisms/AppSidebar/README.md",
-        "changelog": "components/organisms/AppSidebar/CHANGELOG.md",
+        "entry": "components/molecules/workbench/CanvasBackgroundControl/CanvasBackgroundControl.tsx",
+        "style": "components/molecules/workbench/CanvasBackgroundControl/CanvasBackgroundControl.scss",
+        "manifest": "components/molecules/workbench/CanvasBackgroundControl/component.json",
+        "preview": "components/molecules/workbench/CanvasBackgroundControl/CanvasBackgroundControl.preview.tsx",
+        "stories": "components/molecules/workbench/CanvasBackgroundControl/CanvasBackgroundControl.stories.ts",
+        "docs": "components/molecules/workbench/CanvasBackgroundControl/README.md",
+        "changelog": "components/molecules/workbench/CanvasBackgroundControl/CHANGELOG.md",
         "props": {
-          "active": {
-            "type": "ModuleId",
+          "mode": {
+            "type": "CanvasMode",
+            "required": true,
+            "values": [
+              "dark-grid",
+              "light-grid",
+              "solid"
+            ]
+          },
+          "color": {
+            "type": "string",
             "required": true
           },
-          "expanded": {
-            "type": "boolean",
-            "default": false
-          },
-          "onChange": {
-            "type": "(id: ModuleId) => void",
+          "onModeChange": {
+            "type": "(mode: CanvasMode) => void",
             "required": true
           },
-          "onExpandedChange": {
-            "type": "(expanded: boolean) => void",
-            "description": "Notifies the application shell when pointer disclosure changes."
+          "onColorChange": {
+            "type": "(color: string) => void",
+            "required": true
           }
         },
         "variants": [
           "default"
         ],
         "states": [
-          "collapsed",
-          "expanded"
+          "dark-grid",
+          "light-grid",
+          "solid",
+          "solid-picker-open"
         ],
-        "documentation": "# Application Sidebar\n\nPrimary module navigation. It expands on hover while preserving the combined navigation width.\n\n## Behavior\n\nThe collapsed rail keeps icons visible. Expansion reveals labels while the adjacent directory region yields the same amount of space, so total navigation width remains stable. Both grid tracks use the same duration and easing: the directory region never snaps after the rail animation. Direct pointer resizing temporarily disables that transition. `expanded` is an optional controlled presentation state for deterministic compositions and tests; normal application use may rely on hover disclosure.\n\n## Stories\n\n`Hover disclosure` is a behavior story. `Shared navigation width` is an integration story with the adjacent directory region; the composition validates the cross-component width contract and is not an `AppSidebar` variant. Application shells can use `onExpandedChange` to synchronise their layout tracks with pointer disclosure.\n",
-        "changelogDocumentation": "# Changelog\n\n## 0.5.4 — 2026-07-19\n\n- Fixed: the application theme transition no longer overwrites the navigation grid transition later in the stylesheet cascade.\n\n## 0.5.3 — 2026-07-19\n\n- Fixed: restored the grid-track transition using explicit collapsed and expanded column values, allowing the Directory Panel width to interpolate.\n\n## 0.5.2 — 2026-07-18\n\n- Fixed: the shell now interpolates its sidebar-width value, so the Directory Panel and its contents receive intermediate widths during disclosure.\n\n## 0.5.1 — 2026-07-18\n\n- Fixed: pointer disclosure now notifies the application shell, keeping the adjacent Directory Panel in the same width transition.\n\n## 0.5.0 — 2026-07-16\n\n- Changed: the integration shell now interpolates both navigation tracks together, preventing the Directory Panel from snapping during sidebar disclosure.\n- Accessibility: navigation motion is removed when reduced motion is requested.\n\n## 0.4.0 — 2026-07-16\n\n- Visual: catalog preview now depicts the real logo, navigation items, active treatment, disclosed labels, and add action instead of generic bars.\n\n## 0.3.0 — 2026-07-16\n\n- Added: controlled expanded presentation for behavior and integration stories.\n- Changed: sidebar visuals are owned by the library component stylesheet.\n\n## 0.2.0 — 2026-07-16\n\n- Changed: module labels and accessible names now resolve through the shared i18n provider.\n"
+        "documentation": "# Canvas Background Control\n\nControls the shared Workbench background preference. One change updates the Playground and every Story Canvas, and persists when another component is opened.\n\n`Background modes` is an interactive state story. `Solid color picker` is a behavior story that verifies draft HEX input, presets, and committed color changes.\n\nThe mode row composes the production `TabSwitcher`; this component owns only Canvas-specific labels, samples, persistence events, and the solid color picker.\n",
+        "changelogDocumentation": "# Changelog\n\n## Unreleased\n\n- Breaking: Canonical filesystem and URL path moved to `components/molecules/workbench/CanvasBackgroundControl`; no legacy redirect is retained.\n- Changed: Category is derived from the component directory; the package barrel export remains automatic.\n\n## 0.5.2 — 2026-07-19\n\n- Changed: Colocated production styles in `CanvasBackgroundControl.scss`; catalog-only CSS now lives in `CanvasBackgroundControl.preview.tsx`.\n\n## 0.5.1 — 2026-07-19\n\n- Fixed: isolated the legacy Canvas color popover class names from the reusable Color Picker contract.\n\n## 0.5.0 — 2026-07-16\n\n- Visual: catalog preview now shows dark grid, light grid, solid mode, and the compact color-picker composition.\n\n## 0.4.0 — 2026-07-16\n\n- Fixed: dark grid tokens are neutral charcoal values without a green cast.\n\n## 0.2.0 — 2026-07-16\n\n- Added: executable Workbench stories for background modes and solid color editing.\n\n## 0.3.0 — 2026-07-16\n\n- Changed: composed the shared `TabSwitcher` for mutually exclusive Canvas modes instead of maintaining another segmented-control implementation.\n\n## 0.2.0 — 2026-07-16\n\n- Changed: localized control labels through the shared i18n provider.\n- Changed: Canvas mode now participates in a persisted, component-wide preference.\n- Changed: light and dark grids now use dedicated semantic grid tokens.\n"
       }
     },
     {
-      "index": 46,
+      "index": 49,
+      "ref": "design-lab-system:component:module-header",
+      "id": "module-header",
+      "kind": "component",
+      "source": {
+        "id": "design-lab-system",
+        "name": "Design Lab System",
+        "kind": "library"
+      },
+      "name": "Module Header",
+      "description": "Shared identity header for module indexes and component workbenches. It combines an eyebrow, title, and one contextual trailing role: count, source metadata, or actions.",
+      "path": "components/molecules/workbench/ModuleHeader",
+      "status": "ready",
+      "tags": [
+        "molecules/workbench",
+        "module",
+        "workbench",
+        "default",
+        "with-back",
+        "with-actions",
+        "eyebrow",
+        "title",
+        "count",
+        "backLabel",
+        "onBack",
+        "meta",
+        "actions"
+      ],
+      "search": {
+        "aliases": [],
+        "useWhen": [],
+        "avoidWhen": [],
+        "props": [
+          "eyebrow",
+          "title",
+          "count",
+          "backLabel",
+          "onBack",
+          "meta",
+          "actions"
+        ],
+        "variants": [
+          "module",
+          "workbench"
+        ],
+        "states": [
+          "default",
+          "with-back",
+          "with-actions"
+        ]
+      },
+      "details": {
+        "import": {
+          "symbol": "ModuleHeader",
+          "from": "@design-lab/system/components",
+          "statement": "import { ModuleHeader } from '@design-lab/system/components'"
+        },
+        "entry": "components/molecules/workbench/ModuleHeader/ModuleHeader.tsx",
+        "style": "components/molecules/workbench/ModuleHeader/ModuleHeader.scss",
+        "manifest": "components/molecules/workbench/ModuleHeader/component.json",
+        "preview": "components/molecules/workbench/ModuleHeader/ModuleHeader.preview.tsx",
+        "stories": "components/molecules/workbench/ModuleHeader/ModuleHeader.stories.ts",
+        "docs": "components/molecules/workbench/ModuleHeader/README.md",
+        "changelog": "components/molecules/workbench/ModuleHeader/CHANGELOG.md",
+        "props": {
+          "eyebrow": {
+            "type": "string",
+            "required": true
+          },
+          "title": {
+            "type": "string",
+            "required": true
+          },
+          "count": {
+            "type": "number"
+          },
+          "backLabel": {
+            "type": "string"
+          },
+          "onBack": {
+            "type": "() => void"
+          },
+          "meta": {
+            "type": "string"
+          },
+          "actions": {
+            "type": "ReactNode",
+            "slot": true
+          }
+        },
+        "variants": [
+          "module",
+          "workbench"
+        ],
+        "states": [
+          "default",
+          "with-back",
+          "with-actions"
+        ],
+        "documentation": "# Module Header\n\nShared identity header for module indexes and component workbenches. It combines an eyebrow, title, and one contextual trailing role: count, source metadata, or actions.\n\nWorkbench back navigation is a context story because it verifies the header inside the component-detail flow.\n",
+        "changelogDocumentation": "# Changelog\n\n## Unreleased\n\n- Breaking: Canonical filesystem and URL path moved to `components/molecules/workbench/ModuleHeader`; no legacy redirect is retained.\n- Changed: Category is derived from the component directory; the package barrel export remains automatic.\n\n## 0.1.1 — 2026-07-19\n\n- Changed: Colocated production styles in `ModuleHeader.scss`; catalog-only CSS now lives in `ModuleHeader.preview.tsx`.\n\n## 0.1.0 — 2026-07-16\n\n- Added: module summary and workbench navigation compositions.\n"
+      }
+    },
+    {
+      "index": 50,
+      "ref": "design-lab-system:component:story-canvas",
+      "id": "story-canvas",
+      "kind": "component",
+      "source": {
+        "id": "design-lab-system",
+        "name": "Design Lab System",
+        "kind": "library"
+      },
+      "name": "Story Canvas",
+      "description": "A full width, task specific specimen. Each canvas explains one component axis such as variants, sizes, loading, or full width behavior without mixing unrelated comparisons.",
+      "path": "components/molecules/workbench/StoryCanvas",
+      "status": "ready",
+      "tags": [
+        "molecules/workbench",
+        "comparison",
+        "interactive",
+        "single",
+        "default",
+        "title",
+        "description",
+        "children",
+        "meta"
+      ],
+      "search": {
+        "aliases": [],
+        "useWhen": [],
+        "avoidWhen": [],
+        "props": [
+          "title",
+          "description",
+          "children",
+          "meta"
+        ],
+        "variants": [
+          "comparison",
+          "interactive",
+          "single"
+        ],
+        "states": [
+          "default"
+        ]
+      },
+      "details": {
+        "import": {
+          "symbol": "StoryCanvas",
+          "from": "@design-lab/system/components",
+          "statement": "import { StoryCanvas } from '@design-lab/system/components'"
+        },
+        "entry": "components/molecules/workbench/StoryCanvas/StoryCanvas.tsx",
+        "style": "components/molecules/workbench/StoryCanvas/StoryCanvas.scss",
+        "manifest": "components/molecules/workbench/StoryCanvas/component.json",
+        "preview": "components/molecules/workbench/StoryCanvas/StoryCanvas.preview.tsx",
+        "stories": "components/molecules/workbench/StoryCanvas/StoryCanvas.stories.ts",
+        "docs": "components/molecules/workbench/StoryCanvas/README.md",
+        "changelog": "components/molecules/workbench/StoryCanvas/CHANGELOG.md",
+        "props": {
+          "title": {
+            "type": "string",
+            "required": true
+          },
+          "description": {
+            "type": "string"
+          },
+          "children": {
+            "type": "ReactNode",
+            "required": true,
+            "slot": true
+          },
+          "meta": {
+            "type": "ReactNode",
+            "slot": true
+          }
+        },
+        "variants": [
+          "comparison",
+          "interactive",
+          "single"
+        ],
+        "states": [
+          "default"
+        ],
+        "documentation": "# Story Canvas\n\nA full-width, task-specific specimen. Each canvas explains one component axis such as variants, sizes, loading, or full-width behavior without mixing unrelated comparisons.\n\nThe header names the scenario and its story kind. The stage renders the real subject component. Context and integration fixtures must remain visibly subordinate to that subject.\n",
+        "changelogDocumentation": "# Changelog\n\n## Unreleased\n\n- Breaking: Canonical filesystem and URL path moved to `components/molecules/workbench/StoryCanvas`; no legacy redirect is retained.\n- Changed: Category is derived from the component directory; the package barrel export remains automatic.\n\n## 0.1.1 — 2026-07-19\n\n- Changed: Colocated production styles in `StoryCanvas.scss`; catalog-only CSS now lives in `StoryCanvas.preview.tsx`.\n\n## 0.1.0 — 2026-07-16\n\n- Added: full-width story header and token-driven specimen stage.\n"
+      }
+    },
+    {
+      "index": 51,
       "ref": "design-lab-system:component:create-project-dialog",
       "id": "create-project-dialog",
       "kind": "component",
@@ -2591,10 +3176,10 @@
       },
       "name": "Create Project Dialog",
       "description": "Creates a canonical Project from its name without asking for a filesystem path.",
-      "path": "components/organisms/CreateProjectDialog",
+      "path": "components/organisms/dialogs/CreateProjectDialog",
       "status": "ready",
       "tags": [
-        "organisms",
+        "organisms/dialogs",
         "required",
         "dismissible",
         "default",
@@ -2622,12 +3207,13 @@
           "from": "@design-lab/system/components",
           "statement": "import { CreateProjectDialog } from '@design-lab/system/components'"
         },
-        "entry": "components/organisms/CreateProjectDialog/CreateProjectDialog.tsx",
-        "manifest": "components/organisms/CreateProjectDialog/component.json",
-        "preview": "components/organisms/CreateProjectDialog/CreateProjectDialog.preview.tsx",
-        "stories": "components/organisms/CreateProjectDialog/CreateProjectDialog.stories.ts",
-        "docs": "components/organisms/CreateProjectDialog/README.md",
-        "changelog": "components/organisms/CreateProjectDialog/CHANGELOG.md",
+        "entry": "components/organisms/dialogs/CreateProjectDialog/CreateProjectDialog.tsx",
+        "style": "components/organisms/dialogs/CreateProjectDialog/CreateProjectDialog.scss",
+        "manifest": "components/organisms/dialogs/CreateProjectDialog/component.json",
+        "preview": "components/organisms/dialogs/CreateProjectDialog/CreateProjectDialog.preview.tsx",
+        "stories": "components/organisms/dialogs/CreateProjectDialog/CreateProjectDialog.stories.ts",
+        "docs": "components/organisms/dialogs/CreateProjectDialog/README.md",
+        "changelog": "components/organisms/dialogs/CreateProjectDialog/CHANGELOG.md",
         "props": {},
         "variants": [
           "required",
@@ -2639,11 +3225,109 @@
           "error"
         ],
         "documentation": "# Create Project Dialog\n\nCreates a canonical Project from its name without asking for a filesystem path.\n",
-        "changelogDocumentation": "# Changelog\n\n## 0.2.0 — 2026-07-16\n\n- Changed: all product copy now resolves through the shared i18n provider.\n"
+        "changelogDocumentation": "# Changelog\n\n## Unreleased\n\n- Breaking: Canonical filesystem and URL path moved to `components/organisms/dialogs/CreateProjectDialog`; no legacy redirect is retained.\n- Changed: Category is derived from the component directory; the package barrel export remains automatic.\n\n## 0.2.1 — 2026-07-19\n\n- Changed: Colocated production styles in `CreateProjectDialog.scss`; catalog-only CSS now lives in `CreateProjectDialog.preview.tsx`.\n\n## 0.2.0 — 2026-07-16\n\n- Changed: all product copy now resolves through the shared i18n provider.\n"
       }
     },
     {
-      "index": 47,
+      "index": 52,
+      "ref": "design-lab-system:component:app-sidebar",
+      "id": "app-sidebar",
+      "kind": "component",
+      "source": {
+        "id": "design-lab-system",
+        "name": "Design Lab System",
+        "kind": "library"
+      },
+      "name": "Application Sidebar",
+      "description": "Primary module navigation. It expands on hover while preserving the combined navigation width.",
+      "path": "components/organisms/shell/AppSidebar",
+      "status": "ready",
+      "tags": [
+        "organisms/shell",
+        "default",
+        "collapsed",
+        "expanded",
+        "settings-active",
+        "active",
+        "settingsActive",
+        "onChange",
+        "onSettings",
+        "onExpandedChange"
+      ],
+      "search": {
+        "aliases": [],
+        "useWhen": [],
+        "avoidWhen": [],
+        "props": [
+          "active",
+          "expanded",
+          "settingsActive",
+          "onChange",
+          "onSettings",
+          "onExpandedChange"
+        ],
+        "variants": [
+          "default"
+        ],
+        "states": [
+          "collapsed",
+          "expanded",
+          "settings-active"
+        ]
+      },
+      "details": {
+        "import": {
+          "symbol": "AppSidebar",
+          "from": "@design-lab/system/components",
+          "statement": "import { AppSidebar } from '@design-lab/system/components'"
+        },
+        "entry": "components/organisms/shell/AppSidebar/AppSidebar.tsx",
+        "style": "components/organisms/shell/AppSidebar/AppSidebar.scss",
+        "manifest": "components/organisms/shell/AppSidebar/component.json",
+        "preview": "components/organisms/shell/AppSidebar/AppSidebar.preview.tsx",
+        "stories": "components/organisms/shell/AppSidebar/AppSidebar.stories.ts",
+        "docs": "components/organisms/shell/AppSidebar/README.md",
+        "changelog": "components/organisms/shell/AppSidebar/CHANGELOG.md",
+        "props": {
+          "active": {
+            "type": "ModuleId",
+            "required": true
+          },
+          "expanded": {
+            "type": "boolean",
+            "default": false
+          },
+          "settingsActive": {
+            "type": "boolean",
+            "default": false
+          },
+          "onChange": {
+            "type": "(id: ModuleId) => void",
+            "required": true
+          },
+          "onSettings": {
+            "type": "() => void",
+            "description": "Opens application-level settings without changing the active project module."
+          },
+          "onExpandedChange": {
+            "type": "(expanded: boolean) => void",
+            "description": "Notifies the application shell when pointer disclosure changes."
+          }
+        },
+        "variants": [
+          "default"
+        ],
+        "states": [
+          "collapsed",
+          "expanded",
+          "settings-active"
+        ],
+        "documentation": "# Application Sidebar\n\nPrimary module navigation. It expands on hover while preserving the combined navigation width.\n\n## Behavior\n\nThe collapsed rail keeps icons visible. Expansion reveals labels while the adjacent directory region yields the same amount of space, so total navigation width remains stable. Both grid tracks use the same duration and easing: the directory region never snaps after the rail animation. Direct pointer resizing temporarily disables that transition. `expanded` is an optional controlled presentation state for deterministic compositions and tests; normal application use may rely on hover disclosure.\n\nApplication-level Settings stays in the fixed footer and does not become a project module. Use `settingsActive` and `onSettings` to expose that destination while preserving the selected module behind it.\n\n## Stories\n\n`Hover disclosure` is a behavior story. `Shared navigation width` is an integration story with the adjacent directory region; the composition validates the cross-component width contract and is not an `AppSidebar` variant. Application shells can use `onExpandedChange` to synchronise their layout tracks with pointer disclosure.\n",
+        "changelogDocumentation": "# Changelog\n\n## Unreleased\n\n- Breaking: Canonical filesystem and URL path moved to `components/organisms/shell/AppSidebar`; no legacy redirect is retained.\n- Changed: Category is derived from the component directory; the package barrel export remains automatic.\n\n## 0.6.2 — 2026-07-19\n\n- Changed: Colocated production styles in `AppSidebar.scss`; catalog-only CSS now lives in `AppSidebar.preview.tsx`.\n\n## 0.6.1 — 2026-07-19\n\n- Visual: replaced the Settings footer icon geometry with the supplied rounded gear artwork.\n\n## 0.6.0 — 2026-07-19\n\n- Added: persistent Settings footer action with a reusable Settings icon asset.\n- Changed: Settings selection is application-level state and does not extend the project module taxonomy.\n- Visual: the authored preview now uses the same code-native icons as the production sidebar.\n\n## 0.5.4 — 2026-07-19\n\n- Fixed: the application theme transition no longer overwrites the navigation grid transition later in the stylesheet cascade.\n\n## 0.5.3 — 2026-07-19\n\n- Fixed: restored the grid-track transition using explicit collapsed and expanded column values, allowing the Directory Panel width to interpolate.\n\n## 0.5.2 — 2026-07-18\n\n- Fixed: the shell now interpolates its sidebar-width value, so the Directory Panel and its contents receive intermediate widths during disclosure.\n\n## 0.5.1 — 2026-07-18\n\n- Fixed: pointer disclosure now notifies the application shell, keeping the adjacent Directory Panel in the same width transition.\n\n## 0.5.0 — 2026-07-16\n\n- Changed: the integration shell now interpolates both navigation tracks together, preventing the Directory Panel from snapping during sidebar disclosure.\n- Accessibility: navigation motion is removed when reduced motion is requested.\n\n## 0.4.0 — 2026-07-16\n\n- Visual: catalog preview now depicts the real logo, navigation items, active treatment, disclosed labels, and add action instead of generic bars.\n\n## 0.3.0 — 2026-07-16\n\n- Added: controlled expanded presentation for behavior and integration stories.\n- Changed: sidebar visuals are owned by the library component stylesheet.\n\n## 0.2.0 — 2026-07-16\n\n- Changed: module labels and accessible names now resolve through the shared i18n provider.\n"
+      }
+    },
+    {
+      "index": 53,
       "ref": "design-lab-system:component:directory-panel",
       "id": "directory-panel",
       "kind": "component",
@@ -2654,16 +3338,18 @@
       },
       "name": "Directory Panel",
       "description": "Resizable semantic navigation for the active module and selected source.",
-      "path": "components/organisms/DirectoryPanel",
+      "path": "components/organisms/shell/DirectoryPanel",
       "status": "ready",
       "tags": [
-        "organisms",
+        "organisms/shell",
         "semantic-tree",
         "default",
         "resizing",
         "empty",
         "loading",
         "overflow",
+        "searching",
+        "collapsed",
         "isResizing",
         "navigationWidth",
         "minNavigationWidth",
@@ -2679,7 +3365,17 @@
         "onCreateProject",
         "selectedEntityId",
         "selectedFolderPath",
-        "onTreeItemSelect"
+        "onTreeItemSelect",
+        "searchEnabled",
+        "searchPlaceholder",
+        "coloringEnabled",
+        "actionsEnabled",
+        "defaultCollapsed",
+        "persistItemColors",
+        "colorStorageKey",
+        "itemColors",
+        "onItemColorChange",
+        "renderItemActions"
       ],
       "search": {
         "aliases": [],
@@ -2701,7 +3397,17 @@
           "onCreateProject",
           "selectedEntityId",
           "selectedFolderPath",
-          "onTreeItemSelect"
+          "onTreeItemSelect",
+          "searchEnabled",
+          "searchPlaceholder",
+          "coloringEnabled",
+          "actionsEnabled",
+          "defaultCollapsed",
+          "persistItemColors",
+          "colorStorageKey",
+          "itemColors",
+          "onItemColorChange",
+          "renderItemActions"
         ],
         "variants": [
           "semantic-tree"
@@ -2711,7 +3417,9 @@
           "resizing",
           "empty",
           "loading",
-          "overflow"
+          "overflow",
+          "searching",
+          "collapsed"
         ]
       },
       "details": {
@@ -2720,12 +3428,13 @@
           "from": "@design-lab/system/components",
           "statement": "import { DirectoryPanel } from '@design-lab/system/components'"
         },
-        "entry": "components/organisms/DirectoryPanel/DirectoryPanel.tsx",
-        "manifest": "components/organisms/DirectoryPanel/component.json",
-        "preview": "components/organisms/DirectoryPanel/DirectoryPanel.preview.tsx",
-        "stories": "components/organisms/DirectoryPanel/DirectoryPanel.stories.ts",
-        "docs": "components/organisms/DirectoryPanel/README.md",
-        "changelog": "components/organisms/DirectoryPanel/CHANGELOG.md",
+        "entry": "components/organisms/shell/DirectoryPanel/DirectoryPanel.tsx",
+        "style": "components/organisms/shell/DirectoryPanel/DirectoryPanel.scss",
+        "manifest": "components/organisms/shell/DirectoryPanel/component.json",
+        "preview": "components/organisms/shell/DirectoryPanel/DirectoryPanel.preview.tsx",
+        "stories": "components/organisms/shell/DirectoryPanel/DirectoryPanel.stories.ts",
+        "docs": "components/organisms/shell/DirectoryPanel/README.md",
+        "changelog": "components/organisms/shell/DirectoryPanel/CHANGELOG.md",
         "props": {
           "isResizing": {
             "type": "boolean",
@@ -2787,6 +3496,42 @@
           },
           "onTreeItemSelect": {
             "type": "(item: DirectoryTreeItem) => void"
+          },
+          "searchEnabled": {
+            "type": "boolean",
+            "default": true
+          },
+          "searchPlaceholder": {
+            "type": "string"
+          },
+          "coloringEnabled": {
+            "type": "boolean",
+            "default": true
+          },
+          "actionsEnabled": {
+            "type": "boolean",
+            "default": true
+          },
+          "defaultCollapsed": {
+            "type": "boolean",
+            "default": true
+          },
+          "persistItemColors": {
+            "type": "boolean",
+            "default": true
+          },
+          "colorStorageKey": {
+            "type": "string",
+            "default": "design-lab:directory-item-colors"
+          },
+          "itemColors": {
+            "type": "Record<string, string>"
+          },
+          "onItemColorChange": {
+            "type": "(item: DirectoryTreeItem, color: string | null) => void"
+          },
+          "renderItemActions": {
+            "type": "(item: DirectoryTreeItem) => ReactNode"
           }
         },
         "variants": [
@@ -2797,14 +3542,16 @@
           "resizing",
           "empty",
           "loading",
-          "overflow"
+          "overflow",
+          "searching",
+          "collapsed"
         ],
-        "documentation": "# Directory Panel\n\nResizable semantic navigation for the active module and selected source.\n\nThe source header and local-filesystem footer remain fixed. The semantic tree between them owns vertical scrolling, uses a quiet token-driven scrollbar, and clips long entity names without changing panel width.\n\nThe panel does not own an independent hover width. Application Sidebar and Directory Panel divide one navigation width in their parent shell. When the application rail discloses labels, both grid tracks interpolate together; when the resize handle moves, the shared navigation width changes directly and is persisted by the application.\n\nFolders are both disclosure controls and module filters. Selecting a folder updates the right-hand module view even when the same click also expands or collapses its children. `All` is a code-owned virtual folder above the filesystem tree; it resets filtering without creating an `All/` directory on disk.\n\n## Stories\n\n`Content states` covers representative, empty, and loading data. `Dense project tree` is a content-stress context story with realistic component categories, nesting, long labels, and enough rows to expose overflow, scrollbar, clipping, disclosure, and focus defects. `Resizable width` isolates the resizing behavior.\n",
-        "changelogDocumentation": "# Changelog\n\n## 0.6.0 — 2026-07-16\n\n- Added: independent folder selection with active treatment and module-filter callback.\n- Added: virtual `All` folder support without filesystem disclosure behavior.\n\n## 0.5.0 — 2026-07-16\n\n- Changed: width disclosure is synchronized with Application Sidebar through the shared parent navigation grid.\n- Preserved: direct resize still updates and persists the total navigation width without transition lag.\n\n## 0.4.0 — 2026-07-16\n\n- Visual: catalog preview now depicts source identity, module toolbar, nested semantic entities, selection, scrollbar, and filesystem status.\n\n## 0.3.0 — 2026-07-16\n\n- Added: representative and dense content fixtures for semantic navigation.\n- Visual: tree scrolling now uses a quiet token-driven scrollbar with stable gutter.\n\n## 0.2.0 — 2026-07-16\n\n- Changed: loading, empty, action, and accessibility copy now resolves through i18n.\n"
+        "documentation": "# Directory Panel\n\nResizable semantic navigation for the active module and selected source.\n\nThe source header and local-filesystem footer remain fixed. The semantic tree between them owns vertical scrolling, uses a quiet token-driven scrollbar, and clips long entity names without changing panel width.\n\nThe panel does not own an independent hover width. Application Sidebar and Directory Panel divide one navigation width in their parent shell. When the application rail discloses labels, both grid tracks interpolate together; when the resize handle moves, the shared navigation width changes directly and is persisted by the application.\n\nFolders are both disclosure controls and module filters. Selecting a folder updates the right-hand module view even when the same click also expands or collapses its children. `All` is a code-owned virtual folder above the filesystem tree; it resets filtering without creating an `All/` directory on disk.\n\nThe default presentation starts with real folders collapsed, so only virtual and top-level folders are visible. Search, icon coloring, remembered colors, and future item actions are enabled by default and can be disabled independently with `searchEnabled`, `coloringEnabled`, `persistItemColors`, and `actionsEnabled`. Search reveals matching descendants and their ancestor folders without mutating disclosure state. Color overrides are stored by source, entity kind, and canonical path.\n\n## Stories\n\n`Content states` covers representative, empty, and loading data. `Dense project tree` is a content-stress context story with realistic component categories, nesting, long labels, and enough rows to expose overflow, scrollbar, clipping, disclosure, and focus defects. `Resizable width` isolates the resizing behavior. `Optional navigation capabilities` proves that the new UX affordances remain configurable rather than becoming hidden application assumptions.\n",
+        "changelogDocumentation": "# Changelog\n\n## Unreleased\n\n- Breaking: Canonical filesystem and URL path moved to `components/organisms/shell/DirectoryPanel`; no legacy redirect is retained.\n- Changed: Category is derived from the component directory; the package barrel export remains automatic.\n\n## 0.7.1 — 2026-07-19\n\n- Changed: Colocated production styles in `DirectoryPanel.scss`; catalog-only CSS now lives in `DirectoryPanel.preview.tsx`.\n\n## 0.7.0 — 2026-07-19\n\n- Added: configurable search with ancestor-aware result disclosure.\n- Added: icon color overrides with source-scoped localStorage persistence and controlled callbacks.\n- Added: configurable future item actions using the Semantic Tree Item menu slot.\n- Changed: real folders start collapsed by default while virtual and top-level rows remain visible.\n- Visual: increased indentation between semantic tree levels.\n\n## 0.6.0 — 2026-07-16\n\n- Added: independent folder selection with active treatment and module-filter callback.\n- Added: virtual `All` folder support without filesystem disclosure behavior.\n\n## 0.5.0 — 2026-07-16\n\n- Changed: width disclosure is synchronized with Application Sidebar through the shared parent navigation grid.\n- Preserved: direct resize still updates and persists the total navigation width without transition lag.\n\n## 0.4.0 — 2026-07-16\n\n- Visual: catalog preview now depicts source identity, module toolbar, nested semantic entities, selection, scrollbar, and filesystem status.\n\n## 0.3.0 — 2026-07-16\n\n- Added: representative and dense content fixtures for semantic navigation.\n- Visual: tree scrolling now uses a quiet token-driven scrollbar with stable gutter.\n\n## 0.2.0 — 2026-07-16\n\n- Changed: loading, empty, action, and accessibility copy now resolves through i18n.\n"
       }
     },
     {
-      "index": 48,
+      "index": 54,
       "ref": "design-lab-system:component:workbench-playground",
       "id": "workbench-playground",
       "kind": "component",
@@ -2815,10 +3562,10 @@
       },
       "name": "Workbench Playground",
       "description": "Reusable component detail playground that composes the live Canvas, global background control, module owned controls, and optional event feedback.",
-      "path": "components/organisms/WorkbenchPlayground",
+      "path": "components/organisms/workbench/WorkbenchPlayground",
       "status": "ready",
       "tags": [
-        "organisms",
+        "organisms/workbench",
         "none",
         "compact",
         "comfortable",
@@ -2867,12 +3614,13 @@
           "from": "@design-lab/system/components",
           "statement": "import { WorkbenchPlayground } from '@design-lab/system/components'"
         },
-        "entry": "components/organisms/WorkbenchPlayground/WorkbenchPlayground.tsx",
-        "manifest": "components/organisms/WorkbenchPlayground/component.json",
-        "preview": "components/organisms/WorkbenchPlayground/WorkbenchPlayground.preview.tsx",
-        "stories": "components/organisms/WorkbenchPlayground/WorkbenchPlayground.stories.ts",
-        "docs": "components/organisms/WorkbenchPlayground/README.md",
-        "changelog": "components/organisms/WorkbenchPlayground/CHANGELOG.md",
+        "entry": "components/organisms/workbench/WorkbenchPlayground/WorkbenchPlayground.tsx",
+        "style": "components/organisms/workbench/WorkbenchPlayground/WorkbenchPlayground.scss",
+        "manifest": "components/organisms/workbench/WorkbenchPlayground/component.json",
+        "preview": "components/organisms/workbench/WorkbenchPlayground/WorkbenchPlayground.preview.tsx",
+        "stories": "components/organisms/workbench/WorkbenchPlayground/WorkbenchPlayground.stories.ts",
+        "docs": "components/organisms/workbench/WorkbenchPlayground/README.md",
+        "changelog": "components/organisms/workbench/WorkbenchPlayground/CHANGELOG.md",
         "props": {
           "children": {
             "type": "ReactNode",
@@ -2929,11 +3677,11 @@
           "solid"
         ],
         "documentation": "# Workbench Playground\n\nReusable component-detail playground that composes the live Canvas, global background control, module-owned controls, and optional event feedback.\n\n## Layout contract\n\n- `comfortable` is the default Canvas padding and protects full-width components from touching the Canvas edge.\n- `compact` is intended for dense fixtures; `none` is reserved for components whose edge behavior is the subject of the story.\n- The controls rail is caller-owned content so component-specific prop editors do not leak into this organism.\n- Background mode and color are controlled preferences shared by all component workbenches.\n\n```tsx\n<WorkbenchPlayground\n  mode={canvasMode}\n  color={canvasColor}\n  onModeChange={setCanvasMode}\n  onColorChange={setCanvasColor}\n  controls={<ButtonControls />}\n>\n  <Button fullWidth>Continue</Button>\n</WorkbenchPlayground>\n```\n",
-        "changelogDocumentation": "# Changelog\n\n## 0.1.0 — 2026-07-16\n\n- Added: reusable Workbench Playground with Canvas, controls rail, shared background preferences, and event feedback.\n- Added: none, compact, and comfortable Canvas padding policies; comfortable is the default.\n"
+        "changelogDocumentation": "# Changelog\n\n## Unreleased\n\n- Breaking: Canonical filesystem and URL path moved to `components/organisms/workbench/WorkbenchPlayground`; no legacy redirect is retained.\n- Changed: Category is derived from the component directory; the package barrel export remains automatic.\n\n## 0.1.1 — 2026-07-19\n\n- Changed: Colocated production styles in `WorkbenchPlayground.scss`; catalog-only CSS now lives in `WorkbenchPlayground.preview.tsx`.\n\n## 0.1.0 — 2026-07-16\n\n- Added: reusable Workbench Playground with Canvas, controls rail, shared background preferences, and event feedback.\n- Added: none, compact, and comfortable Canvas padding policies; comfortable is the default.\n"
       }
     },
     {
-      "index": 49,
+      "index": 55,
       "ref": "design-lab-system:font:interface-sans",
       "id": "interface-sans",
       "kind": "font",
@@ -2979,7 +3727,7 @@
       }
     },
     {
-      "index": 50,
+      "index": 56,
       "ref": "design-lab-system:token:color.canvas",
       "id": "color.canvas",
       "kind": "token",
@@ -3019,7 +3767,7 @@
       }
     },
     {
-      "index": 51,
+      "index": 57,
       "ref": "design-lab-system:token:color.surface.primary",
       "id": "color.surface.primary",
       "kind": "token",
@@ -3060,7 +3808,7 @@
       }
     },
     {
-      "index": 52,
+      "index": 58,
       "ref": "design-lab-system:token:color.surface.secondary",
       "id": "color.surface.secondary",
       "kind": "token",
@@ -3101,7 +3849,7 @@
       }
     },
     {
-      "index": 53,
+      "index": 59,
       "ref": "design-lab-system:token:color.surface.raised",
       "id": "color.surface.raised",
       "kind": "token",
@@ -3142,7 +3890,7 @@
       }
     },
     {
-      "index": 54,
+      "index": 60,
       "ref": "design-lab-system:token:color.surface.hover",
       "id": "color.surface.hover",
       "kind": "token",
@@ -3183,7 +3931,7 @@
       }
     },
     {
-      "index": 55,
+      "index": 61,
       "ref": "design-lab-system:token:color.border.subtle",
       "id": "color.border.subtle",
       "kind": "token",
@@ -3224,7 +3972,7 @@
       }
     },
     {
-      "index": 56,
+      "index": 62,
       "ref": "design-lab-system:token:color.border.default",
       "id": "color.border.default",
       "kind": "token",
@@ -3265,7 +4013,7 @@
       }
     },
     {
-      "index": 57,
+      "index": 63,
       "ref": "design-lab-system:token:color.border.strong",
       "id": "color.border.strong",
       "kind": "token",
@@ -3306,7 +4054,7 @@
       }
     },
     {
-      "index": 58,
+      "index": 64,
       "ref": "design-lab-system:token:color.text.primary",
       "id": "color.text.primary",
       "kind": "token",
@@ -3347,7 +4095,7 @@
       }
     },
     {
-      "index": 59,
+      "index": 65,
       "ref": "design-lab-system:token:color.text.secondary",
       "id": "color.text.secondary",
       "kind": "token",
@@ -3388,7 +4136,7 @@
       }
     },
     {
-      "index": 60,
+      "index": 66,
       "ref": "design-lab-system:token:color.text.muted",
       "id": "color.text.muted",
       "kind": "token",
@@ -3429,7 +4177,7 @@
       }
     },
     {
-      "index": 61,
+      "index": 67,
       "ref": "design-lab-system:token:color.text.disabled",
       "id": "color.text.disabled",
       "kind": "token",
@@ -3470,7 +4218,7 @@
       }
     },
     {
-      "index": 62,
+      "index": 68,
       "ref": "design-lab-system:token:color.accent.primary",
       "id": "color.accent.primary",
       "kind": "token",
@@ -3511,7 +4259,7 @@
       }
     },
     {
-      "index": 63,
+      "index": 69,
       "ref": "design-lab-system:token:color.accent.secondary",
       "id": "color.accent.secondary",
       "kind": "token",
@@ -3552,7 +4300,7 @@
       }
     },
     {
-      "index": 64,
+      "index": 70,
       "ref": "design-lab-system:token:color.code",
       "id": "color.code",
       "kind": "token",
@@ -3592,7 +4340,7 @@
       }
     },
     {
-      "index": 65,
+      "index": 71,
       "ref": "design-lab-system:token:color.canvas-grid.dark-a",
       "id": "color.canvas-grid.dark-a",
       "kind": "token",
@@ -3633,7 +4381,7 @@
       }
     },
     {
-      "index": 66,
+      "index": 72,
       "ref": "design-lab-system:token:color.canvas-grid.dark-b",
       "id": "color.canvas-grid.dark-b",
       "kind": "token",
@@ -3674,7 +4422,7 @@
       }
     },
     {
-      "index": 67,
+      "index": 73,
       "ref": "design-lab-system:token:color.canvas-grid.light-a",
       "id": "color.canvas-grid.light-a",
       "kind": "token",
@@ -3715,7 +4463,7 @@
       }
     },
     {
-      "index": 68,
+      "index": 74,
       "ref": "design-lab-system:token:color.canvas-grid.light-b",
       "id": "color.canvas-grid.light-b",
       "kind": "token",
@@ -3756,7 +4504,7 @@
       }
     },
     {
-      "index": 69,
+      "index": 75,
       "ref": "design-lab-system:token:color.status.success",
       "id": "color.status.success",
       "kind": "token",
@@ -3797,7 +4545,48 @@
       }
     },
     {
-      "index": 70,
+      "index": 76,
+      "ref": "design-lab-system:token:color.status.warning",
+      "id": "color.status.warning",
+      "kind": "token",
+      "source": {
+        "id": "design-lab-system",
+        "name": "Design Lab System",
+        "kind": "library"
+      },
+      "name": "color.status.warning",
+      "description": "color design token with resolved values for dark, light.",
+      "path": "tokens/base.tokens.json",
+      "status": null,
+      "tags": [
+        "color",
+        "color",
+        "status",
+        "warning"
+      ],
+      "search": {
+        "type": "color",
+        "values": {
+          "dark": "#f2c14e",
+          "light": "#9a6700"
+        }
+      },
+      "details": {
+        "id": "color.status.warning",
+        "path": "color.status.warning",
+        "type": "color",
+        "value": "#f2c14e",
+        "description": null,
+        "file": "base.tokens.json",
+        "mode": "dark",
+        "values": {
+          "dark": "#f2c14e",
+          "light": "#9a6700"
+        }
+      }
+    },
+    {
+      "index": 77,
       "ref": "design-lab-system:token:color.status.danger",
       "id": "color.status.danger",
       "kind": "token",
@@ -3838,7 +4627,7 @@
       }
     },
     {
-      "index": 71,
+      "index": 78,
       "ref": "design-lab-system:token:color.overlay.scrim",
       "id": "color.overlay.scrim",
       "kind": "token",
@@ -3879,7 +4668,7 @@
       }
     },
     {
-      "index": 72,
+      "index": 79,
       "ref": "design-lab-system:token:size.icon",
       "id": "size.icon",
       "kind": "token",
@@ -3919,7 +4708,7 @@
       }
     },
     {
-      "index": 73,
+      "index": 80,
       "ref": "design-lab-system:token:size.control.small",
       "id": "size.control.small",
       "kind": "token",
@@ -3960,7 +4749,7 @@
       }
     },
     {
-      "index": 74,
+      "index": 81,
       "ref": "design-lab-system:token:size.control.medium",
       "id": "size.control.medium",
       "kind": "token",
@@ -4001,7 +4790,7 @@
       }
     },
     {
-      "index": 75,
+      "index": 82,
       "ref": "design-lab-system:token:size.control.large",
       "id": "size.control.large",
       "kind": "token",
@@ -4042,7 +4831,7 @@
       }
     },
     {
-      "index": 76,
+      "index": 83,
       "ref": "design-lab-system:token:size.sidebar.collapsed",
       "id": "size.sidebar.collapsed",
       "kind": "token",
@@ -4083,7 +4872,7 @@
       }
     },
     {
-      "index": 77,
+      "index": 84,
       "ref": "design-lab-system:token:size.sidebar.expanded",
       "id": "size.sidebar.expanded",
       "kind": "token",
@@ -4124,7 +4913,7 @@
       }
     },
     {
-      "index": 78,
+      "index": 85,
       "ref": "design-lab-system:token:size.navigation",
       "id": "size.navigation",
       "kind": "token",
@@ -4164,7 +4953,7 @@
       }
     },
     {
-      "index": 79,
+      "index": 86,
       "ref": "design-lab-system:token:size.navigation-min",
       "id": "size.navigation-min",
       "kind": "token",
@@ -4204,7 +4993,7 @@
       }
     },
     {
-      "index": 80,
+      "index": 87,
       "ref": "design-lab-system:token:size.directory-panel-min",
       "id": "size.directory-panel-min",
       "kind": "token",
@@ -4244,7 +5033,7 @@
       }
     },
     {
-      "index": 81,
+      "index": 88,
       "ref": "design-lab-system:token:size.workspace-min",
       "id": "size.workspace-min",
       "kind": "token",
@@ -4284,7 +5073,7 @@
       }
     },
     {
-      "index": 82,
+      "index": 89,
       "ref": "design-lab-system:token:size.tab-height",
       "id": "size.tab-height",
       "kind": "token",
@@ -4324,7 +5113,7 @@
       }
     },
     {
-      "index": 83,
+      "index": 90,
       "ref": "design-lab-system:token:spacing.1",
       "id": "spacing.1",
       "kind": "token",
@@ -4364,7 +5153,7 @@
       }
     },
     {
-      "index": 84,
+      "index": 91,
       "ref": "design-lab-system:token:spacing.2",
       "id": "spacing.2",
       "kind": "token",
@@ -4404,7 +5193,7 @@
       }
     },
     {
-      "index": 85,
+      "index": 92,
       "ref": "design-lab-system:token:spacing.3",
       "id": "spacing.3",
       "kind": "token",
@@ -4444,7 +5233,7 @@
       }
     },
     {
-      "index": 86,
+      "index": 93,
       "ref": "design-lab-system:token:spacing.4",
       "id": "spacing.4",
       "kind": "token",
@@ -4484,7 +5273,7 @@
       }
     },
     {
-      "index": 87,
+      "index": 94,
       "ref": "design-lab-system:token:radius.small",
       "id": "radius.small",
       "kind": "token",
@@ -4524,7 +5313,7 @@
       }
     },
     {
-      "index": 88,
+      "index": 95,
       "ref": "design-lab-system:token:radius.medium",
       "id": "radius.medium",
       "kind": "token",
@@ -4564,7 +5353,47 @@
       }
     },
     {
-      "index": 89,
+      "index": 96,
+      "ref": "design-lab-system:token:radius.card",
+      "id": "radius.card",
+      "kind": "token",
+      "source": {
+        "id": "design-lab-system",
+        "name": "Design Lab System",
+        "kind": "library"
+      },
+      "name": "radius.card",
+      "description": "radius design token with resolved values for dark, light.",
+      "path": "tokens/base.tokens.json",
+      "status": null,
+      "tags": [
+        "radius",
+        "radius",
+        "card"
+      ],
+      "search": {
+        "type": "radius",
+        "values": {
+          "dark": "12px",
+          "light": "12px"
+        }
+      },
+      "details": {
+        "id": "radius.card",
+        "path": "radius.card",
+        "type": "radius",
+        "value": "12px",
+        "description": null,
+        "file": "base.tokens.json",
+        "mode": "dark",
+        "values": {
+          "dark": "12px",
+          "light": "12px"
+        }
+      }
+    },
+    {
+      "index": 97,
       "ref": "design-lab-system:token:transition.fast",
       "id": "transition.fast",
       "kind": "token",
@@ -4604,7 +5433,7 @@
       }
     },
     {
-      "index": 90,
+      "index": 98,
       "ref": "design-lab-system:token:transition.preview",
       "id": "transition.preview",
       "kind": "token",
@@ -4644,7 +5473,7 @@
       }
     },
     {
-      "index": 91,
+      "index": 99,
       "ref": "design-lab-system:token:easing.preview",
       "id": "easing.preview",
       "kind": "token",
@@ -4684,7 +5513,7 @@
       }
     },
     {
-      "index": 92,
+      "index": 100,
       "ref": "design-lab-system:token:typography.interface.family",
       "id": "typography.interface.family",
       "kind": "token",
@@ -4725,7 +5554,7 @@
       }
     },
     {
-      "index": 93,
+      "index": 101,
       "ref": "design-lab-system:token:typography.body.size",
       "id": "typography.body.size",
       "kind": "token",
@@ -4766,7 +5595,7 @@
       }
     },
     {
-      "index": 94,
+      "index": 102,
       "ref": "design-lab-system:token:typography.body.line-height",
       "id": "typography.body.line-height",
       "kind": "token",
@@ -4807,7 +5636,7 @@
       }
     },
     {
-      "index": 95,
+      "index": 103,
       "ref": "design-lab-system:token:typography.heading.weight",
       "id": "typography.heading.weight",
       "kind": "token",
@@ -4848,5 +5677,5 @@
       }
     }
   ],
-  "builtAt": "2026-07-18T23:26:47.085Z"
+  "builtAt": "2026-07-19T12:02:30.778Z"
 }

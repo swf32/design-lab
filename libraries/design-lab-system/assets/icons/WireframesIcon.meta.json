@@ -1,0 +1,7 @@
+{
+  "description": "Abstract layout icon representing exploratory Wireframes and early screen structure.",
+  "aliases": ["layout draft icon", "wireframe module", "prototype icon"],
+  "useWhen": ["navigate to Wireframes", "represent early layout exploration"],
+  "avoidWhen": ["represent finalized Pages", "represent reusable Components"],
+  "tags": ["module", "wireframes", "layout", "prototype"]
+}

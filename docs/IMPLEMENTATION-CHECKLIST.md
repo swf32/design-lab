@@ -37,6 +37,9 @@
 - [x] Product copy переведён на typed i18n dictionary; английский активен, русский подготовлен как следующий locale.
 - [x] Canvas mode и solid color сохраняются глобально и синхронно применяются к Playground и Stories.
 - [x] Application Sidebar и Directory Panel синхронно анимируют разделение общей navigation width без изменения Workspace.
+- [x] Mobile shell объединяет Application Sidebar и Directory Panel в доступный drawer, сохраняет 44px touch targets, safe areas и одноколоночный Workspace без horizontal overflow.
+- [x] Workbench Back восстанавливает предыдущее session-history состояние, включая исходную папку и переходы между связанными Components; direct deep link возвращается в корень module.
+- [x] Module Header использует production Button для действия Back, сохраняет 40px hit target, явный keyboard focus и адаптивную иерархию title/source/actions.
 - [x] Workbench Playground вынесен в production-организм с Canvas padding policy, controls rail и shared background control.
 - [x] Browser-default boolean controls заменены системным Checkbox с native semantics и theme-aware styling.
 - [x] Assets реализован как filesystem-first catalog с группами, реальными image previews, empty-folder state и production `AssetCard`.
@@ -53,6 +56,8 @@
 - [x] Authored preview строится от реальной anatomy компонента, показывает один главный identity specimen и не подменяет компонент выдуманным parent shell.
 - [x] Preview geometry проверяется в фактической Component Card: общие guide lines, оптическое центрирование, dark/light themes и отсутствие invented anatomy.
 - [x] Component Card задаёт общий preview safe area; full-width specimens используют border-box и не прилипают к краям без явного edge-to-edge contract.
+- [x] Component Card является borderless preview surface с 12px radius, overlay title gradient, без визуального hover treatment и без filename/variant metadata.
+- [x] Component catalog использует `spacing.1` между карточками; card height совпадает с preview area.
 - [x] Optional `previewMotion` запускает authored state transition на card hover/focus и отключается при reduced motion.
 - [x] Убрать generic Workbench placeholder у всех текущих компонентов `design-lab-system`; playground и контекстные stories исполняют реальные production-компоненты.
 - [x] `DirectoryPanel` использует representative и dense content fixtures; дерево является единственным scroll owner, header/footer остаются фиксированными.
@@ -78,8 +83,10 @@
 ### P1 — AI retrieval quality
 
 - [ ] Add multilingual embeddings as a derived provider and rerank lexical candidates; current relevance is deterministic lexical/fuzzy fallback.
-- [ ] Add semantic metadata coverage (`description`, `aliases`, `useWhen`, `avoidWhen`) to every default component manifest.
-- [ ] Index dependency, usage, token, font, and asset relations.
+- [x] Add semantic metadata coverage (`description`, `aliases`, `useWhen`, `avoidWhen`) to every default component manifest.
+- [x] Add searchable semantic metadata to default tokens, font families, and adjacent asset sidecars.
+- [x] Index direct production and example-only Component dependency/usage relations.
+- [ ] Index transitive impact plus token, font, and asset relations.
 - [ ] Add Search UI using the same gateway; search currently exists through MCP and CLI only.
 - [ ] Add Settings presets/tutorials for individual MCP clients and a connection self-test action.
 
@@ -88,7 +95,10 @@
 - [ ] Finish token schema/version, aliases, type validation, diagnostics, CRUD, and deterministic generated outputs.
 - [ ] Finish Palette mappings/contrast/origin instead of only displaying resolved color tokens.
 - [ ] Add font-file discovery, metadata parsing, safe local serving, and loading diagnostics.
-- [ ] Add component AST analysis, sandbox/error boundary, dependency/usages view, copy import/source actions, and create/update scaffold.
+- [x] Add shared `TOKEN_RULES.md`, `ASSET_RULES.md`, and `FONT_RULES.md` authoring contracts.
+- [x] Generate the code-native icon barrel from filesystem assets during dev/build/test.
+- [x] Add static import AST analysis, dependency/usages view, and copy import/source actions.
+- [ ] Add export/prop AST extraction, sandbox/error boundary, and create/update scaffold.
 
 ### P2 — product breadth
 
@@ -352,7 +362,10 @@ Components использует Tokens, Palette и Fonts и становится
 ## 4.1 Component discovery
 
 - [x] Автоматически находить component folders по соседнему `component.json`.
+- [x] Показывать реальные category folders даже до появления первого Component, скрывая внутренние директории уже обнаруженных Component entities.
 - [x] Не требовать центральный index для отображения компонента.
+- [x] Генерировать package `components/index.ts` рекурсивно из manifests; обновлять его при dev/build и проверять без ручной регистрации exports.
+- [x] Вычислять category из вложенного filesystem path, не дублируя её в `component.json`.
 - [x] Читать refs на preview, stories, README и `CHANGELOG.md` из локального manifest.
 - [ ] Поддержать опциональный `*.meta.json` или `*.meta.ts`.
 - [ ] Определить основной export без выполнения непроверенного кода.
@@ -363,7 +376,8 @@ Components использует Tokens, Palette и Fonts и становится
 - [ ] `id`, `name`, `description`, `status`, `path`, `exports`.
 - [ ] Props с type, required, default и description.
 - [ ] Variants, states, slots и examples. (Variants и states готовы.)
-- [ ] `dependsOn`, `usedBy`, `tokensUsed`, `fontsUsed`, `assetsUsed`.
+- [x] Direct `uses`, `usedBy`, `examplesUse`, and `usedInExamplesBy`.
+- [ ] Transitive impact, `tokensUsed`, `fontsUsed`, and `assetsUsed`.
 - [x] Docs, preview, stories и changelog refs.
 - [ ] Локальная семантика: aliases, useWhen, avoidWhen.
 
@@ -371,8 +385,8 @@ Components использует Tokens, Palette и Fonts и становится
 
 - [ ] Использовать TypeScript Compiler API для AST.
 - [ ] Извлекать exports и props без запуска компонента.
-- [ ] Строить import/dependency graph.
-- [ ] Находить usages внутри workspace.
+- [x] Строить direct import/dependency graph внутри активного Project/Library.
+- [ ] Находить usages во всём workspace, включая application consumers.
 - [ ] Находить CSS variables и token references.
 - [ ] Инкрементально пересчитывать только затронутые файлы.
 - [ ] Отделить надёжно извлечённые факты от эвристических выводов.
@@ -396,10 +410,13 @@ Components использует Tokens, Palette и Fonts и становится
 
 - [x] Directory tree с произвольно вложенными группами/папками.
 - [x] Grid, визуально сгруппированный по произвольно вложенным категориям, с illustrative preview компонентов.
+- [x] Catalog показывает полный category path относительно текущей папки и не предполагает фиксированную глубину или известные имена групп.
+- [x] Radio Button, Slider и Chip реализованы как автоматически обнаруживаемые production Components с preview, Playground, focused stories, docs и changelog.
+- [x] Общий component color axis использует `default | accent | success | warning | danger`; warning добавлен в canonical dark/light tokens.
 - [ ] Поиск по name, aliases, description, props и назначению.
 - [ ] Filters: status, completeness, dependencies, diagnostics, tags.
 - [ ] Карточка показывает name, preview, status и completeness.
-- [ ] Detail view: Canvas, Playground, Docs, Code, Dependencies, Changelog. (Playground, полноширинные Stories, Markdown Docs и artifact refs готовы.)
+- [x] Detail view: Canvas, Playground, Docs, Code, Dependencies, Changelog; Component Reference показывает import, discovered files и прямые production/example relationships.
 - [ ] Props controls для boolean, enum, string, number и slots. (Boolean, enum, string и slots реализованы для Button.)
 - [x] Самостоятельные полноширинные Stories для variants, sizes, fullWidth, loading и composition эталонного Button.
 - [x] Props API имеет подписанные Name, Type и Default columns.
@@ -408,7 +425,8 @@ Components использует Tokens, Palette и Fonts и становится
 - [x] `TabSwitcher` проверен полной матрицей segmented/toggle × small/medium; toggle использует moving thumb.
 - [x] Markdown fenced code рендерится через production `CodeBlock` с копированием и overflow.
 - [x] Dark Canvas grid использует нейтральные charcoal tokens.
-- [ ] Copy import, JSX example, props и source path.
+- [x] Canonical import показывается через production CodeBlock и копируется.
+- [ ] Copy JSX example, props и source path.
 
 ## 4.6 Completeness assistant
 
@@ -422,8 +440,13 @@ Components использует Tokens, Palette и Fonts и становится
 
 - [ ] Форма создания component folder.
 - [ ] Основной `.tsx`.
+- [x] Соседний production `*.scss`, импортируемый самим component implementation и автоматически обнаруживаемый scanner.
 - [ ] `*.preview.tsx`.
-- [ ] Опциональный `*.stories.tsx`.
+- [x] Preview-only CSS хранится внутри `*.preview.tsx`, а не в production SCSS или package-wide stylesheet.
+- [x] Workbench показывает полный discovered file inventory, включая implementation, style, manifest, preview, stories, docs и changelog.
+- [x] Репозиторные `format:code` и `check:code` форматируют TS/TSX/MJS приложения и Library и запрещают compressed source в root build/test.
+- [x] Репозиторные `format:styles` и `check:styles` форматируют SCSS и preview `String.raw` CSS и защищают от однострочных style sources и повторных селекторов в одном cascade context.
+- [x] Manifest-declared `*.stories.ts(x)` автоматически загружается из component directory и владеет своим renderer.
 - [ ] README и `CHANGELOG.md`.
 - [ ] Опциональная локальная metadata.
 - [ ] Preview diff создаваемых файлов до записи.
@@ -433,7 +456,7 @@ Components использует Tokens, Palette и Fonts и становится
 
 - [ ] Discovery разных component structures.
 - [ ] Props extraction.
-- [ ] Dependency/usage graph.
+- [x] Direct production и example-only dependency/usage graph строится из static TypeScript/TSX imports; `import type` исключён.
 - [ ] Один сломанный компонент не ломает каталог.
 - [ ] Preview sandbox и error boundary.
 - [ ] Controls изменяют props preview.
@@ -445,7 +468,8 @@ Components использует Tokens, Palette и Fonts и становится
 - [ ] Созданный вручную компонент появляется автоматически.
 - [ ] Component detail показывает реальный preview, props, docs и source.
 - [ ] Playground управляет основными типами props.
-- [ ] Видны зависимости, usages и используемые design tokens.
+- [x] Видны прямые production dependencies/usages и отдельные example-only relationships.
+- [ ] Видны используемые design tokens.
 - [ ] UI показывает недостающие артефакты, но не блокирует компонент.
 - [ ] Компонент можно создать через форму без ручной регистрации.
 

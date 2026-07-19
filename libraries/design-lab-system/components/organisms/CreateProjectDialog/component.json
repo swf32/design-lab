@@ -1,1 +1,0 @@
-{"id":"create-project-dialog","name":"Create Project Dialog","category":"organisms","entry":"CreateProjectDialog.tsx","preview":"CreateProjectDialog.preview.tsx","stories":"CreateProjectDialog.stories.ts","docs":"README.md","changelog":"CHANGELOG.md","status":"ready","states":["default","busy","error"],"variants":["required","dismissible"]}

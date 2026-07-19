@@ -1,0 +1,7 @@
+{
+  "description": "Four-part diamond icon representing one reusable design-system Component entity.",
+  "aliases": ["component symbol", "instance icon", "design component"],
+  "useWhen": ["represent a single Component", "mark a component entity in semantic navigation"],
+  "avoidWhen": ["represent the entire Components module", "represent generic layers"],
+  "tags": ["component", "entity", "design-system"]
+}

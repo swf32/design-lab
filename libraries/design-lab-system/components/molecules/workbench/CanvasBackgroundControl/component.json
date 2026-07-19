@@ -1,0 +1,43 @@
+{
+  "id": "canvas-background-control",
+  "name": "Canvas Background Control",
+  "description": "Controls the shared Workbench canvas background across dark grid, light grid, and custom solid color modes.",
+  "aliases": ["canvas mode control", "story background selector", "preview background"],
+  "useWhen": [
+    "change every workbench canvas background",
+    "inspect a component on light or dark grid",
+    "set a custom story surface color"
+  ],
+  "avoidWhen": [
+    "change the application theme",
+    "edit a component color prop",
+    "choose a project source"
+  ],
+  "entry": "CanvasBackgroundControl.tsx",
+  "preview": "CanvasBackgroundControl.preview.tsx",
+  "stories": "CanvasBackgroundControl.stories.ts",
+  "docs": "README.md",
+  "changelog": "CHANGELOG.md",
+  "status": "ready",
+  "states": ["dark-grid", "light-grid", "solid", "solid-picker-open"],
+  "variants": ["default"],
+  "props": {
+    "mode": {
+      "type": "CanvasMode",
+      "required": true,
+      "values": ["dark-grid", "light-grid", "solid"]
+    },
+    "color": {
+      "type": "string",
+      "required": true
+    },
+    "onModeChange": {
+      "type": "(mode: CanvasMode) => void",
+      "required": true
+    },
+    "onColorChange": {
+      "type": "(color: string) => void",
+      "required": true
+    }
+  }
+}

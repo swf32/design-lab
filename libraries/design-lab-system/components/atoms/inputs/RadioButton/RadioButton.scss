@@ -1,0 +1,142 @@
+.dl-radio-button {
+  --radio-color: var(--color-accent-primary);
+  position: relative;
+  width: max-content;
+  max-width: 100%;
+  display: inline-flex;
+  align-items: flex-start;
+  gap: var(--spacing-2);
+  color: var(--color-text-secondary);
+  cursor: pointer;
+}
+.dl-radio-button--default {
+  --radio-color: var(--color-text-primary);
+}
+.dl-radio-button--success {
+  --radio-color: var(--color-status-success);
+}
+.dl-radio-button--warning {
+  --radio-color: var(--color-status-warning);
+}
+.dl-radio-button--danger {
+  --radio-color: var(--color-status-danger);
+}
+.dl-radio-button input {
+  position: absolute;
+  z-index: 1;
+  inset: 0 auto auto 0;
+  width: 18px;
+  height: 18px;
+  margin: 0;
+  opacity: 0;
+  cursor: inherit;
+}
+.dl-radio-button__control {
+  width: 18px;
+  height: 18px;
+  flex: 0 0 18px;
+  box-sizing: border-box;
+  border: 1px solid var(--color-border-strong);
+  border-radius: 50%;
+  background: var(--color-surface-secondary);
+  display: grid;
+  place-items: center;
+  transition:
+    border-color var(--transition-fast),
+    background var(--transition-fast),
+    box-shadow var(--transition-fast),
+    transform var(--transition-fast);
+}
+.dl-radio-button__indicator {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--radio-color);
+  opacity: 0;
+  transform: scale(0.35);
+  transition:
+    opacity var(--transition-fast),
+    transform var(--transition-fast);
+}
+.dl-radio-button:hover input:not(:disabled) + .dl-radio-button__control {
+  border-color: var(--radio-color);
+  background: var(--color-surface-hover);
+}
+.dl-radio-button input:focus-visible + .dl-radio-button__control {
+  border-color: var(--radio-color);
+  box-shadow:
+    0 0 0 2px var(--color-canvas),
+    0 0 0 4px color-mix(in srgb, var(--radio-color) 82%, transparent);
+}
+.dl-radio-button input:active:not(:disabled) + .dl-radio-button__control {
+  transform: scale(0.92);
+}
+.dl-radio-button input:checked + .dl-radio-button__control {
+  border-color: var(--radio-color);
+}
+.dl-radio-button input:checked + .dl-radio-button__control .dl-radio-button__indicator {
+  opacity: 1;
+  transform: scale(1);
+}
+.dl-radio-button input[aria-invalid='true'] + .dl-radio-button__control {
+  border-color: var(--color-status-danger);
+}
+.dl-radio-button__content {
+  min-width: 0;
+  display: grid;
+  gap: 2px;
+}
+.dl-radio-button__label {
+  color: var(--color-text-secondary);
+  font-size: 11px;
+  line-height: 18px;
+}
+.dl-radio-button__description {
+  max-width: 280px;
+  color: var(--color-text-muted);
+  font-size: 9px;
+  line-height: 1.45;
+}
+.dl-radio-button--small input,
+.dl-radio-button--small .dl-radio-button__control {
+  width: 16px;
+  height: 16px;
+}
+.dl-radio-button--small .dl-radio-button__control {
+  flex-basis: 16px;
+}
+.dl-radio-button--small .dl-radio-button__indicator {
+  width: 6px;
+  height: 6px;
+}
+.dl-radio-button--small .dl-radio-button__label {
+  font-size: 10px;
+  line-height: 16px;
+}
+.dl-radio-button--large input,
+.dl-radio-button--large .dl-radio-button__control {
+  width: 22px;
+  height: 22px;
+}
+.dl-radio-button--large .dl-radio-button__control {
+  flex-basis: 22px;
+}
+.dl-radio-button--large .dl-radio-button__indicator {
+  width: 10px;
+  height: 10px;
+}
+.dl-radio-button--large .dl-radio-button__label {
+  font-size: 12px;
+  line-height: 22px;
+}
+.dl-radio-button--disabled {
+  color: var(--color-text-disabled);
+  cursor: not-allowed;
+}
+.dl-radio-button--disabled .dl-radio-button__control {
+  opacity: 0.42;
+}
+.dl-radio-button--disabled .dl-radio-button__label,
+.dl-radio-button--disabled .dl-radio-button__description {
+  color: var(--color-text-disabled);
+}

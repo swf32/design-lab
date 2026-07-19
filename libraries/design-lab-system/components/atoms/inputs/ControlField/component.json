@@ -1,0 +1,35 @@
+{
+  "id": "control-field",
+  "name": "Control Field",
+  "description": "Associates a concise label with a caller-supplied native form control in dense inspector and settings layouts.",
+  "aliases": ["form field wrapper", "control row", "inspector field", "labelled control"],
+  "useWhen": [
+    "label a select or checkbox",
+    "compose a dense property control",
+    "align heterogeneous controls"
+  ],
+  "avoidWhen": [
+    "collect text with helper or error feedback",
+    "render a control without a label",
+    "own the child control value"
+  ],
+  "entry": "ControlField.tsx",
+  "preview": "ControlField.preview.tsx",
+  "stories": "ControlField.stories.tsx",
+  "docs": "README.md",
+  "changelog": "CHANGELOG.md",
+  "status": "ready",
+  "states": ["default", "focus", "disabled"],
+  "variants": ["text", "select", "boolean", "color"],
+  "props": {
+    "label": {
+      "type": "string",
+      "required": true
+    },
+    "children": {
+      "type": "ReactNode",
+      "required": true,
+      "slot": true
+    }
+  }
+}

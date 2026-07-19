@@ -1,0 +1,63 @@
+{
+  "id": "semantic-tree-item",
+  "name": "Semantic Tree Item",
+  "description": "Represents a folder or design-system entity inside semantic tree navigation with disclosure, selection, and optional actions.",
+  "aliases": ["tree row", "entity tree item", "folder row", "navigation tree node"],
+  "useWhen": [
+    "navigate a component or token hierarchy",
+    "expand a filesystem category",
+    "select a discovered entity"
+  ],
+  "avoidWhen": [
+    "render a flat application menu",
+    "show a component catalog card",
+    "display every implementation file"
+  ],
+  "entry": "SemanticTreeItem.tsx",
+  "preview": "SemanticTreeItem.preview.tsx",
+  "stories": "SemanticTreeItem.stories.ts",
+  "docs": "README.md",
+  "changelog": "CHANGELOG.md",
+  "status": "ready",
+  "states": ["default", "hover", "active", "collapsed", "actions-open", "color-override"],
+  "variants": ["folder", "virtual-folder", "component", "token", "asset", "file"],
+  "props": {
+    "node": {
+      "type": "SemanticTreeNode",
+      "required": true
+    },
+    "active": {
+      "type": "boolean",
+      "default": false
+    },
+    "expanded": {
+      "type": "boolean",
+      "default": false
+    },
+    "color": {
+      "type": "string | null",
+      "default": null
+    },
+    "coloringEnabled": {
+      "type": "boolean",
+      "default": false
+    },
+    "actionsEnabled": {
+      "type": "boolean",
+      "default": false
+    },
+    "actions": {
+      "type": "ReactNode"
+    },
+    "onSelect": {
+      "type": "() => void",
+      "required": true
+    },
+    "onColorChange": {
+      "type": "(color: string | null) => void"
+    },
+    "onActionClick": {
+      "type": "() => void"
+    }
+  }
+}

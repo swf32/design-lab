@@ -1,0 +1,24 @@
+{
+  "id": "icon-button",
+  "name": "Icon Button",
+  "description": "Triggers a compact action represented by one semantic icon and an accessible name.",
+  "aliases": ["toolbar button", "icon action", "compact action"],
+  "useWhen": [
+    "place an action in a toolbar",
+    "provide a familiar compact icon action",
+    "save horizontal space"
+  ],
+  "avoidWhen": [
+    "the action needs a visible text label",
+    "display a decorative icon",
+    "navigate between primary modules"
+  ],
+  "entry": "IconButton.tsx",
+  "preview": "IconButton.preview.tsx",
+  "stories": "IconButton.stories.ts",
+  "docs": "README.md",
+  "changelog": "CHANGELOG.md",
+  "status": "ready",
+  "states": ["default", "hover", "focus", "disabled"],
+  "variants": ["default"]
+}

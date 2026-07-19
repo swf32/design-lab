@@ -1,0 +1,55 @@
+{
+  "id": "chip",
+  "name": "Chip",
+  "description": "Displays concise, non-interactive category, status, or metadata text with semantic color emphasis.",
+  "aliases": ["tag", "badge", "status label", "metadata pill"],
+  "useWhen": [
+    "show a status",
+    "label a category",
+    "display compact metadata",
+    "mark a semantic state"
+  ],
+  "avoidWhen": ["trigger an action", "select or remove a value", "show long explanatory text"],
+  "entry": "Chip.tsx",
+  "preview": "Chip.preview.tsx",
+  "stories": "Chip.stories.ts",
+  "docs": "README.md",
+  "changelog": "CHANGELOG.md",
+  "status": "ready",
+  "variants": ["primary", "secondary", "tertiary", "soft"],
+  "states": ["default", "disabled"],
+  "props": {
+    "children": {
+      "type": "ReactNode",
+      "required": true,
+      "slot": true
+    },
+    "color": {
+      "type": "ChipColor",
+      "values": ["default", "accent", "success", "warning", "danger"],
+      "default": "default"
+    },
+    "variant": {
+      "type": "ChipVariant",
+      "values": ["primary", "secondary", "tertiary", "soft"],
+      "default": "secondary"
+    },
+    "size": {
+      "type": "ChipSize",
+      "values": ["small", "medium", "large"],
+      "default": "medium"
+    },
+    "startContent": {
+      "type": "ReactNode",
+      "slot": true
+    },
+    "endContent": {
+      "type": "ReactNode",
+      "slot": true
+    },
+    "disabled": {
+      "type": "boolean",
+      "default": false
+    }
+  }
+}

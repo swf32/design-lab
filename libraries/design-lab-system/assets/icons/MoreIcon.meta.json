@@ -1,0 +1,7 @@
+{
+  "description": "Horizontal ellipsis icon for opening contextual secondary actions.",
+  "aliases": ["ellipsis icon", "overflow menu", "more actions"],
+  "useWhen": ["open an item action menu", "reveal secondary contextual actions"],
+  "avoidWhen": ["communicate loading", "replace a visible primary action"],
+  "tags": ["action", "menu", "overflow", "ellipsis"]
+}

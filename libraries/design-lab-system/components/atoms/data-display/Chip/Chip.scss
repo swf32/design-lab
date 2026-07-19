@@ -1,0 +1,80 @@
+.dl-chip {
+  --chip-color: var(--color-text-secondary);
+  --chip-on-color: var(--color-canvas);
+  width: max-content;
+  max-width: 100%;
+  min-height: 24px;
+  padding: 0 9px;
+  box-sizing: border-box;
+  border: 1px solid transparent;
+  border-radius: 999px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  color: var(--chip-color);
+  font-size: 10px;
+  font-weight: 560;
+  line-height: 1;
+  vertical-align: middle;
+}
+.dl-chip--accent {
+  --chip-color: var(--color-accent-primary);
+}
+.dl-chip--success {
+  --chip-color: var(--color-status-success);
+}
+.dl-chip--warning {
+  --chip-color: var(--color-status-warning);
+}
+.dl-chip--danger {
+  --chip-color: var(--color-status-danger);
+}
+.dl-chip--primary {
+  border-color: var(--chip-color);
+  background: var(--chip-color);
+  color: var(--chip-on-color);
+}
+.dl-chip--secondary {
+  border-color: color-mix(in srgb, var(--chip-color) 52%, transparent);
+  background: transparent;
+}
+.dl-chip--tertiary {
+  border-color: transparent;
+  background: transparent;
+}
+.dl-chip--soft {
+  border-color: color-mix(in srgb, var(--chip-color) 12%, transparent);
+  background: color-mix(in srgb, var(--chip-color) 14%, var(--color-surface-primary));
+}
+.dl-chip--small {
+  min-height: 20px;
+  padding-inline: 7px;
+  gap: 4px;
+  font-size: 9px;
+}
+.dl-chip--large {
+  min-height: 30px;
+  padding-inline: 11px;
+  gap: 6px;
+  font-size: 11px;
+}
+.dl-chip__label {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.dl-chip__content {
+  min-width: 0;
+  display: inline-grid;
+  place-items: center;
+  color: currentColor;
+}
+.dl-chip__content > svg {
+  width: 1em;
+  height: 1em;
+}
+.dl-chip--disabled {
+  opacity: 0.42;
+}

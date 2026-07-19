@@ -1,0 +1,34 @@
+{
+  "id": "code-block",
+  "name": "Code Block",
+  "description": "Displays copyable multiline source code with preserved whitespace, a language label, and horizontal overflow.",
+  "aliases": ["source block", "code snippet", "fenced code", "copy code"],
+  "useWhen": [
+    "show an import statement",
+    "document source code",
+    "let users copy a multiline snippet"
+  ],
+  "avoidWhen": ["show a short inline identifier", "edit code", "render prose documentation"],
+  "entry": "CodeBlock.tsx",
+  "preview": "CodeBlock.preview.tsx",
+  "stories": "CodeBlock.stories.ts",
+  "docs": "README.md",
+  "changelog": "CHANGELOG.md",
+  "status": "ready",
+  "variants": ["default"],
+  "states": ["ready", "copied", "overflow"],
+  "props": {
+    "code": {
+      "type": "string",
+      "required": true
+    },
+    "language": {
+      "type": "string",
+      "default": "text"
+    },
+    "showCopy": {
+      "type": "boolean",
+      "default": true
+    }
+  }
+}

@@ -1,15 +1,45 @@
-import { useEffect, useState, type CSSProperties, type KeyboardEvent, type PointerEvent as ReactPointerEvent } from 'react'
-import { AppSidebar, CreateProjectDialog, DirectoryPanel, TabSwitcher, type CanvasMode, type ModuleId } from '@design-lab/system/components'
+import './App.scss'
+import {
+  useEffect,
+  useRef,
+  useState,
+  type CSSProperties,
+  type KeyboardEvent,
+  type PointerEvent as ReactPointerEvent,
+} from 'react'
+import {
+  AppSidebar,
+  CreateProjectDialog,
+  DirectoryPanel,
+  TabSwitcher,
+  type CanvasMode,
+  type ModuleId,
+} from '@design-lab/system/components'
 import { useDesignLabI18n, type MessageKey } from '@design-lab/system/i18n'
-import { ModuleView } from './components/ModuleView/ModuleView'
-import { SettingsView } from './components/SettingsView/SettingsView'
+import { ModuleView } from './views/ModuleView/ModuleView'
+import { SettingsView } from './views/SettingsView/SettingsView'
 import { Button, IconButton } from '@design-lab/system/components'
-import { CodeIcon, LinkIcon, StarIcon } from '@design-lab/system/icons'
-import { createProject, getModuleData, getProjectTree, listProjects, type ModuleData, type Project, type ProjectTreeItem } from './api/projects'
+import { CodeIcon, DirectoryIcon, LinkIcon, StarIcon } from '@design-lab/system/icons'
+import {
+  createProject,
+  getModuleData,
+  getProjectTree,
+  listProjects,
+  type ModuleData,
+  type Project,
+  type ProjectTreeItem,
+} from './api/projects'
 import { appRouteHref, findRouteTreeItem, readAppRoute, treeItemRoutePath } from './navigation'
 
 const moduleMessageKeys: Record<ModuleId, MessageKey> = {
-  home: 'module.home', components: 'module.components', wireframes: 'module.wireframes', pages: 'module.pages', assets: 'module.assets', palette: 'module.palette', tokens: 'module.tokens', fonts: 'module.fonts',
+  home: 'module.home',
+  components: 'module.components',
+  wireframes: 'module.wireframes',
+  pages: 'module.pages',
+  assets: 'module.assets',
+  palette: 'module.palette',
+  tokens: 'module.tokens',
+  fonts: 'module.fonts',
 }
 
 const NAVIGATION_WIDTH_KEY = 'design-lab:navigation-width'
@@ -21,11 +51,25 @@ const THEME_KEY = 'design-lab:theme'
 const CANVAS_MODE_KEY = 'design-lab:canvas-mode'
 const CANVAS_COLOR_KEY = 'design-lab:canvas-color'
 const ALL_FOLDER_PATH = '__all__'
+const MOBILE_LAYOUT_QUERY = '(max-width: 760px)'
 type ThemeMode = 'dark' | 'light'
+type DesignLabHistoryState = {
+  designLab: true
+  canGoBack: boolean
+}
 const initialRoute = readAppRoute()
 
-function getInitialTheme(): ThemeMode { return localStorage.getItem(THEME_KEY)==='light'?'light':'dark' }
-function getInitialCanvasMode(theme:ThemeMode):CanvasMode { const saved=localStorage.getItem(CANVAS_MODE_KEY); return saved==='dark-grid'||saved==='light-grid'||saved==='solid'?saved:(theme==='light'?'light-grid':'dark-grid') }
+function getInitialTheme(): ThemeMode {
+  return localStorage.getItem(THEME_KEY) === 'light' ? 'light' : 'dark'
+}
+function getInitialCanvasMode(theme: ThemeMode): CanvasMode {
+  const saved = localStorage.getItem(CANVAS_MODE_KEY)
+  return saved === 'dark-grid' || saved === 'light-grid' || saved === 'solid'
+    ? saved
+    : theme === 'light'
+      ? 'light-grid'
+      : 'dark-grid'
+}
 
 function clampNavigationWidth(value: number) {
   const max = Math.max(MIN_NAVIGATION_WIDTH, window.innerWidth - MIN_WORKSPACE_WIDTH)
@@ -38,17 +82,23 @@ function getInitialNavigationWidth() {
 }
 
 export default function App() {
-  const {t,locale}=useDesignLabI18n()
-  const [theme,setTheme]=useState<ThemeMode>(getInitialTheme)
-  const [canvasMode,setCanvasMode]=useState<CanvasMode>(()=>getInitialCanvasMode(getInitialTheme()))
-  const [canvasColor,setCanvasColor]=useState(localStorage.getItem(CANVAS_COLOR_KEY)??'#264653')
+  const { t, locale } = useDesignLabI18n()
+  const [theme, setTheme] = useState<ThemeMode>(getInitialTheme)
+  const [canvasMode, setCanvasMode] = useState<CanvasMode>(() =>
+    getInitialCanvasMode(getInitialTheme()),
+  )
+  const [canvasColor, setCanvasColor] = useState(
+    localStorage.getItem(CANVAS_COLOR_KEY) ?? '#264653',
+  )
   const [active, setActive] = useState<ModuleId>(initialRoute.module)
   const [routePath, setRoutePath] = useState(initialRoute.path)
   const [navigationWidth, setNavigationWidth] = useState(getInitialNavigationWidth)
   const [isResizing, setIsResizing] = useState(false)
   const [sidebarHovered, setSidebarHovered] = useState(false)
   const [projects, setProjects] = useState<Project[]>([])
-  const [activeProjectId, setActiveProjectId] = useState(localStorage.getItem(ACTIVE_PROJECT_KEY) ?? '')
+  const [activeProjectId, setActiveProjectId] = useState(
+    localStorage.getItem(ACTIVE_PROJECT_KEY) ?? '',
+  )
   const [tree, setTree] = useState<ProjectTreeItem[]>([])
   const [treeLoading, setTreeLoading] = useState(false)
   const [moduleData, setModuleData] = useState<ModuleData | null>(null)
@@ -59,25 +109,55 @@ export default function App() {
   const [projectCreating, setProjectCreating] = useState(false)
   const [projectError, setProjectError] = useState<string | null>(null)
   const [settingsOpen, setSettingsOpen] = useState(false)
+  const [mobileNavigationOpen, setMobileNavigationOpen] = useState(false)
+  const [isMobileLayout, setIsMobileLayout] = useState(
+    () => window.matchMedia(MOBILE_LAYOUT_QUERY).matches,
+  )
+  const wasMobileNavigationOpen = useRef(false)
   const maxNavigationWidth = Math.max(MIN_NAVIGATION_WIDTH, window.innerWidth - MIN_WORKSPACE_WIDTH)
   const activeProject = projects.find((project) => project.id === activeProjectId) ?? null
-  const directoryTree: ProjectTreeItem[] = ['components','assets','tokens'].includes(active)
-    ? [{name:'All',path:ALL_FOLDER_PATH,kind:'folder',level:0,virtual:true},...tree]
+  const directoryTree: ProjectTreeItem[] = ['components', 'assets', 'tokens'].includes(active)
+    ? [{ name: 'All', path: ALL_FOLDER_PATH, kind: 'folder', level: 0, virtual: true }, ...tree]
     : tree
-  const labels = Object.fromEntries(Object.entries(moduleMessageKeys).map(([key,message])=>[key,t(message)])) as Record<ModuleId,string>
+  const labels = Object.fromEntries(
+    Object.entries(moduleMessageKeys).map(([key, message]) => [key, t(message)]),
+  ) as Record<ModuleId, string>
 
-  useEffect(()=>{ document.documentElement.dataset.theme=theme; localStorage.setItem(THEME_KEY,theme) },[theme])
-  useEffect(()=>{ document.documentElement.lang=locale },[locale])
-  useEffect(()=>{ localStorage.setItem(CANVAS_MODE_KEY,canvasMode); localStorage.setItem(CANVAS_COLOR_KEY,canvasColor) },[canvasMode,canvasColor])
+  useEffect(() => {
+    document.documentElement.dataset.theme = theme
+    localStorage.setItem(THEME_KEY, theme)
+  }, [theme])
+  useEffect(() => {
+    document.documentElement.lang = locale
+  }, [locale])
+  useEffect(() => {
+    localStorage.setItem(CANVAS_MODE_KEY, canvasMode)
+    localStorage.setItem(CANVAS_COLOR_KEY, canvasColor)
+  }, [canvasMode, canvasColor])
 
   const navigate = (module: ModuleId, path = '', replace = false) => {
     const href = appRouteHref(module, path)
     if (`${window.location.pathname}${window.location.search}${window.location.hash}` !== href) {
-      window.history[replace ? 'replaceState' : 'pushState'](null, '', href)
+      const currentState = window.history.state as DesignLabHistoryState | null
+      const state: DesignLabHistoryState = replace
+        ? currentState?.designLab
+          ? currentState
+          : { designLab: true, canGoBack: false }
+        : { designLab: true, canGoBack: true }
+      window.history[replace ? 'replaceState' : 'pushState'](state, '', href)
     }
     setActive(module)
     setRoutePath(path)
   }
+
+  useEffect(() => {
+    if ((window.history.state as DesignLabHistoryState | null)?.designLab) return
+    window.history.replaceState(
+      { designLab: true, canGoBack: false } satisfies DesignLabHistoryState,
+      '',
+      window.location.href,
+    )
+  }, [])
 
   useEffect(() => {
     const restoreRoute = () => {
@@ -90,17 +170,24 @@ export default function App() {
   }, [])
 
   useEffect(() => {
-    listProjects().then((result) => {
-      setProjects(result.projects)
-      const saved = result.projects.find((project) => project.id === activeProjectId && project.available)
-      const next = saved ?? result.projects.find((project) => project.available) ?? null
-      if (next) setActiveProjectId(next.id)
-      else setProjectDialogOpen(true)
-    }).catch((error: Error) => setProjectError(error.message))
+    listProjects()
+      .then((result) => {
+        setProjects(result.projects)
+        const saved = result.projects.find(
+          (project) => project.id === activeProjectId && project.available,
+        )
+        const next = saved ?? result.projects.find((project) => project.available) ?? null
+        if (next) setActiveProjectId(next.id)
+        else setProjectDialogOpen(true)
+      })
+      .catch((error: Error) => setProjectError(error.message))
   }, [])
 
   useEffect(() => {
-    if (!activeProjectId) { setTree([]); return }
+    if (!activeProjectId) {
+      setTree([])
+      return
+    }
     localStorage.setItem(ACTIVE_PROJECT_KEY, activeProjectId)
     setTree([])
     setTreeLoading(true)
@@ -109,7 +196,10 @@ export default function App() {
       .catch(() => setTree([]))
       .finally(() => setTreeLoading(false))
     setModuleLoading(true)
-    getModuleData(activeProjectId, active).then(setModuleData).catch(() => setModuleData(null)).finally(() => setModuleLoading(false))
+    getModuleData(activeProjectId, active)
+      .then(setModuleData)
+      .catch(() => setModuleData(null))
+      .finally(() => setModuleLoading(false))
   }, [active, activeProjectId])
 
   useEffect(() => {
@@ -146,6 +236,57 @@ export default function App() {
     window.addEventListener('resize', keepWidthInBounds)
     return () => window.removeEventListener('resize', keepWidthInBounds)
   }, [])
+
+  useEffect(() => {
+    const media = window.matchMedia(MOBILE_LAYOUT_QUERY)
+    const updateLayout = () => {
+      setIsMobileLayout(media.matches)
+      if (!media.matches) setMobileNavigationOpen(false)
+    }
+    updateLayout()
+    media.addEventListener('change', updateLayout)
+    return () => media.removeEventListener('change', updateLayout)
+  }, [])
+
+  useEffect(() => {
+    if (mobileNavigationOpen) {
+      window.requestAnimationFrame(() => {
+        document.getElementById('design-lab-navigation-close')?.focus()
+      })
+    } else if (wasMobileNavigationOpen.current) {
+      document.getElementById('design-lab-navigation-trigger')?.focus()
+    }
+    wasMobileNavigationOpen.current = mobileNavigationOpen
+  }, [mobileNavigationOpen])
+
+  useEffect(() => {
+    if (!mobileNavigationOpen) return
+    const containNavigationFocus = (event: globalThis.KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        setMobileNavigationOpen(false)
+        return
+      }
+      if (event.key !== 'Tab') return
+      const navigation = document.getElementById('design-lab-navigation')
+      const focusable = [
+        ...(navigation?.querySelectorAll<HTMLElement>(
+          'button:not([disabled]), input:not([disabled]), select:not([disabled]), [tabindex]:not([tabindex="-1"])',
+        ) ?? []),
+      ].filter((element) => element.offsetParent !== null)
+      if (!focusable.length) return
+      const first = focusable[0]
+      const last = focusable.at(-1)
+      if (event.shiftKey && document.activeElement === first) {
+        event.preventDefault()
+        last?.focus()
+      } else if (!event.shiftKey && document.activeElement === last) {
+        event.preventDefault()
+        first.focus()
+      }
+    }
+    window.addEventListener('keydown', containNavigationFocus)
+    return () => window.removeEventListener('keydown', containNavigationFocus)
+  }, [mobileNavigationOpen])
 
   const startResize = (event: ReactPointerEvent<HTMLDivElement>) => {
     event.preventDefault()
@@ -192,49 +333,103 @@ export default function App() {
     }
   }
 
-  const changeTheme=(next:ThemeMode)=>{ setTheme(next); setCanvasMode(next==='light'?'light-grid':'dark-grid') }
+  const changeTheme = (next: ThemeMode) => {
+    setTheme(next)
+    setCanvasMode(next === 'light' ? 'light-grid' : 'dark-grid')
+  }
 
   return (
     <main
-      className={`design-lab${isResizing ? ' design-lab--resizing' : ''}${sidebarHovered ? ' design-lab--sidebar-expanded' : ''}`}
+      className={`design-lab${isResizing ? ' design-lab--resizing' : ''}${sidebarHovered ? ' design-lab--sidebar-expanded' : ''}${mobileNavigationOpen ? ' design-lab--mobile-navigation-open' : ''}`}
       style={{ '--navigation-width': `${navigationWidth}px` } as CSSProperties}
     >
-      <AppSidebar
-        active={active}
-        settingsActive={settingsOpen}
-        onChange={(module) => { setSettingsOpen(false); navigate(module) }}
-        onSettings={() => setSettingsOpen(true)}
-        onExpandedChange={setSidebarHovered}
+      <div
+        className="navigation-shell"
+        id="design-lab-navigation"
+        aria-hidden={isMobileLayout && !mobileNavigationOpen}
+        inert={isMobileLayout && !mobileNavigationOpen ? true : undefined}
+      >
+        <header className="navigation-shell__mobile-header">
+          <strong>Browse Design Lab</strong>
+          <button
+            type="button"
+            id="design-lab-navigation-close"
+            onClick={() => setMobileNavigationOpen(false)}
+          >
+            Close
+          </button>
+        </header>
+        <div className="navigation-shell__panes">
+          <AppSidebar
+            active={active}
+            settingsActive={settingsOpen}
+            onChange={(module) => {
+              setSettingsOpen(false)
+              setMobileNavigationOpen(false)
+              navigate(module)
+            }}
+            onSettings={() => {
+              setSettingsOpen(true)
+              setMobileNavigationOpen(false)
+            }}
+            onExpandedChange={setSidebarHovered}
+          />
+          <DirectoryPanel
+            isResizing={isResizing}
+            navigationWidth={navigationWidth}
+            minNavigationWidth={MIN_NAVIGATION_WIDTH}
+            maxNavigationWidth={maxNavigationWidth}
+            onResizeStart={startResize}
+            onResizeKeyDown={resizeWithKeyboard}
+            projects={projects}
+            activeProject={activeProject}
+            activeModuleLabel={labels[active]}
+            tree={directoryTree}
+            treeLoading={treeLoading}
+            onProjectChange={(projectId) => {
+              setActiveProjectId(projectId)
+              setMobileNavigationOpen(false)
+              navigate(active)
+            }}
+            onCreateProject={() => {
+              setProjectError(null)
+              setMobileNavigationOpen(false)
+              setProjectDialogOpen(true)
+            }}
+            selectedEntityId={selectedEntityId}
+            selectedFolderPath={selectedFolderPath}
+            onTreeItemSelect={(item) => {
+              setMobileNavigationOpen(false)
+              navigate(active, treeItemRoutePath(item))
+            }}
+          />
+        </div>
+      </div>
+      <button
+        type="button"
+        className="navigation-scrim"
+        aria-label="Close navigation"
+        aria-hidden={!mobileNavigationOpen}
+        tabIndex={mobileNavigationOpen ? 0 : -1}
+        onClick={() => setMobileNavigationOpen(false)}
       />
-      <DirectoryPanel
-        isResizing={isResizing}
-        navigationWidth={navigationWidth}
-        minNavigationWidth={MIN_NAVIGATION_WIDTH}
-        maxNavigationWidth={maxNavigationWidth}
-        onResizeStart={startResize}
-        onResizeKeyDown={resizeWithKeyboard}
-        projects={projects}
-        activeProject={activeProject}
-        activeModuleLabel={labels[active]}
-        tree={directoryTree}
-        treeLoading={treeLoading}
-        onProjectChange={(projectId) => {
-          setActiveProjectId(projectId)
-          navigate(active)
-        }}
-        onCreateProject={() => { setProjectError(null); setProjectDialogOpen(true) }}
-        selectedEntityId={selectedEntityId}
-        selectedFolderPath={selectedFolderPath}
-        onTreeItemSelect={(item) => {
-          if (item.kind === 'folder') {
-            navigate(active, treeItemRoutePath(item))
-          } else {
-            navigate(active, treeItemRoutePath(item))
-          }
-        }}
-      />
-      <section className="workspace-canvas">
+      <section
+        className="workspace-canvas"
+        aria-hidden={isMobileLayout && mobileNavigationOpen}
+        inert={isMobileLayout && mobileNavigationOpen ? true : undefined}
+      >
         <header className="workspace-header">
+          <IconButton
+            type="button"
+            id="design-lab-navigation-trigger"
+            className="workspace-header__navigation-trigger"
+            aria-label="Open navigation"
+            aria-controls="design-lab-navigation"
+            aria-expanded={mobileNavigationOpen}
+            onClick={() => setMobileNavigationOpen(true)}
+          >
+            <DirectoryIcon size={20} />
+          </IconButton>
           <div className="workspace-header__title">
             <span>Design Lab</span>
             <b>/</b>
@@ -245,32 +440,78 @@ export default function App() {
               ariaLabel="Interface theme"
               variant="toggle"
               size="small"
-              options={[
-                {value:'light',label:'☼',accessibleLabel:t('theme.light')},
-                {value:'dark',label:'◐',accessibleLabel:t('theme.dark')},
-              ] as const}
+              options={
+                [
+                  { value: 'light', label: '☼', accessibleLabel: t('theme.light') },
+                  { value: 'dark', label: '◐', accessibleLabel: t('theme.dark') },
+                ] as const
+              }
               value={theme}
               onChange={changeTheme}
             />
-            <IconButton type="button" aria-label={t('action.copyLink')} onClick={() => navigator.clipboard.writeText(window.location.href)}><LinkIcon size={18} /></IconButton>
-            <IconButton type="button" aria-label={t('action.openCode')}><CodeIcon size={18} /></IconButton>
+            <IconButton
+              type="button"
+              aria-label={t('action.copyLink')}
+              onClick={() => navigator.clipboard.writeText(window.location.href)}
+            >
+              <LinkIcon size={18} />
+            </IconButton>
+            <IconButton type="button" aria-label={t('action.openCode')}>
+              <CodeIcon size={18} />
+            </IconButton>
           </div>
         </header>
 
         <div className="workspace-stage">
-          {settingsOpen ? <SettingsView onClose={() => setSettingsOpen(false)} /> : activeProject && ['tokens', 'palette', 'fonts', 'components', 'assets'].includes(active) ? <ModuleView data={moduleData} loading={moduleLoading} sourceId={activeProject.id} selectedEntityId={selectedEntityId} selectedFolderPath={selectedFolderPath} onSelectEntity={(id) => {
-            if (!id) {
-              navigate(active, selectedFolderPath === ALL_FOLDER_PATH ? '' : selectedFolderPath)
-              return
-            }
-            const item = tree.find((candidate) => candidate.id === id)
-            if (item) navigate(active, treeItemRoutePath(item))
-          }} interfaceTheme={theme} canvasMode={canvasMode} canvasColor={canvasColor} onCanvasModeChange={setCanvasMode} onCanvasColorChange={setCanvasColor} /> : <div className="workspace-stage__empty">
-            <StarIcon size={22} />
-            <h1>{activeProject ? labels[active] : t('empty.createFirst')}</h1>
-            <p>{activeProject ? t('empty.moduleDescription') : t('empty.projectDescription')}</p>
-            {!activeProject && <Button type="button" variant="primary" className="workspace-stage__action" onClick={() => setProjectDialogOpen(true)}>{t('action.create')}</Button>}
-          </div>}
+          {settingsOpen ? (
+            <SettingsView onClose={() => setSettingsOpen(false)} />
+          ) : activeProject &&
+            ['tokens', 'palette', 'fonts', 'components', 'assets'].includes(active) ? (
+            <ModuleView
+              data={moduleData}
+              loading={moduleLoading}
+              sourceId={activeProject.id}
+              selectedEntityId={selectedEntityId}
+              selectedFolderPath={selectedFolderPath}
+              onBack={() => {
+                const state = window.history.state as DesignLabHistoryState | null
+                if (state?.designLab && state.canGoBack) {
+                  window.history.back()
+                  return
+                }
+                navigate(active)
+              }}
+              onSelectEntity={(id) => {
+                if (!id) {
+                  navigate(active, selectedFolderPath === ALL_FOLDER_PATH ? '' : selectedFolderPath)
+                  return
+                }
+                const item = tree.find((candidate) => candidate.id === id)
+                if (item) navigate(active, treeItemRoutePath(item))
+              }}
+              interfaceTheme={theme}
+              canvasMode={canvasMode}
+              canvasColor={canvasColor}
+              onCanvasModeChange={setCanvasMode}
+              onCanvasColorChange={setCanvasColor}
+            />
+          ) : (
+            <div className="workspace-stage__empty">
+              <StarIcon size={22} />
+              <h1>{activeProject ? labels[active] : t('empty.createFirst')}</h1>
+              <p>{activeProject ? t('empty.moduleDescription') : t('empty.projectDescription')}</p>
+              {!activeProject && (
+                <Button
+                  type="button"
+                  variant="primary"
+                  className="workspace-stage__action"
+                  onClick={() => setProjectDialogOpen(true)}
+                >
+                  {t('action.create')}
+                </Button>
+              )}
+            </div>
+          )}
         </div>
       </section>
       <CreateProjectDialog

@@ -1,0 +1,58 @@
+{
+  "id": "color-picker",
+  "name": "Color Picker",
+  "description": "Edits a nullable color override through a native spectrum, presets, HEX input, and custom trigger.",
+  "aliases": ["colour picker", "color selector", "hex picker", "swatch picker"],
+  "useWhen": [
+    "choose an arbitrary color",
+    "edit a HEX value",
+    "override an entity icon color",
+    "select from color presets"
+  ],
+  "avoidWhen": [
+    "browse semantic color tokens",
+    "display a resolved color swatch",
+    "choose a non-color value"
+  ],
+  "entry": "ColorPicker.tsx",
+  "preview": "ColorPicker.preview.tsx",
+  "stories": "ColorPicker.stories.ts",
+  "docs": "README.md",
+  "changelog": "CHANGELOG.md",
+  "status": "ready",
+  "states": ["closed", "open", "selected", "empty", "disabled"],
+  "variants": ["default"],
+  "props": {
+    "label": {
+      "type": "string",
+      "required": true
+    },
+    "value": {
+      "type": "string | null"
+    },
+    "defaultValue": {
+      "type": "string",
+      "default": "#3b82f6"
+    },
+    "onChange": {
+      "type": "(color: string | null) => void"
+    },
+    "trigger": {
+      "type": "ReactNode"
+    },
+    "presets": {
+      "type": "string[]"
+    },
+    "allowClear": {
+      "type": "boolean",
+      "default": true
+    },
+    "disabled": {
+      "type": "boolean",
+      "default": false
+    },
+    "className": {
+      "type": "string"
+    }
+  }
+}

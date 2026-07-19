@@ -1,0 +1,71 @@
+.dl-button {
+  min-height: 34px;
+  padding: 0 13px;
+  border: 1px solid transparent;
+  border-radius: var(--radius-small);
+  font: inherit;
+  font-size: 11px;
+  font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  cursor: pointer;
+}
+.dl-button:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+.dl-button--primary {
+  border-color: var(--color-accent-primary);
+  background: var(--color-accent-primary);
+  color: var(--color-canvas);
+}
+.dl-button--primary:not(:disabled):hover {
+  filter: brightness(1.08);
+}
+.dl-button--secondary {
+  border-color: var(--color-border-default);
+  background: transparent;
+  color: var(--color-text-secondary);
+}
+.dl-button--secondary:hover,
+.dl-button--ghost:hover {
+  background: var(--color-surface-hover);
+  color: var(--color-text-primary);
+}
+.dl-button--ghost {
+  background: transparent;
+  color: var(--color-text-muted);
+}
+.dl-button--danger {
+  border-color: var(--color-status-danger);
+  background: var(--color-status-danger);
+  color: var(--color-canvas);
+}
+.dl-button--small {
+  min-height: 28px;
+  padding-inline: 10px;
+  font-size: 10px;
+}
+.dl-button--large {
+  min-height: 42px;
+  padding-inline: 18px;
+  font-size: 12px;
+}
+.dl-button--full {
+  width: 100%;
+}
+.dl-button__spinner {
+  width: 12px;
+  height: 12px;
+  border: 2px solid currentColor;
+  border-right-color: transparent;
+  border-radius: 50%;
+  animation: dl-spin 0.7s linear infinite;
+}
+@keyframes dl-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}

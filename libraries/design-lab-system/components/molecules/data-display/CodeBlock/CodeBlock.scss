@@ -1,0 +1,67 @@
+.dl-code-block {
+  width: 100%;
+  min-width: 0;
+  margin: 14px 0;
+  overflow: hidden;
+  border: 1px solid var(--color-border-default);
+  border-radius: var(--radius-medium);
+  background: var(--color-surface-secondary);
+}
+.dl-code-block figcaption {
+  min-height: 34px;
+  padding: 0 8px 0 12px;
+  border-bottom: 1px solid var(--color-border-subtle);
+  background: var(--color-surface-raised);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+.dl-code-block figcaption > span {
+  color: var(--color-text-disabled);
+  font-size: 8px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+.dl-code-block figcaption button {
+  min-height: 24px;
+  padding: 0 7px;
+  border: 0;
+  border-radius: 4px;
+  background: transparent;
+  color: var(--color-text-muted);
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font: inherit;
+  font-size: 8px;
+  cursor: pointer;
+}
+.dl-code-block figcaption button:hover {
+  background: var(--color-surface-hover);
+  color: var(--color-text-primary);
+}
+.dl-code-block figcaption button:focus-visible {
+  outline: 2px solid var(--color-accent-primary);
+  outline-offset: 1px;
+}
+.dl-code-block figcaption i {
+  font-style: normal;
+}
+.dl-code-block pre {
+  max-width: 100%;
+  margin: 0;
+  padding: 14px 16px 16px;
+  overflow: auto;
+}
+.dl-code-block pre code {
+  padding: 0;
+  border-radius: 0;
+  background: transparent;
+  color: var(--color-code);
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-size: 10px;
+  line-height: 1.65;
+  white-space: pre;
+}

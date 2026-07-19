@@ -5,7 +5,16 @@ import { getModuleEntities } from './moduleEntities.mjs'
 import { getSource, listSources } from './projectRegistry.mjs'
 
 export const CONTEXT_INDEX_VERSION = 1
-export const CONTEXT_KINDS = ['component', 'token', 'asset', 'font', 'rule', 'decision', 'prompt', 'doc']
+export const CONTEXT_KINDS = [
+  'component',
+  'token',
+  'asset',
+  'font',
+  'rule',
+  'decision',
+  'prompt',
+  'doc',
+]
 
 const knowledgeDirectories = {
   rule: 'rules',
@@ -15,34 +24,76 @@ const knowledgeDirectories = {
 }
 
 const searchStopWords = new Set([
-  'a', 'an', 'and', 'are', 'as', 'at', 'be', 'between', 'by', 'for', 'from', 'in', 'into', 'is', 'it', 'of', 'on', 'or', 'the', 'to', 'using', 'with',
-  'без', 'в', 'для', 'и', 'из', 'или', 'как', 'между', 'на', 'по', 'с', 'со', 'что', 'это',
+  'a',
+  'an',
+  'and',
+  'are',
+  'as',
+  'at',
+  'be',
+  'between',
+  'by',
+  'for',
+  'from',
+  'in',
+  'into',
+  'is',
+  'it',
+  'of',
+  'on',
+  'or',
+  'the',
+  'to',
+  'using',
+  'with',
+  'без',
+  'в',
+  'для',
+  'и',
+  'из',
+  'или',
+  'как',
+  'между',
+  'на',
+  'по',
+  'с',
+  'со',
+  'что',
+  'это',
 ])
 
 function compactWhitespace(value = '') {
-  return String(value ?? '').replace(/\s+/g, ' ').trim()
+  return String(value ?? '')
+    .replace(/\s+/g, ' ')
+    .trim()
 }
 
 function stripMarkdown(value = '') {
-  return compactWhitespace(String(value ?? '')
-    .replace(/```[\s\S]*?```/g, ' ')
-    .replace(/`([^`]+)`/g, '$1')
-    .replace(/!\[[^\]]*]\([^)]*\)/g, ' ')
-    .replace(/\[([^\]]+)]\([^)]*\)/g, '$1')
-    .replace(/^#{1,6}\s+/gm, '')
-    .replace(/[*_>|~-]/g, ' '))
+  return compactWhitespace(
+    String(value ?? '')
+      .replace(/```[\s\S]*?```/g, ' ')
+      .replace(/`([^`]+)`/g, '$1')
+      .replace(/!\[[^\]]*]\([^)]*\)/g, ' ')
+      .replace(/\[([^\]]+)]\([^)]*\)/g, '$1')
+      .replace(/^#{1,6}\s+/gm, '')
+      .replace(/[*_>|~-]/g, ' '),
+  )
 }
 
 function markdownLead(markdown = '') {
   const withoutCode = String(markdown ?? '').replace(/```[\s\S]*?```/g, '')
-  const blocks = withoutCode.split(/\n\s*\n/).map((block) => block.trim()).filter(Boolean)
-  const lead = blocks.find((block) =>
-    !block.startsWith('#') &&
-    !block.startsWith('|') &&
-    !block.startsWith('- ') &&
-    !block.startsWith('* ') &&
-    !block.startsWith('>') &&
-    !/^\d+\.\s/.test(block),
+  const blocks = withoutCode
+    .split(/\n\s*\n/)
+    .map((block) => block.trim())
+    .filter(Boolean)
+  const lead = blocks.find(
+    (block) =>
+      !block.startsWith('#') &&
+      !block.startsWith('|') &&
+      !block.startsWith('- ') &&
+      !block.startsWith('* ') &&
+      !block.startsWith('>') &&
+      !/^\d+\.\s/.test(block),
   )
   return stripMarkdown(lead ?? '')
 }
@@ -58,12 +109,22 @@ function entityRef(sourceId, kind, id) {
 
 function componentImport(source, sourceManifest, component) {
   const symbol = basename(component.entry ?? component.name, extname(component.entry ?? ''))
-  const from = component.importFrom ?? sourceManifest.componentImport ?? (
-    source.kind === 'library' && sourceManifest.packageName
+  const from =
+    component.importFrom ??
+    sourceManifest.componentImport ??
+    (source.kind === 'library' && sourceManifest.packageName
       ? `${sourceManifest.packageName}/components`
-      : `./components/${component.directory}/${symbol}`
-  )
+      : `./components/${component.directory}/${symbol}`)
   return { symbol, from, statement: `import { ${symbol} } from '${from}'` }
+}
+
+function assetImport(sourceManifest, asset) {
+  if (asset.type !== 'icon' || asset.extension !== 'tsx') return null
+  const symbol = basename(asset.name, extname(asset.name))
+  const from =
+    sourceManifest.iconImport ??
+    (sourceManifest.packageName ? `${sourceManifest.packageName}/icons` : null)
+  return from ? { symbol, from, statement: `import { ${symbol} } from '${from}'` } : null
 }
 
 async function readSourceManifest(source) {
@@ -100,7 +161,10 @@ function sourceIdentity(source) {
 async function componentEntities(source, sourceManifest) {
   const data = await getModuleEntities(source.id, 'components')
   return data.components.map((component) => {
-    const description = compactWhitespace(component.description) || markdownLead(component.documentation) || `Reusable ${component.name} interface component.`
+    const description =
+      compactWhitespace(component.description) ||
+      markdownLead(component.documentation) ||
+      `Reusable ${component.name} interface component.`
     const directory = `components/${component.directory}`
     return {
       ref: entityRef(source.id, 'component', component.id),
@@ -111,15 +175,19 @@ async function componentEntities(source, sourceManifest) {
       description,
       path: directory,
       status: component.status ?? null,
-      tags: [...new Set([
-        component.category,
-        ...(component.tags ?? []),
-        ...(component.aliases ?? []),
-        ...(component.useWhen ?? []),
-        ...(component.variants ?? []),
-        ...(component.states ?? []),
-        ...Object.keys(component.props ?? {}),
-      ].filter(Boolean))],
+      tags: [
+        ...new Set(
+          [
+            component.category,
+            ...(component.tags ?? []),
+            ...(component.aliases ?? []),
+            ...(component.useWhen ?? []),
+            ...(component.variants ?? []),
+            ...(component.states ?? []),
+            ...Object.keys(component.props ?? {}),
+          ].filter(Boolean),
+        ),
+      ],
       search: {
         aliases: component.aliases ?? [],
         useWhen: component.useWhen ?? [],
@@ -129,8 +197,17 @@ async function componentEntities(source, sourceManifest) {
         states: component.states ?? [],
       },
       details: {
-        import: componentImport(source, sourceManifest, component),
+        import: component.import ?? componentImport(source, sourceManifest, component),
+        files: component.files ?? [],
+        relations: component.relations ?? {
+          uses: [],
+          usedBy: [],
+          examplesUse: [],
+          usedInExamplesBy: [],
+          diagnostics: [],
+        },
         entry: join(directory, component.entry),
+        style: component.style ? join(directory, component.style) : null,
         manifest: join(directory, 'component.json'),
         preview: component.preview ? join(directory, component.preview) : null,
         stories: component.stories ? join(directory, component.stories) : null,
@@ -154,16 +231,24 @@ async function tokenEntities(source) {
     kind: 'token',
     source: sourceIdentity(source),
     name: token.path,
-    description: compactWhitespace(token.description) || `${token.type} design token with resolved values for ${Object.keys(token.values ?? {}).join(', ')}.`,
+    description:
+      compactWhitespace(token.description) ||
+      `${token.type} design token with resolved values for ${Object.keys(token.values ?? {}).join(', ')}.`,
     path: `tokens/${token.file}`,
     status: null,
-    tags: [token.type, ...token.path.split('.')],
-    search: { type: token.type, values: token.values },
+    tags: [token.type, ...token.path.split('.'), ...(token.tags ?? [])],
+    search: {
+      aliases: token.aliases ?? [],
+      useWhen: token.useWhen ?? [],
+      avoidWhen: token.avoidWhen ?? [],
+      type: token.type,
+      values: token.values,
+    },
     details: token,
   }))
 }
 
-async function assetEntities(source) {
+async function assetEntities(source, sourceManifest) {
   const data = await getModuleEntities(source.id, 'assets')
   return data.assets.map((asset) => ({
     ref: entityRef(source.id, 'asset', asset.id),
@@ -171,12 +256,23 @@ async function assetEntities(source) {
     kind: 'asset',
     source: sourceIdentity(source),
     name: asset.name,
-    description: `${asset.type} asset stored in ${asset.directory || 'the assets root'} as ${asset.extension.toUpperCase()}.`,
+    description:
+      compactWhitespace(asset.description) ||
+      `${asset.type} asset stored in ${asset.directory || 'the assets root'} as ${asset.extension.toUpperCase()}.`,
     path: `assets/${asset.path}`,
     status: null,
-    tags: [asset.type, asset.extension, ...asset.directory.split('/').filter(Boolean)],
-    search: {},
-    details: asset,
+    tags: [
+      asset.type,
+      asset.extension,
+      ...asset.directory.split('/').filter(Boolean),
+      ...(asset.tags ?? []),
+    ],
+    search: {
+      aliases: asset.aliases ?? [],
+      useWhen: asset.useWhen ?? [],
+      avoidWhen: asset.avoidWhen ?? [],
+    },
+    details: { ...asset, import: assetImport(sourceManifest, asset) },
   }))
 }
 
@@ -188,11 +284,22 @@ async function fontEntities(source) {
     kind: 'font',
     source: sourceIdentity(source),
     name: font.name,
-    description: `Font family ${font.name} with ${(font.styles ?? []).length} registered style${(font.styles ?? []).length === 1 ? '' : 's'}.`,
+    description:
+      compactWhitespace(font.description) ||
+      `Font family ${font.name} with ${(font.styles ?? []).length} registered style${(font.styles ?? []).length === 1 ? '' : 's'}.`,
     path: font.source ? `fonts/${font.source}` : 'fonts/fonts.json',
     status: null,
-    tags: ['typography', 'font', ...(font.styles ?? []).flatMap((style) => [String(style.weight), style.style])],
-    search: {},
+    tags: [
+      'typography',
+      'font',
+      ...(font.tags ?? []),
+      ...(font.styles ?? []).flatMap((style) => [String(style.weight), style.style]),
+    ],
+    search: {
+      aliases: font.aliases ?? [],
+      useWhen: font.useWhen ?? [],
+      avoidWhen: font.avoidWhen ?? [],
+    },
     details: font,
   }))
 }
@@ -201,24 +308,31 @@ async function knowledgeEntities(source, kind) {
   const directory = knowledgeDirectories[kind]
   const root = join(source.path, directory)
   const files = await markdownFiles(root)
-  return Promise.all(files.map(async (file) => {
-    const content = await readFile(file, 'utf8')
-    const path = relative(source.path, file)
-    const id = relative(root, file).replace(/\.md$/i, '')
-    return {
-      ref: entityRef(source.id, kind, id),
-      id,
-      kind,
-      source: sourceIdentity(source),
-      name: markdownTitle(content, basename(file, extname(file))),
-      description: markdownLead(content) || `${kind} knowledge document.`,
-      path,
-      status: null,
-      tags: [kind, ...dirname(id).split('/').filter((part) => part !== '.')],
-      search: {},
-      details: { content },
-    }
-  }))
+  return Promise.all(
+    files.map(async (file) => {
+      const content = await readFile(file, 'utf8')
+      const path = relative(source.path, file)
+      const id = relative(root, file).replace(/\.md$/i, '')
+      return {
+        ref: entityRef(source.id, kind, id),
+        id,
+        kind,
+        source: sourceIdentity(source),
+        name: markdownTitle(content, basename(file, extname(file))),
+        description: markdownLead(content) || `${kind} knowledge document.`,
+        path,
+        status: null,
+        tags: [
+          kind,
+          ...dirname(id)
+            .split('/')
+            .filter((part) => part !== '.'),
+        ],
+        search: {},
+        details: { content },
+      }
+    }),
+  )
 }
 
 async function entitiesForSource(source, kinds) {
@@ -226,7 +340,7 @@ async function entitiesForSource(source, kinds) {
   const jobs = []
   if (kinds.has('component')) jobs.push(componentEntities(source, sourceManifest))
   if (kinds.has('token')) jobs.push(tokenEntities(source))
-  if (kinds.has('asset')) jobs.push(assetEntities(source))
+  if (kinds.has('asset')) jobs.push(assetEntities(source, sourceManifest))
   if (kinds.has('font')) jobs.push(fontEntities(source))
   for (const kind of Object.keys(knowledgeDirectories)) {
     if (kinds.has(kind)) jobs.push(knowledgeEntities(source, kind))
@@ -239,8 +353,15 @@ export async function buildContextCatalog({ sourceId, kinds = CONTEXT_KINDS } = 
   const sources = sourceId
     ? [await getSource(sourceId)]
     : (await listSources()).sources.filter((source) => source.available)
-  const entities = (await Promise.all(sources.map((source) => entitiesForSource(source, selectedKinds)))).flat()
-  entities.sort((a, b) => a.source.name.localeCompare(b.source.name) || a.kind.localeCompare(b.kind) || a.path.localeCompare(b.path))
+  const entities = (
+    await Promise.all(sources.map((source) => entitiesForSource(source, selectedKinds)))
+  ).flat()
+  entities.sort(
+    (a, b) =>
+      a.source.name.localeCompare(b.source.name) ||
+      a.kind.localeCompare(b.kind) ||
+      a.path.localeCompare(b.path),
+  )
   return {
     schemaVersion: CONTEXT_INDEX_VERSION,
     generatedFrom: 'canonical Design Lab filesystem sources',
@@ -260,7 +381,13 @@ function normalize(value = '') {
 }
 
 function tokens(value) {
-  return [...new Set(normalize(value).split(/\s+/).filter((token) => token.length > 1 && !searchStopWords.has(token)))]
+  return [
+    ...new Set(
+      normalize(value)
+        .split(/\s+/)
+        .filter((token) => token.length > 1 && !searchStopWords.has(token)),
+    ),
+  ]
 }
 
 function dice(a, b) {
@@ -287,7 +414,8 @@ function bestTokenMatch(queryToken, fieldTokens) {
   let best = 0
   for (const fieldToken of fieldTokens) {
     if (fieldToken === queryToken) return 1
-    if (fieldToken.startsWith(queryToken) || queryToken.startsWith(fieldToken)) best = Math.max(best, 0.86)
+    if (fieldToken.startsWith(queryToken) || queryToken.startsWith(fieldToken))
+      best = Math.max(best, 0.86)
     else {
       const similarity = dice(queryToken, fieldToken)
       if (similarity >= 0.62) best = Math.max(best, similarity)
@@ -306,6 +434,8 @@ function relevance(entity, query) {
     ['tags', entity.tags.join(' '), 0.72],
     ['props', (entity.search.props ?? []).join(' '), 0.58],
     ['variants', (entity.search.variants ?? []).join(' '), 0.42],
+    ['type', entity.search.type, 0.4],
+    ['values', JSON.stringify(entity.search.values ?? ''), 0.24],
     ['name', entity.name, 0.22],
   ]
   let weighted = 0
@@ -331,8 +461,20 @@ function relevance(entity, query) {
   const phraseBonus = normalize(entity.description).includes(normalizedQuery) ? 0.18 : 0
   const average = weighted / queryTokens.length
   const coverageRatio = coverage / queryTokens.length
+  const avoidTokens = tokens((entity.search.avoidWhen ?? []).join(' '))
+  const avoidPenalty = avoidTokens.length
+    ? (queryTokens.reduce(
+        (total, queryToken) => total + bestTokenMatch(queryToken, avoidTokens),
+        0,
+      ) /
+        queryTokens.length) *
+      0.42
+    : 0
   return {
-    score: Math.min(1, average * 0.72 + coverageRatio * 0.22 + phraseBonus),
+    score: Math.max(
+      0,
+      Math.min(1, average * 0.72 + coverageRatio * 0.22 + phraseBonus) - avoidPenalty,
+    ),
     matchedOn: [...matchedOn],
   }
 }
@@ -368,20 +510,35 @@ export async function getContextEntity({ ref, index, sourceId, kinds = CONTEXT_K
     ? catalog.entities.find((candidate) => candidate.ref === ref)
     : catalog.entities.find((candidate) => candidate.index === Number(index))
   if (!entity) {
-    throw Object.assign(new Error(`Context entity not found: ${ref ?? `#${index}`}`), { status: 404, code: 'CONTEXT_ENTITY_NOT_FOUND' })
+    throw Object.assign(new Error(`Context entity not found: ${ref ?? `#${index}`}`), {
+      status: 404,
+      code: 'CONTEXT_ENTITY_NOT_FOUND',
+    })
   }
   return entity
 }
 
 export async function writeContextIndex({ sourceId } = {}) {
-  if (!sourceId) throw Object.assign(new Error('sourceId is required to write an index'), { status: 400, code: 'SOURCE_REQUIRED' })
+  if (!sourceId)
+    throw Object.assign(new Error('sourceId is required to write an index'), {
+      status: 400,
+      code: 'SOURCE_REQUIRED',
+    })
   const source = await getSource(sourceId)
   const catalog = await buildContextCatalog({ sourceId })
   const directory = join(source.path, '.designlab', 'index')
   const target = join(directory, `context.v${CONTEXT_INDEX_VERSION}.json`)
   const temporary = `${target}.${randomUUID()}.tmp`
   await mkdir(directory, { recursive: true })
-  await writeFile(temporary, `${JSON.stringify({ ...catalog, builtAt: new Date().toISOString() }, null, 2)}\n`, 'utf8')
+  await writeFile(
+    temporary,
+    `${JSON.stringify({ ...catalog, builtAt: new Date().toISOString() }, null, 2)}\n`,
+    'utf8',
+  )
   await rename(temporary, target)
-  return { source: sourceIdentity(source), path: relative(source.path, target), entities: catalog.entities.length }
+  return {
+    source: sourceIdentity(source),
+    path: relative(source.path, target),
+    entities: catalog.entities.length,
+  }
 }

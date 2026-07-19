@@ -1,0 +1,143 @@
+.file-tree__item {
+  --indent: calc(var(--tree-level) * 18px);
+  width: 100%;
+  height: 30px;
+  position: relative;
+  padding: 0 3px 0 calc(5px + var(--indent));
+  border: 0;
+  border-radius: var(--radius-small);
+  background: transparent;
+  color: var(--color-text-muted);
+  text-align: left;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 11px;
+}
+.file-tree__item:hover {
+  background: var(--color-surface-hover);
+  color: var(--color-text-secondary);
+}
+.file-tree__item button {
+  border: 0;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+}
+.file-tree__chevron-button,
+.file-tree__chevron-spacer {
+  width: 16px;
+  height: 24px;
+  flex: 0 0 16px;
+  padding: 0;
+  display: grid;
+  place-items: center;
+}
+.file-tree__chevron-button {
+  border-radius: 4px;
+  cursor: pointer;
+}
+.file-tree__chevron-button:hover {
+  background: color-mix(in srgb, var(--color-text-primary) 7%, transparent);
+}
+.file-tree__entity-icon {
+  width: 22px;
+  height: 24px;
+  flex: 0 0 22px;
+  display: grid;
+  place-items: center;
+}
+.file-tree__entity-icon svg {
+  flex: 0 0 16px;
+}
+.file-tree__label {
+  min-width: 0;
+  height: 100%;
+  flex: 1;
+  padding: 0;
+  overflow: hidden;
+  cursor: pointer;
+  text-align: left;
+}
+.file-tree__label span {
+  min-width: 0;
+  overflow: hidden;
+  display: block;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.file-tree__actions {
+  width: 22px;
+  height: 24px;
+  flex: 0 0 22px;
+  position: relative;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity var(--transition-fast);
+}
+.file-tree__item:hover .file-tree__actions,
+.file-tree__item:focus-within .file-tree__actions,
+.file-tree__item--actions-open .file-tree__actions {
+  opacity: 1;
+  pointer-events: auto;
+}
+.file-tree__actions-trigger {
+  width: 22px;
+  height: 24px;
+  padding: 0;
+  border-radius: 4px;
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+}
+.file-tree__actions-trigger:hover,
+.file-tree__actions-trigger[aria-expanded='true'] {
+  background: color-mix(in srgb, var(--color-text-primary) 8%, transparent);
+  color: var(--color-text-primary);
+}
+.file-tree__actions-menu {
+  position: absolute;
+  z-index: 14;
+  top: calc(100% + 4px);
+  right: 0;
+  width: 154px;
+  padding: 8px 9px;
+  border: 1px solid var(--color-border-default);
+  border-radius: var(--radius-small);
+  background: var(--color-surface-raised);
+  color: var(--color-text-disabled);
+  box-shadow: 0 12px 30px color-mix(in srgb, var(--color-overlay-scrim) 52%, transparent);
+  font-size: 9px;
+  line-height: 1.45;
+}
+.file-tree__item--active {
+  background: var(--color-surface-hover);
+  color: var(--color-text-primary);
+}
+.file-tree__item--virtual {
+  margin-bottom: 4px;
+  border-bottom: 1px solid var(--color-border-subtle);
+  border-radius: var(--radius-small) var(--radius-small) 0 0;
+  font-weight: 550;
+}
+.file-tree__chevron {
+  transition: transform var(--transition-fast);
+}
+.file-tree__chevron--collapsed {
+  transform: rotate(-90deg);
+}
+.file-tree__color-picker {
+  width: 22px;
+  height: 24px;
+  flex: 0 0 22px;
+}
+.file-tree__color-picker .dl-color-picker__trigger {
+  width: 22px;
+  height: 24px;
+  border: 0;
+}
+.file-tree__color-picker .dl-color-picker__popover {
+  top: calc(100% + 4px);
+  left: calc(-25px - var(--indent));
+  width: min(216px, calc(100cqi - 14px));
+}

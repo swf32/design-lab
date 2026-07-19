@@ -4,34 +4,49 @@ This file is the shared source of truth for humans, Codex, Claude, and other cod
 
 ## Canonical component directory
 
-Every component is a directory under `libraries/design-lab-system/components/<category>/<ComponentName>/`. Categories and nesting are semantic and may be changed by the library author.
+Every component is a directory under `libraries/design-lab-system/components/<category-path>/<ComponentName>/`. Categories and nesting are semantic and may be changed by the library author. The default `design-lab-system` keeps Atomic Design as its top level (`atoms/`, `molecules/`, `organisms/`) and uses semantic subfolders such as `actions/`, `inputs/`, `navigation/`, `workbench/`, and `shell/`.
 
 Required files:
 
 - `ComponentName.tsx` — production implementation;
+- `ComponentName.scss` — production styles imported by the implementation;
 - `component.json` — discovery manifest;
 - `ComponentName.preview.tsx` — illustrative catalog preview;
 - `ComponentName.stories.ts` or `.tsx` — story definitions and behavior examples;
 - `README.md` — usage documentation;
 - `CHANGELOG.md` — append-only component history.
 
-Optional adjacent files include styles, types, tests, accessibility fixtures, migration notes, and assets. Never require a hand-maintained global component registry: `component.json` is discovered recursively.
+Optional adjacent files include types, tests, accessibility fixtures, migration notes, and assets. Never require a hand-maintained global component or style registry: `component.json` and the implementation-named style file are discovered recursively. Category is derived from the folders above the component and must not be duplicated in its manifest. The Library package barrel is a generated, deletable artifact rebuilt from manifests.
+
+## Automatic discovery, imports, and agent context
+
+Creating a Component requires only its canonical directory, adjacent files, and `component.json`. Do not register it in an application switch, story map, style index, component list, dependency table, MCP catalog, CLI catalog, or hand-maintained package barrel.
+
+The production entry must named-export the public Component symbol matching its filename, for example `Button.tsx` exports `Button`. The Library manifest supplies the package import root, and Design Lab derives `import { Button } from '@design-lab/system/components'` from that source metadata plus the adjacent entry. `components/index.ts` is generated recursively from manifests during dev, build, and test and may be deleted and rebuilt; never edit it by hand.
+
+Write only the imports that executable code genuinely needs. Those normal static TypeScript/TSX imports are the source of the direct `uses` / `usedBy` graph. Imports in the adjacent story module are the source of `examplesUse` / `usedInExamplesBy`. Never author reverse links, usage arrays, relation metadata, or a second dependency registry. Type-only imports are ignored, and importing a production Component from a preview is reported as a contract diagnostic.
+
+MCP and CLI are adapters over the same filesystem scanners. A Component becomes searchable without separate indexing metadata. For useful intent retrieval, default-library Components should author a concise `description`; add `aliases`, `useWhen`, and `avoidWhen` when naming alone could lead an agent to the wrong primitive. These semantic fields improve ranking but are not required for basic filesystem discovery.
 
 ## Icons used by components
 
-This rule applies when creating or changing a component, its preview, or its stories. Reuse an existing semantic icon from the active Library's canonical `assets/icons/` directory whenever one fits. If a new icon is required, add it there as a reusable code-native vector asset and export it from the nearest assets barrel before importing it into component code.
+This rule applies when creating or changing a component, its preview, or its stories. Reuse an existing semantic icon from the active Library's canonical `assets/icons/` directory whenever one fits. If a new icon is required, add it there as a reusable code-native vector asset. The generated icon barrel discovers and exports it automatically; never edit that barrel by hand.
 
 Do not embed new SVG path data directly in a component or preview, redraw a product icon with CSS, or substitute emoji and arbitrary Unicode glyphs for a missing icon asset. Decorative icon instances must be hidden from assistive technology; interactive icon-only controls must have an accessible name.
 
 ## Creating a component
 
-1. Decide whether the pattern is truly reusable and choose its semantic category.
+1. Decide whether the pattern is truly reusable and choose its filesystem category. In the default Library, choose the Atomic Design layer first and then a semantic subfolder.
 2. Define the public props contract before styling. Prefer native element attributes and accessible semantics.
+   Keep implementation, preview, and stories readable with `npm run format:code`; `npm run check:code` is the repository guard against compressed TS/TSX/MJS source.
 3. Use Design Lab semantic tokens for color, typography, spacing, radii, motion, and themes. Do not add one-off visual constants when an existing token expresses the role.
+   Production styles belong in the adjacent `ComponentName.scss`, and `ComponentName.tsx` imports that file directly. Do not add component selectors to a package-wide stylesheet.
+   Keep SCSS and preview `String.raw` CSS formatted with `npm run format:styles`; `npm run check:styles` is the repository guard against compressed one-line style sources and duplicate selectors in the same cascade context.
 4. Support both dark and light token modes. A component must not infer theme from hardcoded colors.
    Treat the Design Lab UI theme and the inspected design-system mode as separate state. Stories must respond to the selected design-system mode when their tokens have mode overrides.
 5. Keep product copy outside the component or obtain it through the i18n provider. English is the default product locale; new interface messages require a stable message key and English fallback.
 6. Build `*.preview.tsx` as a non-interactive token-based illustration. It must not import or render the production component and does not need production dimensions.
+   Keep preview-only CSS in that preview module as a scoped `String.raw` stylesheet rendered by the preview. Do not put `.preview-*` selectors in production SCSS or a global preview stylesheet.
    Do not repeat the component name, category, manifest variants, or other metadata as a heading, badge, or legend inside the preview: the Component Card already owns that information. Text is appropriate only when it is intrinsic to the illustrated UI or necessary to make the component behavior recognizable.
    Follow the Preview quality contract below. A preview is not ready merely because it compiles or contains token-driven shapes.
    Preview motion is optional. It illustrates a recognizable state change but never turns the preview into a second interactive implementation.
@@ -44,6 +59,7 @@ Do not embed new SVG path data directly in a component or preview, redraw a prod
    The catalog must render the preview declared by the discovered component's `component.json`; it must not replace authored previews with a hand-maintained thumbnail switch. A generic fallback is allowed only when the declared preview is missing or cannot be loaded, and that fallback must be visibly distinguishable from an authored preview.
    Before marking a component ready, verify its authored preview in the actual catalog card, not only as a source file.
 7. Build stories as separate full-width scenarios grouped by one axis or behavior: variants, sizes, layout, loading, states, composition, accessibility, and so on. Do not mix unrelated axes into one card matrix.
+   The adjacent story module is the executable source of truth: export `stories` and `renderStoryExample(example, story)` from the manifest-declared `*.stories.ts(x)`. Design Lab discovers that module from the component directory and renders it automatically. Never add component ids, story JSX, or per-component story switches to an application view.
    When an axis such as size applies to multiple variants, cover the complete relevant `variant × axis` matrix in focused stories or explicitly document which combinations are unsupported. Never prove an API axis against only one visual variant and assume the rest.
    Give every story an explicit `kind`: `variant`, `state`, `behavior`, `context`, `integration`, or `accessibility`. A story name describes the scenario the user is evaluating; it must not call a composition a variant.
    - A `context` story places the subject component inside a representative parent so geometry, clipping, hover, focus, and responsive behavior can be evaluated where the component is actually used.
@@ -58,7 +74,8 @@ Do not embed new SVG path data directly in a component or preview, redraw a prod
    A component is not ready while its Workbench falls back to a generic placeholder or repeats the same specimen for manifest labels that the component does not actually implement.
 9. Write `README.md` in clear English for the default library. Documentation content in user libraries may use any language chosen by their authors.
 10. Start `CHANGELOG.md` with the initial version and creation date.
-11. Export the component from the nearest public barrel and verify automatic discovery through the API.
+11. Verify automatic discovery through the API and run the normal dev/build/test workflow, which regenerates and checks the derived public barrel; never add a component export by hand. The Workbench file inventory must expose implementation, styles, manifest, preview, stories, docs, and changelog refs that were actually discovered.
+    The scanner derives the canonical package import plus direct production `uses` / `usedBy` and example-only `examplesUse` / `usedInExamplesBy` relationships from static TypeScript/TSX imports. Type-only imports do not create runtime relationships. A preview importing any production component is a contract diagnostic, not a usage relationship.
 12. Run typecheck/build, inspect dark and light themes, inspect all Canvas modes, and check the browser console.
 
 ### Preview quality contract
@@ -115,7 +132,9 @@ Fast review question: if the Component Card footer were hidden, would someone fa
 
 ## `component.json`
 
-The manifest must include `id`, `name`, `category`, `entry`, `preview`, `stories`, `docs`, `changelog`, `status`, `variants`, and `states`. Describe public props when known, including type, required/default values, enum values, and slots. Paths are adjacent relative paths.
+The manifest must include `id`, `name`, `entry`, `preview`, `stories`, `docs`, `changelog`, `status`, `variants`, and `states`. Category is derived from the component directory and is never authored in the manifest. Describe public props when known, including type, required/default values, enum values, and slots. Paths are adjacent relative paths.
+
+`description`, `aliases`, `useWhen`, and `avoidWhen` are optional semantic retrieval fields, not registration fields. Prefer an authored `description`; without one the agent context gateway falls back to the first useful README paragraph.
 
 Animated previews may add:
 

@@ -1,0 +1,7 @@
+{
+  "description": "Color fan icon representing the semantic Palette module and brand color mapping.",
+  "aliases": ["color palette", "swatches icon", "brand colors"],
+  "useWhen": ["navigate to Palette", "represent semantic color organization"],
+  "avoidWhen": ["choose one arbitrary color", "represent all design tokens"],
+  "tags": ["module", "palette", "color", "brand"]
+}

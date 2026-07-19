@@ -1,0 +1,50 @@
+{
+  "id": "module-header",
+  "name": "Module Header",
+  "description": "Identifies a module index or component workbench with a structural path, page title, optional Back action, and quiet utilities.",
+  "aliases": ["workbench header", "page header", "module title", "back header"],
+  "useWhen": [
+    "title a Design Lab module",
+    "provide workbench history navigation",
+    "show component source metadata or entity count"
+  ],
+  "avoidWhen": [
+    "build global application navigation",
+    "show an in-content section heading",
+    "render breadcrumb navigation alone"
+  ],
+  "entry": "ModuleHeader.tsx",
+  "preview": "ModuleHeader.preview.tsx",
+  "stories": "ModuleHeader.stories.ts",
+  "docs": "README.md",
+  "changelog": "CHANGELOG.md",
+  "status": "ready",
+  "states": ["default", "with-back", "with-actions"],
+  "variants": ["module", "workbench"],
+  "props": {
+    "eyebrow": {
+      "type": "string",
+      "required": true
+    },
+    "title": {
+      "type": "string",
+      "required": true
+    },
+    "count": {
+      "type": "number"
+    },
+    "backLabel": {
+      "type": "string"
+    },
+    "onBack": {
+      "type": "() => void"
+    },
+    "meta": {
+      "type": "string"
+    },
+    "actions": {
+      "type": "ReactNode",
+      "slot": true
+    }
+  }
+}

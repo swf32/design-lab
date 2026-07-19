@@ -1,0 +1,45 @@
+{
+  "id": "sidebar-tab",
+  "name": "Sidebar Tab",
+  "description": "Navigates to one primary application module from the collapsible Application Sidebar.",
+  "aliases": ["sidebar navigation item", "module tab", "rail item", "primary nav item"],
+  "useWhen": [
+    "navigate between Design Lab modules",
+    "show the active primary destination",
+    "build a collapsible navigation rail"
+  ],
+  "avoidWhen": [
+    "switch a local preference",
+    "control an associated tabpanel",
+    "represent a nested filesystem entity"
+  ],
+  "entry": "SidebarTab.tsx",
+  "preview": "SidebarTab.preview.tsx",
+  "stories": "SidebarTab.stories.ts",
+  "docs": "README.md",
+  "changelog": "CHANGELOG.md",
+  "status": "ready",
+  "states": ["default", "hover", "active", "expanded"],
+  "variants": ["default"],
+  "props": {
+    "icon": {
+      "type": "ComponentType<IconProps>",
+      "required": true
+    },
+    "label": {
+      "type": "string",
+      "required": true
+    },
+    "active": {
+      "type": "boolean",
+      "default": false
+    },
+    "expanded": {
+      "type": "boolean",
+      "default": false
+    },
+    "onClick": {
+      "type": "() => void"
+    }
+  }
+}

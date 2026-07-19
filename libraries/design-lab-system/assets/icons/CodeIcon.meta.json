@@ -1,0 +1,7 @@
+{
+  "description": "Terminal-style source icon representing code, implementation, and developer output.",
+  "aliases": ["terminal icon", "source code icon", "developer icon"],
+  "useWhen": ["open source code", "represent implementation details", "mark code output"],
+  "avoidWhen": ["copy text", "represent a generic document"],
+  "tags": ["code", "source", "developer"]
+}

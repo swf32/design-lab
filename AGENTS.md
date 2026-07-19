@@ -2,6 +2,8 @@
 
 For every component creation or modification, read and follow `COMPONENT_RULES.md`. It is the shared component contract for Codex, Claude, humans, and other agents.
 
+For every token, asset, or font creation or modification, read and follow `TOKEN_RULES.md`, `ASSET_RULES.md`, or `FONT_RULES.md` respectively. When a change crosses entity kinds, apply every relevant contract.
+
 ## Product questions
 
 - Ask the user a focused question when the answer materially affects product architecture, filesystem contracts, entity semantics, UX behavior, data ownership, or an expensive implementation direction.

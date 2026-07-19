@@ -1,0 +1,171 @@
+.dl-component-reference {
+  border-bottom: 1px solid var(--color-border-subtle);
+  background: var(--color-surface-primary);
+}
+.dl-component-reference__primary {
+  display: grid;
+  grid-template-columns: minmax(0, 1.2fr) minmax(320px, 0.8fr);
+}
+.dl-component-reference__import,
+.dl-component-reference__files {
+  min-width: 0;
+  padding: var(--spacing-3) var(--spacing-4);
+}
+.dl-component-reference__import {
+  border-right: 1px solid var(--color-border-subtle);
+}
+.dl-component-reference__primary header,
+.dl-component-reference__relations > header {
+  min-height: 20px;
+  margin-bottom: var(--spacing-2);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--spacing-2);
+}
+.dl-component-reference__primary header strong,
+.dl-component-reference__relations > header strong,
+.dl-component-reference__diagnostics > strong {
+  color: var(--color-text-disabled);
+  font-size: 8px;
+  font-weight: 700;
+  letter-spacing: 0.11em;
+  text-transform: uppercase;
+}
+.dl-component-reference__primary header span,
+.dl-component-reference__relations > header span {
+  color: var(--color-text-disabled);
+  font-size: 8px;
+  font-variant-numeric: tabular-nums;
+}
+.dl-component-reference__import .dl-code-block {
+  min-height: 58px;
+}
+.dl-component-reference__files > div {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 5px var(--spacing-3);
+}
+.dl-component-reference__files > div > span {
+  min-width: 0;
+  display: grid;
+  grid-template-columns: 76px minmax(0, 1fr);
+  align-items: baseline;
+  gap: 6px;
+}
+.dl-component-reference__files small {
+  overflow: hidden;
+  color: var(--color-text-disabled);
+  font-size: 7px;
+  letter-spacing: 0.04em;
+  text-overflow: ellipsis;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+.dl-component-reference__files code {
+  min-width: 0;
+  overflow: hidden;
+  color: var(--color-code);
+  font-size: 8px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.dl-component-reference__graph {
+  border-top: 1px solid var(--color-border-subtle);
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+.dl-component-reference__relations {
+  min-width: 0;
+  padding: 10px var(--spacing-3) var(--spacing-3);
+  border-right: 1px solid var(--color-border-subtle);
+}
+.dl-component-reference__relations:last-child {
+  border-right: 0;
+}
+.dl-component-reference__relations > div {
+  display: grid;
+  gap: 4px;
+}
+.dl-component-reference__relations button {
+  min-width: 0;
+  padding: 6px 7px;
+  border: 1px solid var(--color-border-subtle);
+  border-radius: var(--radius-small);
+  background: var(--color-surface-secondary);
+  text-align: left;
+  cursor: pointer;
+}
+.dl-component-reference__relations button:hover:not(:disabled) {
+  border-color: var(--color-border-default);
+  background: var(--color-surface-hover);
+}
+.dl-component-reference__relations button:focus-visible {
+  outline: 2px solid var(--color-accent-primary);
+  outline-offset: 2px;
+}
+.dl-component-reference__relations button:disabled {
+  cursor: default;
+}
+.dl-component-reference__relations button strong,
+.dl-component-reference__relations button code {
+  min-width: 0;
+  overflow: hidden;
+  display: block;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.dl-component-reference__relations button strong {
+  color: var(--color-text-secondary);
+  font-size: 9px;
+  font-weight: 560;
+}
+.dl-component-reference__relations button code {
+  margin-top: 2px;
+  color: var(--color-text-disabled);
+  font-size: 7px;
+}
+.dl-component-reference__relations > p {
+  margin: 0;
+  color: var(--color-text-disabled);
+  font-size: 8px;
+}
+.dl-component-reference__diagnostics {
+  padding: 9px var(--spacing-4);
+  border-top: 1px solid color-mix(in srgb, var(--color-status-warning) 35%, transparent);
+  background: color-mix(in srgb, var(--color-status-warning) 8%, var(--color-surface-primary));
+}
+.dl-component-reference__diagnostics p {
+  margin: 4px 0 0;
+  color: var(--color-status-warning);
+  font-size: 9px;
+}
+@media (max-width: 980px) {
+  .dl-component-reference__primary {
+    grid-template-columns: 1fr;
+  }
+  .dl-component-reference__import {
+    border-right: 0;
+    border-bottom: 1px solid var(--color-border-subtle);
+  }
+  .dl-component-reference__graph {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .dl-component-reference__relations:nth-child(2) {
+    border-right: 0;
+  }
+  .dl-component-reference__relations:nth-child(-n + 2) {
+    border-bottom: 1px solid var(--color-border-subtle);
+  }
+}
+@media (max-width: 620px) {
+  .dl-component-reference__files > div,
+  .dl-component-reference__graph {
+    grid-template-columns: 1fr;
+  }
+  .dl-component-reference__relations,
+  .dl-component-reference__relations:nth-child(2) {
+    border-right: 0;
+    border-bottom: 1px solid var(--color-border-subtle);
+  }
+}

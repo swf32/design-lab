@@ -1,0 +1,66 @@
+{
+  "id": "workbench-playground",
+  "name": "Workbench Playground",
+  "description": "Combines a live production component canvas, shared background controls, component-specific props, and event feedback.",
+  "aliases": ["component playground", "live canvas", "props playground", "workbench canvas"],
+  "useWhen": [
+    "interactively inspect a production component",
+    "change component props",
+    "test canvas backgrounds",
+    "observe component events"
+  ],
+  "avoidWhen": [
+    "show a static catalog preview",
+    "compare several documented story scenarios",
+    "edit component source code"
+  ],
+  "entry": "WorkbenchPlayground.tsx",
+  "preview": "WorkbenchPlayground.preview.tsx",
+  "stories": "WorkbenchPlayground.stories.ts",
+  "docs": "README.md",
+  "changelog": "CHANGELOG.md",
+  "status": "ready",
+  "states": ["dark-grid", "light-grid", "solid"],
+  "variants": ["none", "compact", "comfortable"],
+  "props": {
+    "children": {
+      "type": "ReactNode",
+      "required": true,
+      "slot": true
+    },
+    "controls": {
+      "type": "ReactNode",
+      "required": true,
+      "slot": true
+    },
+    "mode": {
+      "type": "CanvasMode",
+      "required": true
+    },
+    "color": {
+      "type": "string",
+      "required": true
+    },
+    "onModeChange": {
+      "type": "(mode: CanvasMode) => void",
+      "required": true
+    },
+    "onColorChange": {
+      "type": "(color: string) => void",
+      "required": true
+    },
+    "label": {
+      "type": "string",
+      "default": "Playground"
+    },
+    "padding": {
+      "type": "WorkbenchPlaygroundPadding",
+      "values": ["none", "compact", "comfortable"],
+      "default": "comfortable"
+    },
+    "eventLog": {
+      "type": "ReactNode",
+      "slot": true
+    }
+  }
+}

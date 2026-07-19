@@ -1,0 +1,8 @@
+{
+  "description": "Atmospheric rainy city photograph for urban, reflective, weather, and cinematic editorial context.",
+  "aliases": ["wet city street", "urban rain", "moody city"],
+  "useWhen": ["illustrate urban weather", "create a reflective cinematic mood"],
+  "avoidWhen": ["communicate a cheerful product success", "show a natural landscape"],
+  "tags": ["photography", "city", "rain", "urban", "atmospheric"],
+  "alt": "Rainy city scene with a reflective urban atmosphere"
+}

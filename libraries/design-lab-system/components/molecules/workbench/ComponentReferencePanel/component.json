@@ -1,0 +1,53 @@
+{
+  "id": "component-reference-panel",
+  "name": "Component Reference Panel",
+  "description": "Shows a discovered Component import, adjacent files, direct production and example relationships, and scanner diagnostics.",
+  "aliases": ["component dependencies", "usage panel", "import reference", "component relations"],
+  "useWhen": [
+    "inspect how to import a component",
+    "find which components use another component",
+    "review example-only dependencies",
+    "open discovered component files"
+  ],
+  "avoidWhen": [
+    "edit dependency metadata manually",
+    "show transitive workspace impact",
+    "render a generic documentation panel"
+  ],
+  "entry": "ComponentReferencePanel.tsx",
+  "preview": "ComponentReferencePanel.preview.tsx",
+  "stories": "ComponentReferencePanel.stories.ts",
+  "docs": "README.md",
+  "changelog": "CHANGELOG.md",
+  "status": "ready",
+  "variants": ["default"],
+  "states": ["complete", "empty", "diagnostic"],
+  "props": {
+    "importStatement": {
+      "type": "string",
+      "required": true
+    },
+    "files": {
+      "type": "ComponentReferenceFile[]",
+      "required": true
+    },
+    "uses": {
+      "type": "ComponentReferenceRelation[]"
+    },
+    "usedBy": {
+      "type": "ComponentReferenceRelation[]"
+    },
+    "examplesUse": {
+      "type": "ComponentReferenceRelation[]"
+    },
+    "usedInExamplesBy": {
+      "type": "ComponentReferenceRelation[]"
+    },
+    "diagnostics": {
+      "type": "Array<{ code: string; message: string }>"
+    },
+    "onSelectRelation": {
+      "type": "(relation: ComponentReferenceRelation) => void"
+    }
+  }
+}

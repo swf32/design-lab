@@ -1,2 +1,15 @@
 import type { IconProps } from './IconProps'
-export function VideoIcon({ size = 24, ...props }: IconProps) { return <svg width={size} height={size} viewBox="0 0 24 24" fill="none" {...props}><rect x="3" y="5" width="13" height="14" rx="2" stroke="currentColor" strokeWidth="1.5"/><path d="m16 10 4.2-2.1c.37-.18.8.08.8.5v7.2c0 .42-.43.68-.8.5L16 14" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg> }
+export function VideoIcon({ size = 24, ...props }: IconProps) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" {...props}>
+      <rect x="3" y="5" width="13" height="14" rx="2" stroke="currentColor" strokeWidth="1.5" />
+      <path
+        d="m16 10 4.2-2.1c.37-.18.8.08.8.5v7.2c0 .42-.43.68-.8.5L16 14"
+        stroke="currentColor"
+        strokeWidth="1.5"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  )
+}

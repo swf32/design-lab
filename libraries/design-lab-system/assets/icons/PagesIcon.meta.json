@@ -1,0 +1,7 @@
+{
+  "description": "Open-book icon representing composed Pages and the Pages module.",
+  "aliases": ["page module", "book icon", "screens icon"],
+  "useWhen": ["navigate to Pages", "represent finalized screens or page compositions"],
+  "avoidWhen": ["represent documentation files", "represent wireframe drafts"],
+  "tags": ["module", "pages", "screens"]
+}

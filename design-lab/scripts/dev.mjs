@@ -2,10 +2,18 @@ import { spawn } from 'node:child_process'
 import { fileURLToPath } from 'node:url'
 
 const viteBin = fileURLToPath(new URL('../../bin/vite.js', import.meta.resolve('vite')))
+const componentIndexBuilder = fileURLToPath(
+  new URL('../../libraries/design-lab-system/scripts/build-component-index.mjs', import.meta.url),
+)
+const iconIndexBuilder = fileURLToPath(
+  new URL('../../libraries/design-lab-system/scripts/build-icon-index.mjs', import.meta.url),
+)
 
 const commands = [
   ['node', ['server/index.mjs']],
   ['node', [viteBin]],
+  ['node', [componentIndexBuilder, '--watch']],
+  ['node', [iconIndexBuilder, '--watch']],
 ]
 
 const children = commands.map(([command, args]) => spawn(command, args, { stdio: 'inherit' }))

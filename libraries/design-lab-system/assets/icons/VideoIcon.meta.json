@@ -1,0 +1,7 @@
+{
+  "description": "Camera icon representing video media and playable motion assets.",
+  "aliases": ["movie icon", "camera icon", "video asset"],
+  "useWhen": ["represent a video file", "show a video asset fallback"],
+  "avoidWhen": ["start generic preview motion", "represent a still image"],
+  "tags": ["video", "media", "camera"]
+}

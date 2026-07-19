@@ -1,0 +1,7 @@
+{
+  "description": "Magnifying-glass icon for searching and filtering a collection.",
+  "aliases": ["find icon", "magnifier", "filter search"],
+  "useWhen": ["search components or entities", "filter a visible collection"],
+  "avoidWhen": ["open source code", "zoom visual content"],
+  "tags": ["action", "search", "filter", "find"]
+}

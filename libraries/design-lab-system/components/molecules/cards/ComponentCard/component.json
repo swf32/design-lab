@@ -1,0 +1,54 @@
+{
+  "id": "component-card",
+  "name": "Component Card",
+  "description": "Represents one discovered Component in the catalog using its authored illustrative preview and overlaid name.",
+  "aliases": ["component tile", "catalog card", "component preview card"],
+  "useWhen": [
+    "browse a component catalog",
+    "open a component workbench",
+    "show an authored component preview"
+  ],
+  "avoidWhen": [
+    "render the production component itself",
+    "show a generic content card",
+    "display an asset file"
+  ],
+  "entry": "ComponentCard.tsx",
+  "preview": "ComponentCard.preview.tsx",
+  "stories": "ComponentCard.stories.ts",
+  "docs": "README.md",
+  "changelog": "CHANGELOG.md",
+  "status": "ready",
+  "states": ["default", "focus-visible", "selected", "preview-animated"],
+  "variants": ["default"],
+  "props": {
+    "name": {
+      "type": "string",
+      "required": true
+    },
+    "entry": {
+      "type": "string",
+      "required": true
+    },
+    "meta": {
+      "type": "string",
+      "required": true
+    },
+    "preview": {
+      "type": "ReactNode",
+      "required": true,
+      "slot": true
+    },
+    "previewAnimated": {
+      "type": "boolean",
+      "default": false
+    },
+    "selected": {
+      "type": "boolean",
+      "default": false
+    },
+    "onClick": {
+      "type": "() => void"
+    }
+  }
+}

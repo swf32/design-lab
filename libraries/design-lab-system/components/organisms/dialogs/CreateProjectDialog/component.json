@@ -1,0 +1,24 @@
+{
+  "id": "create-project-dialog",
+  "name": "Create Project Dialog",
+  "description": "Collects a project name and creates a canonical Design Lab Project without asking for a filesystem location.",
+  "aliases": ["new project dialog", "create design system modal", "project creation form"],
+  "useWhen": [
+    "create a new Design Lab project",
+    "collect a design-system name",
+    "start the canonical project creation flow"
+  ],
+  "avoidWhen": [
+    "choose an arbitrary parent directory",
+    "edit an existing project",
+    "confirm a generic destructive action"
+  ],
+  "entry": "CreateProjectDialog.tsx",
+  "preview": "CreateProjectDialog.preview.tsx",
+  "stories": "CreateProjectDialog.stories.ts",
+  "docs": "README.md",
+  "changelog": "CHANGELOG.md",
+  "status": "ready",
+  "states": ["default", "busy", "error"],
+  "variants": ["required", "dismissible"]
+}

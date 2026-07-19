@@ -1,0 +1,7 @@
+{
+  "description": "Structured node icon representing design Tokens and their connected semantic values.",
+  "aliases": ["design token icon", "variables icon", "token module"],
+  "useWhen": ["navigate to Tokens", "represent a design token or variable system"],
+  "avoidWhen": ["represent reusable Components", "represent raw source code"],
+  "tags": ["module", "tokens", "variables", "design-system"]
+}

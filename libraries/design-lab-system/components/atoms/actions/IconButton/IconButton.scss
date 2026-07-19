@@ -1,0 +1,15 @@
+.dl-icon-button {
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  border: 0;
+  border-radius: var(--radius-small);
+  background: transparent;
+  color: var(--color-text-muted);
+  display: grid;
+  place-items: center;
+}
+.dl-icon-button:hover {
+  color: var(--color-text-primary);
+  background: var(--color-surface-hover);
+}

@@ -1,0 +1,7 @@
+{
+  "description": "Sparkle star icon for highlighting featured, generated, or exceptional content.",
+  "aliases": ["sparkle icon", "featured icon", "magic icon"],
+  "useWhen": ["mark a featured entity", "indicate an AI-assisted or special result"],
+  "avoidWhen": ["mark a required field", "represent ratings without a rating contract"],
+  "tags": ["highlight", "featured", "sparkle"]
+}

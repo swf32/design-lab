@@ -1,0 +1,11 @@
+{
+  "description": "Modern desk and workspace photograph for productivity, software, studio, and professional context.",
+  "aliases": ["office desk", "studio workspace", "modern office"],
+  "useWhen": [
+    "illustrate productivity or software work",
+    "show a contemporary professional environment"
+  ],
+  "avoidWhen": ["depict outdoor travel", "show a collaborative group of people"],
+  "tags": ["photography", "workspace", "office", "productivity", "modern"],
+  "alt": "Modern organized workspace and desk"
+}

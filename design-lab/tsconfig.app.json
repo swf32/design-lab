@@ -16,5 +16,9 @@
     "noEmit": true,
     "jsx": "react-jsx"
   },
-  "include": ["src"]
+  "include": [
+    "src",
+    "../libraries/design-lab-system/**/*.ts",
+    "../libraries/design-lab-system/**/*.tsx"
+  ]
 }

@@ -1,7 +1,16 @@
 import type { ModuleId } from '@design-lab/system/components'
 import type { ProjectTreeItem } from './api/projects'
 
-const MODULE_IDS: ModuleId[] = ['home', 'components', 'wireframes', 'pages', 'assets', 'palette', 'tokens', 'fonts']
+const MODULE_IDS: ModuleId[] = [
+  'home',
+  'components',
+  'wireframes',
+  'pages',
+  'assets',
+  'palette',
+  'tokens',
+  'fonts',
+]
 const MODULE_ID_SET = new Set<string>(MODULE_IDS)
 
 export type AppRoute = {
@@ -19,7 +28,7 @@ function decodeSegment(segment: string) {
 
 export function readAppRoute(pathname = window.location.pathname): AppRoute {
   const segments = pathname.split('/').filter(Boolean).map(decodeSegment)
-  const module = MODULE_ID_SET.has(segments[0]) ? segments[0] as ModuleId : 'components'
+  const module = MODULE_ID_SET.has(segments[0]) ? (segments[0] as ModuleId) : 'components'
   return { module, path: segments.slice(1).join('/') }
 }
 

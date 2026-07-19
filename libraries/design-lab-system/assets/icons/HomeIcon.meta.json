@@ -1,0 +1,7 @@
+{
+  "description": "House icon representing the Design Lab home or workspace overview.",
+  "aliases": ["dashboard icon", "start icon", "home navigation"],
+  "useWhen": ["navigate to Home", "return to the workspace overview"],
+  "avoidWhen": ["navigate back one history entry", "represent a project source"],
+  "tags": ["module", "home", "navigation"]
+}

@@ -1,9 +1,11 @@
+// Generated from code-native icon assets. Do not edit by hand.
 export { ArrowDownIcon } from './ArrowDownIcon'
+export { ArrowLeftIcon } from './ArrowLeftIcon'
 export { AssetsIcon } from './AssetsIcon'
 export { CodeIcon } from './CodeIcon'
-export { CopyIcon } from './CopyIcon'
 export { ComponentIcon } from './ComponentIcon'
 export { ComponentsIcon } from './ComponentsIcon'
+export { CopyIcon } from './CopyIcon'
 export { DirectoryIcon } from './DirectoryIcon'
 export { FontsIcon } from './FontsIcon'
 export { HomeIcon } from './HomeIcon'

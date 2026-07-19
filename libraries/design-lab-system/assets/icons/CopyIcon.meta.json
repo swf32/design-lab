@@ -1,0 +1,7 @@
+{
+  "description": "Overlapping documents icon for copying source, values, links, or text to the clipboard.",
+  "aliases": ["duplicate icon", "clipboard copy", "copy action"],
+  "useWhen": ["copy an import statement", "copy a link or value", "copy source code"],
+  "avoidWhen": ["duplicate an entity as a domain operation", "represent two documents"],
+  "tags": ["action", "copy", "clipboard"]
+}

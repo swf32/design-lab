@@ -1,0 +1,7 @@
+{
+  "description": "Image-and-landscape icon representing the Assets module and media collections.",
+  "aliases": ["image icon", "media icon", "asset library"],
+  "useWhen": ["represent assets or media", "navigate to the Assets module"],
+  "avoidWhen": ["represent one specific photograph", "indicate file upload"],
+  "tags": ["module", "assets", "media", "image"]
+}

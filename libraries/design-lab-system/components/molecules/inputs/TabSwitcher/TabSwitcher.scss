@@ -1,0 +1,99 @@
+.dl-tab-switcher {
+  width: max-content;
+  padding: 3px;
+  border: 1px solid var(--color-border-default);
+  border-radius: var(--radius-small);
+  background: var(--color-surface-secondary);
+  display: flex;
+  align-items: center;
+  gap: 2px;
+}
+.dl-tab-switcher button {
+  min-width: 54px;
+  height: 26px;
+  padding: 0 9px;
+  border: 0;
+  border-radius: 4px;
+  outline: 0;
+  background: transparent;
+  color: var(--color-text-muted);
+  font: inherit;
+  font-size: 9px;
+  text-transform: capitalize;
+  cursor: pointer;
+  transition:
+    background var(--transition-fast),
+    color var(--transition-fast),
+    box-shadow var(--transition-fast);
+}
+.dl-tab-switcher button:hover:not(:disabled) {
+  color: var(--color-text-secondary);
+}
+.dl-tab-switcher button.is-active {
+  background: var(--color-surface-hover);
+  color: var(--color-text-primary);
+  box-shadow: 0 0 0 1px var(--color-border-subtle);
+}
+.dl-tab-switcher button:focus-visible {
+  box-shadow:
+    0 0 0 1px var(--color-surface-secondary),
+    0 0 0 3px var(--color-accent-primary);
+}
+.dl-tab-switcher button:disabled {
+  opacity: 0.38;
+  cursor: not-allowed;
+}
+.dl-tab-switcher--small button {
+  min-width: 26px;
+  height: 24px;
+  padding: 0 6px;
+}
+.dl-tab-switcher--toggle {
+  --tab-switcher-control: 24px;
+  --tab-switcher-padding: 3px;
+  position: relative;
+  width: max-content;
+  height: 32px;
+  box-sizing: border-box;
+  padding: var(--tab-switcher-padding);
+  border-radius: 999px;
+  display: grid;
+  grid-template-columns: repeat(var(--tab-switcher-count), var(--tab-switcher-control));
+  gap: 0;
+}
+.dl-tab-switcher--toggle.dl-tab-switcher--small {
+  --tab-switcher-control: 18px;
+  --tab-switcher-padding: 2px;
+  height: 24px;
+}
+.dl-tab-switcher--toggle::before {
+  content: '';
+  position: absolute;
+  z-index: 0;
+  top: var(--tab-switcher-padding);
+  left: var(--tab-switcher-padding);
+  width: var(--tab-switcher-control);
+  height: var(--tab-switcher-control);
+  border-radius: 50%;
+  background: var(--color-surface-raised);
+  box-shadow: 0 0 0 1px var(--color-border-default);
+  transform: translateX(calc(var(--tab-switcher-index) * 100%));
+  transition:
+    transform var(--transition-fast),
+    background var(--transition-fast);
+}
+.dl-tab-switcher--toggle button,
+.dl-tab-switcher--toggle.dl-tab-switcher--small button {
+  min-width: var(--tab-switcher-control);
+  width: var(--tab-switcher-control);
+  height: var(--tab-switcher-control);
+  padding: 0;
+  border-radius: 50%;
+  position: relative;
+  z-index: 1;
+  font-size: 10px;
+}
+.dl-tab-switcher--toggle button.is-active {
+  background: transparent;
+  box-shadow: none;
+}

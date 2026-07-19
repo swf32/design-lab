@@ -1,1 +1,0 @@
-{"id":"source-select","name":"Source Select","category":"molecules","entry":"SourceSelect.tsx","preview":"SourceSelect.preview.tsx","stories":"SourceSelect.stories.ts","docs":"README.md","changelog":"CHANGELOG.md","status":"ready","states":["closed","open","empty","unavailable"],"variants":["project","library"]}

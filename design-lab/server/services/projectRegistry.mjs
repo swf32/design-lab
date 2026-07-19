@@ -39,7 +39,10 @@ function slugify(name) {
 async function readRegistry() {
   try {
     const registry = JSON.parse(await readFile(registryPath(), 'utf8'))
-    return { version: REGISTRY_VERSION, projects: Array.isArray(registry.projects) ? registry.projects : [] }
+    return {
+      version: REGISTRY_VERSION,
+      projects: Array.isArray(registry.projects) ? registry.projects : [],
+    }
   } catch (error) {
     if (error.code !== 'ENOENT') throw error
     return { version: REGISTRY_VERSION, projects: [] }
@@ -56,21 +59,27 @@ async function writeRegistry(registry) {
 
 export async function listProjects() {
   const registry = await readRegistry()
-  const projects = await Promise.all(registry.projects.map(async (project) => {
-    try {
-      await access(project.path)
-      return { ...project, available: true }
-    } catch {
-      return { ...project, available: false }
-    }
-  }))
+  const projects = await Promise.all(
+    registry.projects.map(async (project) => {
+      try {
+        await access(project.path)
+        return { ...project, available: true }
+      } catch {
+        return { ...project, available: false }
+      }
+    }),
+  )
   return { projects, workspacePath: getWorkspaceDirectory() }
 }
 
 export async function listSources() {
   const { projects } = await listProjects()
   let entries = []
-  try { entries = await readdir(getLibrariesDirectory(), { withFileTypes: true }) } catch (error) { if (error.code !== 'ENOENT') throw error }
+  try {
+    entries = await readdir(getLibrariesDirectory(), { withFileTypes: true })
+  } catch (error) {
+    if (error.code !== 'ENOENT') throw error
+  }
   const libraries = []
   for (const entry of entries) {
     if (!entry.isDirectory()) continue
@@ -78,7 +87,9 @@ export async function listSources() {
     try {
       const manifest = JSON.parse(await readFile(join(path, 'library.json'), 'utf8'))
       libraries.push({ ...manifest, path, available: true, createdAt: manifest.createdAt ?? null })
-    } catch (error) { if (error.code !== 'ENOENT') throw error }
+    } catch (error) {
+      if (error.code !== 'ENOENT') throw error
+    }
   }
   return { sources: [...libraries, ...projects], workspacePath: getWorkspaceDirectory() }
 }
@@ -86,21 +97,29 @@ export async function listSources() {
 export async function getSource(sourceId) {
   const { sources } = await listSources()
   const source = sources.find((item) => item.id === sourceId)
-  if (!source) throw Object.assign(new Error('Design source not found'), { status: 404, code: 'SOURCE_NOT_FOUND' })
+  if (!source)
+    throw Object.assign(new Error('Design source not found'), {
+      status: 404,
+      code: 'SOURCE_NOT_FOUND',
+    })
   return source
 }
 
 export async function getProject(projectId) {
   const registry = await readRegistry()
   const project = registry.projects.find((item) => item.id === projectId)
-  if (!project) throw Object.assign(new Error('Project not found'), { status: 404, code: 'PROJECT_NOT_FOUND' })
+  if (!project)
+    throw Object.assign(new Error('Project not found'), { status: 404, code: 'PROJECT_NOT_FOUND' })
   return project
 }
 
 export async function createProject(input) {
   const name = typeof input.name === 'string' ? input.name.trim() : ''
   if (name.length < 2 || name.length > 80) {
-    throw Object.assign(new Error('Project name must contain 2–80 characters'), { status: 400, code: 'INVALID_PROJECT_NAME' })
+    throw Object.assign(new Error('Project name must contain 2–80 characters'), {
+      status: 400,
+      code: 'INVALID_PROJECT_NAME',
+    })
   }
 
   const projectsPath = getProjectsDirectory()
@@ -111,7 +130,11 @@ export async function createProject(input) {
   try {
     await mkdir(projectPath, { recursive: false })
   } catch (error) {
-    if (error.code === 'EEXIST') throw Object.assign(new Error('A directory with this name already exists'), { status: 409, code: 'PROJECT_DIRECTORY_EXISTS' })
+    if (error.code === 'EEXIST')
+      throw Object.assign(new Error('A directory with this name already exists'), {
+        status: 409,
+        code: 'PROJECT_DIRECTORY_EXISTS',
+      })
     throw error
   }
 
@@ -124,13 +147,41 @@ export async function createProject(input) {
     createdAt: new Date().toISOString(),
   }
 
-  const directories = ['components', 'tokens', 'palette', 'fonts', 'assets', 'assets/icons', 'assets/images', 'assets/videos', 'docs']
-  await Promise.all(directories.map((directory) => mkdir(join(projectPath, directory), { recursive: true })))
+  const directories = [
+    'components',
+    'tokens',
+    'palette',
+    'fonts',
+    'assets',
+    'assets/icons',
+    'assets/images',
+    'assets/videos',
+    'docs',
+  ]
+  await Promise.all(
+    directories.map((directory) => mkdir(join(projectPath, directory), { recursive: true })),
+  )
   await Promise.all([
-    writeFile(join(projectPath, 'project.json'), `${JSON.stringify({ id: project.id, name, schemaVersion: 1 }, null, 2)}\n`, 'utf8'),
-    writeFile(join(projectPath, 'tokens', 'base.tokens.json'), `${JSON.stringify({ schemaVersion: 1, name: 'Base', tokens: {} }, null, 2)}\n`, 'utf8'),
-    writeFile(join(projectPath, 'fonts', 'fonts.json'), `${JSON.stringify({ schemaVersion: 1, families: [] }, null, 2)}\n`, 'utf8'),
-    writeFile(join(projectPath, 'docs', 'README.md'), `# ${name}\n\nDesign system project created by Design Lab.\n`, 'utf8'),
+    writeFile(
+      join(projectPath, 'project.json'),
+      `${JSON.stringify({ id: project.id, name, schemaVersion: 1 }, null, 2)}\n`,
+      'utf8',
+    ),
+    writeFile(
+      join(projectPath, 'tokens', 'base.tokens.json'),
+      `${JSON.stringify({ schemaVersion: 1, name: 'Base', tokens: {} }, null, 2)}\n`,
+      'utf8',
+    ),
+    writeFile(
+      join(projectPath, 'fonts', 'fonts.json'),
+      `${JSON.stringify({ schemaVersion: 1, families: [] }, null, 2)}\n`,
+      'utf8',
+    ),
+    writeFile(
+      join(projectPath, 'docs', 'README.md'),
+      `# ${name}\n\nDesign system project created by Design Lab.\n`,
+      'utf8',
+    ),
   ])
 
   const registry = await readRegistry()

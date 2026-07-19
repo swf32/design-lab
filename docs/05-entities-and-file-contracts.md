@@ -22,21 +22,28 @@
 |----|----|
 | Purpose | Хранить переиспользуемые UI-единицы с вариантами, состояниями, пропсами, preview и документацией |
 | Minimal data model | `id`, `name`, `status`, `description`, `props[]`, `variants[]`, `states[]`, `slots[]`, `tokensUsed[]`, `dependsOn[]`, `usedBy[]`, `docsRef`, `changelogRef` |
-| File examples | `Button.tsx`, `Button.meta.json` (опционально), `Button.preview.tsx`, `Button.stories.tsx`, `README.md`, `CHANGELOG.md`, `render.tsx` опционально |
+| File examples | `Button.tsx`, `Button.scss`, `component.json`, `Button.preview.tsx`, `Button.stories.tsx`, `README.md`, `CHANGELOG.md`, `render.tsx` опционально |
 | UX flow | Создать компонент → задать props/variants/states → собрать preview → сохранить docs → использовать на pages/wireframes |
-| Features | **MVP**: metadata, static or optional manifest-declared animated preview, docs, changelog, usage refs. **Next**: Story import, composition playground. **Future**: cross-platform contracts |
+| Features | **MVP**: metadata, static or optional manifest-declared animated preview, executable adjacent stories, docs, changelog, canonical import, direct production/example usage graph. **Next**: completeness diagnostics and composition authoring. **Future**: cross-platform contracts |
 
 Пример дерева:
 
     components/
-    └── Button/
-        ├── Button.tsx
-        ├── Button.meta.json
-        ├── Button.preview.tsx
-        ├── Button.stories.tsx
-        ├── README.md
-        ├── CHANGELOG.md
-        └── render.tsx
+    └── atoms/
+        └── actions/
+            └── Button/
+                ├── Button.tsx
+                ├── Button.scss
+                ├── component.json
+                ├── Button.preview.tsx
+                ├── Button.stories.tsx
+                ├── README.md
+                ├── CHANGELOG.md
+                └── render.tsx
+
+Папки над Component являются источником category и navigation path. `component.json` не повторяет category. Для package consumers производный `components/index.ts` автоматически строится из всех найденных manifests и может быть удалён и восстановлен без потери данных.
+
+Manifest-declared `*.stories.ts(x)` хранит и story metadata, и `renderStoryExample`. Workbench загружает его по обнаруженному component directory без центрального application registry. Scanner статически разбирает TypeScript/TSX imports и возвращает четыре прямых набора связей: production `uses` / `usedBy` и example-only `examplesUse` / `usedInExamplesBy`. Type-only imports игнорируются; production dependencies вычитаются из example graph, чтобы одна и та же связь не дублировалась. Preview imports production Components становятся diagnostics, потому что preview обязан оставаться самостоятельной illustrative composition.
 
 ## Wireframes
 
@@ -81,10 +88,12 @@
 | Поле | Рекомендация |
 |----|----|
 | Purpose | Хранить системные значения: spacing, radii, typography sizes, semantic refs |
-| Minimal data model | `name`, `category`, `value`, `semantic`, `aliases[]`, `themes[]` |
+| Minimal data model | `path`, `type`, `value`, `description`, optional `aliases[]`, `useWhen[]`, `avoidWhen[]`, `tags[]`, mode overrides |
 | File examples | `spacing.tokens.json`, `radius.tokens.json`, `typography.tokens.json` |
 | UX flow | Создать/изменить token → обновить превью и связи → использовать в components/pages |
 | Features | **MVP**: CRUD, usage references. **Next**: theme packs. **Future**: cross-library overrides |
+
+Token semantic metadata lives on the base token leaf inside `*.tokens.json`; mode overrides replace values and inherit the same meaning. Colors describe roles such as surface, readable text, selection, success, warning, and danger rather than restating a hue or HEX value. Typography tokens describe how registered font families, sizes, weights, and line heights are used. `TOKEN_RULES.md` is the shared authoring contract.
 
 ## Palette
 
@@ -101,22 +110,24 @@
 | Поле | Рекомендация |
 |----|----|
 | Purpose | Хранить и каталогизировать изображения, иконки, иллюстрации, медиа |
-| Minimal data model | `id`, `type`, `path`, `tags[]`, `usage[]`, `license?`, `variants[]` |
-| File examples | `assets/index.json`, канонические папки `icons/`, `images/`, `videos/` и произвольные вложенные категории |
+| Minimal data model | derived `id`, `type`, `path`, optional adjacent `description`, `aliases[]`, `useWhen[]`, `avoidWhen[]`, `tags[]`, `alt?`, `license?` |
+| File examples | канонические папки `icons/`, `images/`, `videos/`, произвольные вложенные категории и optional `<AssetStem>.meta.json` |
 | UX flow | Импортировать asset → присвоить tags → использовать в components/pages |
 | Features | **MVP**: library browser, basic tagging. **Next**: dedupe, alt-text suggestions. **Future**: semantic media search |
 
-Иконка, появляющаяся при создании или изменении Component, сначала становится переиспользуемым code-native asset в каноническом `assets/icons/` активной Library и экспортируется через assets barrel. Component, preview и stories импортируют её оттуда; inline SVG paths, CSS-рисование и emoji/Unicode substitutes не являются допустимым способом добавить отсутствующую продуктовую иконку.
+Asset file обнаруживается рекурсивно без центрального registry. Optional `<AssetStem>.meta.json` лежит рядом с ним и улучшает AI retrieval, не дублируя path, extension, dimensions или preview URL. Иконка, появляющаяся при создании или изменении Component, сначала становится переиспользуемым code-native asset в каноническом `assets/icons/` активной Library. Generated `assets/icons/index.ts` автоматически экспортирует TSX icons при dev/build/test; Component, preview и stories импортируют их оттуда. Inline SVG paths, CSS-рисование и emoji/Unicode substitutes не являются допустимым способом добавить отсутствующую продуктовую иконку. Полный контракт находится в `ASSET_RULES.md`.
 
 ## Fonts
 
 | Поле | Рекомендация |
 |----|----|
 | Purpose | Хранить font files, font families, weights, fallback chains |
-| Minimal data model | `family`, `weights[]`, `styles[]`, `fallback`, `license?` |
+| Minimal data model | `family`, `description`, `aliases[]`, `useWhen[]`, `avoidWhen[]`, `tags[]`, `weights[]`, `styles[]`, `fallback`, `license?` |
 | File examples | `fonts.json`, `Inter/Inter-Regular.woff2` |
 | UX flow | Добавить семейство → задать mapping в typography tokens → preview |
 | Features | **MVP**: registry + mapping. **Next**: loading diagnostics. **Future**: variable font tooling |
+
+Font registry отвечает на вопрос, какие families и styles доступны; typography tokens — как дизайн-система их использует. Оба вида сущностей индексируются отдельно и соединяются семантически без AI-only registry. Правила authoring описаны в `FONT_RULES.md`.
 
 ## Rules
 

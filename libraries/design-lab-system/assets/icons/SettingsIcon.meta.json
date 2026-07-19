@@ -1,0 +1,7 @@
+{
+  "description": "Gear icon representing application settings and configuration.",
+  "aliases": ["gear icon", "preferences icon", "configuration"],
+  "useWhen": ["open application Settings", "represent configurable preferences"],
+  "avoidWhen": ["edit one inline property", "represent developer tools"],
+  "tags": ["settings", "preferences", "configuration"]
+}

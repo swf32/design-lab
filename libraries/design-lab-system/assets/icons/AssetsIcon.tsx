@@ -1,2 +1,15 @@
 import type { IconProps } from './IconProps'
-export function AssetsIcon({ size = 24, ...props }: IconProps) { return <svg width={size} height={size} viewBox="0 0 24 24" fill="none" {...props}><path d="m21.7 17.21-3.13-7.31c-1.06-2.48-3.01-2.58-4.32-.22l-1.89 3.41c-.96 1.73-2.75 1.88-3.99.33l-.22-.28c-1.29-1.62-3.11-1.42-4.04.43l-1.72 3.45c-1.21 2.4.54 5.23 3.22 5.23h12.76c2.6 0 4.35-2.65 3.33-5.04Z" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/><circle cx="7" cy="5" r="3" stroke="currentColor" strokeWidth="1.5"/></svg> }
+export function AssetsIcon({ size = 24, ...props }: IconProps) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" {...props}>
+      <path
+        d="m21.7 17.21-3.13-7.31c-1.06-2.48-3.01-2.58-4.32-.22l-1.89 3.41c-.96 1.73-2.75 1.88-3.99.33l-.22-.28c-1.29-1.62-3.11-1.42-4.04.43l-1.72 3.45c-1.21 2.4.54 5.23 3.22 5.23h12.76c2.6 0 4.35-2.65 3.33-5.04Z"
+        stroke="currentColor"
+        strokeWidth="1.5"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+      <circle cx="7" cy="5" r="3" stroke="currentColor" strokeWidth="1.5" />
+    </svg>
+  )
+}

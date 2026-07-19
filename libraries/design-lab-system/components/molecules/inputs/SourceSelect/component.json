@@ -1,0 +1,24 @@
+{
+  "id": "source-select",
+  "name": "Source Select",
+  "description": "Switches Design Lab between canonical Project and Library sources and exposes project creation.",
+  "aliases": ["project selector", "library selector", "source dropdown", "workspace source"],
+  "useWhen": [
+    "change the active design-system source",
+    "select a project or library",
+    "open project creation from source navigation"
+  ],
+  "avoidWhen": [
+    "choose an arbitrary filesystem path",
+    "select a form option",
+    "switch a visual theme"
+  ],
+  "entry": "SourceSelect.tsx",
+  "preview": "SourceSelect.preview.tsx",
+  "stories": "SourceSelect.stories.ts",
+  "docs": "README.md",
+  "changelog": "CHANGELOG.md",
+  "status": "ready",
+  "states": ["closed", "open", "empty", "unavailable"],
+  "variants": ["project", "library"]
+}

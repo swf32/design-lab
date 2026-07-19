@@ -1,0 +1,42 @@
+{
+  "id": "story-canvas",
+  "name": "Story Canvas",
+  "description": "Presents one full-width component scenario with a named comparison axis, explanatory context, and real production specimens.",
+  "aliases": ["component story", "example canvas", "scenario canvas", "story card"],
+  "useWhen": [
+    "compare component variants",
+    "demonstrate one behavior or state axis",
+    "show a component in realistic context"
+  ],
+  "avoidWhen": [
+    "mix unrelated comparison axes",
+    "provide interactive prop controls",
+    "render a catalog thumbnail"
+  ],
+  "entry": "StoryCanvas.tsx",
+  "preview": "StoryCanvas.preview.tsx",
+  "stories": "StoryCanvas.stories.ts",
+  "docs": "README.md",
+  "changelog": "CHANGELOG.md",
+  "status": "ready",
+  "states": ["default"],
+  "variants": ["comparison", "interactive", "single"],
+  "props": {
+    "title": {
+      "type": "string",
+      "required": true
+    },
+    "description": {
+      "type": "string"
+    },
+    "children": {
+      "type": "ReactNode",
+      "required": true,
+      "slot": true
+    },
+    "meta": {
+      "type": "ReactNode",
+      "slot": true
+    }
+  }
+}

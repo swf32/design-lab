@@ -1,0 +1,30 @@
+.dl-color-card {
+  min-width: 0;
+  padding: 8px;
+  border: 1px solid var(--color-border-subtle);
+  border-radius: var(--radius-medium);
+  background: var(--color-surface-secondary);
+  text-align: left;
+}
+.dl-color-card__swatch {
+  height: 92px;
+  margin-bottom: 10px;
+  border: 1px solid var(--color-border-subtle);
+  border-radius: var(--radius-small);
+}
+.dl-color-card code,
+.dl-color-card span {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.dl-color-card code {
+  color: var(--color-text-secondary);
+  font-size: 10px;
+}
+.dl-color-card span {
+  margin-top: 4px;
+  color: var(--color-text-disabled);
+  font-size: 9px;
+}

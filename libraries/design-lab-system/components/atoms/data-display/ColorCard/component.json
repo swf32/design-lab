@@ -1,0 +1,26 @@
+{
+  "id": "color-card",
+  "name": "Color Card",
+  "description": "Presents one discovered color token as a semantic name, resolved value, and visual swatch.",
+  "aliases": ["color token card", "swatch card", "palette swatch"],
+  "useWhen": ["browse color tokens", "compare semantic colors", "show a resolved color value"],
+  "avoidWhen": ["edit a color value", "choose an arbitrary color", "display a generic image asset"],
+  "entry": "ColorCard.tsx",
+  "preview": "ColorCard.preview.tsx",
+  "stories": "ColorCard.stories.ts",
+  "docs": "README.md",
+  "changelog": "CHANGELOG.md",
+  "status": "ready",
+  "states": ["default"],
+  "variants": ["default"],
+  "props": {
+    "name": {
+      "type": "string",
+      "required": true
+    },
+    "value": {
+      "type": "string",
+      "required": true
+    }
+  }
+}

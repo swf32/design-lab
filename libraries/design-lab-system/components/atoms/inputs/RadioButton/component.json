@@ -1,0 +1,63 @@
+{
+  "id": "radio-button",
+  "name": "Radio Button",
+  "description": "Selects exactly one option from a named group using native radio semantics and optional descriptive text.",
+  "aliases": ["radio option", "single-choice control", "exclusive choice"],
+  "useWhen": [
+    "select one of several visible options",
+    "submit one mutually exclusive form value",
+    "compare a small choice set"
+  ],
+  "avoidWhen": [
+    "toggle an independent option",
+    "select multiple values",
+    "switch a reversible local display mode"
+  ],
+  "entry": "RadioButton.tsx",
+  "preview": "RadioButton.preview.tsx",
+  "stories": "RadioButton.stories.ts",
+  "docs": "README.md",
+  "changelog": "CHANGELOG.md",
+  "status": "ready",
+  "variants": ["default", "accent", "success", "warning", "danger"],
+  "states": ["unchecked", "checked", "hover", "focus", "invalid", "disabled"],
+  "props": {
+    "label": {
+      "type": "ReactNode",
+      "required": true
+    },
+    "description": {
+      "type": "ReactNode",
+      "slot": true
+    },
+    "color": {
+      "type": "RadioButtonColor",
+      "values": ["default", "accent", "success", "warning", "danger"],
+      "default": "accent"
+    },
+    "size": {
+      "type": "RadioButtonSize",
+      "values": ["small", "medium", "large"],
+      "default": "medium"
+    },
+    "checked": {
+      "type": "boolean"
+    },
+    "defaultChecked": {
+      "type": "boolean"
+    },
+    "disabled": {
+      "type": "boolean",
+      "default": false
+    },
+    "name": {
+      "type": "string"
+    },
+    "value": {
+      "type": "string"
+    },
+    "onChange": {
+      "type": "ChangeEventHandler<HTMLInputElement>"
+    }
+  }
+}

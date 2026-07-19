@@ -1,0 +1,7 @@
+{
+  "description": "Leftward directional icon for returning to the previous navigation state.",
+  "aliases": ["back arrow", "previous icon", "navigate left"],
+  "useWhen": ["perform Back navigation", "return to a previous view"],
+  "avoidWhen": ["collapse vertical content", "move an item without navigation"],
+  "tags": ["direction", "back", "history", "navigation"]
+}

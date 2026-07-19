@@ -1,0 +1,7 @@
+{
+  "description": "Interlocking chain icon for links, copied URLs, references, and connected entities.",
+  "aliases": ["chain icon", "url icon", "reference link"],
+  "useWhen": ["copy or open a link", "represent a reference between entities"],
+  "avoidWhen": ["show Back navigation", "represent code imports"],
+  "tags": ["link", "url", "reference", "connection"]
+}

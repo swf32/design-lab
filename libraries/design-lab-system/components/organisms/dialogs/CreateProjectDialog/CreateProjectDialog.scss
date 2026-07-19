@@ -1,0 +1,111 @@
+.dialog-backdrop {
+  position: fixed;
+  z-index: 20;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+  background: var(--color-overlay-scrim);
+  backdrop-filter: blur(8px);
+}
+.create-project-dialog {
+  width: min(470px, 100%);
+  padding: 20px;
+  border: 1px solid var(--color-border-default);
+  border-radius: var(--radius-medium);
+  background: var(--color-surface-raised);
+  box-shadow: 0 24px 80px var(--color-overlay-scrim);
+}
+.create-project-dialog > header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+}
+.create-project-dialog h2 {
+  margin: 4px 0 0;
+  color: var(--color-text-primary);
+  font-size: 18px;
+  font-weight: 600;
+}
+.dialog-kicker {
+  color: var(--color-accent-primary);
+  font-size: 8px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+}
+.dialog-close {
+  width: 30px;
+  height: 30px;
+  border: 0;
+  border-radius: var(--radius-small);
+  background: transparent;
+  color: var(--color-text-muted);
+  font-size: 20px;
+}
+.dialog-close:hover {
+  background: var(--color-surface-hover);
+  color: var(--color-text-primary);
+}
+.dialog-description {
+  margin: 12px 0 20px;
+  color: var(--color-text-muted);
+  font-size: 11px;
+  line-height: 1.55;
+}
+.dialog-description code {
+  padding: 2px 5px;
+  border-radius: 4px;
+  background: var(--color-surface-secondary);
+  color: var(--color-text-secondary);
+}
+.create-project-dialog form,
+.create-project-dialog label {
+  display: flex;
+  flex-direction: column;
+}
+.create-project-dialog form {
+  gap: 14px;
+}
+.create-project-dialog label {
+  gap: 6px;
+  color: var(--color-text-secondary);
+  font-size: 10px;
+  font-weight: 550;
+}
+.create-project-dialog input {
+  width: 100%;
+  height: 38px;
+  padding: 0 11px;
+  border: 1px solid var(--color-border-default);
+  border-radius: var(--radius-small);
+  outline: 0;
+  background: var(--color-surface-secondary);
+  color: var(--color-text-primary);
+  font: inherit;
+  font-size: 11px;
+}
+.create-project-dialog input::placeholder {
+  color: var(--color-text-disabled);
+}
+.create-project-dialog input:focus {
+  border-color: var(--color-accent-primary);
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--color-accent-primary) 16%, transparent);
+}
+.create-project-dialog label small {
+  color: var(--color-text-disabled);
+  font-size: 9px;
+  font-weight: 400;
+}
+.create-project-dialog footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-top: 5px;
+}
+.form-error {
+  margin: 0;
+  color: var(--color-status-danger);
+  font-size: 10px;
+  line-height: 1.4;
+}

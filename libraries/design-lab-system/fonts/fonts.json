@@ -1,1 +1,28 @@
-{"schemaVersion":1,"families":[{"id":"interface-sans","name":"Interface Sans","cssFamily":"Inter, ui-sans-serif, -apple-system, BlinkMacSystemFont, Segoe UI, sans-serif","source":"system","styles":[{"weight":400,"style":"normal"},{"weight":550,"style":"normal"},{"weight":600,"style":"normal"}]}]}
+{
+  "schemaVersion": 1,
+  "families": [
+    {
+      "id": "interface-sans",
+      "name": "Interface Sans",
+      "description": "Default neutral sans-serif stack for Design Lab navigation, controls, body copy, code-adjacent labels, and compact headings.",
+      "aliases": ["ui sans", "interface font", "application font", "body font"],
+      "useWhen": [
+        "render application interface text",
+        "render labels and controls",
+        "render compact documentation and headings"
+      ],
+      "avoidWhen": [
+        "a product requires a distinctive editorial display face",
+        "render monospaced source code"
+      ],
+      "tags": ["sans-serif", "system fallback", "interface", "compact"],
+      "cssFamily": "Inter, ui-sans-serif, -apple-system, BlinkMacSystemFont, Segoe UI, sans-serif",
+      "source": "system",
+      "styles": [
+        { "weight": 400, "style": "normal" },
+        { "weight": 550, "style": "normal" },
+        { "weight": 600, "style": "normal" }
+      ]
+    }
+  ]
+}

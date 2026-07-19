@@ -1,1 +1,0 @@
-export function TabSwitcherPreview(){return <div className="preview-tab-switchers" data-preview-motion="state-transition" aria-label="Tab Switcher illustration"><div><span className="is-first">Tokens</span><span className="is-second">Palette</span></div><aside><i/><span>☼</span><span>◐</span></aside></div>}

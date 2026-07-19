@@ -1,0 +1,54 @@
+{
+  "id": "button",
+  "name": "Button",
+  "description": "Triggers a labelled action with primary, secondary, ghost, or destructive emphasis and optional loading feedback.",
+  "aliases": ["action button", "call to action", "submit button", "cta"],
+  "useWhen": ["submit a form", "confirm a decision", "run a labelled action", "start an operation"],
+  "avoidWhen": [
+    "show an icon-only toolbar action",
+    "navigate between application modules",
+    "display passive status metadata"
+  ],
+  "entry": "Button.tsx",
+  "preview": "Button.preview.tsx",
+  "stories": "Button.stories.ts",
+  "docs": "README.md",
+  "changelog": "CHANGELOG.md",
+  "status": "ready",
+  "states": ["default", "hover", "focus", "disabled", "loading"],
+  "variants": ["primary", "secondary", "ghost", "danger"],
+  "props": {
+    "label": {
+      "type": "string",
+      "default": "Button"
+    },
+    "variant": {
+      "type": "enum",
+      "values": ["primary", "secondary", "ghost", "danger"],
+      "default": "secondary"
+    },
+    "size": {
+      "type": "enum",
+      "values": ["small", "medium", "large"],
+      "default": "medium"
+    },
+    "disabled": {
+      "type": "boolean",
+      "default": false
+    },
+    "loading": {
+      "type": "boolean",
+      "default": false
+    },
+    "fullWidth": {
+      "type": "boolean",
+      "default": false
+    },
+    "leading": {
+      "type": "slot"
+    },
+    "trailing": {
+      "type": "slot"
+    }
+  }
+}

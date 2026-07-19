@@ -1,5 +1,11 @@
 #!/usr/bin/env node
-import { CONTEXT_KINDS, buildContextCatalog, getContextEntity, searchContext, writeContextIndex } from '../server/services/contextGateway.mjs'
+import {
+  CONTEXT_KINDS,
+  buildContextCatalog,
+  getContextEntity,
+  searchContext,
+  writeContextIndex,
+} from '../server/services/contextGateway.mjs'
 import { listSources } from '../server/services/projectRegistry.mjs'
 
 const args = process.argv.slice(2)
@@ -12,7 +18,12 @@ function option(name) {
 
 function selectedKinds() {
   const raw = option('--kind') ?? option('--kinds')
-  return raw ? raw.split(',').map((kind) => kind.trim()).filter(Boolean) : CONTEXT_KINDS
+  return raw
+    ? raw
+        .split(',')
+        .map((kind) => kind.trim())
+        .filter(Boolean)
+    : CONTEXT_KINDS
 }
 
 function print(value) {
@@ -40,29 +51,42 @@ try {
     const result = await listSources()
     print(result.sources.map(({ id, name, kind, available }) => ({ id, name, kind, available })))
   } else if (command === 'catalog') {
-    const catalog = await buildContextCatalog({ sourceId: option('--source'), kinds: selectedKinds() })
+    const catalog = await buildContextCatalog({
+      sourceId: option('--source'),
+      kinds: selectedKinds(),
+    })
     print({
       schemaVersion: catalog.schemaVersion,
       sources: catalog.sources,
-      entities: catalog.entities.map(({ index, ref, kind, source, description }) => ({ index, ref, kind, source, description })),
+      entities: catalog.entities.map(({ index, ref, kind, source, description }) => ({
+        index,
+        ref,
+        kind,
+        source,
+        description,
+      })),
     })
   } else if (command === 'search') {
     const query = args[1]
     if (!query || query.startsWith('--')) throw new Error('search requires an intent query')
-    print(await searchContext({
-      query,
-      sourceId: option('--source'),
-      kinds: selectedKinds(),
-      limit: Number(option('--limit') ?? 8),
-    }))
+    print(
+      await searchContext({
+        query,
+        sourceId: option('--source'),
+        kinds: selectedKinds(),
+        limit: Number(option('--limit') ?? 8),
+      }),
+    )
   } else if (command === 'get') {
     const locator = args[1]
-    print(await getContextEntity({
-      ref: locator && !locator.startsWith('--') ? locator : null,
-      index: option('--index'),
-      sourceId: option('--source'),
-      kinds: selectedKinds(),
-    }))
+    print(
+      await getContextEntity({
+        ref: locator && !locator.startsWith('--') ? locator : null,
+        index: option('--index'),
+        sourceId: option('--source'),
+        kinds: selectedKinds(),
+      }),
+    )
   } else if (command === 'index') {
     print(await writeContextIndex({ sourceId: option('--source') }))
   } else {

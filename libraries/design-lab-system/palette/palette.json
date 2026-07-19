@@ -1,1 +1,6 @@
-{"schemaVersion":1,"name":"Design Lab Dark","groups":["surface","text","accent","status"],"source":"../tokens/base.tokens.json"}
+{
+  "schemaVersion": 1,
+  "name": "Design Lab Dark",
+  "groups": ["surface", "text", "accent", "status"],
+  "source": "../tokens/base.tokens.json"
+}

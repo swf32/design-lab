@@ -1,0 +1,72 @@
+{
+  "id": "slider",
+  "name": "Slider",
+  "description": "Selects one numeric value from a bounded interval using a native range track, fill, thumb, label, and output.",
+  "aliases": ["range input", "range slider", "numeric slider", "volume control"],
+  "useWhen": [
+    "adjust a bounded numeric value",
+    "set volume or intensity",
+    "choose a value where relative position matters"
+  ],
+  "avoidWhen": [
+    "enter an exact unbounded number",
+    "select one named option",
+    "represent progress without user input"
+  ],
+  "entry": "Slider.tsx",
+  "preview": "Slider.preview.tsx",
+  "stories": "Slider.stories.ts",
+  "docs": "README.md",
+  "changelog": "CHANGELOG.md",
+  "status": "ready",
+  "variants": ["default", "accent", "success", "warning", "danger"],
+  "states": ["default", "hover", "focus", "dragging", "disabled"],
+  "props": {
+    "label": {
+      "type": "ReactNode"
+    },
+    "value": {
+      "type": "number"
+    },
+    "defaultValue": {
+      "type": "number",
+      "default": 0
+    },
+    "minValue": {
+      "type": "number",
+      "default": 0
+    },
+    "maxValue": {
+      "type": "number",
+      "default": 100
+    },
+    "step": {
+      "type": "number",
+      "default": 1
+    },
+    "color": {
+      "type": "SliderColor",
+      "values": ["default", "accent", "success", "warning", "danger"],
+      "default": "accent"
+    },
+    "size": {
+      "type": "SliderSize",
+      "values": ["small", "medium", "large"],
+      "default": "medium"
+    },
+    "showValue": {
+      "type": "boolean",
+      "default": true
+    },
+    "formatValue": {
+      "type": "(value: number) => ReactNode"
+    },
+    "disabled": {
+      "type": "boolean",
+      "default": false
+    },
+    "onValueChange": {
+      "type": "(value: number) => void"
+    }
+  }
+}
