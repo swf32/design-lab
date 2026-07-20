@@ -11,7 +11,7 @@ export type Project = {
 export type ProjectTreeItem = {
   name: string
   path: string
-  kind: 'folder' | 'file' | 'component' | 'token' | 'asset' | 'wireframe'
+  kind: 'folder' | 'file' | 'component' | 'token' | 'asset' | 'wireframe' | 'page'
   level: number
   id?: string
   virtual?: boolean
@@ -207,6 +207,99 @@ export type ModuleData =
             label: string
           }>
         }
+        directory: string
+        file: string
+        documentation: string | null
+        changelogDocumentation: string | null
+        diagnostics: Array<{ code: string; message: string }>
+        files: Array<{ role: string; path: string }>
+      }>
+    }
+  | {
+      kind: 'pages'
+      folders: string[]
+      modes: string[]
+      themeVariables: Record<string, Record<string, string | number>>
+      pages: Array<{
+        schemaVersion: number
+        id: string
+        sourceId: string
+        name: string
+        status: 'draft' | 'review' | 'approved'
+        description: string
+        entry: string | null
+        docs: string
+        changelog: string
+        route?: string
+        routeParams?: string[]
+        mirroredRoute: string | null
+        derivedFromWireframe?: {
+          sourceId?: string
+          wireframeId: string
+          layoutId?: string
+          stateId?: string
+        }
+        defaultState: string
+        controls: Array<
+          | {
+              id: string
+              kind: 'radio'
+              label: string
+              description?: string
+              visibleWhen?: { control: string; equals: string | number | boolean }
+              options: Array<{ value: string; label: string; description?: string }>
+            }
+          | {
+              id: string
+              kind: 'boolean'
+              label: string
+              description?: string
+              visibleWhen?: { control: string; equals: string | number | boolean }
+            }
+          | {
+              id: string
+              kind: 'range'
+              label: string
+              description?: string
+              visibleWhen?: { control: string; equals: string | number | boolean }
+              min: number
+              max: number
+              step: number
+              unit?: string
+            }
+        >
+        states: Array<{
+          id: string
+          name: string
+          description: string
+          values: Record<string, string | number | boolean>
+        }>
+        flow: {
+          nodes: Array<{ id: string; state: string; x: number; y: number }>
+          edges: Array<{
+            id: string
+            from: string
+            action: string
+            label: string
+            to:
+              | {
+                  kind: 'state'
+                  stateId: string
+                  condition?: { controlId: string; value: string | number | boolean }
+                }
+              | {
+                  kind: 'page'
+                  pageId: string
+                  condition?: { controlId: string; value: string | number | boolean }
+                }
+          }>
+        }
+        diagnosticsAcknowledged: Array<{
+          code: string
+          entityRef?: string
+          reason: string
+          acknowledgedAt: string
+        }>
         directory: string
         file: string
         documentation: string | null

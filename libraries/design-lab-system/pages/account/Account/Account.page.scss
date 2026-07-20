@@ -1,0 +1,37 @@
+.dl-page-account {
+  width: 100%;
+  min-height: 100%;
+  background: var(--color-surface-secondary);
+  color: var(--color-text-primary);
+  padding: calc(var(--spacing-4) * 3) calc(var(--spacing-4) * 2);
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-4);
+}
+.dl-page-account__header {
+  width: min(720px, 100%);
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.dl-page-account__header h1 {
+  font-size: 24px;
+  margin: 0;
+}
+.dl-page-account__card {
+  width: min(720px, 100%);
+  margin: 0 auto;
+  padding: calc(var(--spacing-4) * 2);
+  border: 1px solid var(--color-border-subtle);
+  border-radius: 12px;
+  background: var(--color-surface-primary);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.dl-page-account__card > div {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-4);
+}

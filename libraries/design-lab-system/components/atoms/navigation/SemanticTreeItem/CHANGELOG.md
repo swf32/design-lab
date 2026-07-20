@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- Added: Page entity kind with the shared Pages icon.
 - Added: Wireframe entity kind with the shared Wireframes icon.
 - Added: Independent `onExpandedChange` callback separates folder disclosure from label selection while preserving the previous fallback behavior.
 - Fixed: Folder disclosure no longer triggers navigation when the consumer provides the dedicated callback.

@@ -14,6 +14,7 @@ import {
   ComponentIcon,
   DirectoryIcon,
   MoreIcon,
+  PagesIcon,
   TokensIcon,
   WireframesIcon,
   type IconProps,
@@ -24,7 +25,7 @@ import { ColorPicker } from '../../../molecules/inputs/ColorPicker/ColorPicker'
 export type SemanticTreeNode = {
   name: string
   path: string
-  kind: 'folder' | 'file' | 'component' | 'token' | 'asset' | 'wireframe'
+  kind: 'folder' | 'file' | 'component' | 'token' | 'asset' | 'wireframe' | 'page'
   level: number
   id?: string
   virtual?: boolean
@@ -50,6 +51,7 @@ function iconFor(kind: SemanticTreeNode['kind']): ComponentType<IconProps> {
   if (kind === 'token') return TokensIcon
   if (kind === 'asset') return AssetsIcon
   if (kind === 'wireframe') return WireframesIcon
+  if (kind === 'page') return PagesIcon
   return CodeIcon
 }
 

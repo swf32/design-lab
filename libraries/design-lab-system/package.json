@@ -10,6 +10,7 @@
     "./inspection": "./inspection/index.ts",
     "./playground": "./playground/index.ts",
     "./wireframes": "./wireframes/index.ts",
+    "./pages": "./pages/index.ts",
     "./tokens.css": "./tokens/generated/tokens.css"
   },
   "scripts": {

@@ -659,3 +659,61 @@ Diagnostics на карточке группируются по коду и мо
 Per-Page Canvas идёт в одном контракте с остальной частью Page (переиспользует существующую
 Wireframe Canvas-инфраструктуру); агрегированный sitemap — первый пункт Next-уровня в
 `IMPLEMENTATION-CHECKLIST.md`, так как это отдельная новая UI-поверхность.
+
+## D-056 — Открытый вопрос: где живут npm-зависимости мигрированной Library
+
+**Статус:** открытый вопрос высокого приоритета, зафиксирован 2026-07-21. Решение не принято.
+
+`libraries/klyp/` — первая Library, чей исходный код при миграции сохранил чужие runtime-импорты
+(`@klyp/icons`, `@klyp/ui`, `react-aria-components`, `motion`, `cmdk`, а у части `brand`-компонентов
+также `@tiptap/*`, `shiki`, `ai`, `vaul`, `@dnd-kit/*`). Design Lab пока не устанавливает и не резолвит
+ни одну из них: `libraries/klyp` намеренно исключён из eager Vite-glob'ов (`*.stories.tsx`,
+`*.preview.tsx`, `*.playground.tsx`), поэтому discovery работает (`component.json`, tokens, assets),
+но реального запуска чужого кода в Workbench/Playground сейчас нет.
+
+Открытый вопрос — архитектурная политика для будущих миграций, а не разовый фикс для Klyp: куда
+устанавливать зависимости стороннего дизайн-системного кода —
+
+- в корневой `package.json` workspace (тяжёлые библиотеки одной Library утяжеляют весь `node_modules`
+  и dev-сборку приложения для всех Project/Library);
+- внутрь `libraries/<name>/package.json` как собственного пакета с изолированным деревом зависимостей
+  (не тривиально совместить с единым Vite dev-графом `design-lab/`, который сейчас читает `libraries/*`
+  напрямую как исходники, а не как собранные npm-пакеты);
+- или третий механизм (npm workspaces per-Library, отдельный build step, alias-слой), который пока не
+  спроектирован.
+
+Решение материально влияет на архитектуру сборки и на то, насколько дорогой становится каждая
+следующая миграция стороннего репозитория. Требует отдельного продуктового решения до того, как
+Klyp (или любая следующая внешняя Library) получит реальные Stories/Playground **для всех своих
+компонентов**.
+
+**Точечное исключение (2026-07-21), не решение политики:** `Button` и `MeshButton` — единственные
+два Klyp-компонента, которые реально запускаются в Workbench/Playground. Сделано так:
+
+- их прямые runtime-зависимости (`motion`, `react-aria-components`, `lottie-react` — транзитивно
+  через барель `@klyp/icons`) добавлены в `libraries/klyp/package.json#dependencies` и подняты
+  через существующий root npm workspace (`workspaces: ["design-lab", "libraries/*"]` уже включал
+  `libraries/klyp`, так что это не новый механизм — просто первое реальное использование);
+- `@klyp/icons` (никогда не публиковался в npm, это внутренний Klyp-пакет) резолвится через
+  `resolve.alias` в `design-lab/vite.config.ts` на `libraries/klyp/assets/icons/`;
+- `Button.stories.tsx` / `MeshButton.stories.tsx` были **переписаны** с оригинального Klyp
+  Storybook CSF-формата (`meta`/`StoryObj` из `../__shared/stories-types`) на контракт Design Lab
+  (`export const stories` + `renderStoryExample`, см. `COMPONENT_RULES.md`) — общий generic-рендер
+  Hero-специмена умеет исполнять только этот контракт, не CSF;
+- `Button.playground.tsx` / `MeshButton.playground.tsx` — новые файлы по конвенции
+  `definePlayground`/`renderPlaygroundVariant` из `@design-lab/system/playground`, обнаруживаются
+  автоматически (без поля в `component.json`, как и у `design-lab-system`);
+- eager Vite-glob в `ModuleView.tsx` / `ComponentPlaygroundView.tsx` теперь состоит из ДВУХ
+  раздельных `import.meta.glob()` вызовов на каждый тип артефакта: общий (со сплошной negation
+  `!libraries/klyp/components/**`) + отдельный со списком ровно этих двух файлов. Это осознанно —
+  glob-negation исключает совпадения из всего набора паттернов одного вызова независимо от порядка,
+  её нельзя точечно "отменить" последующим positive-паттерном в том же вызове.
+- Побочно найден и исправлен баг миграции: `copyShared()` в `scripts/migrate-klyp.mjs` копировал
+  `packages/{ui,brand}/src/__shared` в `components/{ui,brand}/_shared` (одно подчёркивание вместо
+  двух) и рутовые brand-файлы (`_brand-context.tsx`, `_mesh-keyframes.scss`, `vite-shims.d.ts`,
+  `prompt-input/`) — в `components/brand/_shared/` вместо `components/brand/`, что не совпадало с
+  исходными относительными импортами (`../__shared/...`, `../_brand-context`). Исправлено и в
+  скрипте, и физически (`git mv`) в уже смигрированном дереве.
+
+Это остаётся точечным, не отменяет открытый вопрос выше: оставшиеся ~135 Klyp-компонентов всё ещё
+исключены из eager-графа и не получили Stories/Playground.

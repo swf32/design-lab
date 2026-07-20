@@ -30,13 +30,29 @@ import { designSystemModeStyle } from '../../designSystemMode'
 type ComponentsData = Extract<ModuleData, { kind: 'components' }>
 type ComponentEntity = ComponentsData['components'][number]
 
-const playgroundModules = import.meta.glob<ComponentPlaygroundModule>(
-  [
-    '../../../../libraries/*/components/**/*.playground.{ts,tsx}',
-    '!../../../../libraries/klyp/components/**',
-  ],
-  { eager: true },
-)
+const playgroundModules = {
+  ...import.meta.glob<ComponentPlaygroundModule>(
+    [
+      '../../../../libraries/*/components/**/*.playground.{ts,tsx}',
+      // Runtime-incomplete libraries stay discoverable via scanners, but must not enter the
+      // Vite graph. Note: a glob negation excludes matches from the whole pattern set — it
+      // cannot be selectively re-included by a later positive pattern in the SAME glob() call,
+      // which is why the klyp exception below is a second, separate glob() call instead.
+      '!../../../../libraries/klyp/components/**',
+    ],
+    { eager: true },
+  ),
+  // Scoped exception (see D-056 in docs/DECISIONS.md): Button and MeshButton are the only
+  // Klyp components whose runtime deps (motion, react-aria-components, @klyp/icons alias) are
+  // wired up.
+  ...import.meta.glob<ComponentPlaygroundModule>(
+    [
+      '../../../../libraries/klyp/components/ui/Button/Button.playground.tsx',
+      '../../../../libraries/klyp/components/brand/MeshButton/MeshButton.playground.tsx',
+    ],
+    { eager: true },
+  ),
+}
 
 function playgroundModule(component: ComponentEntity) {
   if (!component.playground) return null

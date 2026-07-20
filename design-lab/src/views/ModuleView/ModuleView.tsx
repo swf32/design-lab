@@ -2,9 +2,7 @@ import './ModuleView.scss'
 import {
   isValidElement,
   useEffect,
-  useId,
   useState,
-  type ChangeEvent,
   type ComponentType,
   type CSSProperties,
   type ReactNode,
@@ -12,56 +10,35 @@ import {
 import ReactMarkdown, { type Components } from 'react-markdown'
 import { useDesignLabI18n } from '@design-lab/system/i18n'
 import {
-  AppSidebar,
   AssetCard,
   Button,
-  CanvasBackgroundControl,
-  Checkbox,
   Chip,
   CodeBlock,
   ColorCard,
-  ColorPicker,
   ComponentCard,
   ComponentReferencePanel,
   ComponentThumbnail,
-  ControlField,
-  CreateProjectDialog,
-  DirectoryPanel,
-  IconButton,
-  Input,
   ModuleHeader,
-  RadioButton,
-  SemanticTreeItem,
-  SidebarTab,
-  Slider,
-  SourceSelect,
   TabSwitcher,
   StoryCanvas,
   WireframeCard,
+  WireframeScreenPreview,
   WorkbenchPlayground,
-  type ButtonProps,
   type CanvasMode,
-  type DirectorySource,
-  type DirectoryTreeItem,
-  type InputSize,
-  type InputVariant,
-  type ModuleId,
-  type RadioButtonColor,
-  type RadioButtonSize,
-  type SliderColor,
-  type SliderSize,
-  type TabSwitcherSize,
-  type TabSwitcherVariant,
   type ChipColor,
-  type ChipSize,
-  type ChipVariant,
 } from '@design-lab/system/components'
-import { TokensIcon } from '@design-lab/system/icons'
 import type { ModuleData } from '../../api/projects'
 import { wireframeRendererFor } from '../../wireframes/registry'
+import { pageRendererFor } from '../../pages/registry'
 import { designSystemModeStyle } from '../../designSystemMode'
 
 type ComponentEntity = Extract<ModuleData, { kind: 'components' }>['components'][number]
+type PageEntity = Extract<ModuleData, { kind: 'pages' }>['pages'][number]
+const pageStatusColors: Record<PageEntity['status'], ChipColor> = {
+  draft: 'warning',
+  review: 'accent',
+  approved: 'success',
+}
 
 type PreviewModule = Record<string, ComponentType>
 const previewModules = import.meta.glob<PreviewModule>(
@@ -89,13 +66,30 @@ type StoryModule = {
   stories?: StoryDefinition[]
   renderStoryExample?: (example: StoryExample, story: StoryDefinition) => ReactNode
 }
-const storyModules = import.meta.glob<StoryModule>(
-  [
-    '../../../../libraries/*/components/**/*.stories.{ts,tsx}',
-    '!../../../../libraries/klyp/components/**',
-  ],
-  { eager: true },
-)
+const storyModules = {
+  ...import.meta.glob<StoryModule>(
+    [
+      '../../../../libraries/*/components/**/*.stories.{ts,tsx}',
+      // Runtime-incomplete libraries stay discoverable via scanners, but must not enter the
+      // Vite graph. Note: a glob negation excludes matches from the whole pattern set — it
+      // cannot be selectively re-included by a later positive pattern in the SAME glob() call,
+      // which is why the klyp exception below is a second, separate glob() call instead.
+      '!../../../../libraries/klyp/components/**',
+    ],
+    { eager: true },
+  ),
+  // Scoped exception (see D-056 in docs/DECISIONS.md): Button and MeshButton are the only
+  // Klyp components whose runtime deps (motion, react-aria-components, @klyp/icons alias) are
+  // wired up, and whose Stories were rewritten to the Design Lab contract (Klyp's original
+  // files were raw Storybook CSF, which this generic renderer cannot execute).
+  ...import.meta.glob<StoryModule>(
+    [
+      '../../../../libraries/klyp/components/ui/Button/Button.stories.tsx',
+      '../../../../libraries/klyp/components/brand/MeshButton/MeshButton.stories.tsx',
+    ],
+    { eager: true },
+  ),
+}
 
 function DiscoveredComponentPreview({
   component,
@@ -123,702 +117,25 @@ const markdownComponents: Components = {
   },
 }
 
-type FocusedDemoState = {
-  sidebarTabActive: boolean
-  sidebarTabExpanded: boolean
-  appSidebarActive: ModuleId
-  appSidebarExpanded: boolean
-  cardSelected: boolean
-  semanticTreeActive: boolean
-  semanticTreeExpanded: boolean
-  semanticTreeColoring: boolean
-  semanticTreeActions: boolean
-  semanticTreeColor: string | null
-  directorySearch: boolean
-  directoryColoring: boolean
-  directoryActions: boolean
-  directoryDefaultCollapsed: boolean
+// Design Lab has no hand-maintained per-id demo switch: a Component's own Stories are the
+// canonical, discovery-driven specimen for its Workbench hero (`COMPONENT_RULES.md` — "Stories
+// document focused behavior of an existing production implementation"). A hand-authored switch
+// on `component.id` previously lived here and imported real @design-lab/system production
+// components directly; it broke as soon as another Library shipped a same-named component
+// (Klyp's own `button`/`input`/`checkbox`/`slider`/... collided) because ids are unique only
+// within one Library, not across sources. See `storyModuleFor` / `firstStoryExample` below.
+function storyModuleFor(component: ComponentEntity) {
+  if (!component.stories) return null
+  const suffix = `/libraries/${component.sourceId}/components/${component.directory}/${component.stories}`
+  return Object.entries(storyModules).find(([path]) => path.endsWith(suffix))?.[1] ?? null
 }
 
-const directorySource: DirectorySource = {
-  id: 'example-system',
-  name: 'Example System',
-  path: 'projects/example-system',
-  available: true,
-  kind: 'project',
-}
-const directoryTree: DirectoryTreeItem[] = [
-  { name: 'All', path: '__all__', kind: 'folder', level: 0, virtual: true },
-  { name: 'Atoms', path: 'atoms', kind: 'folder', level: 0 },
-  { name: 'Actions', path: 'atoms/actions', kind: 'folder', level: 1 },
-  { name: 'Button', path: 'atoms/actions/Button', kind: 'component', level: 2, id: 'button' },
-  {
-    name: 'Icon Button',
-    path: 'atoms/actions/IconButton',
-    kind: 'component',
-    level: 2,
-    id: 'icon-button',
-  },
-  { name: 'Inputs', path: 'atoms/inputs', kind: 'folder', level: 1 },
-  { name: 'Input', path: 'atoms/inputs/Input', kind: 'component', level: 2, id: 'input' },
-  {
-    name: 'Checkbox',
-    path: 'atoms/inputs/Checkbox',
-    kind: 'component',
-    level: 2,
-    id: 'checkbox',
-  },
-  { name: 'Molecules', path: 'molecules', kind: 'folder', level: 0 },
-  { name: 'Navigation', path: 'molecules/navigation', kind: 'folder', level: 1 },
-  {
-    name: 'Breadcrumb',
-    path: 'molecules/navigation/Breadcrumb',
-    kind: 'component',
-    level: 2,
-    id: 'breadcrumb',
-  },
-  { name: 'Organisms', path: 'organisms', kind: 'folder', level: 0 },
-  { name: 'Shell', path: 'organisms/shell', kind: 'folder', level: 1 },
-  {
-    name: 'Application Header',
-    path: 'organisms/shell/ApplicationHeader',
-    kind: 'component',
-    level: 2,
-    id: 'application-header',
-  },
-  { name: 'Experimental', path: 'experimental', kind: 'folder', level: 0 },
-  {
-    name: 'Inspector Property Row With Exceptionally Long Name',
-    path: 'experimental/InspectorPropertyRowWithExceptionallyLongName',
-    kind: 'component',
-    level: 1,
-    id: 'long-name',
-  },
-]
-
-function DirectoryPanelDemo({
-  dense = false,
-  searchEnabled = true,
-  coloringEnabled = true,
-  actionsEnabled = true,
-  defaultCollapsed = true,
-}: {
-  dense?: boolean
-  searchEnabled?: boolean
-  coloringEnabled?: boolean
-  actionsEnabled?: boolean
-  defaultCollapsed?: boolean
-}) {
-  const [selected, setSelected] = useState<string | null>('button')
-  const [folder, setFolder] = useState('__all__')
-  return (
-    <div className="story-directory-panel-frame">
-      <DirectoryPanel
-        isResizing={false}
-        navigationWidth={292}
-        minNavigationWidth={188}
-        maxNavigationWidth={420}
-        onResizeStart={() => {}}
-        onResizeKeyDown={() => {}}
-        projects={[directorySource]}
-        activeProject={directorySource}
-        activeModuleLabel="Components"
-        tree={dense ? directoryTree : directoryTree.slice(0, 9)}
-        treeLoading={false}
-        onProjectChange={() => {}}
-        onCreateProject={() => {}}
-        selectedEntityId={selected}
-        selectedFolderPath={folder}
-        searchEnabled={searchEnabled}
-        coloringEnabled={coloringEnabled}
-        actionsEnabled={actionsEnabled}
-        defaultCollapsed={defaultCollapsed}
-        onTreeItemSelect={(item) => {
-          if (item.kind === 'folder') {
-            setFolder(item.path)
-            setSelected(null)
-          } else setSelected(item.id ?? null)
-        }}
-      />
-    </div>
-  )
-}
-
-const demoSources: DirectorySource[] = [
-  directorySource,
-  {
-    id: 'aurora',
-    name: 'Aurora Commerce',
-    path: 'projects/aurora-commerce',
-    available: true,
-    kind: 'project',
-  },
-  {
-    id: 'archive',
-    name: 'Archived Brand Kit',
-    path: 'libraries/archived-brand-kit',
-    available: false,
-    kind: 'library',
-  },
-]
-
-function SourceSelectDemo() {
-  const [activeId, setActiveId] = useState(directorySource.id)
-  return (
-    <div className="story-source-select-frame">
-      <SourceSelect
-        sources={demoSources}
-        activeSource={demoSources.find((source) => source.id === activeId) ?? null}
-        onChange={setActiveId}
-        onCreateProject={() => {}}
-      />
-    </div>
-  )
-}
-
-function ControlFieldDemo() {
-  const [name, setName] = useState('Design Lab System')
-  return (
-    <div className="story-control-fields">
-      <ControlField label="Name">
-        <input value={name} onChange={(event) => setName(event.target.value)} />
-      </ControlField>
-      <ControlField label="Mode">
-        <select defaultValue="dark">
-          <option>dark</option>
-          <option>light</option>
-        </select>
-      </ControlField>
-      <ControlField label="Deprecated">
-        <Checkbox size="small" aria-label="Deprecated" />
-      </ControlField>
-    </div>
-  )
-}
-
-function CheckboxDemo() {
-  const [checked, setChecked] = useState(true)
-  return (
-    <Checkbox
-      checked={checked}
-      onChange={(event) => setChecked(event.target.checked)}
-      label="Include documentation"
-      description="Keep README and usage guidance next to the component."
-    />
-  )
-}
-
-function RadioButtonDemo({
-  value,
-  onChange,
-  color = 'accent',
-  size = 'medium',
-  disabled = false,
-}: {
-  value: string
-  onChange: (value: string) => void
-  color?: RadioButtonColor
-  size?: RadioButtonSize
-  disabled?: boolean
-}) {
-  const generatedName = useId()
-  const groupName = `release-channel-${generatedName.replace(/:/g, '')}`
-
-  return (
-    <div className="story-radio-group" role="radiogroup" aria-label="Release channel">
-      {[
-        ['stable', 'Stable', 'Recommended for production projects.'],
-        ['preview', 'Preview', 'Receive features before the stable channel.'],
-        ['canary', 'Canary', 'Early changes may be incomplete.'],
-      ].map(([option, label, description]) => (
-        <RadioButton
-          key={option}
-          name={groupName}
-          value={option}
-          label={label}
-          description={description}
-          color={color}
-          size={size}
-          disabled={disabled && option === 'canary'}
-          checked={value === option}
-          onChange={() => onChange(option)}
-        />
-      ))}
-    </div>
-  )
-}
-
-function SliderDemo({
-  value,
-  onChange,
-  color = 'accent',
-  size = 'medium',
-  disabled = false,
-  showValue = true,
-}: {
-  value: number
-  onChange: (value: number) => void
-  color?: SliderColor
-  size?: SliderSize
-  disabled?: boolean
-  showValue?: boolean
-}) {
-  return (
-    <Slider
-      label="Volume"
-      value={value}
-      onValueChange={onChange}
-      color={color}
-      size={size}
-      disabled={disabled}
-      showValue={showValue}
-    />
-  )
-}
-
-function WorkbenchPlaygroundDemo() {
-  const [mode, setMode] = useState<CanvasMode>('dark-grid')
-  const [color, setColor] = useState('#264653')
-  return (
-    <div className="story-workbench-playground-frame">
-      <WorkbenchPlayground
-        mode={mode}
-        color={color}
-        onModeChange={setMode}
-        onColorChange={setColor}
-        controls={
-          <aside className="workbench-controls">
-            <h2>Props</h2>
-            <ControlField label="Full width">
-              <Checkbox size="small" aria-label="Full width" defaultChecked />
-            </ControlField>
-          </aside>
-        }
-      >
-        <Button variant="primary" fullWidth>
-          Full-width specimen
-        </Button>
-      </WorkbenchPlayground>
-    </div>
-  )
-}
-
-function StoryCanvasDemo() {
-  return (
-    <div className="story-story-canvas-frame">
-      <StoryCanvas
-        title="Selection states"
-        description="A focused scenario rendered by the production Story Canvas."
-        meta="state"
-      >
-        <div className="story-comparison">
-          <Button>Default</Button>
-          <Button variant="primary">Selected</Button>
-        </div>
-      </StoryCanvas>
-    </div>
-  )
-}
-
-function CreateProjectDialogDemo({
-  busy = false,
-  error = null,
-  canClose = true,
-  initialOpen = true,
-}: {
-  busy?: boolean
-  error?: string | null
-  canClose?: boolean
-  initialOpen?: boolean
-}) {
-  const [open, setOpen] = useState(initialOpen)
-  return (
-    <div className="story-dialog-frame">
-      {!open && (
-        <Button variant="secondary" onClick={() => setOpen(true)}>
-          Open dialog
-        </Button>
-      )}
-      <CreateProjectDialog
-        open={open}
-        busy={busy}
-        error={error}
-        canClose={canClose}
-        onClose={() => setOpen(false)}
-        onCreate={async () => {}}
-      />
-    </div>
-  )
-}
-
-function TabSwitcherDemo({
-  variant = 'segmented',
-  size = 'medium',
-  disabledLast = false,
-}: {
-  variant?: TabSwitcherVariant
-  size?: TabSwitcherSize
-  disabledLast?: boolean
-}) {
-  const [value, setValue] = useState<'dark' | 'light'>('dark')
-  return (
-    <TabSwitcher
-      ariaLabel="Example mode"
-      variant={variant}
-      size={size}
-      value={value}
-      onChange={setValue}
-      options={[
-        { value: 'dark', label: variant === 'toggle' ? '◐' : 'Dark', accessibleLabel: 'Dark' },
-        {
-          value: 'light',
-          label: variant === 'toggle' ? '☼' : 'Light',
-          accessibleLabel: 'Light',
-          disabled: disabledLast,
-        },
-      ]}
-    />
-  )
-}
-
-function realComponent(
-  component: ComponentEntity,
-  button: ButtonProps,
-  focused: FocusedDemoState,
-  setFocused: (next: FocusedDemoState) => void,
-  canvasMode: CanvasMode,
-  canvasColor: string,
-  onCanvasModeChange: (mode: CanvasMode) => void,
-  onCanvasColorChange: (color: string) => void,
-  inputDemo?: ReactNode,
-  customDemo?: ReactNode,
-) {
-  if (customDemo) return customDemo
-  if (component.id === 'button') return <Button {...button} />
-  if (component.id === 'asset-card')
-    return (
-      <div className="workbench-asset-card-frame">
-        <AssetCard
-          name="PaletteIcon.tsx"
-          path="icons/PaletteIcon.tsx"
-          kind="icon"
-          extension="tsx"
-          previewUrl="/api/sources/design-lab-system/asset-previews/icons/PaletteIcon.tsx"
-        />
-      </div>
-    )
-  if (component.id === 'checkbox') return <CheckboxDemo />
-  if (component.id === 'radio-button') return <RadioButtonDemo value="stable" onChange={() => {}} />
-  if (component.id === 'slider') return <Slider label="Volume" defaultValue={52} />
-  if (component.id === 'chip')
-    return (
-      <Chip color="success" variant="soft">
-        Ready
-      </Chip>
-    )
-  if (component.id === 'input')
-    return inputDemo ?? <Input label="Component name" placeholder="Button" />
-  if (component.id === 'icon-button') return <IconButton aria-label="Add">＋</IconButton>
-  if (component.id === 'color-card') return <ColorCard name="accent.primary" value="#26d9c7" />
-  if (component.id === 'control-field') return <ControlFieldDemo />
-  if (component.id === 'semantic-tree-item')
-    return (
-      <div className="story-tree-row-frame" role="tree">
-        <SemanticTreeItem
-          node={{
-            name: 'Molecules',
-            path: 'molecules/workbench',
-            kind: 'folder',
-            level: 1,
-            id: 'molecules',
-          }}
-          active={focused.semanticTreeActive}
-          expanded={focused.semanticTreeExpanded}
-          color={focused.semanticTreeColor}
-          coloringEnabled={focused.semanticTreeColoring}
-          actionsEnabled={focused.semanticTreeActions}
-          onColorChange={(color) => setFocused({ ...focused, semanticTreeColor: color })}
-          onSelect={() =>
-            setFocused({ ...focused, semanticTreeExpanded: !focused.semanticTreeExpanded })
-          }
-        />
-      </div>
-    )
-  if (component.id === 'component-card')
-    return (
-      <div className="workbench-card-frame">
-        <ComponentCard
-          name="Button"
-          entry="Button.tsx"
-          meta="4 variants"
-          selected={focused.cardSelected}
-          preview={<ComponentThumbnail kind="button" />}
-          onClick={() => setFocused({ ...focused, cardSelected: !focused.cardSelected })}
-        />
-      </div>
-    )
-  if (component.id === 'component-thumbnail') return <ComponentThumbnail kind="sidebar-tab" />
-  if (component.id === 'module-header')
-    return (
-      <div className="workbench-header-frame">
-        <ModuleHeader eyebrow="Live inventory" title="Components" count={17} />
-      </div>
-    )
-  if (component.id === 'source-select') return <SourceSelectDemo />
-  if (component.id === 'story-canvas') return <StoryCanvasDemo />
-  if (component.id === 'canvas-background-control')
-    return (
-      <CanvasBackgroundControl
-        mode={canvasMode}
-        color={canvasColor}
-        onModeChange={onCanvasModeChange}
-        onColorChange={onCanvasColorChange}
-      />
-    )
-  if (component.id === 'code-block')
-    return (
-      <div className="workbench-code-frame">
-        <CodeBlock language="tsx" code={'const mode = "dark"\nsetTheme(mode)'} />
-      </div>
-    )
-  if (component.id === 'tab-switcher') return <TabSwitcherDemo />
-  if (component.id === 'sidebar-tab')
-    return (
-      <div
-        className={`workbench-sidebar-tab-frame${focused.sidebarTabExpanded ? ' is-expanded' : ''}`}
-      >
-        <SidebarTab
-          icon={TokensIcon}
-          label="Tokens"
-          active={focused.sidebarTabActive}
-          expanded={focused.sidebarTabExpanded}
-          onClick={() => setFocused({ ...focused, sidebarTabActive: !focused.sidebarTabActive })}
-        />
-      </div>
-    )
-  if (component.id === 'app-sidebar')
-    return (
-      <div className="workbench-sidebar-frame">
-        <AppSidebar
-          active={focused.appSidebarActive}
-          expanded={focused.appSidebarExpanded}
-          onChange={(active) => setFocused({ ...focused, appSidebarActive: active })}
-        />
-      </div>
-    )
-  if (component.id === 'color-picker')
-    return (
-      <ColorPicker
-        label="Component icon color"
-        value={focused.semanticTreeColor}
-        onChange={(color) => setFocused({ ...focused, semanticTreeColor: color })}
-      />
-    )
-  if (component.id === 'directory-panel')
-    return (
-      <DirectoryPanelDemo
-        dense
-        searchEnabled={focused.directorySearch}
-        coloringEnabled={focused.directoryColoring}
-        actionsEnabled={focused.directoryActions}
-        defaultCollapsed={focused.directoryDefaultCollapsed}
-      />
-    )
-  if (component.id === 'create-project-dialog')
-    return <CreateProjectDialogDemo initialOpen={false} />
-  if (component.id === 'workbench-playground') return <WorkbenchPlaygroundDemo />
-  return (
-    <span className="workbench-placeholder">
-      {component.name}
-      <small>Real playground controls are not defined yet.</small>
-    </span>
-  )
-}
-
-function ButtonControls({
-  value,
-  onChange,
-}: {
-  value: ButtonProps
-  onChange: (next: ButtonProps) => void
-}) {
-  return (
-    <div className="workbench-controls">
-      <h2>Props</h2>
-      <ControlField label="Label">
-        <input
-          value={String(value.children)}
-          onChange={(event) => onChange({ ...value, children: event.target.value })}
-        />
-      </ControlField>
-      <ControlField label="Variant">
-        <select
-          value={value.variant}
-          onChange={(event) =>
-            onChange({ ...value, variant: event.target.value as ButtonProps['variant'] })
-          }
-        >
-          <option>primary</option>
-          <option>secondary</option>
-          <option>ghost</option>
-          <option>danger</option>
-        </select>
-      </ControlField>
-      <ControlField label="Size">
-        <select
-          value={value.size}
-          onChange={(event) =>
-            onChange({ ...value, size: event.target.value as ButtonProps['size'] })
-          }
-        >
-          <option>small</option>
-          <option>medium</option>
-          <option>large</option>
-        </select>
-      </ControlField>
-      {(['disabled', 'loading', 'fullWidth'] as const).map((key) => (
-        <ControlField key={key} label={key}>
-          <Checkbox
-            size="small"
-            aria-label={key}
-            checked={Boolean(value[key])}
-            onChange={(event) => onChange({ ...value, [key]: event.target.checked })}
-          />
-        </ControlField>
-      ))}
-      <ControlField label="Leading slot">
-        <Checkbox
-          size="small"
-          aria-label="Leading slot"
-          checked={Boolean(value.leading)}
-          onChange={(event) =>
-            onChange({ ...value, leading: event.target.checked ? '←' : undefined })
-          }
-        />
-      </ControlField>
-      <ControlField label="Trailing slot">
-        <Checkbox
-          size="small"
-          aria-label="Trailing slot"
-          checked={Boolean(value.trailing)}
-          onChange={(event) =>
-            onChange({ ...value, trailing: event.target.checked ? '→' : undefined })
-          }
-        />
-      </ControlField>
-    </div>
-  )
-}
-
-type InputWorkbenchState = {
-  label: string
-  value: string
-  placeholder: string
-  variant: InputVariant
-  size: InputSize
-  helperText: string
-  errorMessage: string
-  disabled: boolean
-  readOnly: boolean
-  fullWidth: boolean
-  showCount: boolean
-}
-
-function InputControls({
-  value,
-  onChange,
-}: {
-  value: InputWorkbenchState
-  onChange: (next: InputWorkbenchState) => void
-}) {
-  return (
-    <div className="workbench-controls">
-      <h2>Props</h2>
-      <ControlField label="Label">
-        <input
-          value={value.label}
-          onChange={(event) => onChange({ ...value, label: event.target.value })}
-        />
-      </ControlField>
-      <ControlField label="Value">
-        <input
-          value={value.value}
-          onChange={(event) => onChange({ ...value, value: event.target.value })}
-        />
-      </ControlField>
-      <ControlField label="Variant">
-        <select
-          value={value.variant}
-          onChange={(event) => onChange({ ...value, variant: event.target.value as InputVariant })}
-        >
-          <option>text</option>
-          <option>search</option>
-          <option>textarea</option>
-        </select>
-      </ControlField>
-      <ControlField label="Size">
-        <select
-          value={value.size}
-          onChange={(event) => onChange({ ...value, size: event.target.value as InputSize })}
-        >
-          <option>small</option>
-          <option>medium</option>
-          <option>large</option>
-        </select>
-      </ControlField>
-      <ControlField label="Helper text">
-        <input
-          value={value.helperText}
-          onChange={(event) => onChange({ ...value, helperText: event.target.value })}
-        />
-      </ControlField>
-      <ControlField label="Error message">
-        <input
-          value={value.errorMessage}
-          onChange={(event) => onChange({ ...value, errorMessage: event.target.value })}
-        />
-      </ControlField>
-      {(['disabled', 'readOnly', 'fullWidth', 'showCount'] as const).map((key) => (
-        <ControlField key={key} label={key}>
-          <Checkbox
-            size="small"
-            aria-label={key}
-            checked={value[key]}
-            onChange={(event) => onChange({ ...value, [key]: event.target.checked })}
-          />
-        </ControlField>
-      ))}
-    </div>
-  )
-}
-
-function InputWorkbenchDemo({
-  value,
-  onChange,
-}: {
-  value: InputWorkbenchState
-  onChange: (next: InputWorkbenchState) => void
-}) {
-  const shared = {
-    label: value.label,
-    value: value.value,
-    onChange: (event: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) =>
-      onChange({ ...value, value: event.target.value }),
-    placeholder: value.placeholder,
-    size: value.size,
-    helperText: value.helperText || undefined,
-    errorMessage: value.errorMessage || undefined,
-    disabled: value.disabled,
-    readOnly: value.readOnly,
-    fullWidth: value.fullWidth,
-    showCount: value.showCount,
-    maxLength: value.showCount ? 80 : undefined,
-  }
-  return value.variant === 'textarea' ? (
-    <Input {...shared} variant="textarea" />
-  ) : (
-    <Input {...shared} variant={value.variant} />
-  )
+function firstStoryExample(component: ComponentEntity) {
+  const module = storyModuleFor(component)
+  const story = module?.stories?.[0]
+  const example = story?.examples?.[0]
+  if (!module?.renderStoryExample || !story || !example) return null
+  return module.renderStoryExample(example, story)
 }
 
 function Specimen({
@@ -888,445 +205,8 @@ function ComponentWorkbench({
   onCanvasColorChange: (color: string) => void
 }) {
   const { t } = useDesignLabI18n()
-  const [buttonProps, setButtonProps] = useState<ButtonProps>({
-    variant: 'primary',
-    size: 'medium',
-    children: 'Create project',
-  })
-  const [inputProps, setInputProps] = useState<InputWorkbenchState>({
-    label: 'Component name',
-    value: 'Input',
-    placeholder: 'Enter a component name',
-    variant: 'text',
-    size: 'medium',
-    helperText: 'Used for the component folder and catalog label.',
-    errorMessage: '',
-    disabled: false,
-    readOnly: false,
-    fullWidth: false,
-    showCount: false,
-  })
-  const [clicks, setClicks] = useState(0)
-  const [tabSwitcherVariant, setTabSwitcherVariant] = useState<TabSwitcherVariant>('segmented')
-  const [tabSwitcherSize, setTabSwitcherSize] = useState<TabSwitcherSize>('medium')
-  const [radioValue, setRadioValue] = useState('stable')
-  const [radioColor, setRadioColor] = useState<RadioButtonColor>('accent')
-  const [radioSize, setRadioSize] = useState<RadioButtonSize>('medium')
-  const [radioDisabled, setRadioDisabled] = useState(false)
-  const [sliderValue, setSliderValue] = useState(52)
-  const [sliderColor, setSliderColor] = useState<SliderColor>('accent')
-  const [sliderSize, setSliderSize] = useState<SliderSize>('medium')
-  const [sliderDisabled, setSliderDisabled] = useState(false)
-  const [sliderShowValue, setSliderShowValue] = useState(true)
-  const [chipColor, setChipColor] = useState<ChipColor>('success')
-  const [chipVariant, setChipVariant] = useState<ChipVariant>('soft')
-  const [chipSize, setChipSize] = useState<ChipSize>('medium')
-  const [chipDisabled, setChipDisabled] = useState(false)
-  const [focused, setFocused] = useState<FocusedDemoState>({
-    sidebarTabActive: true,
-    sidebarTabExpanded: false,
-    appSidebarActive: 'components',
-    appSidebarExpanded: false,
-    cardSelected: false,
-    semanticTreeActive: true,
-    semanticTreeExpanded: false,
-    semanticTreeColoring: true,
-    semanticTreeActions: true,
-    semanticTreeColor: '#8b5cf6',
-    directorySearch: true,
-    directoryColoring: true,
-    directoryActions: true,
-    directoryDefaultCollapsed: true,
-  })
   const canvasStyle = { '--canvas-solid': canvasColor } as CSSProperties
-  const liveButtonProps =
-    component.id === 'button'
-      ? { ...buttonProps, onClick: () => setClicks((value) => value + 1) }
-      : buttonProps
-  const inputDemo = <InputWorkbenchDemo value={inputProps} onChange={setInputProps} />
-  const customDemo =
-    component.id === 'radio-button' ? (
-      <RadioButtonDemo
-        value={radioValue}
-        onChange={setRadioValue}
-        color={radioColor}
-        size={radioSize}
-        disabled={radioDisabled}
-      />
-    ) : component.id === 'slider' ? (
-      <SliderDemo
-        value={sliderValue}
-        onChange={setSliderValue}
-        color={sliderColor}
-        size={sliderSize}
-        disabled={sliderDisabled}
-        showValue={sliderShowValue}
-      />
-    ) : component.id === 'chip' ? (
-      <Chip color={chipColor} variant={chipVariant} size={chipSize} disabled={chipDisabled}>
-        Ready
-      </Chip>
-    ) : undefined
-  const focusedControls =
-    component.id === 'radio-button' ? (
-      <aside className="workbench-controls">
-        <h2>{t('workbench.props')}</h2>
-        <ControlField label="Color">
-          <select
-            value={radioColor}
-            onChange={(event) => setRadioColor(event.target.value as RadioButtonColor)}
-          >
-            <option>default</option>
-            <option>accent</option>
-            <option>success</option>
-            <option>warning</option>
-            <option>danger</option>
-          </select>
-        </ControlField>
-        <ControlField label="Size">
-          <select
-            value={radioSize}
-            onChange={(event) => setRadioSize(event.target.value as RadioButtonSize)}
-          >
-            <option>small</option>
-            <option>medium</option>
-            <option>large</option>
-          </select>
-        </ControlField>
-        <ControlField label="Disabled">
-          <Checkbox
-            size="small"
-            aria-label="Disabled"
-            checked={radioDisabled}
-            onChange={(event) => setRadioDisabled(event.target.checked)}
-          />
-        </ControlField>
-      </aside>
-    ) : component.id === 'slider' ? (
-      <aside className="workbench-controls">
-        <h2>{t('workbench.props')}</h2>
-        <ControlField label="Value">
-          <input
-            type="number"
-            min={0}
-            max={100}
-            value={sliderValue}
-            onChange={(event) => setSliderValue(Number(event.target.value))}
-          />
-        </ControlField>
-        <ControlField label="Color">
-          <select
-            value={sliderColor}
-            onChange={(event) => setSliderColor(event.target.value as SliderColor)}
-          >
-            <option>default</option>
-            <option>accent</option>
-            <option>success</option>
-            <option>warning</option>
-            <option>danger</option>
-          </select>
-        </ControlField>
-        <ControlField label="Size">
-          <select
-            value={sliderSize}
-            onChange={(event) => setSliderSize(event.target.value as SliderSize)}
-          >
-            <option>small</option>
-            <option>medium</option>
-            <option>large</option>
-          </select>
-        </ControlField>
-        <ControlField label="Show value">
-          <Checkbox
-            size="small"
-            aria-label="Show value"
-            checked={sliderShowValue}
-            onChange={(event) => setSliderShowValue(event.target.checked)}
-          />
-        </ControlField>
-        <ControlField label="Disabled">
-          <Checkbox
-            size="small"
-            aria-label="Disabled"
-            checked={sliderDisabled}
-            onChange={(event) => setSliderDisabled(event.target.checked)}
-          />
-        </ControlField>
-      </aside>
-    ) : component.id === 'chip' ? (
-      <aside className="workbench-controls">
-        <h2>{t('workbench.props')}</h2>
-        <ControlField label="Color">
-          <select
-            value={chipColor}
-            onChange={(event) => setChipColor(event.target.value as ChipColor)}
-          >
-            <option>default</option>
-            <option>accent</option>
-            <option>success</option>
-            <option>warning</option>
-            <option>danger</option>
-          </select>
-        </ControlField>
-        <ControlField label="Variant">
-          <select
-            value={chipVariant}
-            onChange={(event) => setChipVariant(event.target.value as ChipVariant)}
-          >
-            <option>primary</option>
-            <option>secondary</option>
-            <option>tertiary</option>
-            <option>soft</option>
-          </select>
-        </ControlField>
-        <ControlField label="Size">
-          <select
-            value={chipSize}
-            onChange={(event) => setChipSize(event.target.value as ChipSize)}
-          >
-            <option>small</option>
-            <option>medium</option>
-            <option>large</option>
-          </select>
-        </ControlField>
-        <ControlField label="Disabled">
-          <Checkbox
-            size="small"
-            aria-label="Disabled"
-            checked={chipDisabled}
-            onChange={(event) => setChipDisabled(event.target.checked)}
-          />
-        </ControlField>
-      </aside>
-    ) : component.id === 'sidebar-tab' ? (
-      <aside className="workbench-controls">
-        <h2>{t('workbench.props')}</h2>
-        <ControlField label="Active">
-          <Checkbox
-            size="small"
-            aria-label="Active"
-            checked={focused.sidebarTabActive}
-            onChange={(event) => setFocused({ ...focused, sidebarTabActive: event.target.checked })}
-          />
-        </ControlField>
-        <ControlField label="Expanded context">
-          <Checkbox
-            size="small"
-            aria-label="Expanded context"
-            checked={focused.sidebarTabExpanded}
-            onChange={(event) =>
-              setFocused({ ...focused, sidebarTabExpanded: event.target.checked })
-            }
-          />
-        </ControlField>
-      </aside>
-    ) : component.id === 'app-sidebar' ? (
-      <aside className="workbench-controls">
-        <h2>{t('workbench.props')}</h2>
-        <ControlField label="Expanded">
-          <Checkbox
-            size="small"
-            aria-label="Expanded"
-            checked={focused.appSidebarExpanded}
-            onChange={(event) =>
-              setFocused({ ...focused, appSidebarExpanded: event.target.checked })
-            }
-          />
-        </ControlField>
-        <ControlField label="Active module">
-          <select
-            value={focused.appSidebarActive}
-            onChange={(event) =>
-              setFocused({ ...focused, appSidebarActive: event.target.value as ModuleId })
-            }
-          >
-            <option value="components">components</option>
-            <option value="palette">palette</option>
-            <option value="tokens">tokens</option>
-          </select>
-        </ControlField>
-      </aside>
-    ) : component.id === 'component-card' ? (
-      <aside className="workbench-controls">
-        <h2>{t('workbench.props')}</h2>
-        <ControlField label="Selected">
-          <Checkbox
-            size="small"
-            aria-label="Selected"
-            checked={focused.cardSelected}
-            onChange={(event) => setFocused({ ...focused, cardSelected: event.target.checked })}
-          />
-        </ControlField>
-      </aside>
-    ) : component.id === 'checkbox' ? (
-      <aside className="workbench-controls">
-        <h2>{t('workbench.props')}</h2>
-        <p>
-          Toggle the production Checkbox. Stories compare sizes, native states, and complete label
-          composition.
-        </p>
-      </aside>
-    ) : component.id === 'asset-card' ? (
-      <aside className="workbench-controls">
-        <h2>{t('workbench.props')}</h2>
-        <p>
-          The card presents a discovered filesystem entity. Image stories may receive a safe local
-          preview URL.
-        </p>
-      </aside>
-    ) : component.id === 'workbench-playground' ? (
-      <aside className="workbench-controls">
-        <h2>{t('workbench.props')}</h2>
-        <p>
-          This page is itself rendered inside the production Workbench Playground; the specimen
-          demonstrates nested composition and safe width.
-        </p>
-      </aside>
-    ) : component.id === 'color-card' ? (
-      <aside className="workbench-controls">
-        <h2>{t('workbench.props')}</h2>
-        <p>The playground uses a semantic token name and resolved color value.</p>
-      </aside>
-    ) : component.id === 'canvas-background-control' ? (
-      <aside className="workbench-controls">
-        <h2>{t('workbench.props')}</h2>
-        <p>
-          Use the production control directly on the Canvas. Its changes update the shared Workbench
-          background.
-        </p>
-      </aside>
-    ) : component.id === 'directory-panel' ? (
-      <aside className="workbench-controls">
-        <h2>{t('workbench.props')}</h2>
-        {(
-          [
-            ['Search', 'directorySearch'],
-            ['Icon coloring', 'directoryColoring'],
-            ['Item actions', 'directoryActions'],
-            ['Default collapsed', 'directoryDefaultCollapsed'],
-          ] as const
-        ).map(([label, key]) => (
-          <ControlField key={key} label={label}>
-            <Checkbox
-              size="small"
-              aria-label={label}
-              checked={focused[key]}
-              onChange={(event) => setFocused({ ...focused, [key]: event.target.checked })}
-            />
-          </ControlField>
-        ))}
-      </aside>
-    ) : component.id === 'icon-button' ? (
-      <aside className="workbench-controls">
-        <h2>{t('workbench.props')}</h2>
-        <p>
-          The Playground uses a native button action with an accessible name and a compact icon
-          slot.
-        </p>
-      </aside>
-    ) : component.id === 'control-field' ? (
-      <aside className="workbench-controls">
-        <h2>{t('workbench.props')}</h2>
-        <p>
-          Edit the production text, select, and boolean controls to verify their shared label
-          contract.
-        </p>
-      </aside>
-    ) : component.id === 'semantic-tree-item' ? (
-      <aside className="workbench-controls">
-        <h2>{t('workbench.props')}</h2>
-        {(
-          [
-            ['Active', 'semanticTreeActive'],
-            ['Expanded', 'semanticTreeExpanded'],
-            ['Icon coloring', 'semanticTreeColoring'],
-            ['Item actions', 'semanticTreeActions'],
-          ] as const
-        ).map(([label, key]) => (
-          <ControlField key={key} label={label}>
-            <Checkbox
-              size="small"
-              aria-label={label}
-              checked={focused[key]}
-              onChange={(event) => setFocused({ ...focused, [key]: event.target.checked })}
-            />
-          </ControlField>
-        ))}
-      </aside>
-    ) : component.id === 'color-picker' ? (
-      <aside className="workbench-controls">
-        <h2>{t('workbench.props')}</h2>
-        <p>
-          Open the production picker, change the spectrum or HEX value, choose a preset, and reset
-          the semantic override.
-        </p>
-      </aside>
-    ) : component.id === 'component-thumbnail' ? (
-      <aside className="workbench-controls">
-        <h2>{t('workbench.props')}</h2>
-        <p>
-          The Playground shows an authored kind silhouette; stories compare known kinds and the
-          generic fallback.
-        </p>
-      </aside>
-    ) : component.id === 'module-header' ? (
-      <aside className="workbench-controls">
-        <h2>{t('workbench.props')}</h2>
-        <p>The current specimen uses the module-summary composition with a real count.</p>
-      </aside>
-    ) : component.id === 'source-select' ? (
-      <aside className="workbench-controls">
-        <h2>{t('workbench.props')}</h2>
-        <p>Open the menu and switch between realistic Library and Project sources.</p>
-      </aside>
-    ) : component.id === 'story-canvas' ? (
-      <aside className="workbench-controls">
-        <h2>{t('workbench.props')}</h2>
-        <p>The Playground renders a production Story Canvas with real Button specimens.</p>
-      </aside>
-    ) : component.id === 'create-project-dialog' ? (
-      <aside className="workbench-controls">
-        <h2>{t('workbench.props')}</h2>
-        <p>
-          Open the dialog, enter a project name, submit, dismiss, and inspect the focused state.
-        </p>
-      </aside>
-    ) : component.id === 'tab-switcher' ? (
-      <aside className="workbench-controls">
-        <h2>{t('workbench.props')}</h2>
-        <ControlField label="Variant">
-          <select
-            value={tabSwitcherVariant}
-            onChange={(event) => setTabSwitcherVariant(event.target.value as TabSwitcherVariant)}
-          >
-            <option>segmented</option>
-            <option>toggle</option>
-          </select>
-        </ControlField>
-        <ControlField label="Size">
-          <select
-            value={tabSwitcherSize}
-            onChange={(event) => setTabSwitcherSize(event.target.value as TabSwitcherSize)}
-          >
-            <option>small</option>
-            <option>medium</option>
-          </select>
-        </ControlField>
-      </aside>
-    ) : component.id === 'code-block' ? (
-      <aside className="workbench-controls">
-        <h2>{t('workbench.props')}</h2>
-        <p>
-          The Markdown renderer supplies fenced source, language, and the copy action to this
-          production component.
-        </p>
-      </aside>
-    ) : (
-      <aside className="workbench-controls">
-        <h2>{t('workbench.props')}</h2>
-        <p>{t('workbench.controlsMissing')}</p>
-      </aside>
-    )
+  const heroSpecimen = firstStoryExample(component)
 
   return (
     <div className={`workbench workbench--canvas-${canvasMode}`} style={canvasStyle}>
@@ -1362,32 +242,13 @@ function ComponentWorkbench({
         onModeChange={onCanvasModeChange}
         onColorChange={onCanvasColorChange}
         label={t('workbench.playground')}
-        controls={
-          component.id === 'button' ? (
-            <ButtonControls value={buttonProps} onChange={setButtonProps} />
-          ) : component.id === 'input' ? (
-            <InputControls value={inputProps} onChange={setInputProps} />
-          ) : (
-            focusedControls
-          )
-        }
-        eventLog={component.id === 'button' ? `onClick · ${clicks}` : undefined}
+        controls={null}
       >
-        {component.id === 'tab-switcher' ? (
-          <TabSwitcherDemo variant={tabSwitcherVariant} size={tabSwitcherSize} />
-        ) : (
-          realComponent(
-            component,
-            liveButtonProps,
-            focused,
-            setFocused,
-            canvasMode,
-            canvasColor,
-            onCanvasModeChange,
-            onCanvasColorChange,
-            inputDemo,
-            customDemo,
-          )
+        {heroSpecimen ?? (
+          <span className="workbench-placeholder">
+            {component.name}
+            <small>{t('workbench.controlsMissing')}</small>
+          </span>
         )}
       </WorkbenchPlayground>
       <section className="workbench__rail">
@@ -1655,6 +516,7 @@ export function ModuleView({
   onCanvasModeChange,
   onCanvasColorChange,
   onOpenPlayground,
+  onOpenPageReview,
 }: {
   data: ModuleData | null
   loading: boolean
@@ -1669,6 +531,7 @@ export function ModuleView({
   onCanvasModeChange: (mode: CanvasMode) => void
   onCanvasColorChange: (color: string) => void
   onOpenPlayground: () => void
+  onOpenPageReview: () => void
 }) {
   const { t } = useDesignLabI18n()
   const modes = data && 'modes' in data ? data.modes : []
@@ -1860,6 +723,51 @@ export function ModuleView({
       </div>
     )
   }
+  if (data.kind === 'pages') {
+    const selected = data.pages.find((item) => item.id === selectedEntityId)
+    if (selected)
+      return (
+        <PageOverview
+          page={selected}
+          pages={data.pages}
+          onBack={onBack}
+          onOpenReview={onOpenPageReview}
+        />
+      )
+    const prefix = selectedFolderPath === '__all__' ? '' : selectedFolderPath
+    const pages = prefix
+      ? data.pages.filter(
+          (page) => page.directory === prefix || page.directory.startsWith(`${prefix}/`),
+        )
+      : data.pages
+    return (
+      <div className="module-page">
+        <ModuleHeader
+          eyebrow="Production screens"
+          title={prefix ? (prefix.split('/').at(-1) ?? 'Pages') : 'Pages'}
+          count={pages.length}
+        />
+        {pages.length ? (
+          <div className="page-catalog">
+            {pages.map((page) => (
+              <PageCatalogCard
+                key={page.id}
+                page={page}
+                mode={data.modes[0] ?? 'default'}
+                themeVariables={data.themeVariables}
+                onClick={() => onSelectEntity(page.id)}
+              />
+            ))}
+          </div>
+        ) : (
+          <div className="module-filter-empty">
+            <strong>No Pages in this group</strong>
+            <span>Choose All or add a canonical page.json directory.</span>
+          </div>
+        )}
+      </div>
+    )
+  }
   if (data.kind === 'components') {
     const selected = data.components.find((item) => item.id === selectedEntityId)
     return selected?.entry ? (
@@ -1925,5 +833,150 @@ function WireframeCatalogCard({
       preview={preview ?? <div className="wireframe-catalog__missing">Renderer unavailable</div>}
       onClick={onClick}
     />
+  )
+}
+
+// Pages are finalized, production-composed screens (PAGE_RULES.md) and are intentionally not
+// presented through WireframeCard, whose own contract calls out final Pages as an avoidWhen case.
+function PageCatalogCard({
+  page,
+  mode,
+  themeVariables,
+  onClick,
+}: {
+  page: PageEntity
+  mode: string
+  themeVariables: Extract<ModuleData, { kind: 'pages' }>['themeVariables']
+  onClick: () => void
+}) {
+  const renderer = pageRendererFor(page)
+  const state = page.states.find((item) => item.id === page.defaultState) ?? page.states[0]
+  const rendered = renderer?.renderPage({
+    state: state?.id ?? null,
+    values: { ...(state?.values ?? {}) },
+    onAction: () => undefined,
+  })
+  const preview = rendered ? (
+    <div style={designSystemModeStyle(themeVariables, mode)}>{rendered}</div>
+  ) : null
+  return (
+    <article className="page-catalog-card">
+      <WireframeScreenPreview>
+        {preview ?? <div className="page-catalog-card__missing">Renderer unavailable</div>}
+      </WireframeScreenPreview>
+      <button
+        type="button"
+        className="page-catalog-card__action"
+        aria-label={`Open ${page.name} Page. ${page.description}`}
+        onClick={onClick}
+      />
+      <footer className="page-catalog-card__footer">
+        <strong>{page.name}</strong>
+        <Chip size="small" color={pageStatusColors[page.status] ?? 'warning'} variant="soft">
+          {page.status}
+        </Chip>
+      </footer>
+    </article>
+  )
+}
+
+// The Page card: an inline overview opened before full-screen review (PAGE_RULES.md "Routing and
+// the Page card"). Diagnostics already acknowledged in `diagnosticsAcknowledged[]` stay visible,
+// only dimmed — acknowledgement is an auditable manifest edit, never a silent client-side hide.
+function PageOverview({
+  page,
+  pages,
+  onBack,
+  onOpenReview,
+}: {
+  page: PageEntity
+  pages: PageEntity[]
+  onBack: () => void
+  onOpenReview: () => void
+}) {
+  const acknowledgedCodes = new Set(page.diagnosticsAcknowledged.map((item) => item.code))
+  const describeTarget = (edge: PageEntity['flow']['edges'][number]) => {
+    const to = edge.to
+    if (to.kind === 'state') {
+      const state = page.states.find((item) => item.id === to.stateId)
+      return `Stays on ${page.name} · ${state?.name ?? to.stateId}`
+    }
+    const target = pages.find((item) => item.id === to.pageId)
+    return `Exits to ${target?.name ?? to.pageId}`
+  }
+  return (
+    <div className="workbench">
+      <div className="workbench__top">
+        <ModuleHeader
+          eyebrow={page.directory}
+          title={page.name}
+          backLabel="Pages"
+          onBack={onBack}
+          meta={page.mirroredRoute ?? 'Filesystem-only route'}
+          actions={
+            <Button type="button" variant="primary" onClick={onOpenReview} disabled={!page.entry}>
+              Open review
+            </Button>
+          }
+        />
+      </div>
+      <section className="workbench__rail">
+        <div className="workbench-section">
+          <span>Status</span>
+          <Chip size="small" color={pageStatusColors[page.status] ?? 'warning'} variant="soft">
+            {page.status}
+          </Chip>
+        </div>
+        <div className="workbench-section">
+          <span>Description</span>
+          <div className="workbench-markdown">
+            <p>{page.description || 'No description has been written yet.'}</p>
+          </div>
+        </div>
+        {page.derivedFromWireframe && (
+          <div className="workbench-section">
+            <span>Provenance</span>
+            <div className="workbench-markdown">
+              <p>Graduated from Wireframe &quot;{page.derivedFromWireframe.wireframeId}&quot;.</p>
+            </div>
+          </div>
+        )}
+        <div className="workbench-section">
+          <span>Actions &amp; transitions</span>
+          <div className="page-card-actions">
+            {page.flow.edges.length ? (
+              page.flow.edges.map((edge) => (
+                <div key={edge.id} className="page-card-actions__item">
+                  <strong>{edge.label}</strong>
+                  <span>{describeTarget(edge)}</span>
+                </div>
+              ))
+            ) : (
+              <span>This Page has no authored flow transitions yet.</span>
+            )}
+          </div>
+        </div>
+        <div className="workbench-section">
+          <span>Diagnostics</span>
+          {page.diagnostics.length ? (
+            <div className="page-card-diagnostics">
+              {page.diagnostics.map((diagnostic, index) => (
+                <div
+                  key={`${diagnostic.code}-${index}`}
+                  className={`page-card-diagnostic${acknowledgedCodes.has(diagnostic.code) ? ' page-card-diagnostic--acknowledged' : ''}`}
+                >
+                  <span>{diagnostic.message}</span>
+                  <code>{diagnostic.code}</code>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className="workbench-markdown">
+              <p>No diagnostics. This Page is ready for hand-off review.</p>
+            </div>
+          )}
+        </div>
+      </section>
+    </div>
   )
 }

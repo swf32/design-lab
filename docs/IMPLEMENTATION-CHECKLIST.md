@@ -81,6 +81,16 @@
 - [ ] Apply one explicit path-containment helper to every read/write route and scanner.
 - [x] Add invalid-entity isolation so one broken manifest becomes a diagnostic instead of failing the whole module/search request (`manifest-parse-error`, `server/services/moduleEntities.mjs`). Still open: token files and other non-`component.json`/`wireframe.json` scanners.
 
+### P0 — Klyp migration follow-up (2026-07-21)
+
+- [x] Fix: `ComponentWorkbench`'s hand-maintained per-id demo switch (`realComponent` in `design-lab/src/views/ModuleView/ModuleView.tsx`) rendered `@design-lab/system`'s own production component whenever another Library's entity shared its id (Klyp collided on `button`, `checkbox`, `input`, `slider`, `asset-card`, `code-block`, `tab-switcher`). Every branch is now scoped to `component.sourceId === 'design-lab-system'`; other Libraries fall back to the honest `"Real playground controls are not defined yet."` placeholder instead of a wrong component.
+- [ ] High-priority open decision — see `D-056`: where third-party Library dependencies (`@klyp/icons`, `react-aria-components`, `motion`, `cmdk`, plus heavier `brand`-only deps like `@tiptap/*`/`shiki`/`ai`/`vaul`/`@dnd-kit/*`) should be installed and resolved as a general policy, before the rest of `libraries/klyp` (beyond the `Button`/`MeshButton` exception below) can get Stories/Playground.
+- [x] Scoped exception (2026-07-21, see `D-056`): `Button` and `MeshButton` now have real, contract-compliant Stories (`export const stories` + `renderStoryExample`) and Playground (`definePlayground`/`renderPlaygroundVariant`) and render for real in Workbench/Playground. Their runtime deps (`motion`, `react-aria-components`, `lottie-react`) are installed via `libraries/klyp/package.json`; `@klyp/icons` resolves through a `vite.config.ts` alias. The eager `import.meta.glob` calls in `ModuleView.tsx` / `ComponentPlaygroundView.tsx` gained a second, separate `glob()` call scoped to exactly these two files (a glob negation cannot be selectively re-included by a later positive pattern in the same call).
+- [x] Fixed a migration bug found while wiring the exception above: `copyShared()` in `scripts/migrate-klyp.mjs` mis-copied `packages/{ui,brand}/src/__shared` to `components/{ui,brand}/_shared` (wrong underscore count) and brand root files (`_brand-context.tsx`, `_mesh-keyframes.scss`, `vite-shims.d.ts`, `prompt-input/`) one level too deep — breaking every component's `'../__shared/...'` / `'../_brand-context'` relative import. Fixed in the script and physically in the already-migrated tree.
+- [ ] Once D-056 is resolved as a general policy: remove the remaining `libraries/klyp` exclusion from the eager `import.meta.glob` calls and re-author the rest of Klyp's Stories in the Design Lab contract (Klyp's original `*.stories.tsx` are Storybook CSF, which the generic Hero renderer cannot execute — Button/MeshButton's were rewritten, not reused as-is).
+- [ ] Author `*.playground.tsx` for the rest of Klyp's `ui/` primitives (none besides `Button` were migrated — Klyp had no equivalent artifact); this is manual per-component work, not scriptable from the source migration.
+- [ ] Reclassify `libraries/klyp/components/{ui,brand}/*` into an Atomic taxonomy (primitives/atoms/molecules) — user has opted to do this classification manually rather than by heuristic; migrator currently mirrors the source `ui`/`brand` package split as top-level folders, not a semantic hierarchy.
+
 ### P1 — AI retrieval quality
 
 - [ ] Add multilingual embeddings as a derived provider and rerank lexical candidates; current relevance is deterministic lexical/fuzzy fallback.
@@ -133,15 +143,17 @@
 - [x] Pair desktop/mobile screens in collision-safe flow nodes and support infinite transformed grid, pan, pinch zoom, and semantic folder routes.
 - [x] Bring the shared Inspector/handoff contract from Component Playground to fullscreen Wireframes.
 - [x] Define the canonical Page contract in `PAGE_RULES.md` (hybrid `page.json` + `*.page.tsx`, authored production `route` with reserved-module conflict fallback, `controls[]`/`states[]`, unified `flow.nodes[]`/`flow.edges[]` with conditional cross-Page edges, `derivedFromWireframe` provenance, Page card with `diagnosticsAcknowledged[]`, diagnostic codes).
-- [ ] Implement the Pages module MVP per `PAGE_RULES.md`:
-  - [ ] `page.json`/`*.page.tsx` discovery via `moduleEntities.mjs`, reusing `readManifest()` isolation and `SUPPORTED_SCHEMA_VERSION` guard.
-  - [ ] Route mirroring: fullscreen review URL uses authored `route` when it does not collide with a reserved module segment; otherwise falls back to the filesystem path and raises `page-route-conflicts-reserved-module`.
-  - [ ] `controls[]`/`states[]` discovery and validation, reusing the Wireframe typed control registry.
-  - [ ] Unified `flow.nodes[]`/`flow.edges[]` discovery/validation, including `kind: "page"` edges with optional `condition`, and the per-Page flow Canvas (reusing the Wireframe user-flow Canvas contract).
-  - [ ] Page card route: inline overview (description, actions derived from `flow.edges[]`, diagnostics) opened before fullscreen review, with the explicit per-diagnostic acknowledge action that writes `diagnosticsAcknowledged[]`.
-  - [ ] Bring the shared `WorkbenchInspector`/handoff contract to Pages.
-- [ ] Next: derived, auto-layout aggregated sitemap across all Pages in a source, computed from every Page's `kind: "page"` flow edges (analogous to how `usedBy`/`usedInExamplesBy` are derived for Components).
-- [ ] Next: review approval workflow and richer Page exports.
+- [x] Implement the Pages module MVP per `PAGE_RULES.md`:
+  - [x] `page.json`/`*.page.tsx` discovery via `moduleEntities.mjs` (`pagesFor`), reusing `readManifest()` isolation and `SUPPORTED_SCHEMA_VERSION` guard. Control/state validation was extracted out of `wireframeDiagnostics` into shared `validateControls`/`validateStateValues`/`diagnoseDuplicateIds` helpers reused by `pageDiagnostics`.
+  - [x] Route mirroring: `pagesFor` exposes a computed `mirroredRoute` (authored `route` when it does not collide with a reserved module segment, `null` on conflict) and raises `page-route-conflicts-reserved-module`; the client mirrors it into the fullscreen review URL suffix (`/review`) and falls back to the filesystem `directory` path otherwise.
+  - [x] `controls[]`/`states[]` discovery and validation, reusing the Wireframe typed control registry (shared validators above).
+  - [x] Unified `flow.nodes[]`/`flow.edges[]` discovery/validation, including `kind: "page"` edges with optional `condition`, and the per-Page flow Canvas in `PageView.tsx` (reuses `UserFlowCanvas`, with synthetic "exit" nodes rendering the target Page's own default-state preview for `kind: "page"` edges).
+  - [x] Page card (`PageOverview` in `ModuleView.tsx`): inline overview with description, provenance, actions/transitions derived from `flow.edges[]`, and diagnostics (dimmed once listed in `diagnosticsAcknowledged[]`) opened before fullscreen review (`onOpenPageReview` → `/review` route).
+  - [ ] The Page card only *reads* `diagnosticsAcknowledged[]`; there is no write UI/endpoint yet for a user to acknowledge a diagnostic with a `reason` (needs the write/validation/confirmation contract from the "guarded AI write proposals" item below first).
+  - [x] Bring the shared `WorkbenchInspector`/handoff contract to Pages (`PageView.tsx`).
+  - [x] Added a real example: three linked Pages (`Home`, `Auth`, `Account` under `libraries/design-lab-system/pages/`) exercising an internal state transition, a conditional cross-Page edge, and an unconditional cross-Page edge, plus server tests in `pages.test.mjs`.
+- [ ] Next: derived, auto-layout aggregated sitemap across all Pages in a source, computed from every Page's `kind: "page"` flow edges (analogous to how `usedBy`/`usedInExamplesBy` are derived for Components). The per-Page Canvas exists; the cross-source aggregated view does not yet.
+- [ ] Next: review approval workflow, `diagnosticsAcknowledged[]` write UI, and richer Page exports.
 - [ ] Add guarded AI write proposals only after diff, validation, and confirmation contracts exist.
 
 ---

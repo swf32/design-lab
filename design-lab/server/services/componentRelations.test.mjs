@@ -188,7 +188,12 @@ test('a component.json that fails JSON.parse becomes a diagnostic on that entity
     await mkdir(libraryDirectory, { recursive: true })
     await writeFile(
       join(libraryDirectory, 'library.json'),
-      JSON.stringify({ id: 'broken-system', kind: 'library', name: 'Broken System', schemaVersion: 1 }),
+      JSON.stringify({
+        id: 'broken-system',
+        kind: 'library',
+        name: 'Broken System',
+        schemaVersion: 1,
+      }),
     )
     const okDirectory = join(libraryDirectory, 'components', 'ok')
     const brokenDirectory = join(libraryDirectory, 'components', 'broken')
@@ -204,7 +209,9 @@ test('a component.json that fails JSON.parse becomes a diagnostic on that entity
     const components = new Map(result.components.map((component) => [component.id, component]))
 
     assert.equal(
-      components.get('ok').completenessDiagnostics.some((diagnostic) => diagnostic.code === 'manifest-parse-error'),
+      components
+        .get('ok')
+        .completenessDiagnostics.some((diagnostic) => diagnostic.code === 'manifest-parse-error'),
       false,
     )
     const broken = components.get('broken')
@@ -212,7 +219,9 @@ test('a component.json that fails JSON.parse becomes a diagnostic on that entity
     assert.equal(broken.name, 'broken')
     assert.equal(broken.import, null)
     assert.equal(
-      broken.completenessDiagnostics.some((diagnostic) => diagnostic.code === 'manifest-parse-error'),
+      broken.completenessDiagnostics.some(
+        (diagnostic) => diagnostic.code === 'manifest-parse-error',
+      ),
       true,
     )
   })
@@ -224,7 +233,12 @@ test('a schemaVersion newer than the server understands degrades to a diagnostic
     await mkdir(libraryDirectory, { recursive: true })
     await writeFile(
       join(libraryDirectory, 'library.json'),
-      JSON.stringify({ id: 'future-system', kind: 'library', name: 'Future System', schemaVersion: 1 }),
+      JSON.stringify({
+        id: 'future-system',
+        kind: 'library',
+        name: 'Future System',
+        schemaVersion: 1,
+      }),
     )
     const futureDirectory = join(libraryDirectory, 'wireframes', 'future')
     await mkdir(futureDirectory, { recursive: true })

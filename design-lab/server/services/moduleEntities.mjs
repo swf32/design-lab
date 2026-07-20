@@ -190,21 +190,95 @@ async function tokensFor(source) {
   }
 }
 
-function wireframeDiagnostics(wireframe) {
+// Shared across Wireframe and Page manifests: both use the same typed control registry and the
+// same saved-state-snapshot identity rule (WIREFRAME_RULES.md / PAGE_RULES.md), only the diagnostic
+// code prefix and the entity noun differ.
+function diagnoseDuplicateIds(items, entity, prefix) {
   const diagnostics = []
-  const diagnoseDuplicateIds = (items, entity) => {
-    const seen = new Set()
-    for (const item of items) {
-      if (!item?.id || seen.has(item.id))
+  const seen = new Set()
+  for (const item of items) {
+    if (!item?.id || seen.has(item.id))
+      diagnostics.push({
+        code: `${prefix}-${entity}-id-invalid`,
+        message: item?.id
+          ? `Duplicate ${entity} id "${item.id}".`
+          : `Every ${entity} must define a stable id.`,
+      })
+    if (item?.id) seen.add(item.id)
+  }
+  return diagnostics
+}
+
+function validateControls(controls, prefix) {
+  const diagnostics = []
+  const controlIds = new Set(controls.map((control) => control.id))
+  for (const control of controls) {
+    if (!['radio', 'boolean', 'range'].includes(control.kind))
+      diagnostics.push({
+        code: `${prefix}-control-kind-invalid`,
+        message: `Control "${control.id}" uses unsupported kind "${control.kind}".`,
+      })
+    if (
+      control.kind === 'range' &&
+      (!Number.isFinite(control.min) ||
+        !Number.isFinite(control.max) ||
+        !Number.isFinite(control.step) ||
+        control.min > control.max ||
+        control.step <= 0)
+    )
+      diagnostics.push({
+        code: `${prefix}-control-range-invalid`,
+        message: `Range control "${control.id}" must define a valid min, max, and positive step.`,
+      })
+    if (control.visibleWhen && !controlIds.has(control.visibleWhen.control))
+      diagnostics.push({
+        code: `${prefix}-control-condition-invalid`,
+        message: `Control "${control.id}" depends on unknown control "${control.visibleWhen.control}".`,
+      })
+  }
+  return diagnostics
+}
+
+function validateStateValues(states, controls, prefix) {
+  const diagnostics = []
+  const controlIds = new Set(controls.map((control) => control.id))
+  for (const state of states) {
+    for (const controlId of controlIds) {
+      if (!Object.hasOwn(state.values ?? {}, controlId))
         diagnostics.push({
-          code: `wireframe-${entity}-id-invalid`,
-          message: item?.id
-            ? `Duplicate ${entity} id "${item.id}".`
-            : `Every ${entity} must define a stable id.`,
+          code: `${prefix}-state-value-missing`,
+          message: `State "${state.id}" does not define control "${controlId}".`,
         })
-      if (item?.id) seen.add(item.id)
+      const control = controls.find((candidate) => candidate.id === controlId)
+      const value = state.values?.[controlId]
+      if (control?.kind === 'radio' && !control.options?.some((option) => option.value === value))
+        diagnostics.push({
+          code: `${prefix}-state-radio-value-invalid`,
+          message: `State "${state.id}" uses an invalid value for radio control "${controlId}".`,
+        })
+      if (control?.kind === 'boolean' && typeof value !== 'boolean')
+        diagnostics.push({
+          code: `${prefix}-state-boolean-value-invalid`,
+          message: `State "${state.id}" must use a boolean value for control "${controlId}".`,
+        })
+      if (
+        control?.kind === 'range' &&
+        (!Number.isFinite(value) ||
+          value < control.min ||
+          value > control.max ||
+          (value - control.min) % control.step !== 0)
+      )
+        diagnostics.push({
+          code: `${prefix}-state-range-value-invalid`,
+          message: `State "${state.id}" uses an out-of-range or off-step value for control "${controlId}".`,
+        })
     }
   }
+  return diagnostics
+}
+
+function wireframeDiagnostics(wireframe) {
+  const diagnostics = []
   const supportedStatuses = new Set(['draft', 'review', 'approved'])
   if (!supportedStatuses.has(wireframe.status))
     diagnostics.push({
@@ -222,16 +296,17 @@ function wireframeDiagnostics(wireframe) {
   const controls = wireframe.controls ?? []
   const layoutIds = new Set(layouts.map((layout) => layout.id))
   const stateIds = new Set(states.map((state) => state.id))
-  const controlIds = new Set(controls.map((control) => control.id))
   const nodes = wireframe.flow?.nodes ?? []
   const nodeIds = new Set(nodes.map((node) => node.id))
   const edges = wireframe.flow?.edges ?? []
 
-  diagnoseDuplicateIds(layouts, 'layout')
-  diagnoseDuplicateIds(states, 'state')
-  diagnoseDuplicateIds(controls, 'control')
-  diagnoseDuplicateIds(nodes, 'flow-node')
-  diagnoseDuplicateIds(edges, 'flow-edge')
+  diagnostics.push(...diagnoseDuplicateIds(layouts, 'layout', 'wireframe'))
+  diagnostics.push(...diagnoseDuplicateIds(states, 'state', 'wireframe'))
+  diagnostics.push(...diagnoseDuplicateIds(controls, 'control', 'wireframe'))
+  diagnostics.push(...diagnoseDuplicateIds(nodes, 'flow-node', 'wireframe'))
+  diagnostics.push(...diagnoseDuplicateIds(edges, 'flow-edge', 'wireframe'))
+  diagnostics.push(...validateControls(controls, 'wireframe'))
+  diagnostics.push(...validateStateValues(states, controls, 'wireframe'))
 
   if (!layoutIds.has(wireframe.defaultLayout))
     diagnostics.push({
@@ -243,62 +318,6 @@ function wireframeDiagnostics(wireframe) {
       code: 'wireframe-default-state-invalid',
       message: `Default state "${wireframe.defaultState}" does not exist.`,
     })
-  for (const state of states) {
-    for (const controlId of controlIds) {
-      if (!Object.hasOwn(state.values ?? {}, controlId))
-        diagnostics.push({
-          code: 'wireframe-state-value-missing',
-          message: `State "${state.id}" does not define control "${controlId}".`,
-        })
-      const control = controls.find((candidate) => candidate.id === controlId)
-      const value = state.values?.[controlId]
-      if (control?.kind === 'radio' && !control.options?.some((option) => option.value === value))
-        diagnostics.push({
-          code: 'wireframe-state-radio-value-invalid',
-          message: `State "${state.id}" uses an invalid value for radio control "${controlId}".`,
-        })
-      if (control?.kind === 'boolean' && typeof value !== 'boolean')
-        diagnostics.push({
-          code: 'wireframe-state-boolean-value-invalid',
-          message: `State "${state.id}" must use a boolean value for control "${controlId}".`,
-        })
-      if (
-        control?.kind === 'range' &&
-        (!Number.isFinite(value) ||
-          value < control.min ||
-          value > control.max ||
-          (value - control.min) % control.step !== 0)
-      )
-        diagnostics.push({
-          code: 'wireframe-state-range-value-invalid',
-          message: `State "${state.id}" uses an out-of-range or off-step value for control "${controlId}".`,
-        })
-    }
-  }
-  for (const control of controls) {
-    if (!['radio', 'boolean', 'range'].includes(control.kind))
-      diagnostics.push({
-        code: 'wireframe-control-kind-invalid',
-        message: `Control "${control.id}" uses unsupported kind "${control.kind}".`,
-      })
-    if (
-      control.kind === 'range' &&
-      (!Number.isFinite(control.min) ||
-        !Number.isFinite(control.max) ||
-        !Number.isFinite(control.step) ||
-        control.min > control.max ||
-        control.step <= 0)
-    )
-      diagnostics.push({
-        code: 'wireframe-control-range-invalid',
-        message: `Range control "${control.id}" must define a valid min, max, and positive step.`,
-      })
-    if (control.visibleWhen && !controlIds.has(control.visibleWhen.control))
-      diagnostics.push({
-        code: 'wireframe-control-condition-invalid',
-        message: `Control "${control.id}" depends on unknown control "${control.visibleWhen.control}".`,
-      })
-  }
   for (const node of nodes)
     if (!stateIds.has(node.state))
       diagnostics.push({
@@ -380,6 +399,259 @@ async function wireframesFor(source, sourceId) {
     modes: tokenData.modes,
     themeVariables: tokenVariablesByMode(tokenData),
     wireframes: wireframes.sort((a, b) => a.name.localeCompare(b.name)),
+  }
+}
+
+// Must stay in sync with MODULE_IDS in design-lab/src/navigation.ts (D-051): an authored Page
+// `route` never shadows a reserved Design Lab module segment, so full-screen review falls back to
+// the filesystem path instead of colliding with Design Lab's own navigation.
+const RESERVED_MODULE_SEGMENTS = new Set([
+  'home',
+  'components',
+  'wireframes',
+  'pages',
+  'assets',
+  'palette',
+  'tokens',
+  'fonts',
+])
+
+function firstRouteSegment(route) {
+  if (typeof route !== 'string') return null
+  const trimmed = route.trim()
+  if (!trimmed || trimmed === '/') return null
+  return trimmed.split('/').filter(Boolean)[0] ?? null
+}
+
+function pageDiagnostics(page, { pageIdsInSource, derivedWireframe }) {
+  const diagnostics = []
+  const supportedStatuses = new Set(['draft', 'review', 'approved'])
+  if (!page.status)
+    diagnostics.push({
+      code: 'page-status-missing',
+      message: 'page.json does not declare a lifecycle status.',
+    })
+  else if (!supportedStatuses.has(page.status))
+    diagnostics.push({
+      code: 'page-status-unknown',
+      message: `Unsupported Page status: ${page.status}.`,
+    })
+  if (!page.entry)
+    diagnostics.push({
+      code: 'page-entry-missing',
+      message: 'page.json must declare an adjacent typed renderer entry.',
+    })
+
+  const routeSegment = firstRouteSegment(page.route)
+  const routeConflict = routeSegment !== null && RESERVED_MODULE_SEGMENTS.has(routeSegment)
+  if (routeConflict)
+    diagnostics.push({
+      code: 'page-route-conflicts-reserved-module',
+      message: `Route "${page.route}" collides with the reserved "${routeSegment}" Design Lab module; full-screen review falls back to the filesystem path.`,
+    })
+
+  const controls = page.controls ?? []
+  const states = page.states ?? []
+  const controlIds = new Set(controls.map((control) => control.id))
+  const stateIds = new Set(states.map((state) => state.id))
+  const nodes = page.flow?.nodes ?? []
+  const nodeIds = new Set(nodes.map((node) => node.id))
+  const edges = page.flow?.edges ?? []
+
+  diagnostics.push(...diagnoseDuplicateIds(controls, 'control', 'page'))
+  diagnostics.push(...diagnoseDuplicateIds(states, 'state', 'page'))
+  diagnostics.push(...diagnoseDuplicateIds(nodes, 'flow-node', 'page'))
+  diagnostics.push(...diagnoseDuplicateIds(edges, 'flow-edge', 'page'))
+  diagnostics.push(...validateControls(controls, 'page'))
+  diagnostics.push(...validateStateValues(states, controls, 'page'))
+
+  if (states.length && !stateIds.has(page.defaultState))
+    diagnostics.push({
+      code: 'page-default-state-invalid',
+      message: `Default state "${page.defaultState}" does not exist.`,
+    })
+
+  for (const node of nodes)
+    if (!stateIds.has(node.state))
+      diagnostics.push({
+        code: 'page-flow-node-id-invalid',
+        message: `Flow node "${node.id}" references unknown state "${node.state}".`,
+      })
+
+  for (const edge of edges) {
+    if (!nodeIds.has(edge.from))
+      diagnostics.push({
+        code: 'page-flow-edge-invalid',
+        message: `Flow edge "${edge.id}" references unknown node "${edge.from}".`,
+      })
+    const to = edge.to ?? {}
+    if (to.kind === 'state') {
+      if (!stateIds.has(to.stateId))
+        diagnostics.push({
+          code: 'page-flow-edge-invalid',
+          message: `Flow edge "${edge.id}" targets unknown state "${to.stateId}".`,
+        })
+    } else if (to.kind === 'page') {
+      if (!pageIdsInSource.has(to.pageId))
+        diagnostics.push({
+          code: 'page-flow-edge-invalid',
+          message: `Flow edge "${edge.id}" targets unknown Page "${to.pageId}".`,
+        })
+    } else {
+      diagnostics.push({
+        code: 'page-flow-edge-invalid',
+        message: `Flow edge "${edge.id}" must target a state or a page.`,
+      })
+    }
+    if (to.condition) {
+      const control = controls.find((candidate) => candidate.id === to.condition.controlId)
+      if (!control)
+        diagnostics.push({
+          code: 'page-flow-condition-invalid',
+          message: `Flow edge "${edge.id}" condition references unknown control "${to.condition.controlId}".`,
+        })
+      else if (
+        control.kind === 'radio' &&
+        !control.options?.some((option) => option.value === to.condition.value)
+      )
+        diagnostics.push({
+          code: 'page-flow-condition-invalid',
+          message: `Flow edge "${edge.id}" condition uses an invalid value for control "${control.id}".`,
+        })
+      else if (control.kind === 'boolean' && typeof to.condition.value !== 'boolean')
+        diagnostics.push({
+          code: 'page-flow-condition-invalid',
+          message: `Flow edge "${edge.id}" condition must use a boolean value for control "${control.id}".`,
+        })
+    }
+  }
+
+  if (page.derivedFromWireframe) {
+    const { wireframeId, layoutId, stateId } = page.derivedFromWireframe
+    if (!derivedWireframe)
+      diagnostics.push({
+        code: 'page-derived-from-wireframe-invalid',
+        message: `derivedFromWireframe references unknown Wireframe "${wireframeId}".`,
+      })
+    else {
+      if (layoutId && !(derivedWireframe.layouts ?? []).some((layout) => layout.id === layoutId))
+        diagnostics.push({
+          code: 'page-derived-from-wireframe-invalid',
+          message: `derivedFromWireframe references unknown layout "${layoutId}".`,
+        })
+      if (stateId && !(derivedWireframe.states ?? []).some((state) => state.id === stateId))
+        diagnostics.push({
+          code: 'page-derived-from-wireframe-invalid',
+          message: `derivedFromWireframe references unknown state "${stateId}".`,
+        })
+    }
+  }
+
+  return { diagnostics, routeConflict }
+}
+
+async function pagesFor(source, sourceId) {
+  const root = join(source.path, 'pages')
+  const [manifests, discoveredFolders, tokenData] = await Promise.all([
+    filesUnder(root, (name) => name === 'page.json'),
+    directoriesUnder(root),
+    tokensFor(source),
+  ])
+  const entityDirectories = manifests.map((filePath) => relative(root, dirname(filePath)))
+  const folders = discoveredFolders.filter(
+    (folder) =>
+      !entityDirectories.some(
+        (entityDirectory) => folder === entityDirectory || folder.startsWith(`${entityDirectory}/`),
+      ),
+  )
+
+  const parsed = []
+  for (const filePath of manifests) {
+    const { manifest, diagnostics: manifestDiagnostics } = await readManifest(filePath)
+    const directory = relative(root, dirname(filePath))
+    const readAdjacent = async (filename) => {
+      if (!filename) return null
+      try {
+        return await readFile(join(dirname(filePath), filename), 'utf8')
+      } catch {
+        return null
+      }
+    }
+    const [documentation, changelogDocumentation] = await Promise.all([
+      readAdjacent(manifest.docs),
+      readAdjacent(manifest.changelog),
+    ])
+    let entry = manifest.entry ?? null
+    if (entry) {
+      try {
+        await access(join(dirname(filePath), entry))
+      } catch {
+        entry = null
+      }
+    }
+    parsed.push({
+      manifestDiagnostics,
+      page: {
+        ...manifest,
+        id: manifest.id ?? directory,
+        name: manifest.name ?? basename(directory),
+        entry,
+        sourceId,
+        directory,
+        file: relative(root, filePath),
+        documentation,
+        changelogDocumentation,
+        diagnosticsAcknowledged: manifest.diagnosticsAcknowledged ?? [],
+      },
+    })
+  }
+
+  const pageIdsInSource = new Set(parsed.map(({ page }) => page.id))
+  // A Page may graduate from a Wireframe in a different source; each distinct source is only
+  // resolved once even when several Pages reference the same Wireframe.
+  const wireframeCache = new Map()
+  const resolveDerivedWireframe = async (derived) => {
+    if (!derived) return null
+    const targetSourceId = derived.sourceId ?? sourceId
+    if (!wireframeCache.has(targetSourceId)) {
+      try {
+        const targetSource = targetSourceId === sourceId ? source : await getSource(targetSourceId)
+        wireframeCache.set(targetSourceId, await wireframesFor(targetSource, targetSourceId))
+      } catch {
+        wireframeCache.set(targetSourceId, { wireframes: [] })
+      }
+    }
+    return wireframeCache
+      .get(targetSourceId)
+      .wireframes.find((wireframe) => wireframe.id === derived.wireframeId)
+  }
+
+  const pages = []
+  for (const { manifestDiagnostics, page } of parsed) {
+    const derivedWireframe = await resolveDerivedWireframe(page.derivedFromWireframe)
+    const { diagnostics: pageOwnDiagnostics, routeConflict } = pageDiagnostics(page, {
+      pageIdsInSource,
+      derivedWireframe,
+    })
+    pages.push({
+      ...page,
+      mirroredRoute: page.route && !routeConflict ? page.route : null,
+      diagnostics: [...manifestDiagnostics, ...pageOwnDiagnostics],
+      files: [
+        { role: 'manifest', path: basename(page.file) },
+        { role: 'renderer', path: page.entry },
+        { role: 'documentation', path: page.docs },
+        { role: 'changelog', path: page.changelog },
+      ].filter((file) => file.path),
+    })
+  }
+
+  return {
+    kind: 'pages',
+    folders,
+    modes: tokenData.modes,
+    themeVariables: tokenVariablesByMode(tokenData),
+    pages: pages.sort((a, b) => a.name.localeCompare(b.name)),
   }
 }
 
@@ -706,6 +978,7 @@ async function componentRelations(source, sourceManifest, components) {
 export async function getModuleEntities(sourceId, moduleId) {
   const source = await getSource(sourceId)
   if (moduleId === 'wireframes') return wireframesFor(source, sourceId)
+  if (moduleId === 'pages') return pagesFor(source, sourceId)
   if (moduleId === 'assets') return assetsFor(source, sourceId)
   if (moduleId === 'tokens') return tokensFor(source)
   if (moduleId === 'palette') {
@@ -858,6 +1131,20 @@ export async function getModuleNavigation(sourceId, moduleId) {
         }
       }),
       'wireframe',
+      data.folders,
+    )
+  if (data.kind === 'pages')
+    return navigationFromPaths(
+      data.pages.map((page) => {
+        const parts = page.directory.split('/').filter(Boolean)
+        return {
+          id: page.id,
+          name: page.name,
+          path: page.directory,
+          groups: parts.slice(0, -1),
+        }
+      }),
+      'page',
       data.folders,
     )
   if (data.kind === 'components')

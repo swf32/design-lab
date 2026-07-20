@@ -12,7 +12,7 @@
     "server": "node server/index.mjs",
     "mcp": "node server/mcp/index.mjs",
     "designlab": "node scripts/designlab.mjs",
-    "test": "node --test scripts/inspectionTransform.test.mjs server/services/authoredStyles.test.mjs server/services/componentRelations.test.mjs server/services/contextGateway.test.mjs server/mcp/index.test.mjs",
+    "test": "node --test scripts/inspectionTransform.test.mjs server/services/authoredStyles.test.mjs server/services/componentRelations.test.mjs server/services/pages.test.mjs server/services/contextGateway.test.mjs server/mcp/index.test.mjs",
     "build": "tsc -b && vite build",
     "preview": "vite preview",
     "typecheck": "tsc -b --pretty false"

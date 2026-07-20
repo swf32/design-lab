@@ -1,16 +1,21 @@
 import { readdir, readFile, writeFile } from 'node:fs/promises'
 import { extname, join, relative } from 'node:path'
 import process from 'node:process'
-import postcss from 'postcss'
+import postcssScss from 'postcss-scss'
 import * as prettier from 'prettier'
 
 const root = process.cwd()
 const mode = process.argv.includes('--check') ? 'check' : 'write'
 const styleRoots = [join(root, 'design-lab/src'), join(root, 'libraries')]
+// Mirrors .prettierignore's `libraries/klyp/**`: migrated Library source keeps its
+// original authoring conventions until D-056 (docs/DECISIONS.md) settles how far
+// third-party Library sources get folded into Design Lab's own tooling.
+const excludedDirs = [join(root, 'libraries/klyp')]
 
 async function filesUnder(directory, predicate, result = []) {
   for (const entry of await readdir(directory, { withFileTypes: true })) {
     const path = join(directory, entry.name)
+    if (excludedDirs.includes(path)) continue
     if (entry.isDirectory()) await filesUnder(path, predicate, result)
     else if (predicate(path)) result.push(path)
   }
@@ -53,7 +58,9 @@ function previewStyleSource(source, filepath) {
 function duplicateSelectors(source, filepath) {
   const duplicates = []
   const firstSeen = new Map()
-  const tree = postcss.parse(source, { from: filepath })
+  // The plain CSS parser rejects SCSS-only syntax (`//` line comments, `&` nesting
+  // combinators) that some migrated Library sources use throughout.
+  const tree = postcssScss.parse(source, { from: filepath })
 
   tree.walkRules((rule) => {
     const ancestors = []

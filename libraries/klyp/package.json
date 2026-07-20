@@ -9,6 +9,9 @@
     "react-dom": "^19.2.0"
   },
   "dependencies": {
-    "react": "^19.2.0"
+    "react": "^19.2.0",
+    "motion": "^12.38.0",
+    "react-aria-components": "^1.17.0",
+    "lottie-react": "^2.4.1"
   }
 }

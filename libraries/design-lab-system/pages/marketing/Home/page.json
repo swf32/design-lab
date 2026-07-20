@@ -1,0 +1,71 @@
+{
+  "schemaVersion": 1,
+  "id": "home",
+  "name": "Home",
+  "status": "review",
+  "description": "Marketing landing page. Its Profile action branches to Auth or Account depending on whether a session is active.",
+  "entry": "Home.page.tsx",
+  "docs": "README.md",
+  "changelog": "CHANGELOG.md",
+  "route": "/",
+  "defaultState": "guest",
+  "controls": [
+    {
+      "id": "authenticated",
+      "kind": "boolean",
+      "label": "Authenticated",
+      "description": "Whether a session cookie is present for the current visitor."
+    }
+  ],
+  "states": [
+    {
+      "id": "guest",
+      "name": "Guest",
+      "description": "A visitor without a session.",
+      "values": { "authenticated": false }
+    },
+    {
+      "id": "member",
+      "name": "Member",
+      "description": "A signed-in visitor.",
+      "values": { "authenticated": true }
+    }
+  ],
+  "flow": {
+    "nodes": [
+      { "id": "guest-node", "state": "guest", "x": 80, "y": 160 },
+      { "id": "member-node", "state": "member", "x": 80, "y": 480 }
+    ],
+    "edges": [
+      {
+        "id": "sign-in",
+        "from": "guest-node",
+        "action": "sign-in",
+        "label": "Sign in (dev mode)",
+        "to": { "kind": "state", "stateId": "member" }
+      },
+      {
+        "id": "guest-open-profile",
+        "from": "guest-node",
+        "action": "open-profile",
+        "label": "Profile",
+        "to": {
+          "kind": "page",
+          "pageId": "auth",
+          "condition": { "controlId": "authenticated", "value": false }
+        }
+      },
+      {
+        "id": "member-open-profile",
+        "from": "member-node",
+        "action": "open-profile",
+        "label": "Profile",
+        "to": {
+          "kind": "page",
+          "pageId": "account",
+          "condition": { "controlId": "authenticated", "value": true }
+        }
+      }
+    ]
+  }
+}

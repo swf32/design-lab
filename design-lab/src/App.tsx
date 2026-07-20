@@ -20,6 +20,7 @@ import { ModuleView } from './views/ModuleView/ModuleView'
 import { ComponentPlaygroundView } from './views/ComponentPlaygroundView/ComponentPlaygroundView'
 import { SettingsView } from './views/SettingsView/SettingsView'
 import { WireframeView } from './views/WireframeView/WireframeView'
+import { PageView } from './views/PageView/PageView'
 import { Button, IconButton } from '@design-lab/system/components'
 import { CodeIcon, DirectoryIcon, LinkIcon, StarIcon } from '@design-lab/system/icons'
 import {
@@ -120,6 +121,7 @@ export default function App() {
   const maxNavigationWidth = Math.max(MIN_NAVIGATION_WIDTH, window.innerWidth - MIN_WORKSPACE_WIDTH)
   const activeProject = projects.find((project) => project.id === activeProjectId) ?? null
   const playgroundOpen = active === 'components' && routePath.endsWith('/playground')
+  const pageReviewOpen = active === 'pages' && routePath.endsWith('/review')
   const wireframeRouteRequested = active === 'wireframes' && Boolean(routePath)
   const wireframeTreeItem = wireframeRouteRequested ? findRouteTreeItem(tree, routePath) : undefined
   const wireframeOpen =
@@ -128,12 +130,17 @@ export default function App() {
       (moduleData?.kind === 'wireframes' &&
         moduleData.wireframes.some((wireframe) => wireframe.directory === routePath)))
   const waitingForRouteSource = Boolean(routeSourceId) && activeProjectId !== routeSourceId
-  const entityRoutePath = playgroundOpen ? routePath.replace(/\/playground$/, '') : routePath
+  const entityRoutePath = playgroundOpen
+    ? routePath.replace(/\/playground$/, '')
+    : pageReviewOpen
+      ? routePath.replace(/\/review$/, '')
+      : routePath
   const directoryTree: ProjectTreeItem[] = [
     'components',
     'assets',
     'tokens',
     'wireframes',
+    'pages',
   ].includes(active)
     ? [{ name: 'All', path: ALL_FOLDER_PATH, kind: 'folder', level: 0, virtual: true }, ...tree]
     : tree
@@ -192,9 +199,7 @@ export default function App() {
       setActive(route.module)
       setRoutePath(route.path)
       setRouteSourceId(route.sourceId)
-      const target = projects.find(
-        (project) => project.id === route.sourceId && project.available,
-      )
+      const target = projects.find((project) => project.id === route.sourceId && project.available)
       if (target && target.id !== activeProjectId) setActiveProjectId(target.id)
     }
     window.addEventListener('popstate', restoreRoute)
@@ -274,10 +279,16 @@ export default function App() {
       setSelectedFolderPath(parentPath || ALL_FOLDER_PATH)
     }
     if (canonicalPath !== entityRoutePath)
-      navigate(active, playgroundOpen ? `${canonicalPath}/playground` : canonicalPath, {
-        replace: true,
-      })
-  }, [active, entityRoutePath, playgroundOpen, tree, treeLoading])
+      navigate(
+        active,
+        playgroundOpen
+          ? `${canonicalPath}/playground`
+          : pageReviewOpen
+            ? `${canonicalPath}/review`
+            : canonicalPath,
+        { replace: true },
+      )
+  }, [active, entityRoutePath, pageReviewOpen, playgroundOpen, tree, treeLoading])
 
   useEffect(() => {
     localStorage.setItem(NAVIGATION_WIDTH_KEY, String(navigationWidth))
@@ -417,6 +428,41 @@ export default function App() {
         {!moduleLoading && !waitingForRouteSource && (
           <Button variant="secondary" onClick={() => navigate('components')}>
             Back to Components
+          </Button>
+        )}
+      </main>
+    )
+  }
+
+  if (pageReviewOpen) {
+    const page =
+      moduleData?.kind === 'pages'
+        ? moduleData.pages.find((item) => item.directory === entityRoutePath)
+        : null
+    if (page && moduleData?.kind === 'pages')
+      return (
+        <PageView
+          page={page}
+          pages={moduleData.pages}
+          modes={moduleData.modes}
+          themeVariables={moduleData.themeVariables}
+          onClose={() => navigate('pages', entityRoutePath)}
+          onNavigateToPage={(pageId) => {
+            const target = moduleData.pages.find((item) => item.id === pageId)
+            if (target) navigate('pages', `${target.directory}/review`)
+          }}
+        />
+      )
+    return (
+      <main className="component-playground-missing">
+        <span>
+          {moduleLoading || waitingForRouteSource
+            ? t('status.loading')
+            : 'Page could not be loaded.'}
+        </span>
+        {!moduleLoading && !waitingForRouteSource && (
+          <Button variant="secondary" onClick={() => navigate('pages')}>
+            Back to Pages
           </Button>
         )}
       </main>
@@ -581,7 +627,7 @@ export default function App() {
           {settingsOpen ? (
             <SettingsView onClose={() => setSettingsOpen(false)} />
           ) : activeProject &&
-            ['tokens', 'palette', 'fonts', 'components', 'assets', 'wireframes'].includes(
+            ['tokens', 'palette', 'fonts', 'components', 'assets', 'wireframes', 'pages'].includes(
               active,
             ) ? (
             <ModuleView
@@ -613,6 +659,9 @@ export default function App() {
               onCanvasColorChange={setCanvasColor}
               onOpenPlayground={() => {
                 if (entityRoutePath) navigate('components', `${entityRoutePath}/playground`)
+              }}
+              onOpenPageReview={() => {
+                if (entityRoutePath) navigate('pages', `${entityRoutePath}/review`)
               }}
             />
           ) : (

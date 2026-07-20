@@ -376,26 +376,32 @@ function writeLibraryManifests() {
 }
 
 function copyShared() {
+  // Original packages/{ui,brand}/src/**/*.tsx reference these as sibling
+  // dirs/files via relative imports (e.g. '../__shared/stories-types',
+  // '../_brand-context'). The migrated tree must preserve the exact same
+  // relative shape one level up from each component dir — i.e. directly
+  // under components/ui/ and components/brand/ — not nested any deeper,
+  // and with the original `__shared` (double underscore) name intact.
   const uiShared = join(klypRoot, 'packages/ui/src/__shared')
   const brandShared = join(klypRoot, 'packages/brand/src/__shared')
   if (existsSync(uiShared)) {
-    cpSync(uiShared, join(targetRoot, 'components/ui/_shared'), { recursive: true })
+    cpSync(uiShared, join(targetRoot, 'components/ui/__shared'), { recursive: true })
   }
   if (existsSync(brandShared)) {
-    cpSync(brandShared, join(targetRoot, 'components/brand/_shared'), { recursive: true })
+    cpSync(brandShared, join(targetRoot, 'components/brand/__shared'), { recursive: true })
   }
 
   const brandRootFiles = ['_brand-context.tsx', '_mesh-keyframes.scss', 'vite-shims.d.ts']
-  const brandSupport = join(targetRoot, 'components/brand/_shared')
-  mkdirSync(brandSupport, { recursive: true })
+  const brandRoot = join(targetRoot, 'components/brand')
+  mkdirSync(brandRoot, { recursive: true })
   for (const file of brandRootFiles) {
     const from = join(klypRoot, 'packages/brand/src', file)
-    if (existsSync(from)) cpSync(from, join(brandSupport, file))
+    if (existsSync(from)) cpSync(from, join(brandRoot, file))
   }
 
   const promptInput = join(klypRoot, 'packages/brand/src/prompt-input')
   if (existsSync(promptInput)) {
-    cpSync(promptInput, join(targetRoot, 'components/brand/_shared/prompt-input'), {
+    cpSync(promptInput, join(targetRoot, 'components/brand/prompt-input'), {
       recursive: true,
     })
   }

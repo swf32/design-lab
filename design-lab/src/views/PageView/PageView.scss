@@ -1,0 +1,143 @@
+.page-view {
+  width: 100%;
+  height: 100dvh;
+  min-width: 0;
+  background: var(--color-canvas);
+  color: var(--color-text-primary);
+  overflow: hidden;
+  position: relative;
+}
+.page-view__stage {
+  width: 100%;
+  height: 100%;
+  min-width: 0;
+  min-height: 0;
+  overflow: hidden;
+}
+.page-view__stage--screen {
+  overflow: auto;
+  overscroll-behavior: contain;
+}
+.page-view__stage--flow > .dl-user-flow-canvas {
+  width: 100%;
+  height: 100%;
+  border: 0;
+  border-radius: 0;
+}
+.page-view:has(.dl-workbench-inspector--active) .page-view__stage,
+.page-view:has(.dl-workbench-inspector--active) .page-view__stage * {
+  cursor: crosshair;
+}
+.page-view__screen {
+  min-height: 100dvh;
+  background: var(--color-surface-secondary);
+  container-type: inline-size;
+}
+.page-view__screen > * {
+  min-height: 100dvh;
+}
+.page-view__missing {
+  min-height: 100%;
+  color: var(--color-text-muted);
+  display: grid;
+  place-content: center;
+  justify-items: center;
+  gap: var(--spacing-2);
+}
+.page-view__missing strong {
+  color: var(--color-text-primary);
+}
+.page-dev-controls {
+  display: grid;
+  gap: calc(var(--spacing-4) * 1.5);
+}
+.page-dev-controls > section {
+  padding-bottom: calc(var(--spacing-4) * 1.5);
+  border-bottom: 1px solid var(--color-border-subtle);
+}
+.page-dev-controls > section:last-child {
+  padding-bottom: 0;
+  border-bottom: 0;
+}
+.page-dev-controls > section > header {
+  min-height: 28px;
+  margin-bottom: var(--spacing-3);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--spacing-2);
+}
+.page-dev-controls > section > header > span {
+  color: var(--color-text-secondary);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+.page-dev-controls > section > div,
+.page-dev-controls__values,
+.page-dev-controls__radio > div {
+  display: grid;
+  gap: var(--spacing-3);
+}
+.page-dev-controls__review > .dl-button {
+  justify-content: flex-start;
+}
+.page-dev-controls__review > .dl-tab-switcher {
+  width: 100%;
+}
+.page-dev-controls__copy-fallback {
+  width: 100%;
+  min-height: 44px;
+  padding: 0 var(--spacing-3);
+  border: 1px solid var(--color-border-default);
+  border-radius: var(--radius-small);
+  background: var(--color-surface-secondary);
+  color: var(--color-text-secondary);
+  font: inherit;
+  font-size: 16px;
+}
+.page-dev-controls__copy-fallback:focus {
+  border-color: var(--color-accent-primary);
+  outline: 2px solid color-mix(in srgb, var(--color-accent-primary) 30%, transparent);
+  outline-offset: 1px;
+}
+.page-dev-controls__radio {
+  display: grid;
+  gap: var(--spacing-1);
+}
+.page-dev-controls__radio > strong {
+  color: var(--color-text-secondary);
+  font-size: 11px;
+}
+.page-dev-controls__radio > p {
+  margin: 0 0 var(--spacing-2);
+  color: var(--color-text-muted);
+  font-size: 9px;
+  line-height: 1.5;
+}
+.page-view__exit-badge {
+  color: var(--color-text-muted);
+  font-size: 11px;
+  display: grid;
+  place-content: center;
+  gap: var(--spacing-1);
+  justify-items: center;
+  text-align: center;
+}
+.page-view__copy-status {
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  border: 0;
+  overflow: hidden;
+  position: absolute;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+@media (max-width: 760px) {
+  .page-dev-controls__review > .dl-tab-switcher button {
+    min-height: 44px;
+  }
+}

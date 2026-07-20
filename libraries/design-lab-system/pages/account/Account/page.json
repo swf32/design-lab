@@ -1,0 +1,63 @@
+{
+  "schemaVersion": 1,
+  "id": "account",
+  "name": "Account",
+  "status": "review",
+  "description": "Signed-in account overview. Logging out exits to Home; managing the subscription is an internal state transition on this same Page.",
+  "entry": "Account.page.tsx",
+  "docs": "README.md",
+  "changelog": "CHANGELOG.md",
+  "route": "/account",
+  "defaultState": "active",
+  "controls": [
+    {
+      "id": "subscriptionActive",
+      "kind": "boolean",
+      "label": "Subscription active",
+      "description": "Whether the signed-in member currently has a paid subscription."
+    }
+  ],
+  "states": [
+    {
+      "id": "active",
+      "name": "Active subscription",
+      "description": "A member with an active paid plan.",
+      "values": { "subscriptionActive": true }
+    },
+    {
+      "id": "inactive",
+      "name": "No subscription",
+      "description": "A member without a paid plan.",
+      "values": { "subscriptionActive": false }
+    }
+  ],
+  "flow": {
+    "nodes": [
+      { "id": "active-node", "state": "active", "x": 80, "y": 160 },
+      { "id": "inactive-node", "state": "inactive", "x": 80, "y": 480 }
+    ],
+    "edges": [
+      {
+        "id": "manage-subscription",
+        "from": "active-node",
+        "action": "manage-subscription",
+        "label": "Cancel subscription (dev mode)",
+        "to": { "kind": "state", "stateId": "inactive" }
+      },
+      {
+        "id": "log-out-active",
+        "from": "active-node",
+        "action": "log-out",
+        "label": "Log out",
+        "to": { "kind": "page", "pageId": "home" }
+      },
+      {
+        "id": "log-out-inactive",
+        "from": "inactive-node",
+        "action": "log-out",
+        "label": "Log out",
+        "to": { "kind": "page", "pageId": "home" }
+      }
+    ]
+  }
+}
