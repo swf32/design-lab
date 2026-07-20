@@ -1,0 +1,14 @@
+{
+  "id": "amount-input",
+  "name": "AmountInput",
+  "status": "in-progress",
+  "schemaVersion": 1,
+  "description": "Oversize numeric input — react-number-format, Max pill, ticker suffix, adaptive font-size buckets.",
+  "tags": [
+    "brand",
+    "brand-molecule"
+  ],
+  "entry": "AmountInput.tsx",
+  "stories": "AmountInput.stories.tsx",
+  "changelog": "CHANGELOG.md"
+}

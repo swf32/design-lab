@@ -1,0 +1,14 @@
+{
+  "id": "media-card-actions",
+  "name": "MediaCardActions",
+  "status": "in-progress",
+  "schemaVersion": 1,
+  "description": "3-dots overflow menu for Library media cards — Save / Delete (Restore + Delete-forever in Trash).",
+  "tags": [
+    "brand",
+    "brand-molecule"
+  ],
+  "entry": "MediaCardActions.tsx",
+  "stories": "MediaCardActions.stories.tsx",
+  "changelog": "CHANGELOG.md"
+}

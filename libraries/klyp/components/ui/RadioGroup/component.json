@@ -1,0 +1,13 @@
+{
+  "id": "radio-group",
+  "name": "RadioGroup",
+  "status": "in-progress",
+  "schemaVersion": 1,
+  "description": "Single-select radio list with shared label and keyboard arrow nav.",
+  "tags": [
+    "ui"
+  ],
+  "entry": "RadioGroup.tsx",
+  "stories": "RadioGroup.stories.tsx",
+  "changelog": "CHANGELOG.md"
+}

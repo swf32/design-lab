@@ -1,0 +1,177 @@
+/* =====================================================================*/
+/* AssetMention.scss — Klyp brand organism (Phase 3 — Tailwind → SCSS)*/
+/* =====================================================================*/
+/* All values via Klyp DTCG tokens — no magic numbers.*/
+/* Native CSS nesting (Vite/Lightning CSS supports it).*/
+/**/
+/* Token map (legacy Tailwind → SCSS):*/
+/*   absolute / left-0 / z-overlay / w-80 / mt-1 / mb-1   → positioning*/
+/*   rounded-section / border / border-border-default      → --r-section + border*/
+/*   bg-popover (no token) / shadow-panel                  → --color-bg-surface + --shadow-panel*/
+/*   max-h-72 / overflow-y-auto / p-1                      → scroll container*/
+/*   px-2 py-1 / text-xs / font-medium / text-fg-subtle    → group label*/
+/*   gap-sm / rounded-card-inner / px-2 py-1.5 / text-sm   → row*/
+/*   bg-surface-solid (active) / text-fg / text-fg-muted   → row active state*/
+/*   size-6 / rounded-sm / bg-glass-deep / [&>svg]:size-3.5 → thumb slot*/
+/**/
+/* Kind tinting via [data-kind] attr → --color-mention-{character,location,outfit,vibe,scene}.*/
+
+.klyp-AssetMention {
+  /* === Container =======================================================*/
+  position: absolute;
+  left: 0;
+  z-index: var(--z-overlay);
+  width: 20rem; /* 320px — matches Tailwind w-80*/
+  max-width: 100%;
+  overflow: hidden;
+  border: var(--bw-default, 1px) solid var(--color-border-default);
+  border-radius: var(--r-section);
+  background: var(--color-bg-surface);
+  color: var(--color-fg-primary);
+  box-shadow: var(--shadow-panel);
+
+  &[data-side='bottom'] {
+    top: 100%;
+    margin-top: var(--space-2); /* 2px*/
+  }
+
+  &[data-side='top'] {
+    bottom: 100%;
+    margin-bottom: var(--space-2); /* 2px*/
+  }
+
+  /* === Scroll viewport =================================================*/
+  &__scroll {
+    max-height: 18rem; /* 288px — matches Tailwind max-h-72*/
+    overflow-y: auto;
+    padding: var(--space-2); /* 2px*/
+  }
+
+  /* === Group ===========================================================*/
+  &__group {
+    display: flex;
+    flex-direction: column;
+  }
+
+  &__groupLabel {
+    padding: var(--space-2) var(--space-6); /* 6px 6px (legacy py-1 px-2)*/
+    font-family: var(--font-sans);
+    font-size: var(--font-size-12);
+    font-weight: var(--font-weight-medium);
+    color: var(--color-fg-subtle);
+  }
+
+  /* === Row =============================================================*/
+  &__item {
+    display: flex;
+    align-items: center;
+    gap: var(--space-12, var(--space-6)); /* matches Tailwind gap-sm*/
+    padding: var(--space-6) var(--space-6); /* py-1.6px-2 — 6px 6px*/
+    border: 0;
+    border-radius: var(--r-card);
+    background: transparent;
+    color: var(--color-fg-muted);
+    text-align: left;
+    font-family: var(--font-sans);
+    font-size: var(--font-size-14);
+    cursor: pointer;
+    transition: background-color var(--duration-fast) ease,
+      color var(--duration-fast) ease;
+
+    &[data-active='true'] {
+      background: var(--color-bg-surface-solid);
+      color: var(--color-fg-primary);
+    }
+
+    /* Kind tint on hover/active — subtle accent line via mention-* token.*/
+    /* Single-accent rule: use color-mix to keep it tinted, not dominant.*/
+    &[data-kind='character'][data-active='true'] {
+      box-shadow: inset 2px 0 0 0
+        color-mix(in oklch, var(--color-mention-character) 60%, transparent);
+    }
+    &[data-kind='location'][data-active='true'] {
+      box-shadow: inset 2px 0 0 0
+        color-mix(in oklch, var(--color-mention-location) 60%, transparent);
+    }
+    &[data-kind='outfit'][data-active='true'] {
+      box-shadow: inset 2px 0 0 0
+        color-mix(in oklch, var(--color-mention-outfit) 60%, transparent);
+    }
+    &[data-kind='vibe'][data-active='true'] {
+      box-shadow: inset 2px 0 0 0
+        color-mix(in oklch, var(--color-mention-vibe) 60%, transparent);
+    }
+    &[data-kind='scene'][data-active='true'] {
+      box-shadow: inset 2px 0 0 0
+        color-mix(in oklch, var(--color-mention-scene) 60%, transparent);
+    }
+  }
+
+  /* === Thumbnail slot ==================================================*/
+  &__thumb {
+    display: inline-flex;
+    flex-shrink: 0;
+    align-items: center;
+    justify-content: center;
+    width: var(--space-24); /* 24px (size-6 = 1.5rem)*/
+    height: var(--space-24);
+    overflow: hidden;
+    border-radius: var(--radius-sm, 6px);
+    background: var(--color-bg-glass-deep);
+    color: var(--color-fg-muted);
+
+    & > svg {
+      width: var(--space-14); /* size-3.5*/
+      height: var(--space-14);
+    }
+
+    & > img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+  }
+
+  /* Tint thumb background per kind — soft mix for context cue.*/
+  &__item[data-kind='character'] &__thumb {
+    background: color-mix(in oklch, var(--color-mention-character) 18%, var(--color-bg-glass-deep));
+  }
+  &__item[data-kind='location'] &__thumb {
+    background: color-mix(in oklch, var(--color-mention-location) 18%, var(--color-bg-glass-deep));
+  }
+  &__item[data-kind='outfit'] &__thumb {
+    background: color-mix(in oklch, var(--color-mention-outfit) 18%, var(--color-bg-glass-deep));
+  }
+  &__item[data-kind='vibe'] &__thumb {
+    background: color-mix(in oklch, var(--color-mention-vibe) 18%, var(--color-bg-glass-deep));
+  }
+  &__item[data-kind='scene'] &__thumb {
+    background: color-mix(in oklch, var(--color-mention-scene) 18%, var(--color-bg-glass-deep));
+  }
+
+  /* === Text block ======================================================*/
+  &__text {
+    display: flex;
+    flex: 1 1 0%;
+    flex-direction: column;
+    min-width: 0; /* enable truncation*/
+    gap: 0;
+  }
+
+  &__name {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-size: var(--font-size-14);
+    font-weight: var(--font-weight-medium);
+    color: var(--color-fg-primary);
+  }
+
+  &__hint {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-size: var(--font-size-11, 11px); /* text-2xs*/
+    color: var(--color-fg-subtle);
+  }
+}

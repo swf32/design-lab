@@ -1,0 +1,14 @@
+{
+  "id": "command-menu",
+  "name": "CommandMenu",
+  "status": "in-progress",
+  "schemaVersion": 1,
+  "description": "Branded ⌘K palette over Command — palette & search variants, Kbd hint footer.",
+  "tags": [
+    "brand",
+    "brand-molecule"
+  ],
+  "entry": "CommandMenu.tsx",
+  "stories": "CommandMenu.stories.tsx",
+  "changelog": "CHANGELOG.md"
+}

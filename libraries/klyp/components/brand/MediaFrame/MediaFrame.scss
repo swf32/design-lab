@@ -1,0 +1,183 @@
+/* MediaFrame — one fixed-size frame for the whole generation lifecycle:
+ * generating (colored surface with a smooth color-breathe + snake ring) →
+ * reveal (media de-blurs 24px→0 while the surface fades 100%→0). The media
+ * sits UNDER the overlay; nothing swaps. Tokens only. */
+
+/* Smooth two-tone "breathing": the surface eases between two SOLID tones and
+ * back — a gentle COLOUR shift, NOT an opacity pulse (an in/out layer reads as a
+ * flicker). No blur in this phase; the blur lives only on the media reveal. */
+@keyframes klyp-MediaFrame-breathe {
+  /* Breath: base (#141414) ↔ surface-solid (#222222) — the middle ground:
+     #18 panel was imperceptible, #2f hover too strong. Clearly visible tonal
+     shift, neutral, no accent. */
+  0%, 100% { background-color: var(--color-bg-surface); }
+  50% { background-color: var(--color-bg-surface-solid); }
+}
+
+.klyp-MediaFrame {
+  position: relative;
+  isolation: isolate; /* self-contained stacking: media (z0) < overlay (z1) */
+  overflow: hidden;
+  border-radius: var(--r-section);
+  background-color: var(--color-bg-surface); /* one tone above chat root */
+  /* The frame FILLS the SnakeBorder wrapper, which carries the real width (see
+     the `:has` rules at the bottom). aspect-ratio drives height. Width lives on
+     the wrapper — NOT here — so the snake hugs exactly: a width on the frame +
+     a fit-content wrapper mismatched (the %-max-width shrank the frame AFTER
+     the wrapper sized to the raw calc → snake wider than card). */
+  width: 100%;
+
+  &[data-aspect='1:1'] { aspect-ratio: 1 / 1; }
+  &[data-aspect='16:9'] { aspect-ratio: 16 / 9; }
+  &[data-aspect='9:16'] { aspect-ratio: 9 / 16; }
+  &[data-aspect='3:2'] { aspect-ratio: 3 / 2; }
+  &[data-aspect='2:3'] { aspect-ratio: 2 / 3; }
+  &[data-aspect='21:9'] { aspect-ratio: 21 / 9; }
+  &[data-aspect='9:21'] { aspect-ratio: 9 / 21; }
+  &[data-aspect='4:3'] { aspect-ratio: 4 / 3; }
+  &[data-aspect='3:4'] { aspect-ratio: 3 / 4; }
+
+  /* The media — sits behind the overlay, starts frosted, de-blurs on reveal. */
+  &__media {
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    filter: blur(var(--blur-24));
+    transition: filter 1.2s ease;
+  }
+
+  /* Slot variant: a wrapper around caller-provided interactive media (lightbox
+     button + thumbnail, or a <video controls>) instead of the built-in <img>.
+     It carries the same blur + de-blur, but lays its child out to fill the
+     frame (object-fit:cover doesn't apply to a div). The child media inside
+     covers the frame so the reveal develops the whole picture in place. */
+  &__media--slot {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    /* The actual <img> / <video> the child wraps fills + covers the frame.
+       (0,1,1) — already beats a consumer's single-class `__img` rule. */
+    & img,
+    & video {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+  }
+
+  /* Force the caller's interactive child (e.g. the MessageImage lightbox
+     button, which ships its own `width: fit-content` + `max-width: 80%` for
+     standalone bubble use) to FILL the fixed-aspect frame. Qualified with the
+     block class → (0,2,0) so it deterministically beats the consumer's
+     single-class rule REGARDLESS of CSS import order. A bare
+     `&__media--slot > *` is (0,1,0), ties the button's own class, and the
+     winner would depend on bundle order — the image then might not fill. */
+  & &__media--slot > * {
+    width: 100%;
+    height: 100%;
+    max-width: 100%;
+    max-height: 100%;
+  }
+
+  /* Generating surface on top of the media. This surface IS the breathing — a
+     solid colour easing between two tones and back (no separate pulsing layer,
+     no blur in this phase). On reveal it fades out (opacity → 0). */
+  &__overlay {
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: var(--r-section);
+    background-color: var(--color-bg-surface);
+    animation: klyp-MediaFrame-breathe 4s ease-in-out infinite;
+    transition: opacity 1.2s ease;
+  }
+
+  &__labelWrap {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--space-4);
+    text-align: center;
+  }
+
+  &__label {
+    font-size: var(--font-size-12);
+    font-weight: 500;
+    color: var(--color-fg-primary); /* white-on-dark */
+  }
+
+  &__eta {
+    margin: 0;
+    font-size: var(--font-size-10);
+    color: var(--color-fg-subtle);
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* ── Revealed: media sharpens, surface dissolves, breathing stops ── */
+  &[data-revealed='true'] &__media {
+    filter: blur(0);
+  }
+  &[data-revealed='true'] &__overlay {
+    opacity: 0;
+    pointer-events: none;
+    animation: none; /* stop breathing once revealed */
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  /* No breathing pulse. */
+  .klyp-MediaFrame__overlay {
+    animation: none;
+  }
+  /* Instant reveal — no de-blur / fade transition. */
+  .klyp-MediaFrame__media,
+  .klyp-MediaFrame__overlay,
+  .klyp-SnakeBorder:has(> .klyp-MediaFrame) {
+    transition: none;
+  }
+}
+
+/* When composed inside <SnakeBorder>: shrink the wrapper to the frame, round
+   the ring, and — crucially — lift the ring ABOVE the opaque frame. The ring is
+   the SnakeBorder's FIRST child with no z-index, so a positioned/opaque content
+   sibling (our frame) paints over it and hides the snake. z-index:1 puts the
+   masked border ring back on top (it's pointer-events:none, so no interaction
+   change; only the thin edge ring shows — the centre stays the frame). */
+.klyp-SnakeBorder:has(> .klyp-MediaFrame) {
+  border-radius: var(--r-section);
+}
+/* The wrapper carries the real width = min(height-cap × aspect, max-width).
+   Both terms resolve against the bubble (the wrapper's parent) → definite, no
+   fit-content/% collapse. The frame fills it (width:100%), so the snake ring
+   (inset:0 of the wrapper) hugs the card EXACTLY — no gap on the right. */
+.klyp-SnakeBorder:has(> .klyp-MediaFrame[data-aspect='1:1']) { width: min(calc(var(--chat-media-max-h, 70svh) * 1 / 1), var(--chat-media-max-w, 80%)); }
+.klyp-SnakeBorder:has(> .klyp-MediaFrame[data-aspect='16:9']) { width: min(calc(var(--chat-media-max-h, 70svh) * 16 / 9), var(--chat-media-max-w, 80%)); }
+.klyp-SnakeBorder:has(> .klyp-MediaFrame[data-aspect='9:16']) { width: min(calc(var(--chat-media-max-h, 70svh) * 9 / 16), var(--chat-media-max-w, 80%)); }
+.klyp-SnakeBorder:has(> .klyp-MediaFrame[data-aspect='3:2']) { width: min(calc(var(--chat-media-max-h, 70svh) * 3 / 2), var(--chat-media-max-w, 80%)); }
+.klyp-SnakeBorder:has(> .klyp-MediaFrame[data-aspect='2:3']) { width: min(calc(var(--chat-media-max-h, 70svh) * 2 / 3), var(--chat-media-max-w, 80%)); }
+.klyp-SnakeBorder:has(> .klyp-MediaFrame[data-aspect='21:9']) { width: min(calc(var(--chat-media-max-h, 70svh) * 21 / 9), var(--chat-media-max-w, 80%)); }
+.klyp-SnakeBorder:has(> .klyp-MediaFrame[data-aspect='9:21']) { width: min(calc(var(--chat-media-max-h, 70svh) * 9 / 21), var(--chat-media-max-w, 80%)); }
+.klyp-SnakeBorder:has(> .klyp-MediaFrame[data-aspect='4:3']) { width: min(calc(var(--chat-media-max-h, 70svh) * 4 / 3), var(--chat-media-max-w, 80%)); }
+.klyp-SnakeBorder:has(> .klyp-MediaFrame[data-aspect='3:4']) { width: min(calc(var(--chat-media-max-h, 70svh) * 3 / 4), var(--chat-media-max-w, 80%)); }
+/* Graceful snake fade-out as the media reveals — fade the RING GRADIENT
+   (`__ring::before`) ONLY, NEVER the wrapper. The wrapper contains the revealed
+   image, so fading the wrapper (the old bug) faded the picture out with it —
+   the image "appeared for a moment then disappeared". The ::before opacity is
+   transition-driven (its only animation drives --snake-angle, not opacity), so
+   it eases to 0 cleanly while the snake keeps rotating. */
+.klyp-SnakeBorder:has(> .klyp-MediaFrame[data-revealed='true']) .klyp-SnakeBorder__ring::before {
+  opacity: 0;
+  transition: opacity 1s ease;
+}
+.klyp-SnakeBorder:has(> .klyp-MediaFrame) .klyp-SnakeBorder__ring {
+  z-index: 1;
+}

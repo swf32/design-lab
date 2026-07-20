@@ -1,0 +1,14 @@
+{
+  "id": "pricing-tier-card",
+  "name": "PricingTierCard",
+  "status": "in-progress",
+  "schemaVersion": 1,
+  "description": "4-tone (silver/purple/gold/blue) tier card — perpetual goo-mesh, hover trio, slot CTA, optional slider.",
+  "tags": [
+    "brand",
+    "brand-molecule"
+  ],
+  "entry": "PricingTierCard.tsx",
+  "stories": "PricingTierCard.stories.tsx",
+  "changelog": "CHANGELOG.md"
+}

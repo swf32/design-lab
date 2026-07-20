@@ -1,0 +1,236 @@
+/* AmountInput — hero numeric input with realtime thousands grouping.
+ *
+ * Adaptive sizing via `data-length`:
+ *   - short  (≤ 7 chars formatted) — full hero clamp
+ *   - medium (8–11 chars)          — step down
+ *   - long   (≥ 12 chars)          — step down again
+ * So `1,000,000.99` doesn't overflow the sheet.
+ *
+ * Klyp typography rules (styles.md):
+ *   - Geist Variable; heaviest = medium (500); no light, no bold
+ *   - tabular-nums for digit stability
+ *   - hero-lg/md/sm capped at --font-size-56 (body DTCG ceiling); hero-xl
+ *     reaches --font-size-64 (ceremonial hero numeral, single biggest figure)
+ */
+
+.klyp-AmountInput {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-8);
+  width: 100%;
+  min-width: 0;
+  container-type: inline-size;
+
+  &__row {
+    display: flex;
+    align-items: baseline;
+    gap: var(--space-8);
+    width: 100%;
+    min-width: 0;
+  }
+
+  &__field {
+    flex: 1 1 auto;
+    min-width: 0;
+    margin: 0;
+    padding: 0;
+    background: transparent;
+    border: 0;
+    outline: none;
+    color: var(--color-fg-primary);
+    font-family: var(--font-sans);
+    font-weight: var(--font-weight-regular);
+    letter-spacing: -0.02em;
+    line-height: 1;
+    font-variant-numeric: tabular-nums;
+    text-align: left;
+    appearance: textfield;
+
+    /* Suppress the app's global `:focus-visible` ring (globals.scss) — this is
+     * a native <input> (no data-rac), so the 1px outline+offset lands on it as
+     * a stray rectangle. Scoping `outline:none` on `:focus-visible` raises specificity
+     * to (0,2,0) so it beats the global (0,1,0); the blinking caret is the
+     * focus indicator for this borderless hero field. */
+    &:focus-visible {
+      outline: none;
+    }
+
+    &::placeholder {
+      color: var(--color-fg-subtle);
+      opacity: 1;
+    }
+
+    /* Hide native spinner controls (NumericFormat wraps a text input so
+     * this is defense-in-depth in case it ever resolves to type='number'). */
+    &::-webkit-outer-spin-button,
+    &::-webkit-inner-spin-button {
+      appearance: none;
+      margin: 0;
+    }
+  }
+
+  &__suffix {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-8);
+    flex-shrink: 0;
+  }
+
+  &__ticker {
+    color: var(--color-fg-muted);
+    font-family: var(--font-sans);
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+  }
+
+  /* Max pill — ghost chip, sits inside the input's right edge. Single
+   * Max button (not 25/50/75% row — that's trading UX). */
+  &__max {
+    appearance: none;
+    padding: var(--padding-chip-y) var(--padding-chip-x);
+    background: transparent;
+    border: var(--bw-default) solid var(--color-border-default);
+    border-radius: var(--r-chip);
+    color: var(--color-fg-primary);
+    font-family: var(--font-sans);
+    font-size: var(--font-size-12);
+    font-weight: var(--font-weight-medium);
+    line-height: var(--line-height-tight);
+    /* Max-pill letter-spacing — display-only widening on a 4-char uppercase
+       label. Intentional, narrower than --letter-spacing-wide (0.02em). */
+    letter-spacing: 0.04em;
+    cursor: pointer;
+    transition:
+      background var(--duration-fast) var(--easing-standard),
+      border-color var(--duration-fast) var(--easing-standard);
+
+    &:hover {
+      background: var(--color-bg-surface-solid);
+      border-color: var(--color-border-strong);
+    }
+
+    &:active {
+      background: var(--color-bg-surface-hover);
+    }
+
+    &:focus-visible {
+      border-color: var(--color-border-focus);
+      border-width: var(--bw-emphasis);
+    }
+
+    &:disabled {
+      cursor: not-allowed;
+      opacity: var(--opacity-disabled);
+    }
+  }
+
+  /* === Size variants =================================================
+   * All caps inside the DTCG scale (max --font-size-56). data-length
+   * steps the clamp down when the number gets longer. */
+
+  /* Ceremonial XL — the single biggest figure on a surface (top-up amount).
+   * One step above hero-lg: 64px ceiling (--font-size-64, above the 56 body
+   * cap) on a wide sheet, scaling down by container width like hero-lg. */
+  &[data-size='hero-xl'] {
+    .klyp-AmountInput__field {
+      font-size: clamp(var(--font-size-40), 12cqi, var(--font-size-64));
+      font-weight: var(--font-weight-regular);
+    }
+    .klyp-AmountInput__ticker {
+      font-size: var(--font-size-20);
+    }
+
+    &[data-length='medium'] .klyp-AmountInput__field {
+      font-size: clamp(var(--font-size-32), 9cqi, var(--font-size-56));
+    }
+    &[data-length='long'] .klyp-AmountInput__field {
+      font-size: clamp(var(--font-size-24), 6cqi, var(--font-size-40));
+    }
+  }
+
+  /* Default hero — 56px on desktop (560px sheet). Mobile bottom-sheet at
+   * 360px container → 36px (still readable for amount entry on phone). */
+  &[data-size='hero-lg'] {
+    .klyp-AmountInput__field {
+      font-size: clamp(var(--font-size-40), 10cqi, var(--font-size-56));
+      font-weight: var(--font-weight-regular);
+    }
+    .klyp-AmountInput__ticker {
+      font-size: var(--font-size-18);
+    }
+
+    &[data-length='medium'] .klyp-AmountInput__field {
+      font-size: clamp(var(--font-size-32), 7cqi, var(--font-size-40));
+    }
+    &[data-length='long'] .klyp-AmountInput__field {
+      font-size: clamp(var(--font-size-24), 5cqi, var(--font-size-32));
+    }
+  }
+
+  &[data-size='hero-md'] {
+    .klyp-AmountInput__field {
+      font-size: clamp(var(--font-size-32), 5cqi, var(--font-size-40));
+      font-weight: var(--font-weight-regular);
+    }
+    .klyp-AmountInput__ticker {
+      font-size: var(--font-size-16);
+    }
+
+    &[data-length='medium'] .klyp-AmountInput__field {
+      font-size: clamp(var(--font-size-24), 4cqi, var(--font-size-32));
+    }
+    &[data-length='long'] .klyp-AmountInput__field {
+      font-size: clamp(var(--font-size-20), 3cqi, var(--font-size-24));
+    }
+  }
+
+  &[data-size='hero-sm'] {
+    .klyp-AmountInput__field {
+      font-size: var(--font-size-24);
+      font-weight: var(--font-weight-regular);
+    }
+    .klyp-AmountInput__ticker {
+      font-size: var(--font-size-13);
+    }
+  }
+
+  &[data-invalid='true'] {
+    .klyp-AmountInput__field {
+      color: var(--color-status-danger);
+    }
+  }
+
+  &__messages {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-4);
+    min-width: 0;
+  }
+
+  &__helper {
+    margin: 0;
+    min-width: 0;
+    color: var(--color-fg-muted);
+    font-size: var(--font-size-12);
+    line-height: var(--line-height-normal);
+    overflow-wrap: anywhere;
+  }
+
+  &[data-invalid='true'] &__helper {
+    color: var(--color-status-danger);
+  }
+
+  &__error {
+    margin: 0;
+    color: var(--color-status-danger);
+    font-size: var(--font-size-12);
+    line-height: var(--line-height-normal);
+  }
+
+  &[data-disabled='true'] {
+    .klyp-AmountInput__field {
+      color: var(--color-fg-muted);
+      cursor: not-allowed;
+    }
+  }
+}

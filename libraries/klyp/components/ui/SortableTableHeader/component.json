@@ -1,0 +1,13 @@
+{
+  "id": "sortable-table-header",
+  "name": "SortableTableHeader",
+  "status": "in-progress",
+  "schemaVersion": 1,
+  "description": "Button-as-th with sort indicator (asc/desc/none), aria-sort, adaptive priority (1/2/3).",
+  "tags": [
+    "ui"
+  ],
+  "entry": "SortableTableHeader.tsx",
+  "stories": "SortableTableHeader.stories.tsx",
+  "changelog": "CHANGELOG.md"
+}

@@ -1,0 +1,14 @@
+{
+  "id": "top-up-dialog",
+  "name": "TopUpDialog",
+  "status": "in-progress",
+  "schemaVersion": 1,
+  "description": "Compact token-purchase dialog (StatusDialog shell) — centred AmountInput + presets + full-width slider + summary; buy / cap states.",
+  "tags": [
+    "brand",
+    "brand-molecule"
+  ],
+  "entry": "TopUpDialog.tsx",
+  "stories": "TopUpDialog.stories.tsx",
+  "changelog": "CHANGELOG.md"
+}

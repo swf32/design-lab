@@ -1,0 +1,222 @@
+/* =====================================================================
+ * DataTable — generic sortable data table chrome.
+ * ====================================================================
+ * Tokens only — see .claude/rules/styles.md.
+ *
+ * Adaptive column hiding via container query on the table's OWN inline
+ * size (`container-name: klyp-dt`):
+ *   priority=3 → hidden under 600px
+ *   priority=2 → hidden under 480px
+ *   priority=1 → always visible
+ *
+ * The component does NOT render its own border / background — wrap it in
+ * a card surface at the call site. This keeps DataTable embeddable
+ * inside any container (Card, Sheet, Dialog) without double-borders.
+ */
+
+.klyp-DataTable {
+  container-type: inline-size;
+  container-name: klyp-dt;
+  width: 100%;
+
+  &__wrap {
+    /* `clip` (not `auto`/`hidden`) — col widths are explicit, adaptive
+       priority hiding handles narrow containers, so no horizontal
+       scrollbar is ever needed. `auto` would briefly measure overflow
+       during AnimatePresence-driven mount/unmount cycles and flash a
+       1-frame scrollbar, which shifts column widths until the bar
+       disappears. `clip` skips that measurement. */
+    overflow-x: hidden;
+    overflow-x: clip;
+  }
+
+  &__table {
+    width: 100%;
+    table-layout: fixed;
+    border-collapse: collapse;
+  }
+
+  /* ===== Header ===== */
+  &__table thead th {
+    text-align: left;
+    padding: var(--space-10) var(--space-20);
+
+    font: var(--type-label); /* 12 → 16 box */
+    font-weight: var(--font-weight-medium);
+    color: var(--color-fg-muted);
+
+    background: var(--alpha-white-03);
+    border-bottom: var(--bw-default) solid var(--color-border-subtle);
+
+    &[data-align='end'] {
+      text-align: right;
+    }
+
+    &[data-align='center'] {
+      text-align: center;
+    }
+  }
+
+  /* The SortableTableHeader button fills its `<th>` cell so the label
+     sits on the same vertical / horizontal axis as the body cells.
+     SortableTableHeader has its own padding — kill it here so the
+     button label aligns with the `<th>` content-edge instead of double
+     padding. */
+  &__table thead th .klyp-SortableTableHeader {
+    width: 100%;
+    padding: 0;
+    background: transparent;
+    color: inherit;
+    font: inherit;
+  }
+
+  /* ===== Body ===== */
+  &__table tbody td {
+    padding: var(--space-14) var(--space-20);
+    border-bottom: var(--bw-default) solid var(--color-border-subtle);
+
+    font: var(--type-body); /* 14 → 18 box */
+    color: var(--color-fg-muted);
+    vertical-align: middle;
+
+    &[data-align='end'] {
+      text-align: right;
+    }
+
+    &[data-align='center'] {
+      text-align: center;
+    }
+  }
+
+  &__table tbody tr:last-child td {
+    border-bottom: 0;
+  }
+
+  /* ===== Zebra (opt-in via data-striped) =====
+     Whisper-quiet even-row tint. Deliberately below the header tint
+     (--alpha-white-03) AND the hover step (--alpha-white-05): it must NOT
+     read as a header band, and hover must still register one step darker
+     on top of a striped row. */
+  &[data-striped] &__table tbody tr:nth-child(even) td {
+    background: var(--alpha-white-02);
+  }
+
+  &__table tbody tr:hover td {
+    background: var(--alpha-white-05);
+  }
+
+  /* The zebra selector above is MORE specific than the plain hover rule, so
+     on even rows hover would lose and the row would stay zebra-coloured.
+     Re-assert hover with matching specificity so it wins on striped rows. */
+  &[data-striped] &__table tbody tr:nth-child(even):hover td {
+    background: var(--alpha-white-05);
+  }
+
+  /* ===== Sticky header (opt-in via data-sticky) =====
+     Pins thead while the body scrolls. Needs a vertical scroll ancestor.
+     Uses an opaque surface (not the resting --alpha-white-03 tint) so body
+     rows don't bleed through the pinned header as they scroll under it. */
+  &[data-sticky] &__table thead th {
+    position: sticky;
+    top: 0;
+    z-index: var(--z-content);
+    background: var(--color-bg-surface);
+  }
+
+  /* ===== Body state row — loading / empty ===== */
+  &__stateRow td {
+    border-bottom: 0;
+  }
+
+  &__state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: var(--space-12);
+    padding: var(--space-32) var(--space-16);
+    color: var(--color-fg-muted);
+  }
+
+  &__emptyIcon {
+    /* Mute via WRAPPER opacity + a solid color on the glyph — never an
+       alpha color token through currentColor. Outline strokes overlap at
+       junctions; per-stroke alpha doubles those overlaps and the icon
+       visibly thickens. Wrapper opacity flattens the SVG to one layer
+       first, so the whole glyph dims evenly. See frontend.md icon rule;
+       same pattern as @klyp/ui Button. */
+    display: inline-flex;
+    opacity: var(--opacity-30);
+    color: var(--color-fg-primary);
+
+    svg {
+      width: var(--space-32);
+      height: var(--space-32);
+    }
+  }
+
+  &__emptyText {
+    font: var(--type-body);
+    /* Bolder + same tone as the glyph: solid fg-primary at the same
+       opacity the icon wrapper uses, so text and icon read as one colour. */
+    font-weight: var(--font-weight-medium);
+    opacity: var(--opacity-30);
+    color: var(--color-fg-primary);
+  }
+
+  /* ===== Loading — skeleton rows (one bar per cell, grid preserved) ===== */
+  &__skeletonRow td {
+    border-bottom: var(--bw-default) solid var(--color-border-subtle);
+  }
+
+  &__skeletonRow:last-child td {
+    border-bottom: 0;
+  }
+
+  &__skeletonBar {
+    width: 70%;
+    height: var(--space-12);
+  }
+
+  /* Mirror cell alignment so the bar sits under where the real value
+     would render (trailing numbers / centered status). */
+  &__skeletonRow td[data-align='end'] &__skeletonBar {
+    margin-left: auto;
+  }
+
+  &__skeletonRow td[data-align='center'] &__skeletonBar {
+    margin-inline: auto;
+  }
+
+  /* Visually-hidden live region announcing the current sort to screen
+     readers (sort changes are otherwise silent). */
+  &__srStatus {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    clip-path: inset(50%);
+    white-space: nowrap;
+    border: 0;
+  }
+
+  /* ===== Adaptive — container query on self ===== */
+  @container klyp-dt (width < 600px) {
+    th[data-priority='3'],
+    td[data-priority='3'],
+    col[data-priority='3'] {
+      display: none;
+    }
+  }
+
+  @container klyp-dt (width < 480px) {
+    th[data-priority='2'],
+    td[data-priority='2'],
+    col[data-priority='2'] {
+      display: none;
+    }
+  }
+}

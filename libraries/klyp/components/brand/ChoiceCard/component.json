@@ -1,0 +1,14 @@
+{
+  "id": "choice-card",
+  "name": "ChoiceCard",
+  "status": "in-progress",
+  "schemaVersion": 1,
+  "description": "TODO: Large selectable card used in onboarding-style choice grids.",
+  "tags": [
+    "brand",
+    "brand-atom"
+  ],
+  "entry": "ChoiceCard.tsx",
+  "stories": "ChoiceCard.stories.tsx",
+  "changelog": "CHANGELOG.md"
+}

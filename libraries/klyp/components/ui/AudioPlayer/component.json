@@ -1,0 +1,12 @@
+{
+  "id": "audio-player",
+  "name": "AudioPlayer",
+  "status": "in-progress",
+  "schemaVersion": 1,
+  "tags": [
+    "ui"
+  ],
+  "entry": "AudioPlayer.tsx",
+  "stories": "AudioPlayer.stories.tsx",
+  "changelog": "CHANGELOG.md"
+}

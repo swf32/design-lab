@@ -1,0 +1,221 @@
+/* Houdini typed property — allows @keyframes to interpolate the angle value.
+   Without @property, conic-gradient angles can't be smoothly animated.
+   Supported: Chrome 85+, Firefox 128+, Safari 16.4+ */
+@property --snake-angle {
+  syntax: '<angle>';
+  initial-value: 0deg;
+  inherits: false;
+}
+
+@keyframes klyp-SnakeBorder-rotate {
+  to {
+    --snake-angle: 360deg;
+  }
+}
+
+/* Two eased half-turns per revolution — the bold chat head decelerates twice
+   per 360° (near 0°, 180°, 360°) and accelerates through each mid-arc, for an
+   organic "breathing" travel. Per-keyframe timing functions keep this scoped to
+   the bold variant; the shared `-rotate` keyframe above stays linear for
+   ambient / generating / canvas consumers. Velocity matches (~0.11×) on both
+   sides of each boundary (~0.5× — slows noticeably but never stops), so the
+   loop stays continuous and smooth. */
+@keyframes klyp-SnakeBorder-rotate-eased {
+  0% {
+    --snake-angle: 0deg;
+    animation-timing-function: cubic-bezier(0.4, 0.2, 0.6, 0.8);
+  }
+  50% {
+    --snake-angle: 180deg;
+    animation-timing-function: cubic-bezier(0.4, 0.2, 0.6, 0.8);
+  }
+  100% {
+    --snake-angle: 360deg;
+  }
+}
+
+@keyframes klyp-SnakeBorder-burst {
+  0% {
+    --snake-angle: 0deg;
+    opacity: 1;
+  }
+  75% {
+    --snake-angle: 270deg;
+    opacity: 1;
+  }
+  100% {
+    --snake-angle: 360deg;
+    opacity: 0;
+  }
+}
+
+@keyframes klyp-SnakeBorder-bounce {
+  0% {
+    transform: scaleY(1);
+  }
+  40% {
+    transform: scaleY(1.04);
+  }
+  100% {
+    transform: scaleY(1);
+  }
+}
+
+/* Smooth fade-in when the ring first mounts (the snake appearing). State
+   changes AFTER mount fade via the ::before opacity transition below. */
+@keyframes klyp-SnakeBorder-ring-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.klyp-SnakeBorder {
+  position: relative;
+
+  // ── Bounce on submit ──────────────────────────────────────────────
+  &[data-state='submit'] {
+    transform-origin: bottom center;
+    animation: klyp-SnakeBorder-bounce 0.45s cubic-bezier(0.34, 1.56, 0.64, 1);
+  }
+
+  // ── Ring overlay ──────────────────────────────────────────────────
+  // Sits above content, doesn't intercept pointer events.
+  &__ring {
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    pointer-events: none;
+    transition: filter 300ms;
+    /* Fade the whole ring in on mount (appear). Disappear is handled by the
+       ::before opacity transition when the state drops to idle. */
+    animation: klyp-SnakeBorder-ring-in 250ms ease both;
+
+    // The actual border ring drawn via mask trick:
+    // conic-gradient fills border-box; mask cuts out content-box → only ring visible.
+    // drop-shadow used intentionally (box-shadow can't follow the mask cutout).
+    &::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      border-radius: inherit;
+      border: var(--snake-width, 2px) solid transparent;
+      background: conic-gradient(
+          from var(--snake-angle) at var(--snake-cx, 50%) var(--snake-cy, 50%),
+          transparent 0deg,
+          var(--snake-color, var(--gold-600)) 50deg,
+          transparent 100deg,
+          transparent 360deg
+        )
+        border-box;
+      -webkit-mask:
+        linear-gradient(#000 0 0) content-box,
+        linear-gradient(#000 0 0);
+      -webkit-mask-composite: xor;
+      mask:
+        linear-gradient(#000 0 0) content-box,
+        linear-gradient(#000 0 0);
+      mask-composite: exclude;
+      opacity: 0;
+      transition: opacity 250ms;
+    }
+
+    // ── Ring states ────────────────────────────────────────────────
+    &[data-state='ambient']::before {
+      opacity: 1;
+      animation: klyp-SnakeBorder-rotate var(--snake-duration, 6s) linear infinite;
+    }
+
+    // Faster arc for in-progress AI generation (legacy default — every
+    // existing consumer inherits this thin spike at /2.5 speed unchanged).
+    &[data-state='generating']::before {
+      opacity: 1;
+      animation: klyp-SnakeBorder-rotate calc(var(--snake-duration, 6s) / 2.5)
+        linear infinite;
+    }
+
+    // Opt-in "bold" generating head (intensity="bold"): a solid ~180deg cone
+    // with a white-hot core so the moving spot reads as a confident sweep
+    // instead of a thin pulse, and the raw `duration` (default 3.6s) drives
+    // rotation. Scoped to data-intensity so the legacy `generating` default
+    // above stays pixel-identical for canvas nodes / ambient cards. Colour
+    // follows --snake-color. Used by the chat GeneratingFrame.
+    &[data-intensity='bold'][data-state='generating']::before {
+      background: conic-gradient(
+          from var(--snake-angle) at var(--snake-cx, 50%) var(--snake-cy, 50%),
+          transparent 0deg,
+          transparent 10deg,
+          color-mix(in srgb, var(--snake-color, var(--gold-600)) 35%, transparent) 24deg,
+          var(--snake-color, var(--gold-600)) 44deg,
+          color-mix(in srgb, var(--snake-color, var(--gold-600)) 40%, white) 52deg,
+          var(--snake-color, var(--gold-600)) 60deg,
+          color-mix(in srgb, var(--snake-color, var(--gold-600)) 35%, transparent) 80deg,
+          transparent 95deg,
+          transparent 360deg
+        )
+        border-box;
+      /* Two eased half-turns per revolution (klyp-SnakeBorder-rotate-eased):
+         the sweep decelerates near 0°, 180°, 360° and accelerates through each
+         mid-arc — a pronounced "breathing" travel, twice per 360°. The
+         per-keyframe beziers live in that keyframe (scoped to bold), so ambient
+         / generating / canvas consumers stay linear. */
+      animation: klyp-SnakeBorder-rotate-eased var(--snake-duration, 3.6s) linear infinite;
+    }
+
+    // Retired ring — the generation finished and MediaFrame flipped the state
+    // to `settled` AFTER the reveal fade completed (ring already at opacity 0).
+    // No rotation animation runs and the glow filter below never matches
+    // `settled`, so nothing keeps compositing over the now-playing media. Kept
+    // explicit (rather than relying on "no state rule matches") so a future
+    // refactor can't silently reintroduce a moving/glowing ring here.
+    &[data-state='settled']::before {
+      opacity: 0;
+      animation: none;
+    }
+
+    // One-shot burst on submit, then fades
+    &[data-state='submit']::before {
+      opacity: 1;
+      animation: klyp-SnakeBorder-burst 1s linear forwards;
+    }
+
+    &[data-state='submit'] {
+      filter: drop-shadow(
+          0 0 8px
+            color-mix(in srgb, var(--snake-color, var(--gold-600)) 65%, transparent)
+        )
+        drop-shadow(
+          0 0 22px
+            color-mix(in srgb, var(--snake-color, var(--gold-600)) 28%, transparent)
+        );
+    }
+
+    // Component-owned glow — opt-in via the `glow` prop (writes data-glow).
+    // Multi-layer drop-shadow follows the masked ring outline (box-shadow
+    // can't — the ring is a masked cutout). Colour follows --snake-color.
+    // On `ambient` the `glow` prop alone is enough; on `generating` it ALSO
+    // requires intensity="bold", so a plain `glow` consumer of the legacy
+    // generating spike (canvas nodes) does NOT pick up a halo it never had.
+    &[data-glow='true'][data-state='ambient'],
+    &[data-glow='true'][data-intensity='bold'][data-state='generating'] {
+      filter: drop-shadow(0 0 4px color-mix(in srgb, var(--snake-color, var(--gold-600)) 55%, white))
+        drop-shadow(0 0 12px color-mix(in srgb, var(--snake-color, var(--gold-600)) 85%, transparent))
+        drop-shadow(0 0 32px color-mix(in srgb, var(--snake-color, var(--gold-600)) 60%, transparent))
+        drop-shadow(0 0 70px color-mix(in srgb, var(--snake-color, var(--gold-600)) 30%, transparent));
+    }
+  }
+}
+
+// Reduced-motion gate — scoped to the opt-in "bold" head (the chat
+// GeneratingFrame) so existing consumers' reduced-motion behaviour is
+// unchanged. Stops the ring rotation on the bold variant.
+@media (prefers-reduced-motion: reduce) {
+  .klyp-SnakeBorder__ring {
+    animation: none; /* no mount fade-in */
+  }
+  .klyp-SnakeBorder__ring[data-intensity='bold']::before {
+    animation: none;
+  }
+}

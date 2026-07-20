@@ -1,0 +1,271 @@
+/* =====================================================================*/
+/* Modal.scss — Klyp brand organism (Phase 3 of Tailwind → SCSS migration)*/
+/* =====================================================================*/
+/* All values via Klyp DTCG tokens — no magic numbers.*/
+/* Pattern reference: ../Chip/Chip.scss*/
+/**/
+/* Layered on top of ui/Dialog primitive (klyp-Dialog__content). This*/
+/* stylesheet only adds organism-specific concerns: size variants, body*/
+/* slot spacing, content padding/gap.*/
+
+.klyp-Modal__content {
+  /* Inherit base layout from ui/Dialog (klyp-Dialog__content). Add*/
+  /* organism padding + gap on top.*/
+  display: flex;
+  flex-direction: column;
+  /* Banded layout (design lead 2026-06-24): header / body / footer are
+     full-width bands, each owning its own padding + hairline divider (the
+     header border-bottom mirrors the footer border-top). The content itself
+     carries NO padding; the inner `__dialog` gap is zeroed so the bands sit
+     flush and the dividers do the separating. */
+  gap: 0;
+  padding: 0;
+
+  background: var(--color-bg-surface);
+  color: var(--color-fg-primary);
+  border: var(--bw-default) solid var(--color-border-subtle);
+  border-radius: var(--r-section);
+  box-shadow: var(--shadow-panel);
+  z-index: var(--z-modal);
+
+  /* Cap height to viewport so long content (e.g. character + location*/
+  /* picker in SceneCreateForm) scrolls inside the modal rather than*/
+  /* overflowing the screen. The 4rem subtraction matches the overlay's*/
+  /* `padding: var(--space-16)` (8 × 4 = 32 → 2 × 32 = 64px = 4rem).*/
+  /* Paired with `__body { overflow-y: auto }` so the header/footer*/
+  /* stay pinned while only the body scrolls.*/
+  max-height: calc(100svh - 4rem);
+
+  /* === Sizes ===========================================================*/
+  /* Sizes apply only on >= sm breakpoint to leave native mobile sheet*/
+  /* behaviour from ui/Dialog intact.*/
+  /**/
+  /* IMPORTANT: variant is encoded as a className modifier (e.g.*/
+  /* `klyp-Modal__content--lg`), NOT a `data-size` attribute. `DialogContent`*/
+  /* spreads its rest-props onto the inner `klyp-Dialog__dialog`, not onto*/
+  /* the outer RACModal where this stylesheet's class lives — so an*/
+  /* attribute selector wouldn't match. See Modal.tsx for the contract.*/
+  /* Compound selector `&.klyp-Modal__content--<size>` (specificity 0,0,2,0)*/
+  /* beats the @klyp/ui/Dialog baseline `.klyp-Dialog__content @media`*/
+  /* (specificity 0,0,1,0) regardless of CSS bundle order. The single-class*/
+  /* `&--lg` form was the same specificity as the Dialog baseline — fragile.*/
+  @media (min-width: 640px) {
+    &.klyp-Modal__content--dialog {
+      max-width: var(--modal-w-dialog);
+    }
+    &.klyp-Modal__content--sm {
+      max-width: var(--modal-w-sm);
+    }
+    &.klyp-Modal__content--md {
+      max-width: var(--modal-w-md);
+    }
+    &.klyp-Modal__content--lg {
+      max-width: var(--modal-w-lg);
+    }
+    &.klyp-Modal__content--xl {
+      max-width: var(--modal-w-xl);
+    }
+    &.klyp-Modal__content--full {
+      max-width: var(--modal-w-full);
+      height: var(--modal-h-full);
+    }
+  }
+
+  /* === Header glyph — leading icon (start) / centered illustration (center) */
+  .klyp-Modal__titleRow {
+    display: flex;
+    align-items: center;
+    gap: var(--space-8);
+    min-width: 0;
+  }
+  .klyp-Modal__titleIcon {
+    display: inline-flex;
+    flex-shrink: 0;
+    color: var(--color-fg-primary);
+  }
+  .klyp-Modal__illustration {
+    display: flex;
+  }
+
+  /* === align='center' — alert layout (centered head + body) ============= */
+  &.klyp-Modal__content--center {
+    .klyp-Modal__headerMain {
+      align-items: center;
+      text-align: center;
+    }
+    .klyp-Modal__titleRow {
+      justify-content: center;
+    }
+    .klyp-Modal__illustration {
+      justify-content: center;
+    }
+    .klyp-Modal__body {
+      align-items: center;
+      text-align: center;
+    }
+    /* Close out of flow (top-right) so the centered column stays on the true
+       axis instead of being pushed left by the close column. 24px inset to the
+       edge — same breathing room as the start-align header padding. */
+    .klyp-Modal__close.klyp-Button {
+      position: absolute;
+      top: var(--space-24);
+      inset-inline-end: var(--space-24);
+    }
+  }
+
+  /* === Footer alignment (desktop row; mobile always stacks full-width) === */
+  @media (min-width: 640px) {
+    &.klyp-Modal__content--footer-start .klyp-Dialog__footer {
+      justify-content: flex-start;
+    }
+    &.klyp-Modal__content--footer-end .klyp-Dialog__footer {
+      justify-content: flex-end;
+    }
+    /* split — equal-width buttons fill the row (alert "Got It / Contact" style). */
+    &.klyp-Modal__content--footer-split .klyp-Dialog__footer > * {
+      flex: 1 1 0;
+    }
+  }
+}
+
+.klyp-Modal__body {
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 auto;
+  min-height: 0;
+  gap: var(--space-24);
+  /* Band padding — 24 all round (design lead 2026-06-24). */
+  padding: var(--space-24);
+  /* Scroll body content when modal hits its max-height. Header / footer*/
+  /* (siblings) stay pinned because they sit outside this slot.*/
+  overflow-y: auto;
+}
+
+/* Footer override for Modal's 24px padding.*/
+/* `.klyp-Dialog__footer` ships with `margin: 0 -16px -16px` so its hairline*/
+/* divider bleeds to the edges of `.klyp-Dialog__content` (which has 16px*/
+/* padding). The Modal wrapper bumps content padding to 24px, so the bare*/
+/* -16px margins leave an 8px gap on the left/right/bottom — the dead band*/
+/* below Close that reads as broken layout. We recompute margin + internal*/
+/* padding against 24px so the footer reads as one continuous panel band.*/
+.klyp-Modal__content .klyp-Dialog__footer {
+  /* Footer band — content has no padding now, so no negative-margin bleed.
+     Padding 24 with a tighter 12 top; NO divider line (design lead 2026-06-24). */
+  margin: 0;
+  padding: var(--space-12) var(--space-24) var(--space-24);
+  border-top: 0;
+}
+
+/* === Banded header / body / footer — no dividers (2026-06-24) ============ */
+/* Header is a FLEX ROW: [headerMain (title + description column)] [close].
+   The close is a real flex sibling — so a long title wraps inside its own
+   column and can never run under the ✕ (the robust pattern used by Geist /
+   Material, vs. an absolute close + a fragile padding reserve). */
+.klyp-Modal__content .klyp-Dialog__header {
+  display: flex;
+  flex-direction: row;
+  align-items: flex-start;
+  gap: var(--space-12);
+  padding: var(--space-24) var(--space-24) var(--space-12);
+  position: relative; /* anchor for the centered-align absolute close */
+}
+
+/* Title-only header (no description) — center the title vertically with the
+   close so the text sits on one line with the ✕, not pinned to the top-left of
+   the taller close button. A header WITH a description stays top-aligned. */
+.klyp-Modal__content .klyp-Dialog__header:not(:has(.klyp-Dialog__description)) {
+  align-items: center;
+}
+
+.klyp-Modal__headerMain {
+  flex: 1 1 auto;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4); /* title ↔ description */
+}
+/* Close = medium icon button (`size="icon"` = --control-size-md, 40px) so it
+   matches the footer's medium controls. flex-shrink:0 keeps it from squashing. */
+.klyp-Modal__close.klyp-Button {
+  flex-shrink: 0;
+}
+
+/* Centered illustration breathes a touch more from the title than the 4px gap. */
+.klyp-Modal__content--center .klyp-Modal__illustration {
+  margin-bottom: var(--space-4);
+}
+
+/* Bands sit flush — no flex gap between them. */
+.klyp-Modal__content .klyp-Dialog__dialog {
+  gap: 0;
+}
+
+/* === Mobile: large, full-width action buttons =========================*/
+/* On the ≤639.98px bottom-sheet (same breakpoint as ui/Dialog's mobile
+ * sheet) the footer already stacks the actions vertically. But each button
+ * keeps the size the consumer passed (sm/md → ~32–36px tall), which is too
+ * small a tap target for a primary action on a phone. Floor every footer
+ * action to the comfortable touch target and stretch it full-width so it
+ * reads as a proper large button — without overriding each button's variant
+ * styling, so it works for Button / MeshButton / SolidButton alike.
+ * (`min-height` only raises the floor: it wins over MeshButton's fixed
+ * 32/36px height and gives the heightless ui/Button a definite size.) */
+@media (max-width: 639.98px) {
+  .klyp-Modal__content .klyp-Dialog__footer > * {
+    width: 100%;
+    min-height: var(--touch-target-comfort);
+  }
+}
+
+/* === mobileSheet="snap" — vaul drag-to-snap bottom sheet (mobile only) ====*/
+/* Drawer.Content reuses `klyp-Modal__content` so the banded header / body /
+ * footer selectors apply, then `--sheet` reshapes the desktop card into a
+ * bottom-anchored sheet whose height is owned by vaul's snap transforms.
+ * Surface palette mirrors MobilePanelSheet so both sheets read as one family. */
+.klyp-Modal__sheetOverlay {
+  position: fixed;
+  inset: 0;
+  z-index: var(--z-modal);
+  background: var(--color-bg-modal-backdrop);
+  -webkit-backdrop-filter: blur(var(--blur-3));
+  backdrop-filter: blur(var(--blur-3));
+}
+
+.klyp-Modal__content.klyp-Modal__sheet {
+  position: fixed;
+  inset-inline: 0;
+  bottom: 0;
+  max-width: none;
+  block-size: 100%;
+  max-height: 100svh;
+  border: var(--bw-default) solid var(--color-border-default);
+  border-bottom: 0;
+  border-radius: var(--r-section) var(--r-section) 0 0;
+  background: color-mix(in oklab, var(--color-bg-surface) 92%, transparent);
+  -webkit-backdrop-filter: var(--fx-glass-blur);
+  backdrop-filter: var(--fx-glass-blur);
+  /* Safe-area + keyboard offset (home indicator / iOS keyboard up). */
+  padding-bottom: calc(var(--safe-area-bottom, var(--space-0)) + var(--kb-offset, var(--space-0)));
+
+  /* The drag handle is the top affordance — pull the header's top padding in
+     so the title doesn't sit too far below the handle. */
+  .klyp-Dialog__header {
+    padding-top: var(--space-12);
+  }
+}
+
+/* Drag-affordance bar — Apple/Material standard. Mirrors MobilePanelSheet. */
+.klyp-Modal__handle {
+  flex-shrink: 0;
+  margin-block: var(--space-12) var(--space-4);
+  margin-inline: auto;
+  inline-size: var(--space-24);
+  block-size: var(--sheet-handle-h);
+  border-radius: var(--radius-full);
+  background: var(--color-fg-subtle);
+  cursor: grab;
+
+  &:active {
+    cursor: grabbing;
+  }
+}

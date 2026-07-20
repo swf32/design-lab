@@ -1,0 +1,13 @@
+{
+  "id": "toast",
+  "name": "Toast",
+  "status": "in-progress",
+  "schemaVersion": 1,
+  "description": "Toast notification system — branded sonner wrapper with our tokens, outline icons, top-right close, chip-skinned action button.",
+  "tags": [
+    "ui"
+  ],
+  "entry": "Toast.tsx",
+  "stories": "Toast.stories.tsx",
+  "changelog": "CHANGELOG.md"
+}

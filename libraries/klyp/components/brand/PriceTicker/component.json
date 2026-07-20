@@ -1,0 +1,14 @@
+{
+  "id": "price-ticker",
+  "name": "PriceTicker",
+  "status": "in-progress",
+  "schemaVersion": 1,
+  "description": "Animated price — blur+Y crossfade on change, optional struck pre-discount chip.",
+  "tags": [
+    "brand",
+    "brand-atom"
+  ],
+  "entry": "PriceTicker.tsx",
+  "stories": "PriceTicker.stories.tsx",
+  "changelog": "CHANGELOG.md"
+}

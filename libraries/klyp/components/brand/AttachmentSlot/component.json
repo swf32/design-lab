@@ -1,0 +1,14 @@
+{
+  "id": "attachment-slot",
+  "name": "AttachmentSlot",
+  "status": "in-progress",
+  "schemaVersion": 1,
+  "description": "One media cell, all states: empty pill/square, image/video tile, file card, status.",
+  "tags": [
+    "brand",
+    "brand-molecule"
+  ],
+  "entry": "AttachmentSlot.tsx",
+  "stories": "AttachmentSlot.stories.tsx",
+  "changelog": "CHANGELOG.md"
+}

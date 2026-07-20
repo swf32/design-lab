@@ -1,0 +1,12 @@
+{
+  "id": "waveform",
+  "name": "Waveform",
+  "status": "in-progress",
+  "schemaVersion": 1,
+  "tags": [
+    "ui"
+  ],
+  "entry": "Waveform.tsx",
+  "stories": "Waveform.stories.tsx",
+  "changelog": "CHANGELOG.md"
+}

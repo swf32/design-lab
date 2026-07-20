@@ -1,0 +1,1289 @@
+{
+  "schemaVersion": 1,
+  "name": "Klyp Primitives",
+  "defaultMode": "default",
+  "tokens": {
+    "neutral": {
+      "0": {
+        "type": "color",
+        "value": "#ffffff",
+        "description": "⭐ Pure-white end-cap — primary text on dark surfaces, slider thumb, active-nav fg (Figma DS anchor). Outside the APCA ladder."
+      },
+      "100": {
+        "type": "color",
+        "value": "#1b1b1b",
+        "description": "Darkest content tint — subtle bg tint on dark."
+      },
+      "200": {
+        "type": "color",
+        "value": "#262626",
+        "description": "UI / badge background tint."
+      },
+      "300": {
+        "type": "color",
+        "value": "#4c4c4c",
+        "description": "Component fill (Lc ~12)."
+      },
+      "400": {
+        "type": "color",
+        "value": "#5b5b5b",
+        "description": "Hover fill (Lc ~18)."
+      },
+      "500": {
+        "type": "color",
+        "value": "#6e6e6e",
+        "description": "Subtle border (Lc ~26)."
+      },
+      "600": {
+        "type": "color",
+        "value": "#888888",
+        "description": "Border / strong / focus (Lc ~38)."
+      },
+      "700": {
+        "type": "color",
+        "value": "#a0a0a0",
+        "description": "⭐ Solid — clean gray for icons / controls (Lc ~50)."
+      },
+      "800": {
+        "type": "color",
+        "value": "#b2b2b2",
+        "description": "Solid hover / large text (Lc ~60)."
+      },
+      "900": {
+        "type": "color",
+        "value": "#d1d1d1",
+        "description": "Secondary text (Lc ~78)."
+      },
+      "1000": {
+        "type": "color",
+        "value": "#eeeeee",
+        "description": "Contrast text / lightest tint (Lc ~96). Off-white (≈ old neutral.50)."
+      },
+      "$description": "Neutral grayscale CONTENT ladder — text, borders, tints. 0=pure-white end-cap; 100=darkest → 1000=lightest (Geist convention). Rebuilt 2026-06-17 (APCA Variant A — monotonic, uniform Lc step ≈8–12). The very-dark app-background tiers (#0F0F0F…#2F2F2F) moved to the separate `surface` group — they sit below this ladder's darkest step (100=#1b1b1b) and anchor the Klyp dark theme."
+    },
+    "surface": {
+      "$description": "Dark neutral SURFACE anchors — the app background hierarchy (FIXES-COLOR §2.1, anchor app-bg #0F0F0F). Kept separate from the neutral content ladder because these very-dark tiers (#0F0F0F…#2F2F2F) sit below the ladder's darkest step (100=#1b1b1b) and must stay fixed to anchor the Klyp dark theme. Consumed by semantic bg.* tokens. Added 2026-06-17.",
+      "root": {
+        "type": "color",
+        "value": "#0f0f0f",
+        "description": "⭐ Page background (was neutral.950)."
+      },
+      "canvas": {
+        "type": "color",
+        "value": "#121212",
+        "description": "Editor canvas — between root and base (was neutral.925)."
+      },
+      "base": {
+        "type": "color",
+        "value": "#141414",
+        "description": "⭐ Cards / elevated opaque surfaces (was neutral.900)."
+      },
+      "panel": {
+        "type": "color",
+        "value": "#181818",
+        "description": "Floating-chrome surface — sidebar, composer, right-bar + similar framing panels. Subtle lift above base (#141414): sits at the perceptual midpoint base↔elevated (OKLCH L≈0.209, vs base 0.191 / elevated 0.222), so it softens the base→raised step on panels that frame the workspace rather than sit in it. Added 2026-06-29 (Val)."
+      },
+      "elevated": {
+        "type": "color",
+        "value": "#1b1b1b",
+        "description": "Intermediate dark surface — one step above base, below raised. Nested low-emphasis cards inside base, list rows; hover target for flat base surfaces. Fills the #141414→#222222 gap (MD3 surface-container-low / Radix gray-2 / Geist gray-200 band; coincides with neutral.100). Added 2026-06-28."
+      },
+      "raised": {
+        "type": "color",
+        "value": "#222222",
+        "description": "⭐ Buttons / solid chips (was neutral.800)."
+      },
+      "hover": {
+        "type": "color",
+        "value": "#2f2f2f",
+        "description": "⭐ Hover lift on raised surfaces; also canvas handle selected (was neutral.700 / .775)."
+      }
+    },
+    "silver": {
+      "300": {
+        "type": "color",
+        "value": "#c0c8d5",
+        "description": "Mid silver — MeshButton neutral-tone primary blob (visible cool cast at 30% alpha against dark surface)."
+      },
+      "500": {
+        "type": "color",
+        "value": "#c8d0db",
+        "description": "Light silver — landing-h platinum mesh + media-skeleton snake-ring blob (cool cast visible at 45% alpha)."
+      },
+      "$description": "Cool blue-tinted silver scale — distinct from neutral (which is pure grayscale). Use when the design calls for an explicitly cool metallic tone: silver-mesh blobs, snake-ring loading indicators, neutral-toned MeshButton variant. Added 2026-05-21."
+    },
+    "slate": {
+      "500": {
+        "type": "color",
+        "value": "#64748b",
+        "description": "Cool dark slate — MeshButton neutral-tone shadow blob."
+      },
+      "$description": "Cool dark gray-blue (Tailwind slate-500 equivalent). Used as the shadow stop in MeshButton neutral tone — provides cool depth that pure neutral.700 (#2F2F2F) can't deliver. Added 2026-05-21."
+    },
+    "gold": {
+      "100": {
+        "type": "color",
+        "value": "#251906",
+        "description": "Darkest tint bg."
+      },
+      "200": {
+        "type": "color",
+        "value": "#45341a",
+        "description": "UI / tint bg."
+      },
+      "300": {
+        "type": "color",
+        "value": "#695028",
+        "description": "Component fill."
+      },
+      "400": {
+        "type": "color",
+        "value": "#8d6e3f",
+        "description": "Hover fill / dark muted edge (accent gradient end)."
+      },
+      "500": {
+        "type": "color",
+        "value": "#b38f58",
+        "description": "Subtle border / deep gold (accent-muted, tier-mesh shadow)."
+      },
+      "600": {
+        "type": "color",
+        "value": "#d8b178",
+        "description": "Border / strong / focus / pressed accent (accent-pressed)."
+      },
+      "700": {
+        "type": "color",
+        "value": "#fdd59a",
+        "description": "⭐ Solid — the pastel-gold brand accent (CTAs, icons, key highlights). = #FDD59A. Accent fill pairs with dark text; as fg on dark ~13.8:1."
+      },
+      "800": {
+        "type": "color",
+        "value": "#ffe0b3",
+        "description": "Solid hover / large text / mesh highlight (accent-hover)."
+      },
+      "900": {
+        "type": "color",
+        "value": "#ffebcf",
+        "description": "Secondary text / light cream (tier-mesh light)."
+      },
+      "1000": {
+        "type": "color",
+        "value": "#fff6ea",
+        "description": "Lightest tint / hot edge."
+      },
+      "$description": "Warm Gold — the Klyp BRAND ACCENT (restored 2026-06-29, Val — the iris purple swap was reverted; the `iris` scale was retired and its values moved to `purple`). Re-anchored on the pastel Klyp gold #FDD59A = gold.700 (⭐ solid accent → --color-accent). On dark the accent FILL pairs with DARK text (--color-fg-inverse, ~13:1); as fg/icon on dark, gold.700 reads ~13.8:1. 100=darkest → 1000=lightest, OKLCH hue ~77°: prior gold chroma taper, lightness re-anchored so 700 = #FDD59A exactly. Semantic accent maps gold.700/800/600/500."
+    },
+    "blue": {
+      "100": {
+        "type": "color",
+        "value": "#001745"
+      },
+      "200": {
+        "type": "color",
+        "value": "#00225a"
+      },
+      "300": {
+        "type": "color",
+        "value": "#02469a"
+      },
+      "400": {
+        "type": "color",
+        "value": "#0054bb"
+      },
+      "500": {
+        "type": "color",
+        "value": "#0267dd"
+      },
+      "600": {
+        "type": "color",
+        "value": "#2883ff"
+      },
+      "700": {
+        "type": "color",
+        "value": "#5fa0ff"
+      },
+      "800": {
+        "type": "color",
+        "value": "#80b4ff"
+      },
+      "900": {
+        "type": "color",
+        "value": "#b4d3ff",
+        "description": "Mention pill: character. Status info fg."
+      },
+      "1000": {
+        "type": "color",
+        "value": "#e3efff"
+      },
+      "$description": "Blue scale (info/in-progress status). 100=darkest → 1000=lightest. Rebuilt 2026-06-17 (APCA Variant A — uniform Lc ladder). 900 used for mention pill 'character'."
+    },
+    "red": {
+      "100": {
+        "type": "color",
+        "value": "#3a0106"
+      },
+      "200": {
+        "type": "color",
+        "value": "#4e020a"
+      },
+      "300": {
+        "type": "color",
+        "value": "#882327"
+      },
+      "400": {
+        "type": "color",
+        "value": "#a4292f"
+      },
+      "500": {
+        "type": "color",
+        "value": "#c4363c"
+      },
+      "600": {
+        "type": "color",
+        "value": "#e95053"
+      },
+      "700": {
+        "type": "color",
+        "value": "#ff716f"
+      },
+      "800": {
+        "type": "color",
+        "value": "#ff938e"
+      },
+      "900": {
+        "type": "color",
+        "value": "#ffc2bd",
+        "description": "Mention pill: scene. Status danger fg."
+      },
+      "1000": {
+        "type": "color",
+        "value": "#ffe9e7"
+      },
+      "$description": "Red scale (danger/destructive status). 100=darkest → 1000=lightest. Rebuilt 2026-06-17 (APCA Variant A — uniform Lc ladder, 700 de-duped from 600). 900 used for mention pill 'scene'. Note: 700 (#ff716f) is a light coral to hit Lc 50 on dark — drop 700 target to ~Lc 40 if a denser solid red is needed."
+    },
+    "amber": {
+      "100": {
+        "type": "color",
+        "value": "#291600"
+      },
+      "200": {
+        "type": "color",
+        "value": "#382100"
+      },
+      "300": {
+        "type": "color",
+        "value": "#694300"
+      },
+      "400": {
+        "type": "color",
+        "value": "#7d5100"
+      },
+      "500": {
+        "type": "color",
+        "value": "#976200"
+      },
+      "600": {
+        "type": "color",
+        "value": "#b97a00"
+      },
+      "700": {
+        "type": "color",
+        "value": "#d98f00"
+      },
+      "800": {
+        "type": "color",
+        "value": "#e8a43e"
+      },
+      "900": {
+        "type": "color",
+        "value": "#fac888",
+        "description": "Mention pill: prop. Status warning fg."
+      },
+      "1000": {
+        "type": "color",
+        "value": "#fcebd7"
+      },
+      "$description": "Amber scale (warning status). 100=darkest → 1000=lightest. Rebuilt 2026-06-17 (APCA Variant A — uniform Lc ladder). Replaces legacy yellow.400."
+    },
+    "green": {
+      "100": {
+        "type": "color",
+        "value": "#002303"
+      },
+      "200": {
+        "type": "color",
+        "value": "#003108"
+      },
+      "300": {
+        "type": "color",
+        "value": "#07571c"
+      },
+      "400": {
+        "type": "color",
+        "value": "#026921"
+      },
+      "500": {
+        "type": "color",
+        "value": "#0a7e2b"
+      },
+      "600": {
+        "type": "color",
+        "value": "#2b9b42"
+      },
+      "700": {
+        "type": "color",
+        "value": "#45b458"
+      },
+      "800": {
+        "type": "color",
+        "value": "#68c574"
+      },
+      "900": {
+        "type": "color",
+        "value": "#a1e0a6",
+        "description": "Mention pill: script. Status success fg."
+      },
+      "1000": {
+        "type": "color",
+        "value": "#dff3df"
+      },
+      "$description": "Green scale (success status). 100=darkest → 1000=lightest. Rebuilt 2026-06-17 (APCA Variant A — uniform Lc ladder). 900 used for mention pill 'script'."
+    },
+    "teal": {
+      "100": {
+        "type": "color",
+        "value": "#00211c"
+      },
+      "200": {
+        "type": "color",
+        "value": "#002e28"
+      },
+      "300": {
+        "type": "color",
+        "value": "#00544a"
+      },
+      "400": {
+        "type": "color",
+        "value": "#00665a"
+      },
+      "500": {
+        "type": "color",
+        "value": "#007b6d"
+      },
+      "600": {
+        "type": "color",
+        "value": "#009887"
+      },
+      "700": {
+        "type": "color",
+        "value": "#2ab19f"
+      },
+      "800": {
+        "type": "color",
+        "value": "#5ac3b2"
+      },
+      "900": {
+        "type": "color",
+        "value": "#9aded1",
+        "description": "Mention pill: location."
+      },
+      "1000": {
+        "type": "color",
+        "value": "#ddf2ee"
+      },
+      "$description": "Teal scale (secondary info / accents). 100=darkest → 1000=lightest. Rebuilt 2026-06-17 (APCA Variant A — uniform Lc ladder). 900 used for mention pill 'location'."
+    },
+    "purple": {
+      "100": {
+        "type": "color",
+        "value": "#160b3c"
+      },
+      "200": {
+        "type": "color",
+        "value": "#241758"
+      },
+      "300": {
+        "type": "color",
+        "value": "#341b7f"
+      },
+      "400": {
+        "type": "color",
+        "value": "#44289e"
+      },
+      "500": {
+        "type": "color",
+        "value": "#5436be"
+      },
+      "600": {
+        "type": "color",
+        "value": "#6449d6"
+      },
+      "700": {
+        "type": "color",
+        "value": "#755ded"
+      },
+      "800": {
+        "type": "color",
+        "value": "#988eff"
+      },
+      "900": {
+        "type": "color",
+        "value": "#c1c0ff",
+        "description": "Mention pills: outfit, vibe."
+      },
+      "1000": {
+        "type": "color",
+        "value": "#eeeeff"
+      },
+      "$description": "Purple scale — REPLACED 2026-06-29 (Val) with the former brand-iris values (#755DED family); the prior magenta-purple (#c182fe…) is retired. 100=darkest → 1000=lightest, OKLCH hue ~286°; 700 (#755DED) is the vivid mid. Consumed by mention pills (outfit/vibe = 900), Creator tier mesh, purple badge, MetaLabel accent-purple, PricingTierCard purple tone, fx.card-inset-glow-purple."
+    },
+    "pink": {
+      "100": {
+        "type": "color",
+        "value": "#3a0018"
+      },
+      "200": {
+        "type": "color",
+        "value": "#4e0023"
+      },
+      "300": {
+        "type": "color",
+        "value": "#881948"
+      },
+      "400": {
+        "type": "color",
+        "value": "#a51c57"
+      },
+      "500": {
+        "type": "color",
+        "value": "#c5296a"
+      },
+      "600": {
+        "type": "color",
+        "value": "#eb4485"
+      },
+      "700": {
+        "type": "color",
+        "value": "#ff6a9e"
+      },
+      "800": {
+        "type": "color",
+        "value": "#ff8fb1"
+      },
+      "900": {
+        "type": "color",
+        "value": "#ffc0d0"
+      },
+      "1000": {
+        "type": "color",
+        "value": "#ffe8ed"
+      },
+      "$description": "Pink scale (celebration / highlight). 100=darkest → 1000=lightest. Rebuilt 2026-06-17 (APCA Variant A — uniform Lc ladder). Note: 700 (#ff6a9e) is a light coral-pink to hit Lc 50 on dark — drop 700 target to ~Lc 40 if a denser solid pink is needed."
+    },
+    "alpha": {
+      "white": {
+        "10": {
+          "type": "color",
+          "value": "rgba(255, 255, 255, 0.1)"
+        },
+        "14": {
+          "type": "color",
+          "value": "rgba(255, 255, 255, 0.14)",
+          "description": "Canvas handle border in idle state (mockup v6.3, design lead 2026-05-12)."
+        },
+        "15": {
+          "type": "color",
+          "value": "rgba(255, 255, 255, 0.15)"
+        },
+        "20": {
+          "type": "color",
+          "value": "rgba(255, 255, 255, 0.2)",
+          "description": "Focus-ring inset stroke (paired with mix-blend-mode:plus-lighter)"
+        },
+        "22": {
+          "type": "color",
+          "value": "rgba(255, 255, 255, 0.22)",
+          "description": "Canvas handle border in selected state (mockup v6.3, design lead 2026-05-12)."
+        },
+        "25": {
+          "type": "color",
+          "value": "rgba(255, 255, 255, 0.25)",
+          "description": "Focus outline — labeled-select / chat composer focus visible ring"
+        },
+        "30": {
+          "type": "color",
+          "value": "rgba(255, 255, 255, 0.3)"
+        },
+        "50": {
+          "type": "color",
+          "value": "rgba(255, 255, 255, 0.5)"
+        },
+        "70": {
+          "type": "color",
+          "value": "rgba(255, 255, 255, 0.7)"
+        },
+        "85": {
+          "type": "color",
+          "value": "rgba(255, 255, 255, 0.85)",
+          "description": "PromptBlock placeholder/hint on overlay"
+        },
+        "90": {
+          "type": "color",
+          "value": "rgba(255, 255, 255, 0.9)"
+        },
+        "03": {
+          "type": "color",
+          "value": "rgba(255, 255, 255, 0.03)"
+        },
+        "05": {
+          "type": "color",
+          "value": "rgba(255, 255, 255, 0.05)"
+        },
+        "06": {
+          "type": "color",
+          "value": "rgba(255, 255, 255, 0.06)",
+          "description": "⭐ Inset top highlight on buttons / cards (Figma DS anchor — stroke_BMROPK)"
+        }
+      },
+      "black": {
+        "10": {
+          "type": "color",
+          "value": "rgba(0, 0, 0, 0.1)",
+          "description": "Light-theme default border alt (Unreals)"
+        },
+        "12": {
+          "type": "color",
+          "value": "rgba(0, 0, 0, 0.12)",
+          "description": "Slider rail / inset divider on light surfaces"
+        },
+        "15": {
+          "type": "color",
+          "value": "rgba(0, 0, 0, 0.15)",
+          "description": "Light-theme strong border (Unreals)"
+        },
+        "20": {
+          "type": "color",
+          "value": "rgba(0, 0, 0, 0.2)"
+        },
+        "30": {
+          "type": "color",
+          "value": "rgba(0, 0, 0, 0.3)",
+          "description": "Light-theme fg-subtle (Unreals)"
+        },
+        "40": {
+          "type": "color",
+          "value": "rgba(0, 0, 0, 0.4)"
+        },
+        "50": {
+          "type": "color",
+          "value": "rgba(0, 0, 0, 0.5)",
+          "description": "Drop-shadow stack alpha — popovers, dropdowns / Light-theme fg-muted (Unreals)"
+        },
+        "60": {
+          "type": "color",
+          "value": "rgba(0, 0, 0, 0.6)"
+        },
+        "65": {
+          "type": "color",
+          "value": "rgba(0, 0, 0, 0.65)",
+          "description": "Light-theme fg-muted — readable secondary text on light bg (passes WCAG AA on neutral.0 + neutral.50, replaces alpha.black.50 which fails 4.5:1 on neutral.50)"
+        },
+        "70": {
+          "type": "color",
+          "value": "rgba(0, 0, 0, 0.7)",
+          "description": "Strong scrim — prompt-input video preview overlay"
+        },
+        "80": {
+          "type": "color",
+          "value": "rgba(0, 0, 0, 0.8)",
+          "description": "Modal / lightbox backdrop scrim"
+        },
+        "85": {
+          "type": "color",
+          "value": "rgba(0, 0, 0, 0.85)",
+          "description": "ProfileMenu drop-shadow — heavier than 80 for menu depth"
+        },
+        "90": {
+          "type": "color",
+          "value": "rgba(0, 0, 0, 0.9)",
+          "description": "Light-theme fg-primary — primary body text on light bg (Unreals)"
+        },
+        "03": {
+          "type": "color",
+          "value": "rgba(0, 0, 0, 0.03)",
+          "description": "Light-theme faintest border (Unreals) — counterpart of alpha.white.03"
+        },
+        "05": {
+          "type": "color",
+          "value": "rgba(0, 0, 0, 0.05)",
+          "description": "Light-theme subtle border (Unreals)"
+        },
+        "08": {
+          "type": "color",
+          "value": "rgba(0, 0, 0, 0.08)",
+          "description": "Light-theme default border (Unreals)"
+        }
+      }
+    },
+    "glass": {
+      "222-50": {
+        "type": "color",
+        "value": "rgba(20, 20, 20, 0.5)",
+        "description": "Frosted panel bg — surface #141414 @ 50%"
+      },
+      "222-30": {
+        "type": "color",
+        "value": "rgba(20, 20, 20, 0.3)",
+        "description": "Floating panel bg — sidebar / right-bar / prompt @ 30% (user feedback 2026-04-29)"
+      },
+      "15-50": {
+        "type": "color",
+        "value": "rgba(15, 15, 15, 0.5)",
+        "description": "Sidebar panel bg — canvas #0F0F0F @ 50%"
+      },
+      "15-70": {
+        "type": "color",
+        "value": "rgba(15, 15, 15, 0.7)",
+        "description": "Modal backdrop with blur — AssetModal layer 1 backdrop"
+      },
+      "15-82": {
+        "type": "color",
+        "value": "rgba(15, 15, 15, 0.82)",
+        "description": "Sticky chrome — TopHeader @ near-opaque, paired with backdrop blur"
+      },
+      "15-10": {
+        "type": "color",
+        "value": "rgba(15, 15, 15, 0.1)",
+        "description": "Translucent header chrome — canvas #0F0F0F @ 10%"
+      },
+      "white-50": {
+        "type": "color",
+        "value": "rgba(255, 255, 255, 0.5)",
+        "description": "Light-theme frosted panel bg — white @ 50% (Unreals counterpart of 222-50)"
+      },
+      "white-30": {
+        "type": "color",
+        "value": "rgba(255, 255, 255, 0.3)",
+        "description": "Light-theme floating panel bg — white @ 30% (Unreals counterpart of 222-30)"
+      },
+      "white-70": {
+        "type": "color",
+        "value": "rgba(255, 255, 255, 0.7)",
+        "description": "Light-theme modal backdrop — white @ 70% (Unreals counterpart of 15-70)"
+      },
+      "white-82": {
+        "type": "color",
+        "value": "rgba(255, 255, 255, 0.82)",
+        "description": "Light-theme sticky chrome — white @ 82% paired with blur (Unreals counterpart of 15-82)"
+      },
+      "white-10": {
+        "type": "color",
+        "value": "rgba(255, 255, 255, 0.1)",
+        "description": "Light-theme translucent header chrome — white @ 10% (Unreals counterpart of 15-10)"
+      }
+    },
+    "space": {
+      "0": {
+        "type": "dimension",
+        "value": "0"
+      },
+      "2": {
+        "type": "dimension",
+        "value": "2px",
+        "description": "Hairline / 1-pixel-doubled"
+      },
+      "3": {
+        "type": "dimension",
+        "value": "3px",
+        "description": "Sub-cluster gap — sm-Badge icon↔text gap (Geist parity). Fills the gap between --space-2 (2px) and --space-4 (4px); added 2026-05-16."
+      },
+      "4": {
+        "type": "dimension",
+        "value": "4px",
+        "description": "Tightest cluster gap"
+      },
+      "6": {
+        "type": "dimension",
+        "value": "6px",
+        "description": "2px-grid mid-step (4↔8). Tooltip padding, card inner gap, radio inset."
+      },
+      "8": {
+        "type": "dimension",
+        "value": "8px",
+        "description": "Inline group gap, control vertical padding"
+      },
+      "10": {
+        "type": "dimension",
+        "value": "10px",
+        "description": "2px-grid mid-step (8↔12). Icon/avatar sizes xs–sm, tight insets."
+      },
+      "12": {
+        "type": "dimension",
+        "value": "12px",
+        "description": "Card inner gap, stack gap"
+      },
+      "14": {
+        "type": "dimension",
+        "value": "14px",
+        "description": "2px-grid mid-step (12↔16). Dense list padding, tooltip wide."
+      },
+      "16": {
+        "type": "dimension",
+        "value": "16px",
+        "description": "Card padding, grid gap"
+      },
+      "18": {
+        "type": "dimension",
+        "value": "18px",
+        "description": "2px-grid mid-step (16↔20). Compact panel insets."
+      },
+      "20": {
+        "type": "dimension",
+        "value": "20px",
+        "description": "Panel padding"
+      },
+      "24": {
+        "type": "dimension",
+        "value": "24px",
+        "description": "Section padding (compact)"
+      },
+      "28": {
+        "type": "dimension",
+        "value": "28px"
+      },
+      "32": {
+        "type": "dimension",
+        "value": "32px",
+        "description": "Section gap, hero padding (compact)"
+      },
+      "36": {
+        "type": "dimension",
+        "value": "36px",
+        "description": "4px-grid step (9×4). Fills the 32↔40 gap."
+      },
+      "40": {
+        "type": "dimension",
+        "value": "40px"
+      },
+      "48": {
+        "type": "dimension",
+        "value": "48px",
+        "description": "Section padding (large)"
+      },
+      "56": {
+        "type": "dimension",
+        "value": "56px",
+        "description": "4px-grid step (14×4). Avatar XL, FAB. Added 2026-06-16 — was referenced by Avatar.scss but missing from the scale."
+      },
+      "64": {
+        "type": "dimension",
+        "value": "64px",
+        "description": "Hero spacing"
+      },
+      "80": {
+        "type": "dimension",
+        "value": "80px"
+      },
+      "96": {
+        "type": "dimension",
+        "value": "96px"
+      },
+      "128": {
+        "type": "dimension",
+        "value": "128px",
+        "description": "Page-level vertical separation"
+      },
+      "$description": "Pixel-named spacing primitives. Number = pixel value. --space-16 IS 16px. Industry canon (Polaris/Atlassian/Carbon use stepped scales; Klyp uses pixel-literal because LLMs and devs keep misreading numeric ramps where N != px). Old --space-N (where N was a step in a 2px-base scale) renamed 2026-05-07; ported to feat/canvas-mvp-stage-2 2026-05-13."
+    },
+    "radius": {
+      "4": {
+        "type": "dimension",
+        "value": "4px",
+        "description": "Tightest inner radius — checkbox / menu-row corners inside a 4px-padded popover. Pixel-named like --radius-8 (fixed value, not a t-shirt step)."
+      },
+      "8": {
+        "type": "dimension",
+        "value": "8px",
+        "description": "Concentric inner radius — closes the 6→10 gap. Used for dropdown/menu items nested in --r-section (16 − 8 padding) or --r-card (12 − 4 padding). Pixel-named like --space-N because intent is a fixed value, not a step on the t-shirt scale."
+      },
+      "none": {
+        "type": "dimension",
+        "value": "0"
+      },
+      "sm": {
+        "type": "dimension",
+        "value": "6px"
+      },
+      "md": {
+        "type": "dimension",
+        "value": "10px"
+      },
+      "lg": {
+        "type": "dimension",
+        "value": "12px"
+      },
+      "xl": {
+        "type": "dimension",
+        "value": "14px"
+      },
+      "2xl": {
+        "type": "dimension",
+        "value": "16px"
+      },
+      "3xl": {
+        "type": "dimension",
+        "value": "20px"
+      },
+      "4xl": {
+        "type": "dimension",
+        "value": "24px"
+      },
+      "5xl": {
+        "type": "dimension",
+        "value": "36px",
+        "description": "Large shell / docs viewport framing (catalog layout chrome)."
+      },
+      "full": {
+        "type": "dimension",
+        "value": "9999px"
+      }
+    },
+    "border": {
+      "width": {
+        "0": {
+          "type": "dimension",
+          "value": "0"
+        },
+        "1": {
+          "type": "dimension",
+          "value": "1px"
+        },
+        "2": {
+          "type": "dimension",
+          "value": "2px"
+        },
+        "4": {
+          "type": "dimension",
+          "value": "4px"
+        }
+      }
+    },
+    "opacity": {
+      "0": {
+        "type": "number",
+        "value": "0"
+      },
+      "5": {
+        "type": "number",
+        "value": "0.05"
+      },
+      "10": {
+        "type": "number",
+        "value": "0.1"
+      },
+      "20": {
+        "type": "number",
+        "value": "0.2"
+      },
+      "30": {
+        "type": "number",
+        "value": "0.3"
+      },
+      "40": {
+        "type": "number",
+        "value": "0.4"
+      },
+      "50": {
+        "type": "number",
+        "value": "0.5"
+      },
+      "60": {
+        "type": "number",
+        "value": "0.6"
+      },
+      "70": {
+        "type": "number",
+        "value": "0.7"
+      },
+      "80": {
+        "type": "number",
+        "value": "0.8"
+      },
+      "90": {
+        "type": "number",
+        "value": "0.9"
+      },
+      "100": {
+        "type": "number",
+        "value": "1"
+      }
+    },
+    "font": {
+      "sans": {
+        "type": "fontFamily",
+        "value": "'Geist Variable', ui-sans-serif, system-ui, sans-serif"
+      },
+      "mono": {
+        "type": "fontFamily",
+        "value": "ui-monospace, 'SF Mono', Consolas, monospace"
+      }
+    },
+    "font-size": {
+      "10": {
+        "type": "dimension",
+        "value": "10px"
+      },
+      "11": {
+        "type": "dimension",
+        "value": "12px",
+        "description": "DEPRECATED alias → 12px (was 11px, grid-snap 2026-06-17). Migrate to --font-size-12."
+      },
+      "12": {
+        "type": "dimension",
+        "value": "12px"
+      },
+      "13": {
+        "type": "dimension",
+        "value": "14px",
+        "description": "DEPRECATED alias → 14px (was 13px, grid-snap 2026-06-17). Migrate to --font-size-14."
+      },
+      "14": {
+        "type": "dimension",
+        "value": "14px"
+      },
+      "15": {
+        "type": "dimension",
+        "value": "16px",
+        "description": "DEPRECATED alias → 16px (was 15px, grid-snap 2026-06-17). Migrate to --font-size-16."
+      },
+      "16": {
+        "type": "dimension",
+        "value": "16px"
+      },
+      "18": {
+        "type": "dimension",
+        "value": "18px"
+      },
+      "20": {
+        "type": "dimension",
+        "value": "20px"
+      },
+      "24": {
+        "type": "dimension",
+        "value": "24px"
+      },
+      "28": {
+        "type": "dimension",
+        "value": "28px"
+      },
+      "32": {
+        "type": "dimension",
+        "value": "32px"
+      },
+      "40": {
+        "type": "dimension",
+        "value": "40px"
+      },
+      "56": {
+        "type": "dimension",
+        "value": "56px"
+      },
+      "64": {
+        "type": "dimension",
+        "value": "64px",
+        "description": "Ceremonial hero numerals only — AmountInput hero-xl. Above the 56 body ceiling; reserved for the single biggest figure on a surface (top-up amount). Added 2026-06-29."
+      }
+    },
+    "font-weight": {
+      "regular": {
+        "type": "fontWeight",
+        "value": "400"
+      },
+      "medium": {
+        "type": "fontWeight",
+        "value": "500"
+      },
+      "semibold": {
+        "type": "fontWeight",
+        "value": "600"
+      },
+      "bold": {
+        "type": "fontWeight",
+        "value": "700"
+      }
+    },
+    "line-height": {
+      "display": {
+        "type": "number",
+        "value": "1.1429"
+      },
+      "tight": {
+        "type": "number",
+        "value": "1.2"
+      },
+      "snug": {
+        "type": "number",
+        "value": "1.25"
+      },
+      "compact": {
+        "type": "number",
+        "value": "1.2857"
+      },
+      "normal": {
+        "type": "number",
+        "value": "1.3333"
+      },
+      "relaxed": {
+        "type": "number",
+        "value": "1.71",
+        "description": "DEPRECATED — loose long-form prose. Migrate raw consumers to a type.* style."
+      }
+    },
+    "line-box": {
+      "12": {
+        "type": "dimension",
+        "value": "12px"
+      },
+      "16": {
+        "type": "dimension",
+        "value": "16px"
+      },
+      "18": {
+        "type": "dimension",
+        "value": "18px"
+      },
+      "20": {
+        "type": "dimension",
+        "value": "20px"
+      },
+      "24": {
+        "type": "dimension",
+        "value": "24px"
+      },
+      "32": {
+        "type": "dimension",
+        "value": "32px"
+      },
+      "36": {
+        "type": "dimension",
+        "value": "36px"
+      },
+      "40": {
+        "type": "dimension",
+        "value": "40px"
+      },
+      "64": {
+        "type": "dimension",
+        "value": "64px"
+      }
+    },
+    "letter-spacing": {
+      "tight": {
+        "type": "dimension",
+        "value": "-0.02em"
+      },
+      "normal": {
+        "type": "dimension",
+        "value": "0"
+      },
+      "wide": {
+        "type": "dimension",
+        "value": "0.02em"
+      },
+      "caps": {
+        "type": "dimension",
+        "value": "0.05em",
+        "description": "All-caps tracking for overline / eyebrow labels."
+      }
+    },
+    "icon-size": {
+      "xs": {
+        "type": "dimension",
+        "value": "12px"
+      },
+      "sm": {
+        "type": "dimension",
+        "value": "16px"
+      },
+      "md": {
+        "type": "dimension",
+        "value": "20px"
+      },
+      "lg": {
+        "type": "dimension",
+        "value": "24px"
+      },
+      "xl": {
+        "type": "dimension",
+        "value": "32px"
+      }
+    },
+    "breakpoint": {
+      "sm": {
+        "type": "dimension",
+        "value": "640px"
+      },
+      "md": {
+        "type": "dimension",
+        "value": "768px"
+      },
+      "lg": {
+        "type": "dimension",
+        "value": "1024px"
+      },
+      "xl": {
+        "type": "dimension",
+        "value": "1280px"
+      },
+      "2xl": {
+        "type": "dimension",
+        "value": "1536px"
+      }
+    },
+    "container": {
+      "sm": {
+        "type": "dimension",
+        "value": "640px"
+      },
+      "md": {
+        "type": "dimension",
+        "value": "768px"
+      },
+      "lg": {
+        "type": "dimension",
+        "value": "1024px"
+      },
+      "xl": {
+        "type": "dimension",
+        "value": "1280px"
+      },
+      "2xl": {
+        "type": "dimension",
+        "value": "1440px",
+        "description": "Figma design canvas width"
+      }
+    },
+    "blur": {
+      "3": {
+        "type": "dimension",
+        "value": "3px"
+      },
+      "6": {
+        "type": "dimension",
+        "value": "6px"
+      },
+      "10": {
+        "type": "dimension",
+        "value": "10px"
+      },
+      "16": {
+        "type": "dimension",
+        "value": "16px"
+      },
+      "24": {
+        "type": "dimension",
+        "value": "24px",
+        "description": "Floating-rail / prompt-composer backdrop blur (user feedback 2026-04-29)"
+      },
+      "32": {
+        "type": "dimension",
+        "value": "32px",
+        "description": "Mid-soft Gaussian blur — used by BalanceCard hover blob (radial glow, ≈35px in source mockup, snapped to scale)."
+      },
+      "50": {
+        "type": "dimension",
+        "value": "50px"
+      },
+      "150": {
+        "type": "dimension",
+        "value": "150px"
+      }
+    },
+    "shadow": {
+      "gold-inset": {
+        "type": "shadow",
+        "value": "inset 0 0 10px 0 {gold.700}"
+      },
+      "soft": {
+        "type": "shadow",
+        "value": "0 4px 24px 0 rgba(0, 0, 0, 0.4)"
+      },
+      "panel": {
+        "type": "shadow",
+        "value": "0 16px 48px 0 rgba(0, 0, 0, 0.5)"
+      },
+      "card-lift": {
+        "type": "shadow",
+        "value": "0 24px 24px -20px rgba(0, 0, 0, 0.3)",
+        "description": "Tall drop shadow for cards that sit on a dark surface and rely on a soft ground-plane lift (BalanceCard, fintech hero cards). Negative spread tightens the shadow to a thin band below the card so it doesn't bloom sideways."
+      },
+      "toast": {
+        "type": "shadow",
+        "value": "0 2px 6px 0 rgba(0, 0, 0, 0.18), 0 18px 44px 0 rgba(0, 0, 0, 0.22)",
+        "description": "Two-layer soft halo for Sonner toasts — thin near-contact + diffuse far halo. Replaces shadow.soft on toasts where the single 24px/0.4-alpha blur read as a harsh black grub on the small pill (design lead, 2026-05-17)."
+      }
+    },
+    "duration": {
+      "instant": {
+        "type": "duration",
+        "value": "80ms"
+      },
+      "fast": {
+        "type": "duration",
+        "value": "140ms"
+      },
+      "normal": {
+        "type": "duration",
+        "value": "220ms"
+      },
+      "slow": {
+        "type": "duration",
+        "value": "360ms"
+      }
+    },
+    "easing": {
+      "standard": {
+        "type": "cubicBezier",
+        "value": "cubic-bezier(0.2, 0, 0, 1)"
+      },
+      "decelerate": {
+        "type": "cubicBezier",
+        "value": "cubic-bezier(0, 0, 0, 1)"
+      },
+      "accelerate": {
+        "type": "cubicBezier",
+        "value": "cubic-bezier(0.3, 0, 1, 1)"
+      }
+    },
+    "z": {
+      "background": {
+        "type": "number",
+        "value": "0"
+      },
+      "content": {
+        "type": "number",
+        "value": "10"
+      },
+      "dock": {
+        "type": "number",
+        "value": "40"
+      },
+      "header": {
+        "type": "number",
+        "value": "50"
+      },
+      "overlay": {
+        "type": "number",
+        "value": "80"
+      },
+      "modal": {
+        "type": "number",
+        "value": "100"
+      },
+      "toast": {
+        "type": "number",
+        "value": "200"
+      }
+    }
+  }
+}

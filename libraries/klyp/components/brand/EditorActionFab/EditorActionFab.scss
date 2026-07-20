@@ -1,0 +1,156 @@
+/**
+ * EditorActionFab — Tier 4 brand molecule.
+ *
+ * Tokens-only. No hardcoded hex / px outside `--fab-size`. Surface tokens
+ * mirror `prompt-composer/model-picker.scss` chip-style for visual
+ * coherence with the chat composer trigger.
+ *
+ * Position: `fixed` so the FAB anchors to the editor bottom-right corner
+ * regardless of the EditorRegion's internal scroll. Bottom offset stacks:
+ *
+ *     composer-h-mobile  + sp-md + kb-offset + safe-area-bottom
+ *     ────────────────────────────────────────────────────────
+ *     ~64–96px            16px    0–~300px     0–~34px (iOS)
+ *
+ * The `--kb-offset` slot is overwritten by `useKeyboardOffset()` when iOS
+ * Safari opens the on-screen keyboard, so the FAB rises with the keyboard
+ * instead of being covered.
+ *
+ * Visibility — controlled by parent. This stylesheet does NOT hide the
+ * FAB on `desktop` breakpoint; the editor route renders it conditionally.
+ */
+
+.klyp-EditorActionFab {
+  position: fixed;
+  z-index: 40; /* above editor canvas, below modals (--z-modal = 1000)*/
+  inset-block-end: calc(
+    var(--composer-h-mobile) + var(--space-16) + var(--kb-offset, 0px) +
+      var(--safe-area-bottom, 0px)
+  );
+  inset-inline-end: var(--space-16);
+
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  inline-size: var(--fab-size);
+  block-size: var(--fab-size);
+
+  border: var(--bw-default) solid var(--color-border-default);
+  border-radius: var(--radius-full);
+  background: var(--color-bg-surface-solid);
+  color: var(--color-fg-primary);
+  cursor: pointer;
+  outline: none;
+
+  /* Subtle elevation — soft drop on neutral surface, slightly stronger on*/
+  /* primary tone so the FAB reads as the page's anchor action.*/
+  box-shadow: var(--shadow-soft);
+
+  transition:
+    color var(--duration-fast) var(--easing-standard),
+    border-color var(--duration-fast) var(--easing-standard),
+    background var(--duration-fast) var(--easing-standard),
+    transform var(--duration-fast) var(--easing-standard),
+    box-shadow var(--duration-fast) var(--easing-standard);
+
+  /* RAC-supplied state attrs — see Button RAC docs.*/
+  &[data-hovered] {
+    border-color: var(--color-border-strong);
+    background: var(--color-bg-surface-hover);
+  }
+
+  &[data-pressed] {
+    transform: translateY(1px) scale(0.98);
+    background: var(--color-bg-surface);
+  }
+
+  &[data-focus-visible] {
+    box-shadow:
+      var(--shadow-soft),
+      0 0 0 var(--bw-emphasis) var(--color-ring);
+  }
+
+  &[data-disabled] {
+    opacity: var(--opacity-50, 0.5);
+    cursor: not-allowed;
+    box-shadow: none;
+  }
+
+  /* Optional "open" visual — sheet is mounted. Slight dim so the FAB*/
+  /* recedes while the sheet has focus. Caller may instead unmount the*/
+  /* FAB on open; both paths supported.*/
+  &[data-open='true'] {
+    opacity: var(--opacity-60);
+  }
+
+  /* Variants — gold tone for screens that need creation prominence. Bound*/
+  /* by the single-accent rule (≤2 gold per screen). Default is neutral.*/
+  &[data-tone='primary'] {
+    border-color: var(--color-border-accent);
+    background: var(--color-accent);
+    color: var(--color-fg-inverse);
+
+    &[data-hovered] {
+      background: var(--color-accent-hover);
+    }
+
+    &[data-pressed] {
+      background: var(--color-accent-pressed);
+    }
+  }
+
+  /* Touch target — already at fab-size 56px which exceeds*/
+  /* --touch-target-comfort 44px, but keep an explicit fallback so the*/
+  /* value tracks if the design ever shrinks the FAB.*/
+  @media (any-pointer: coarse) {
+    min-block-size: var(--touch-target-comfort);
+    min-inline-size: var(--touch-target-comfort);
+  }
+
+  /* Reduced-motion — disable scale/translate on press, keep the colour*/
+  /* transition so the affordance is still visible.*/
+  @media (prefers-reduced-motion: reduce) {
+    &[data-pressed] {
+      transform: none;
+    }
+    transition-property: color, border-color, background, box-shadow;
+  }
+}
+
+.klyp-EditorActionFab__icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  inline-size: var(--icon-size-md);
+  block-size: var(--icon-size-md);
+  color: inherit;
+
+  /* Force inner SVG to inherit sizing — Iconsax components default to*/
+  /* 24×24 via viewBox but consumers sometimes set explicit width/height.*/
+  & > svg {
+    inline-size: 100%;
+    block-size: 100%;
+  }
+}
+
+.klyp-EditorActionFab__badge {
+  position: absolute;
+  inset-block-start: calc(var(--space-4) * -1);
+  inset-inline-end: calc(var(--space-4) * -1);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-inline-size: var(--space-32); /* 32px — fits up to 99+*/
+  block-size: var(--space-24); /* 24px*/
+  padding-inline: var(--space-8);
+  border-radius: var(--radius-full);
+  background: var(--color-status-danger);
+  color: var(--color-fg-inverse);
+  font-family: var(--font-sans);
+  font-size: var(--font-size-12);
+  font-weight: var(--font-weight-medium);
+  line-height: 1;
+  /* Keep badge readable when FAB is on primary tone — semantic-danger*/
+  /* colour stays the same regardless of FAB tone.*/
+  pointer-events: none;
+}

@@ -1,0 +1,10 @@
+{
+  "id": "klyp",
+  "kind": "library",
+  "name": "Klyp",
+  "schemaVersion": 1,
+  "version": "0.1.0",
+  "packageName": "@klyp/ds",
+  "componentImport": "@klyp/ds/components",
+  "iconImport": "@klyp/ds/icons"
+}

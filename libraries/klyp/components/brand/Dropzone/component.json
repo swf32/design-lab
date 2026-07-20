@@ -1,0 +1,14 @@
+{
+  "id": "dropzone",
+  "name": "Dropzone",
+  "status": "in-progress",
+  "schemaVersion": 1,
+  "description": "Drag-and-drop file surface with click-to-pick + dragover / reject state.",
+  "tags": [
+    "brand",
+    "brand-atom"
+  ],
+  "entry": "Dropzone.tsx",
+  "stories": "Dropzone.stories.tsx",
+  "changelog": "CHANGELOG.md"
+}

@@ -1,0 +1,189 @@
+/* SidebarShell.stories.scss — layout helpers for story previews.
+   Not consumed by production. The frame plays the host-layout role: it owns
+   the WIDTH (the shell deliberately doesn't) and animates it 240 ⇄ 52px the
+   way the app's AppLayout grid track does. */
+
+.klyp-SidebarShell-stories__frame {
+  width: 240px;
+  height: 560px;
+  overflow: hidden;
+  border: var(--bw-default) solid var(--color-border-subtle);
+  /* Concentric radii (styles.md): inner rows are --r-chip (10) behind the
+     8px gutter → outer ≈ 18; --r-section (16) is the nearest step DOWN —
+     --r-panel (20) read visibly over-rounded against the row corners (Val). */
+  border-radius: var(--r-section);
+  transition: width var(--duration-normal) var(--easing-standard);
+
+  &[data-expanded='false'] {
+    width: 52px; /* 2×8 gutter + 36 icon slot — icons stay centred */
+  }
+}
+
+/* Logo slot — mirrors the app's max-width collapse so the toggle slides
+   left into the icon column. */
+.klyp-SidebarShell-stories__logo {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+  flex: 1 1 auto;
+  min-width: 0;
+  max-width: 240px;
+  overflow: hidden;
+  padding-inline-start: var(--space-8);
+  color: var(--color-fg-primary);
+  opacity: 1;
+  transition:
+    opacity var(--duration-normal) var(--easing-standard),
+    max-width var(--duration-normal) var(--easing-standard);
+
+  .klyp-SidebarShell-stories__frame[data-expanded='false'] & {
+    opacity: 0;
+    max-width: 0;
+    /* Zero the inline padding too — with border-box, max-width:0 can't shrink
+       below the padding, and the 8px stub pushed the toggle off the icon
+       column's centre in the collapsed rail. */
+    padding-inline-start: 0;
+    pointer-events: none;
+  }
+}
+
+.klyp-SidebarShell-stories__wordmark {
+  font-family: var(--font-sans);
+  font-size: var(--font-size-16);
+  font-weight: var(--font-weight-semibold);
+  white-space: nowrap;
+}
+
+/* Quick actions riding the Chat row — absolute overlay on the right edge,
+   anchored by the SidebarShell__item's position:relative (the same contract
+   the app's AppSidebar uses). */
+.klyp-SidebarShell-stories__rowActions {
+  position: absolute;
+  inset-block: 0;
+  inset-inline-end: var(--space-6);
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+/* Recents block — free-form content between nav and footer. */
+.klyp-SidebarShell-stories__recents {
+  flex: 1 1 0;
+  min-height: var(--space-32);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-8);
+  overflow: hidden;
+  opacity: 1;
+  transition: opacity var(--duration-normal) var(--easing-standard);
+
+  .klyp-SidebarShell-stories__frame[data-expanded='false'] & {
+    opacity: 0;
+    pointer-events: none;
+  }
+}
+
+.klyp-SidebarShell-stories__recentsList {
+  flex: 1 1 0;
+  min-height: 0;
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: var(--color-border-subtle) transparent;
+}
+
+/* Profile footer row (presentational stand-in for the app's ProfileMenu). */
+.klyp-SidebarShell-stories__profile {
+  display: flex;
+  align-items: center;
+  gap: var(--space-8);
+  height: 40px;
+
+  .klyp-SidebarShell-stories__frame[data-expanded='false'] & {
+    justify-content: center;
+    gap: 0;
+  }
+}
+
+.klyp-SidebarShell-stories__profileText {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  overflow: hidden;
+
+  .klyp-SidebarShell-stories__frame[data-expanded='false'] & {
+    display: none;
+  }
+}
+
+.klyp-SidebarShell-stories__profileName {
+  font-size: var(--font-size-14);
+  font-weight: var(--font-weight-medium);
+  color: var(--color-fg-primary);
+  white-space: nowrap;
+}
+
+.klyp-SidebarShell-stories__profileTier {
+  font-size: var(--font-size-11);
+  color: var(--color-fg-subtle);
+  white-space: nowrap;
+}
+
+/* Mobile drawer panel — the Sheet-sized 216px surface. Same concentric
+   radius as the desktop frame above. */
+.klyp-SidebarShell-stories__drawer {
+  width: 216px;
+  height: 560px;
+  overflow: hidden;
+  border: var(--bw-default) solid var(--color-border-subtle);
+  border-radius: var(--r-section);
+}
+
+.klyp-SidebarShell-stories__drawerSpacer {
+  flex: 1 1 0;
+  min-height: 0;
+}
+
+/* Kit-pieces story — toggle pair + a rail-width surface for the header. */
+.klyp-SidebarShell-stories__pieces {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-16);
+}
+
+.klyp-SidebarShell-stories__piecesRow {
+  display: flex;
+  align-items: center;
+  gap: var(--space-16);
+}
+
+.klyp-SidebarShell-stories__piecesRail {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  width: 240px;
+  padding: var(--space-8);
+  border: var(--bw-default) solid var(--color-border-subtle);
+  border-radius: var(--r-section);
+  background: var(--color-bg-panel);
+}
+
+/* Bare-chassis ghosts — dashed placeholders naming each slot. */
+.klyp-SidebarShell-stories__slotGhost {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 36px;
+  padding: var(--space-4) var(--space-8);
+  border: var(--bw-default) dashed var(--color-border-subtle);
+  border-radius: var(--r-chip);
+  font-size: var(--font-size-12);
+  color: var(--color-fg-subtle);
+  white-space: nowrap;
+  overflow: hidden;
+
+  &[data-grow] {
+    flex: 1 1 0;
+    min-height: 0;
+  }
+}

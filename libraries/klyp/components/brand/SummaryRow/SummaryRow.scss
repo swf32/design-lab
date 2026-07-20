@@ -1,0 +1,48 @@
+/* SummaryRow — key:value pairs in Review / Confirm summary cards.
+ * Value side uses tabular-nums so digits align across stacked rows. */
+
+.klyp-SummaryRow {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--space-12);
+  padding-block: var(--space-6);
+
+  &__label {
+    color: var(--color-fg-muted);
+    font-size: var(--font-size-13);
+    line-height: 1.4;
+  }
+
+  &__hint {
+    margin-left: var(--space-4);
+    color: var(--color-fg-subtle);
+    font-size: var(--font-size-12);
+  }
+
+  &__value {
+    color: var(--color-fg-primary);
+    font-size: var(--font-size-13);
+    font-variant-numeric: tabular-nums;
+    line-height: 1.4;
+    text-align: right;
+  }
+
+  &[data-emphasis='bold'] {
+    .klyp-SummaryRow__value {
+      font-weight: var(--font-weight-medium);
+    }
+  }
+
+  &[data-tone='success'] {
+    .klyp-SummaryRow__value {
+      color: var(--color-status-success);
+    }
+  }
+
+  &[data-tone='danger'] {
+    .klyp-SummaryRow__value {
+      color: var(--color-status-danger);
+    }
+  }
+}

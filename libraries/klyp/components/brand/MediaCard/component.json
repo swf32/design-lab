@@ -1,0 +1,14 @@
+{
+  "id": "media-card",
+  "name": "MediaCard",
+  "status": "in-progress",
+  "schemaVersion": 1,
+  "description": "Single asset tile — media element, hover/selected ring, checkbox, duration, overlay slot.",
+  "tags": [
+    "brand",
+    "brand-molecule"
+  ],
+  "entry": "MediaCard.tsx",
+  "stories": "MediaCard.stories.tsx",
+  "changelog": "CHANGELOG.md"
+}

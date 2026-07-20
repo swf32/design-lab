@@ -1,0 +1,49 @@
+// =====================================================================
+// Shared mesh blob drift keyframes — consumed by MeshButton.
+// =====================================================================
+//
+// Originally extracted to deduplicate keyframes across MeshButton +
+// MeshButtonAnimated (the sibling was merged back into MeshButton on
+// 2026-05-12 as an optional state-machine mode). Kept as a partial in case
+// another mesh-* component is ever introduced, and to keep the trajectory
+// rationale isolated from the main component SCSS.
+//
+// MeshButton's .__mesh / .__blob block + per-instance animation-duration
+// calc()'s stay co-located in its own SCSS — only the `@keyframes`
+// definitions live here.
+//
+// 4 distinct trajectories — different *shapes* (orbit / linear / linear /
+// figure-8) so blobs read as moving in different directions, never in unison.
+
+// drift-a — clockwise orbit (top-left blob circles its anchor)
+@keyframes klyp-mesh-drift-a {
+  0%   { transform: translate(0, 0) scale(1); }
+  25%  { transform: translate(25%, 18%) scale(1.15); }
+  50%  { transform: translate(0, 32%) scale(1.3); }
+  75%  { transform: translate(-25%, 18%) scale(1.15); }
+  100% { transform: translate(0, 0) scale(1); }
+}
+
+// drift-b — vertical sweep only (top-right blob bobs up & down)
+@keyframes klyp-mesh-drift-b {
+  0%   { transform: translate(0, 0) scale(1); }
+  50%  { transform: translate(0, -32%) scale(1.25); }
+  100% { transform: translate(0, 0) scale(1); }
+}
+
+// drift-c — horizontal sweep only (bottom-left blob slides L→R→L)
+@keyframes klyp-mesh-drift-c {
+  0%   { transform: translate(0, 0) scale(1); }
+  50%  { transform: translate(38%, 0) scale(1.2); }
+  100% { transform: translate(0, 0) scale(1); }
+}
+
+// drift-d — counter-clockwise figure-8 (bottom-right blob threads a knot)
+@keyframes klyp-mesh-drift-d {
+  0%   { transform: translate(0, 0) scale(1); }
+  20%  { transform: translate(-22%, -16%) scale(1.1); }
+  40%  { transform: translate(-30%, 12%) scale(1.25); }
+  60%  { transform: translate(-10%, 22%) scale(1.15); }
+  80%  { transform: translate(20%, 8%) scale(0.95); }
+  100% { transform: translate(0, 0) scale(1); }
+}

@@ -1,0 +1,13 @@
+{
+  "id": "otp-input",
+  "name": "OtpInput",
+  "status": "in-progress",
+  "schemaVersion": 1,
+  "description": "Multi-cell one-time-password input with auto-focus advance.",
+  "tags": [
+    "ui"
+  ],
+  "entry": "OtpInput.tsx",
+  "stories": "OtpInput.stories.tsx",
+  "changelog": "CHANGELOG.md"
+}

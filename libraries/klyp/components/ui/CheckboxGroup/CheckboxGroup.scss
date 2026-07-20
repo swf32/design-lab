@@ -1,0 +1,204 @@
+/* =====================================================================*/
+/* CheckboxGroup.scss — Klyp canonical primitive*/
+/* =====================================================================*/
+/* All values via Klyp DTCG tokens — no magic numbers, no hex.*/
+/* Selected state uses `--color-fg-primary` (white-ish), NOT Warm Gold,*/
+/* per the onboarding mock visual contract.*/
+
+.klyp-CheckboxGroup {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-12);
+
+  &[data-layout='grid'] {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    grid-auto-rows: 1fr;
+    align-items: stretch;
+    gap: var(--space-12);
+  }
+
+  &[data-layout='rows'] {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-8);
+  }
+
+  &[data-disabled] {
+    opacity: var(--opacity-50);
+    cursor: not-allowed;
+  }
+}
+
+.klyp-Checkbox {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: var(--space-8);
+  cursor: pointer;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+
+  font: var(--type-body); /* 14 → 18 box */
+  font-weight: var(--font-weight-medium);
+  color: var(--color-fg-primary);
+
+  transition:
+    background var(--duration-fast) var(--easing-standard),
+    border-color var(--duration-fast) var(--easing-standard),
+    color var(--duration-fast) var(--easing-standard);
+
+  /* === Default (inline) variant ========================================*/
+  /* Tiny square indicator + label row.*/
+  &[data-variant='default'] {
+    padding: var(--space-6) var(--space-8);
+
+    &::before {
+      content: '';
+      flex-shrink: 0;
+      width: var(--icon-size-sm);
+      height: var(--icon-size-sm);
+      border: var(--bw-default) solid var(--color-border-default);
+      border-radius: var(--radius-sm);
+      background: transparent;
+      transition:
+        border-color var(--duration-fast) var(--easing-standard),
+        background var(--duration-fast) var(--easing-standard);
+    }
+
+    &[data-hovered]:not([data-disabled])::before {
+      border-color: var(--color-border-strong);
+    }
+
+    &[data-selected]::before,
+    &[data-indeterminate]::before {
+      border-color: var(--color-fg-primary);
+      background: var(--color-fg-primary);
+    }
+
+    &[data-selected]::after {
+      content: '';
+      position: absolute;
+      /* Positioned over the ::before square — token-driven offsets.*/
+      left: calc(var(--space-8) + var(--space-6));
+      width: var(--space-6);
+      height: var(--space-10);
+      border: solid var(--color-bg-root);
+      border-width: 0 var(--bw-emphasis) var(--bw-emphasis) 0;
+      transform: translateY(-1px) rotate(45deg);
+    }
+
+    &[data-focus-visible]::before {
+      outline: var(--bw-emphasis) solid var(--color-fg-primary);
+      outline-offset: var(--bw-emphasis);
+    }
+  }
+
+  /* === Card variant =====================================================*/
+  /* States use neutral surface tokens directly — see RadioGroup card variant*/
+  /* comment for why color-mix(in oklch, surface, white) was wrong.*/
+  &[data-variant='card'] {
+    padding: var(--space-12);
+    border: var(--bw-default) solid var(--color-border-subtle);
+    border-radius: var(--r-card);
+    background: var(--color-bg-surface);
+
+    /* Hover wash — real pointer devices only. On touch RAC sets [data-hovered]
+     * on tap and it sticks (no pointerleave), so a tapped card in the 2-col
+     * onboarding grid stays washed and reads as "hover carried to the same grid
+     * slot on the next step" (Val, /onboarding card grids). Pressed feedback
+     * below stays pointer-agnostic. Matches the V2 fix + AllowanceSlider.scss. */
+    @media (hover: hover) and (pointer: fine) {
+      &[data-hovered]:not([data-disabled]):not([data-selected]) {
+        /* Per the design lead 2026-05-04: dedicated hover token (#2F2F2F, neutral.700).*/
+        background: var(--color-bg-surface-elevated);
+        border-color: var(--color-border-default);
+      }
+    }
+
+    &[data-pressed]:not([data-disabled]) {
+      transform: translateY(1px);
+    }
+
+    &[data-selected] {
+      /* Per the design lead: 5% white border. White check badge is the primary cue.*/
+      /* Selected uses surface-solid (raised) — separate from hover-lift token.*/
+      border-color: var(--color-border-subtle);
+      background: var(--color-bg-surface-solid);
+    }
+
+    &[data-focus-visible] {
+      outline: var(--bw-emphasis) solid var(--color-border-strong);
+      outline-offset: var(--bw-emphasis);
+    }
+  }
+
+  /* === Menu-row variant =================================================*/
+  /* Reads as a DropdownMenu `__item`: compact row, checkbox molecule on the
+     left, a 20px leading glyph + 14/medium label, hover-fill highlight, no
+     card border. Used for multi-select filter lists inside a popover (e.g.
+     AdvancedFilterPopover) so they match the system menu rhythm. Same item
+     recipe as DropdownMenu.scss `&__item` (min-height 36 · gap 8 · pad 8/12 ·
+     concentric --r-inner-section · 20px icon · surface-solid hover). */
+  &[data-variant='menu-row'] {
+    align-items: center;
+    min-height: var(--space-36);
+    gap: var(--space-8);
+    padding: var(--space-8) var(--space-12);
+    border-radius: var(--r-inner-section);
+
+    /* Centre the box on the row — the base flex-start nudge (margin-top: 2)
+       would otherwise push it off the vertical centre. */
+    .klyp-Checkbox__box {
+      margin-top: 0;
+      /* Tighter 4px corners on the checkbox box itself (the row keeps the
+         8px --r-inner-section). Scoped to menu-row so other checkboxes are
+         untouched. */
+      border-radius: var(--radius-4);
+    }
+
+    /* The leading glyph + the label text both arrive as children, so they
+       land in the single inner span of __label. Lay it as a centred row with
+       a 20px muted glyph (matches the DropdownMenu item icon). */
+    .klyp-Checkbox__label > span {
+      display: inline-flex;
+      align-items: center;
+      gap: var(--space-8);
+
+      > svg {
+        flex-shrink: 0;
+        width: var(--icon-size-md);
+        height: var(--icon-size-md);
+        color: var(--color-fg-muted);
+      }
+    }
+
+    /* Hover-fill — real pointer devices only (matches the card variant's
+       touch-stick guard + the DropdownMenu item hover token). The leading
+       glyph also brightens from muted → full fg on row hover. */
+    @media (hover: hover) and (pointer: fine) {
+      &[data-hovered]:not([data-disabled]) {
+        background: var(--color-bg-surface-solid);
+
+        .klyp-Checkbox__label > span > svg {
+          color: var(--color-fg-primary);
+        }
+      }
+    }
+
+    &[data-pressed]:not([data-disabled]) {
+      background: var(--color-bg-surface-solid);
+    }
+
+    &[data-focus-visible] {
+      outline: var(--bw-default) solid var(--color-ring);
+      outline-offset: calc(-1 * var(--bw-default));
+    }
+  }
+
+  /* === Shared states ====================================================*/
+  &[data-disabled] {
+    opacity: var(--opacity-50);
+    cursor: not-allowed;
+  }
+}

@@ -1,0 +1,86 @@
+/* =====================================================================*/
+/* Drawer.scss — Klyp brand wrapper (Phase 3 of Tailwind → SCSS migration)*/
+/* =====================================================================*/
+/* All values via Klyp DTCG tokens — no magic numbers.*/
+/* Wraps <Sheet> primitive (which owns slide animation + positioning).*/
+/* Klyp-specific: grab handle, scrollable body, bordered footer, header*/
+/* padding override, viewport cap for top/bottom variants.*/
+
+.klyp-Drawer {
+  /* Brand surface override — Sheet already sets bg/border, but we re-pin*/
+  /* to the canonical tokens so this stays the source of truth for Klyp.*/
+  background: var(--color-bg-surface);
+  border-color: var(--color-border-default);
+
+  /* Cap top/bottom drawers at 85svh so they don't fill the viewport.*/
+  /* Sheet itself doesn't constrain height for top/bottom — that's brand UX.*/
+  &[data-side='top'],
+  &[data-side='bottom'] {
+    max-height: 85svh;
+  }
+
+  /* === Header ==========================================================*/
+  /* Override Sheet's symmetric padding — drawer header hugs body (no*/
+  /* bottom padding) and uses tighter gap than the primitive.*/
+  &__header {
+    gap: var(--space-2);
+    padding: var(--space-16) var(--space-16) 0 var(--space-16);
+  }
+
+  /* === Grab handle (bottom side only) =================================*/
+  &__grab {
+    margin-inline: auto;
+    margin-top: calc(-1 * var(--space-6));
+    margin-bottom: var(--space-4);
+    height: var(--space-6); /* 6px — pill grabber height*/
+    width: var(--space-20); /* 20px — pill grabber width*/
+    border-radius: var(--radius-full);
+    background: color-mix(in srgb, var(--color-fg-subtle) 50%, transparent);
+  }
+
+  /* === Title ===========================================================*/
+  /* Larger than Sheet's default 16px — drawer is more prominent than a*/
+  /* generic sheet (it's a top-level panel, not a popover).*/
+  &__title {
+    font-size: var(--font-size-18);
+    font-weight: var(--font-weight-semibold);
+    letter-spacing: -0.01em;
+    color: var(--color-fg-primary);
+  }
+
+  /* === Description =====================================================*/
+  &__description {
+    font-size: var(--font-size-14);
+    color: var(--color-fg-muted);
+  }
+
+  /* === Body (scrollable region) =======================================*/
+  &__body {
+    display: flex;
+    min-height: 0;
+    flex: 1 1 auto;
+    flex-direction: column;
+    gap: var(--space-12);
+    overflow-y: auto;
+    padding: var(--space-12) var(--space-16);
+  }
+
+  /* === Footer ==========================================================*/
+  &__footer {
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: var(--space-6);
+    padding: var(--space-12) var(--space-16);
+    border-top: var(--bw-default) solid var(--color-border-subtle);
+    background: color-mix(in srgb, var(--color-bg-surface) 95%, transparent);
+  }
+
+  /* === Trigger passthrough ============================================*/
+  /* Inline wrapper so `display: contents` keeps the caller's element*/
+  /* shape (button-in-button avoidance).*/
+  &__trigger {
+    display: contents;
+  }
+}

@@ -1,0 +1,424 @@
+/* ChoiceCard — square cinematic card, AssetCard visual language, simpler model.*/
+/* Tier: brand atom. BEM: klyp-ChoiceCard.*/
+/* Tokens only — every magic px should be a token reference.*/
+/**/
+/* Visual references:*/
+/*   • Inset border via ::after, sits above absolute image  → AssetCard.scss:67-95*/
+/*   • Image masked with linear-gradient fade               → AssetCard.scss:121-131*/
+/*   • Hover lift + reduced-motion guard                    → AssetCard.scss:55,98-102*/
+/*   • Focus-visible outset ring with color-mix             → AssetCard.scss:91-95*/
+
+.klyp-ChoiceCard {
+  /* ── Root ──*/
+  position: relative;
+  display: block;
+  width: 100%;
+  aspect-ratio: 1 / 1;
+  overflow: clip;
+  isolation: isolate;
+  /* Dark backdrop revealed under the image mask-fade — constant dark in both
+     brands (was bg.root → off-white on unreals, washing the bottom of covers). */
+  background: var(--color-scrim-base);
+  border: 0;
+  border-radius: var(--r-card);
+  padding: 0;
+  margin: 0;
+  font-family: var(--font-sans);
+  color: var(--color-fg-primary);
+  text-align: left;
+  cursor: pointer;
+  appearance: none;
+  container-type: inline-size;
+  container-name: choicecard;
+  transition: transform 300ms cubic-bezier(0.16, 1, 0.3, 1);
+
+  /* Inset border via ::after — sits above absolute image, never lost.*/
+  &::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    z-index: 10;
+    border-radius: inherit;
+    box-shadow: inset 0 0 0 var(--bw-default) var(--color-border-subtle);
+    transition: box-shadow var(--duration-fast) var(--easing-standard);
+  }
+
+  /* ── Hover / pressed / focus-visible ──*/
+  /* Hover lift + border — real pointer devices only. On touch :hover sticks
+   * after tap (no pointerleave) and the card stays raised on the tapped tile.
+   * :active below stays pointer-agnostic for tap feedback. Matches the
+   * AllowanceSlider.scss precedent. */
+  @media (hover: hover) and (pointer: fine) {
+    &:hover {
+      transform: translateY(-4px);
+    }
+
+    &:hover::after {
+      box-shadow: inset 0 0 0 var(--bw-default) var(--color-border-default);
+    }
+  }
+
+  &:active {
+    transform: translateY(-1px);
+  }
+
+  &:focus-visible {
+    outline: none;
+  }
+
+  &:focus-visible::after {
+    box-shadow:
+      inset 0 0 0 var(--bw-default) var(--color-border-default),
+      0 0 0 2px color-mix(in srgb, var(--color-border-focus) 60%, transparent);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    transition: none;
+
+    &:hover,
+    &:active {
+      transform: none;
+    }
+  }
+
+  /* ── soon state — non-interactive look (the design lead, 2026-05-07) ─────────────*/
+  /* Earlier the card was dimmed to 55% opacity; the design lead asked to drop the*/
+  /* dim entirely so soon-cards read as fully-rendered previews of what*/
+  /* the experience will look like — only the corner badge marks them*/
+  /* as "Soon". The card stays focusable for keyboard / screen-reader*/
+  /* users; click is wired to a no-op in <ChoiceScreen.handlePress>, and*/
+  /* the wrapper that adds the snake-glow ring is swapped for a plain*/
+  /* <div> for soon-state cards (see `choice-screen.tsx`) so the hover*/
+  /* affordance never appears around them.*/
+  &[data-state='soon'] {
+    cursor: default;
+
+    &:hover,
+    &:active {
+      transform: none;
+    }
+  }
+
+  /* ── Image / placeholder layer (z-0, masked fade for text contrast) ──*/
+  /* Anti-download: pointer-events:none + user-select:none + user-drag:none*/
+  /* makes drag-to-desktop / right-click "Save image as…" / text-select +*/
+  /* copy-image gestures originate from the underlying button, not the*/
+  /* <img>. Combined with `draggable={false}` + onDragStart/onContextMenu*/
+  /* preventDefault in the JSX, the casual download paths are closed.*/
+  /* (DevTools-savvy users can always reach the bytes — this is UX*/
+  /* deterrence, not DRM.)*/
+  /**/
+  /* Mask fade (the design lead, 2026-05-07): the fade region occupies the bottom 40%*/
+  /* of the card — image is fully opaque from 0% to 60%, then linearly*/
+  /* fades to transparent at 100%. The dark cardroot (--color-bg-root)*/
+  /* shows through under the text overlay so title + desc stay legible*/
+  /* when revealed on hover.*/
+  &__image,
+  &__placeholder {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 0;
+    pointer-events: none;
+    -webkit-user-select: none;
+    user-select: none;
+    /* -webkit-user-drag is Chrome/Safari only; Firefox falls back to the*/
+    /* `draggable={false}` attribute + onDragStart preventDefault in JSX.*/
+    -webkit-user-drag: none;
+    -webkit-mask-image: linear-gradient(180deg, black 60%, transparent 100%);
+    mask-image: linear-gradient(180deg, black 60%, transparent 100%);
+  }
+
+  &__image {
+    object-fit: cover;
+    display: block;
+  }
+
+  &__placeholder {
+    /* No-image cards still feel like siblings of image-bearing ones.*/
+    /* Cool 3-stop gradient, no warm-gold radial (project rule: no static gold).*/
+    background:
+      linear-gradient(
+        135deg,
+        var(--color-bg-surface) 0%,
+        var(--color-bg-glass) 55%,
+        var(--color-bg-glass-deep) 100%
+      );
+  }
+
+  /* ── Content overlay (bottom-left, above image, doesn't block clicks) ──*/
+  /* Anchored to the card's bottom edge (the design lead, 2026-05-07). Default state*/
+  /* = title only, sitting flush at the bottom. On hover/focus the desc*/
+  /* collapses-open (max-height: 0 → 50px) below the title, growing the*/
+  /* overlay's total height — since the overlay is `bottom: 0`, the new*/
+  /* height pushes the top edge upward, which slides the title up with*/
+  /* the appearing desc instead of leaving it floating mid-card.*/
+  /**/
+  /* We use margin-top (animated) instead of flex `gap` because flex gap*/
+  /* also applies between zero-height items, leaving a 4px ghost gap*/
+  /* when the desc is collapsed. margin-top on the desc itself collapses*/
+  /* cleanly when its max-height hits 0.*/
+  /**/
+  /* `pointer-events: none` keeps clicks pierce-through to the button.*/
+  &__content {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 2;
+    display: flex;
+    flex-direction: column;
+    padding: var(--space-24);
+    pointer-events: none;
+  }
+
+  &__title {
+    display: -webkit-box;
+    -webkit-line-clamp: 1;
+    line-clamp: 1;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    margin: 0;
+    font-family: var(--font-sans);
+    font-size: var(--font-size-16);
+    font-weight: 500;
+    line-height: 1.2;
+    /* On the dark mask-fade — constant white in both brands. */
+    color: var(--color-scrim-on);
+  }
+
+  /* Desc collapses to zero height by default so the overlay shrinks to*/
+  /* just the title — the title therefore sits flush at the card's bottom*/
+  /* edge. On hover/focus the desc opens (max-height 0 → 50px which is*/
+  /* enough for 2 line-clamped lines at 13×1.4 = 36.4px plus margin-top)*/
+  /* and a 4px margin-top appears between title and desc. As the overlay*/
+  /* grows, its bottom-anchored position pushes the title upward — title*/
+  /* and desc rise together, exactly the requested motion.*/
+  /**/
+  /* `overflow: hidden` is required so the clipped lines don't leak out*/
+  /* while max-height interpolates. Browsers smoothly transition between*/
+  /* `max-height: 0` and a fixed pixel value (here 50px); animating to*/
+  /* `auto` would silently no-op without the modern `interpolate-size`*/
+  /* property, which we don't rely on for compatibility.*/
+  &__desc {
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    margin: 0;
+    margin-top: 0;
+    max-height: 0;
+    font-family: var(--font-sans);
+    font-size: var(--font-size-13);
+    font-weight: 400;
+    line-height: 1.4;
+    /* Muted white over the dark fade, constant in both brands. */
+    color: var(--color-scrim-on-muted);
+    opacity: 0;
+    transform: translateY(8px);
+    transition:
+      max-height 200ms var(--easing-standard),
+      margin-top 200ms var(--easing-standard),
+      opacity 200ms var(--easing-standard),
+      transform 200ms var(--easing-standard);
+  }
+
+  /* Desc reveal: on focus (keyboard) always; on hover only on real pointer
+   * devices (touch :hover sticks after tap). Touch devices can't hover, so
+   * reveal the desc at rest via @media (hover: none) below — same touch
+   * pattern as MediaCard — so the description isn't lost on mobile. */
+  &:focus-visible &__desc {
+    max-height: 50px;
+    margin-top: var(--space-8);
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  @media (hover: hover) and (pointer: fine) {
+    &:hover &__desc {
+      max-height: 50px;
+      margin-top: var(--space-8);
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  @media (hover: none) {
+    &:not([data-state='soon']) &__desc {
+      max-height: 50px;
+      margin-top: var(--space-8);
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  /* Soon cards: desc stays collapsed even on hover/focus — non-interactive*/
+  /* tiles shouldn't grow a hover affordance. Higher specificity (0, 2, 1)*/
+  /* beats the `:hover &__desc` reveal above (0, 1, 1).*/
+  &[data-state='soon']:hover &__desc,
+  &[data-state='soon']:focus-visible &__desc {
+    max-height: 0;
+    margin-top: 0;
+    opacity: 0;
+    transform: translateY(8px);
+  }
+
+  /* ── Photo variant — image-first, title only, no desc ─────────────────*/
+  /* Vibe / world picker cards (`<ChoiceCard variant="photo">`): the*/
+  /* photograph carries most of the meaning, but the title still names*/
+  /* the card. Desc is suppressed entirely so the artwork dominates.*/
+  /* Fade region shrinks to 20% of the card height (vs 40% for `'art'`)*/
+  /* — enough to keep the title legible against bright photographs.*/
+  &[data-variant='photo'] &__image,
+  &[data-variant='photo'] &__placeholder {
+    -webkit-mask-image: linear-gradient(180deg, black 80%, transparent 100%);
+    mask-image: linear-gradient(180deg, black 80%, transparent 100%);
+  }
+
+  &[data-variant='photo'] &__desc {
+    display: none;
+  }
+
+  /* Reduced motion: keep the structural reveal (max-height + margin-top*/
+  /* + opacity) so the title still rises with the desc, but drop the*/
+  /* slide-from-below translateY animation.*/
+  @media (prefers-reduced-motion: reduce) {
+    &__desc {
+      transform: none;
+      transition:
+        max-height 200ms var(--easing-standard),
+        margin-top 200ms var(--easing-standard),
+        opacity 200ms var(--easing-standard);
+    }
+
+    &:hover &__desc,
+    &:focus-visible &__desc {
+      transform: none;
+    }
+  }
+
+  /* ── Add-kind tile (the design lead, 2026-05-07) ──────────────────────────────────*/
+  /* Empty-state "Add your own" tile that opens at the head of a picker*/
+  /* grid (vibe / render / director). Square frame, centered plus glyph,*/
+  /* centered label below. No image-mask, no overlay reveal, no Soon*/
+  /* badge logic — visually distinct from the cinematic `kind='card'`*/
+  /* tiles next to it so users read it as an action surface, not a*/
+  /* selection. Once the consumer uploads a custom asset and flips*/
+  /* `kind` back to `'card'`, the regular cover treatment kicks in.*/
+  /**/
+  /* Dashed border replaces the inset solid border on `::after`. Dashed*/
+  /* is the canonical "scaffolding / add" affordance across the design*/
+  /* system (cf. `<AddCard>` in library grids).*/
+  &[data-kind='add'] {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: var(--space-24);
+    background: var(--color-bg-glass);
+    color: var(--color-fg-muted);
+    transition: color var(--duration-fast) var(--easing-standard),
+      background-color var(--duration-fast) var(--easing-standard),
+      transform 300ms cubic-bezier(0.16, 1, 0.3, 1);
+
+    &::after {
+      border: 1.5px dashed var(--color-border-subtle);
+      box-shadow: none;
+      transition:
+        border-color var(--duration-fast) var(--easing-standard),
+        box-shadow var(--duration-fast) var(--easing-standard);
+    }
+
+    @media (hover: hover) and (pointer: fine) {
+      &:hover {
+        color: var(--color-fg-primary);
+        background: var(--color-bg-glass-deep);
+      }
+
+      &:hover::after {
+        border-color: var(--color-border-default);
+      }
+    }
+
+    &:focus-visible::after {
+      border-color: var(--color-border-default);
+      box-shadow: 0 0 0 2px color-mix(in srgb, var(--color-border-focus) 60%, transparent);
+    }
+  }
+
+  &__addGlyph {
+    display: inline-flex;
+    width: 32px;
+    height: 32px;
+    align-items: center;
+    justify-content: center;
+    pointer-events: none;
+  }
+
+  &__addLabel {
+    margin: 0;
+    max-width: 80%;
+    font-family: var(--font-sans);
+    font-size: var(--font-size-14);
+    font-weight: 500;
+    line-height: 1.2;
+    color: var(--color-fg-primary);
+    text-align: center;
+    pointer-events: none;
+    overflow: hidden;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    line-clamp: 2;
+    -webkit-box-orient: vertical;
+  }
+
+  /* ── Soon badge (top-right corner, glass tint) ──*/
+  &__badge {
+    position: absolute;
+    top: var(--space-16);
+    right: var(--space-16);
+    z-index: 3;
+    font-family: var(--font-sans);
+    font-size: var(--font-size-11);
+    font-weight: 500;
+    letter-spacing: 0.02em;
+    color: var(--color-fg-primary);
+    background: var(--color-bg-glass);
+    -webkit-backdrop-filter: blur(6px);
+    backdrop-filter: blur(6px);
+    border: var(--bw-default) solid var(--color-border-subtle);
+    border-radius: var(--radius-sm);
+    padding: var(--space-2) var(--space-12);
+    pointer-events: none;
+  }
+
+  /* ── Container queries — 2 stops ──*/
+  /* Narrow card (mobile 2-col, ~150-180px): keep desc visible but drop*/
+  /* aspect-lock so card grows under content (square + 2-line desc + padding*/
+  /* doesn't fit at 150px). Same bug shape we hit in old EntrySelectScreen.*/
+  @container choicecard (max-width: 199px) {
+    aspect-ratio: auto;
+    min-height: 156px;
+
+    &__title {
+      font-size: var(--font-size-14);
+    }
+    &__content {
+      padding: var(--space-16) var(--space-24) var(--space-24);
+    }
+  }
+
+  /* Above 260: bigger title, 3-line desc clamp.*/
+  @container choicecard (min-width: 260px) {
+    &__title {
+      font-size: var(--font-size-18);
+    }
+    &__desc {
+      -webkit-line-clamp: 3;
+      line-clamp: 3;
+    }
+  }
+}

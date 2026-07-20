@@ -1,0 +1,14 @@
+{
+  "id": "top-nav",
+  "name": "TopNav",
+  "status": "in-progress",
+  "schemaVersion": 1,
+  "description": "TODO: Marketing/public-page top navigation bar.",
+  "tags": [
+    "brand",
+    "brand-molecule"
+  ],
+  "entry": "TopNav.tsx",
+  "stories": "TopNav.stories.tsx",
+  "changelog": "CHANGELOG.md"
+}

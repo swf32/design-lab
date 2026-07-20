@@ -1,0 +1,60 @@
+/* =====================================================================*/
+/* ModalToolbar — modal / sheet toolbar band (filter controls + search).   */
+/* Tokens only. Responsive via a CONTAINER query so it adapts to its own    */
+/* width (full modal vs narrow sheet), not the viewport.                    */
+/* =====================================================================*/
+
+.klyp-ModalToolbar {
+  /* Query container — the inner row reads THIS element's inline-size. (A
+     container can't style itself, hence the inner `__row`.) */
+  container-type: inline-size;
+  /* `container-type: inline-size` applies inline-size CONTAINMENT: this element
+     has NO intrinsic width and must take its width from its parent's layout
+     (in production LibraryPicker's header / sheet supplies it). `inline-size: 100%`
+     makes "fill the parent" explicit so a drop-in inside a flex / grid parent
+     can't collapse to ~0 — a zero width mis-fires the query into the stacked
+     mobile layout. No-op in normal block flow. The parent must still establish a
+     DEFINITE width (see the stories' fixed-`width` frames). */
+  inline-size: 100%;
+}
+
+.klyp-ModalToolbar__row {
+  display: flex;
+  /* Mobile-first: controls stacked above a full-width search, 12px apart. */
+  flex-direction: column;
+  gap: var(--space-12);
+}
+
+.klyp-ModalToolbar__controls {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-8);
+  min-width: 0;
+}
+
+.klyp-ModalToolbar__search {
+  /* Mobile: edge-to-edge below the controls. */
+  inline-size: 100%;
+}
+
+/* Desktop — controls fill the left, the search pins right at a fixed width. */
+@container (min-width: 640px) {
+  .klyp-ModalToolbar__row {
+    flex-direction: row;
+    align-items: center;
+    gap: var(--space-8);
+  }
+
+  .klyp-ModalToolbar__controls {
+    flex: 1 1 auto;
+    flex-wrap: nowrap;
+  }
+
+  .klyp-ModalToolbar__search {
+    flex: 0 0 auto;
+    /* 400px default (128·3 + 16), overridable via the custom property. */
+    inline-size: var(--modal-toolbar-search-w, calc(var(--space-128) * 3 + var(--space-16)));
+    max-inline-size: 100%;
+  }
+}

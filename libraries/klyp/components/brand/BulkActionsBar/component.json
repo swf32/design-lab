@@ -1,0 +1,14 @@
+{
+  "id": "bulk-actions-bar",
+  "name": "BulkActionsBar",
+  "status": "in-progress",
+  "schemaVersion": 1,
+  "description": "Floating selection toolbar — count label + Clear-X + slot-based action buttons. Fixed-bottom by default, `inline` opts out for caller-controlled positioning.",
+  "tags": [
+    "brand",
+    "brand-molecule"
+  ],
+  "entry": "BulkActionsBar.tsx",
+  "stories": "BulkActionsBar.stories.tsx",
+  "changelog": "CHANGELOG.md"
+}

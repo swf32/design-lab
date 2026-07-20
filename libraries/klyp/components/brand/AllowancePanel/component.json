@@ -1,0 +1,14 @@
+{
+  "id": "allowance-panel",
+  "name": "AllowancePanel",
+  "status": "in-progress",
+  "schemaVersion": 1,
+  "description": "Token allowance panel — headline, optional usage examples, optional slider.",
+  "tags": [
+    "brand",
+    "brand-molecule"
+  ],
+  "entry": "AllowancePanel.tsx",
+  "stories": "AllowancePanel.stories.tsx",
+  "changelog": "CHANGELOG.md"
+}

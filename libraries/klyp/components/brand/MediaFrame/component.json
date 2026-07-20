@@ -1,0 +1,14 @@
+{
+  "id": "media-frame",
+  "name": "MediaFrame",
+  "status": "in-progress",
+  "schemaVersion": 1,
+  "description": "Generation lifecycle frame — generating state (snake + breathing surface) that blur-reveals the final image/video in place.",
+  "tags": [
+    "brand",
+    "brand-molecule"
+  ],
+  "entry": "MediaFrame.tsx",
+  "stories": "MediaFrame.stories.tsx",
+  "changelog": "CHANGELOG.md"
+}

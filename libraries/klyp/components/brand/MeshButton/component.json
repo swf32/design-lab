@@ -1,0 +1,14 @@
+{
+  "id": "mesh-button",
+  "name": "MeshButton",
+  "status": "in-progress",
+  "schemaVersion": 1,
+  "description": "Hero CTA button with animated mesh gradient — primary marketing surface.",
+  "tags": [
+    "brand",
+    "brand-atom"
+  ],
+  "entry": "MeshButton.tsx",
+  "stories": "MeshButton.stories.tsx",
+  "changelog": "CHANGELOG.md"
+}

@@ -1,0 +1,14 @@
+{
+  "id": "selectable-card",
+  "name": "SelectableCard",
+  "status": "in-progress",
+  "schemaVersion": 1,
+  "description": "TODO: Card with selected/unselected state for picker grids.",
+  "tags": [
+    "brand",
+    "brand-atom"
+  ],
+  "entry": "SelectableCard.tsx",
+  "stories": "SelectableCard.stories.tsx",
+  "changelog": "CHANGELOG.md"
+}

@@ -1,0 +1,14 @@
+{
+  "id": "prose",
+  "name": "Prose",
+  "status": "in-progress",
+  "schemaVersion": 1,
+  "description": "Long-form reading typography for rendered Markdown — 18/16px reading recipe, full heading scale, blockquote/table/code/img; engine-agnostic render slot over MarkdownBoundary.",
+  "tags": [
+    "brand",
+    "brand-molecule"
+  ],
+  "entry": "Prose.tsx",
+  "stories": "Prose.stories.tsx",
+  "changelog": "CHANGELOG.md"
+}

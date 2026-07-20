@@ -1,0 +1,12 @@
+{
+  "id": "tier-glyph",
+  "name": "TierGlyph",
+  "status": "in-progress",
+  "schemaVersion": 1,
+  "tags": [
+    "brand"
+  ],
+  "entry": "TierGlyph.tsx",
+  "stories": "TierGlyph.stories.tsx",
+  "changelog": "CHANGELOG.md"
+}

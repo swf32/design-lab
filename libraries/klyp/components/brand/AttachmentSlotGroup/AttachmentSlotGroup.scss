@@ -1,0 +1,47 @@
+/**
+ * AttachmentSlotGroup — pure flex-row layouter over AttachmentSlot cells.
+ * Adds ONLY the row/clip-lane chrome; every tile / pill / dashed / badge /
+ * spinner / remove / status-ring / enter-anim / reduced-motion style is
+ * inherited from AttachmentSlot.scss (zero duplicate tile CSS). flex-wrap +
+ * min-width:0 satisfy the 280 / 600 / 1200 container test — cells are fixed
+ * 40 / 80px chrome by design, so no @container is needed. Tokens only.
+ */
+.klyp-AttachmentSlotGroup {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--space-8);
+  min-width: 0;
+
+  // Lanes wrapper (the AnimatePresence "slots" branch) — reproduces the root's
+  // vertical column so the row / clips / files lanes keep their stacking gap
+  // now that a motion.div sits between the root and the lanes.
+  &__lanes {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--space-8);
+    min-width: 0;
+  }
+
+  &__row,
+  &__clips,
+  &__files {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-start;
+    gap: var(--space-8);
+    min-width: 0;
+  }
+
+  /* Button primitive owns its visual; only keep it from shrinking. */
+  &__swap {
+    flex-shrink: 0;
+    align-self: center;
+  }
+
+  &[data-disabled] {
+    opacity: var(--opacity-disabled);
+    pointer-events: none;
+  }
+}

@@ -1,0 +1,14 @@
+{
+  "id": "status-dialog",
+  "name": "StatusDialog",
+  "status": "in-progress",
+  "schemaVersion": 1,
+  "description": "Centered outcome modal over Modal — tone icon + lead + detail + up to 2 actions (payment-failed, etc).",
+  "tags": [
+    "brand",
+    "brand-molecule"
+  ],
+  "entry": "StatusDialog.tsx",
+  "stories": "StatusDialog.stories.tsx",
+  "changelog": "CHANGELOG.md"
+}

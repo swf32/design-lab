@@ -1,0 +1,41 @@
+/* =====================================================================*/
+/* Kbd.scss — Klyp brand atom (keyboard shortcut display)*/
+/* =====================================================================*/
+/* All values via Klyp DTCG tokens — no magic numbers.*/
+/* font-mono IS allowed here (per .claude/rules/styles.md Typography section):*/
+/* Kbd, Script Editor, <pre>/<code> are the only 3 exceptions.*/
+
+.klyp-Kbd {
+  /* === Base ============================================================*/
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-4);
+
+  font-family: var(--font-mono);
+  font-weight: var(--font-weight-medium);
+  line-height: 1;
+
+  color: var(--color-fg-muted);
+  background: var(--color-bg-surface-solid);
+  border: var(--bw-default) solid var(--color-border-subtle);
+  border-radius: var(--radius-sm);
+
+  /* === Sizes ===========================================================*/
+  /* Real keycap proportions (2026-07-02, Val): the old 10/12px boxes were*/
+  /* shorter than their own glyphs — chips read as squished text. 16/20px*/
+  /* match the menu-row rhythm (36px rows → 20px md keycap).*/
+  &[data-size='sm'] {
+    height: var(--space-16);
+    min-width: var(--space-16);
+    padding-inline: var(--space-4);
+    font-size: var(--font-size-11);
+  }
+
+  &[data-size='md'] {
+    height: var(--space-20);
+    min-width: var(--space-20);
+    padding-inline: var(--space-6);
+    font-size: var(--font-size-12);
+  }
+}

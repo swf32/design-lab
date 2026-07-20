@@ -1,0 +1,12 @@
+{
+  "id": "spinner",
+  "name": "Spinner",
+  "status": "in-progress",
+  "schemaVersion": 1,
+  "tags": [
+    "ui"
+  ],
+  "entry": "Spinner.tsx",
+  "stories": "Spinner.stories.tsx",
+  "changelog": "CHANGELOG.md"
+}

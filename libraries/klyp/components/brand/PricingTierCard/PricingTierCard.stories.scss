@@ -1,0 +1,54 @@
+/* =====================================================================
+ * PricingTierCard — catalog preview wrappers.
+ * =====================================================================
+ *
+ * Used only by `PricingTierCard.stories.tsx`. These classes wrap each
+ * story so the catalog `/components/pricing-tier-card` preview stage
+ * (`StoryCard__stage`, a centered flex container) renders the card at
+ * its production grid-column width instead of letting it stretch to the
+ * full stage width.
+ *
+ * Frame width and grid max-width live as local CSS custom properties
+ * here — these are catalog-preview-only fixture sizes, NOT design
+ * tokens, so they intentionally don't go through the token graph.
+ * Internal layout still uses canonical tokens (`--space-*`,
+ * `--gutter-grid`).
+ */
+
+.klyp-PricingTierCard-story {
+  /* Custom properties declared per-modifier (not on the bare base class)
+   * because the DOM only carries the modifier classes — there's no element
+   * with the bare `.klyp-PricingTierCard-story` class for inheritance to
+   * cascade from. */
+
+  &__frame {
+    width: 22.5rem; /* 360px @ 16px root — catalog preview frame */
+  }
+
+  &__grid {
+    /* `auto-fit + minmax(18rem, 1fr)` lets the grid pick the column count
+     * itself: each card claims at least 18rem (288px ≈ production tier
+     * card width on /pricing), and the grid drops a column whenever the
+     * available width can't accommodate another min-sized slot.
+     *
+     * @container queries were tried first but a grid can't query its own
+     * width (the closest container-ancestor is checked, not the element
+     * itself). `auto-fit` is the simpler equivalent: on the catalog stage
+     * (~860px wide because the docs sidebar eats ~530px) we get 2 cols at
+     * ~391px each; on a full /pricing-style viewport (~1280px) we get all
+     * 4 cols at ~288px. Either way "Creator +" fits in one row next to
+     * the badge and Studio's 4 slider ticks don't collide.
+     *
+     * `width: 100%` constrains the grid to its flex parent (the
+     * StoryCard__stage). Without it the grid takes its preferred
+     * max-content size (~1280px) and overflows the stage. */
+    width: 100%;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(18rem, 1fr));
+    grid-auto-rows: 1fr;
+    align-items: stretch;
+    gap: var(--gutter-grid);
+    padding: var(--space-32);
+    max-width: 80rem; /* 1280px @ 16px root — Grid story max */
+  }
+}

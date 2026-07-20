@@ -1,0 +1,61 @@
+// =====================================================================
+// Skeleton.scss — Klyp loading-state placeholder (Pulse Wave)
+// =====================================================================
+// All values via Klyp DTCG tokens — no magic numbers, no hardcoded rgba.
+// Fill at `--alpha-white-10` so the placeholder reads as visibly
+// brighter than its host card (`--color-bg-surface`) on dark mode.
+// Cycle: 1.6s opacity breath (composite-only, GPU friendly).
+// Stagger: callers set `style="--klyp-stagger-i: N"` per Skeleton;
+// the cycle shifts by N × 120ms. Sequential indices on adjacent
+// placeholders produce the cascading "wave" effect — strong enough
+// to read as motion even when each individual block is just
+// breathing in place.
+
+.klyp-Skeleton {
+  display: block;
+  position: relative;
+  overflow: hidden;
+  isolation: isolate;
+  background-color: var(--alpha-white-10);
+  border-radius: var(--r-card);
+  animation: klyp-skeleton-pulse calc(var(--duration-slow) * 4.5) ease-in-out infinite;
+  animation-delay: calc(var(--klyp-stagger-i, 0) * 120ms);
+
+  // -------------------------------------------------------------------
+  // Radius — semantic aliases from styles.md (locked 5-step ramp).
+  // -------------------------------------------------------------------
+  &[data-radius='sm']      { border-radius: var(--radius-sm); }
+  &[data-radius='chip']    { border-radius: var(--r-chip); }
+  &[data-radius='card']    { border-radius: var(--r-card); }
+  &[data-radius='section'] { border-radius: var(--r-section); }
+  &[data-radius='panel']   { border-radius: var(--r-panel); }
+  &[data-radius='full']    { border-radius: var(--radius-full); }
+
+  // -------------------------------------------------------------------
+  // Animation opt-out — `animation='none'` renders a static placeholder
+  // (same resting look as reduced-motion) without needing an OS setting.
+  // -------------------------------------------------------------------
+  &[data-animation='none'] {
+    animation: none;
+    opacity: var(--opacity-70);
+  }
+
+  // -------------------------------------------------------------------
+  // Reduced-motion — WCAG 2.3.3 + Apple HIG + Material 3.
+  // No motion, but the placeholder remains visible as a quiet block.
+  // -------------------------------------------------------------------
+  @media (prefers-reduced-motion: reduce) {
+    animation: none;
+    opacity: var(--opacity-70);
+  }
+}
+
+@keyframes klyp-skeleton-pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.45;
+  }
+}

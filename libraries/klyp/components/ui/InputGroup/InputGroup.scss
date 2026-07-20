@@ -1,0 +1,361 @@
+/* =====================================================================*/
+/* InputGroup.scss — Klyp canonical compound primitive*/
+/*   (Phase 2 of React Aria migration)*/
+/* =====================================================================*/
+/* All values via Klyp DTCG tokens — no magic numbers.*/
+/* Architecture: ../../../../MIGRATION-REACT-ARIA-2026-04-30.md §6/§16*/
+
+.klyp-InputGroup {
+  /* === Root container ================================================*/
+  /* Flex shell that owns the border / radius / focus ring while child*/
+  /* <Input>/<Textarea> render edge-to-edge, chrome-stripped.*/
+  position: relative;
+  display: flex;
+  width: 100%;
+  min-width: 0;
+  height: var(--space-32); /* 32px — single-line height*/
+  align-items: center;
+  border: var(--bw-default) solid var(--color-border-default);
+  border-radius: var(--radius-md);
+  background: transparent;
+  outline: none;
+  transition:
+    border-color var(--duration-fast) var(--easing-standard),
+    box-shadow var(--duration-fast) var(--easing-standard),
+    background var(--duration-fast) var(--easing-standard);
+
+  /* Group focus — when any child input/textarea is focused.*/
+  /* No-shift: shadow ring outside the box, not a thicker border (which would*/
+  /* change the shell size and nudge content). Эталон: SearchField.scss.*/
+  &:has(input:focus-visible),
+  &:has(textarea:focus-visible) {
+    border-color: var(--color-border-focus);
+    box-shadow: 0 0 0 var(--bw-default) var(--color-border-focus);
+  }
+
+  /* Group invalid — propagated from a child marked aria-invalid / data-invalid.*/
+  &:has([aria-invalid='true']),
+  &:has([data-invalid]) {
+    border-color: var(--color-status-danger);
+
+    &:has(input:focus-visible),
+    &:has(textarea:focus-visible) {
+      border-color: var(--color-status-danger);
+      box-shadow: 0 0 0 var(--bw-default) var(--color-status-danger);
+    }
+  }
+
+  /* Group disabled — any disabled descendant control dims the shell.*/
+  &:has(:disabled) {
+    background: var(--color-bg-surface);
+    opacity: var(--opacity-50, 0.5);
+  }
+
+  /* Group hover — lift border-color when no descendant is disabled.*/
+  /* Skips during focus (focus styling already covers the border).*/
+  &:hover:not(:has(:disabled)):not(:has(input:focus-visible)):not(:has(textarea:focus-visible)) {
+    border-color: var(--color-border-strong);
+  }
+
+  /* === Reduced motion =================================================*/
+  @media (prefers-reduced-motion: reduce) {
+    transition: none;
+  }
+
+  /* === Sizes (root data-size cascades to nested Input/Textarea) =====*/
+  /* `data-size='md'` keeps the existing baseline declared above —*/
+  /* explicit `&[data-size='md']` is omitted so the defaults remain*/
+  /* the single source of truth.*/
+  &[data-size='sm'] {
+    height: var(--space-28); /* 28px — compact single-line height*/
+
+    > .klyp-InputGroup__input,
+    > .klyp-InputGroup__textarea {
+      padding-top: var(--space-4);
+      padding-bottom: var(--space-4);
+      font: var(--type-body); /* 14 → 18 box */
+    }
+
+    > .klyp-InputGroup__addon[data-align='inline-start'] { padding-left: var(--space-6); }
+    > .klyp-InputGroup__addon[data-align='inline-end']   { padding-right: var(--space-6); }
+  }
+
+  &[data-size='lg'] {
+    height: var(--space-40); /* 40px — spacious single-line height*/
+
+    > .klyp-InputGroup__input,
+    > .klyp-InputGroup__textarea {
+      padding-top: var(--space-10);
+      padding-bottom: var(--space-10);
+      font: var(--type-body-lg); /* 16 → 20 box */
+    }
+
+    > .klyp-InputGroup__addon[data-align='inline-start'] { padding-left: var(--space-12); }
+    > .klyp-InputGroup__addon[data-align='inline-end']   { padding-right: var(--space-12); }
+  }
+
+  /* Vertical-flow groups (textarea / block addons) must drop the fixed*/
+  /* height so size only controls inner padding + font-size.*/
+  &[data-size='sm']:has(textarea),
+  &[data-size='sm']:has(> [data-align='block-start']),
+  &[data-size='sm']:has(> [data-align='block-end']),
+  &[data-size='lg']:has(textarea),
+  &[data-size='lg']:has(> [data-align='block-start']),
+  &[data-size='lg']:has(> [data-align='block-end']) {
+    height: auto;
+  }
+
+  /* === Variants =====================================================*/
+  /* `data-variant='outline'` is the default — transparent shell with a*/
+  /* visible border (matches the existing baseline declared above).*/
+  &[data-variant='filled'] {
+    background: var(--color-bg-surface);
+    border-color: transparent;
+
+    &:hover:not(:has(:disabled)):not(:has(input:focus-visible)):not(:has(textarea:focus-visible)) {
+      background: var(--color-bg-surface-elevated);
+      border-color: transparent;
+    }
+  }
+
+  &[data-variant='ghost'] {
+    background: transparent;
+    border-color: transparent;
+
+    &:hover:not(:has(:disabled)):not(:has(input:focus-visible)):not(:has(textarea:focus-visible)) {
+      background: var(--color-bg-surface);
+      border-color: transparent;
+    }
+  }
+
+  /* Multi-line: textarea or top/bottom-aligned addons turn the row into a column.*/
+  &:has(textarea),
+  &:has(> [data-align='block-start']),
+  &:has(> [data-align='block-end']) {
+    height: auto;
+  }
+
+  &:has(> [data-align='block-start']),
+  &:has(> [data-align='block-end']) {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  /* Inner padding tweak — when an inline addon is present, give the input*/
+  /* a little breathing room toward the addon side.*/
+  &:has(> [data-align='inline-start']) > .klyp-InputGroup__input,
+  &:has(> [data-align='inline-start']) > .klyp-InputGroup__textarea {
+    padding-left: var(--space-6); /* 6px*/
+  }
+
+  &:has(> [data-align='inline-end']) > .klyp-InputGroup__input,
+  &:has(> [data-align='inline-end']) > .klyp-InputGroup__textarea {
+    padding-right: var(--space-6);
+  }
+
+  &:has(> [data-align='block-start']) > .klyp-InputGroup__input,
+  &:has(> [data-align='block-start']) > .klyp-InputGroup__textarea {
+    padding-bottom: var(--space-6);
+  }
+
+  &:has(> [data-align='block-end']) > .klyp-InputGroup__input,
+  &:has(> [data-align='block-end']) > .klyp-InputGroup__textarea {
+    padding-top: var(--space-6);
+  }
+
+  /* === Addon =========================================================*/
+  /* Decorative cell aligned around the input. Inline = order changes;*/
+  /* block = full-width header/footer band.*/
+  &__addon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    align-self: stretch;
+    gap: var(--space-8); /* 8px*/
+    cursor: text;
+    user-select: none;
+
+    color: var(--color-fg-muted);
+    font: var(--type-body); /* 14 → 18 box */
+    font-weight: var(--font-weight-medium);
+
+    > svg {
+      flex-shrink: 0;
+      width: var(--icon-size-sm);
+      height: var(--icon-size-sm);
+    }
+
+    > kbd {
+      border-radius: var(--radius-sm);
+    }
+
+    /* --- Alignment variants -----------------------------------------*/
+    &[data-align='inline-start'] {
+      order: -1;
+      padding-left: var(--space-8); /* 8px*/
+
+      &:has(> button) {
+        margin-left: calc(var(--space-4) * -1); /* -4px to tighten button against edge*/
+      }
+    }
+
+    &[data-align='inline-end'] {
+      order: 1;
+      padding-right: var(--space-8);
+
+      &:has(> button) {
+        margin-right: calc(var(--space-4) * -1);
+      }
+    }
+
+    &[data-align='block-start'] {
+      order: -1;
+      width: 100%;
+      justify-content: flex-start;
+      padding: var(--space-8) var(--space-10); /* 10px 10px*/
+    }
+
+    &[data-align='block-end'] {
+      order: 1;
+      width: 100%;
+      justify-content: flex-start;
+      padding: var(--space-8) var(--space-10);
+    }
+  }
+
+  /* === Button (wraps Button primitive) ==============================*/
+  /* Tighten the underlying Button so it sits comfortably inside the row.*/
+  /* Button's own data-size still styles it; we override only what's needed*/
+  /* for the addon context (no shadow, smaller radii to match the group).*/
+  &__button {
+    box-shadow: none;
+
+    &[data-size='xs'] {
+      gap: var(--space-4); /* 4px*/
+      padding: 0 var(--space-6); /* 0 6px*/
+      height: var(--space-24); /* 24px*/
+      border-radius: var(--radius-sm);
+
+      > svg {
+        width: var(--icon-size-xs);
+        height: var(--icon-size-xs);
+      }
+    }
+
+    &[data-size='sm'] {
+      gap: var(--space-6);
+      padding: 0 var(--space-8);
+      height: var(--space-28); /* 28px*/
+      border-radius: var(--radius-sm);
+    }
+
+    &[data-size='icon-xs'] {
+      width: var(--space-24); /* 24px*/
+      height: var(--space-24);
+      padding: 0;
+      border-radius: var(--radius-sm);
+
+      > svg {
+        width: var(--icon-size-xs);
+        height: var(--icon-size-xs);
+      }
+    }
+
+    &[data-size='icon-sm'] {
+      width: var(--space-32); /* 32px*/
+      height: var(--space-32);
+      padding: 0;
+      border-radius: var(--radius-sm);
+
+      > svg {
+        width: var(--icon-size-xs);
+        height: var(--icon-size-xs);
+      }
+    }
+  }
+
+  /* === Text ==========================================================*/
+  &__text {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-8); /* 8px*/
+    font: var(--type-body); /* 14 → 18 box */
+    color: var(--color-fg-muted);
+
+    > svg {
+      pointer-events: none;
+      flex-shrink: 0;
+      width: var(--icon-size-sm);
+      height: var(--icon-size-sm);
+    }
+  }
+
+  /* === Input (wraps Input primitive — strip its chrome) =============*/
+  /* The group provides the border/radius/focus ring; the Input inside*/
+  /* must be transparent so visuals don't double up.*/
+  /**/
+  /* Height: defer to the InputGroup root. Input primitive sets a fixed*/
+  /* height per its own data-size, which conflicts with the parent row*/
+  /* height (e.g. <Input size="md"> inside <InputGroup size="lg"> sat at*/
+  /* 32px in a 40px row → vertical gap; combined with the size cascade's*/
+  /* padding-top/padding-bottom rules above it could push the box past*/
+  /* the row and overlap addons. align-self: stretch + height: auto*/
+  /* fills the row cleanly and lets the cascade padding own vertical rhythm.*/
+  &__input {
+    flex: 1 1 auto;
+    align-self: stretch;
+    min-width: 0;
+    height: auto;
+    min-height: 0;
+    border: 0;
+    border-radius: 0;
+    background: transparent;
+    outline: none;
+    box-shadow: none;
+
+    &:focus-visible {
+      outline: none;
+      border: 0;
+      box-shadow: none;
+    }
+
+    &:disabled {
+      background: transparent;
+    }
+
+    &[aria-invalid='true'] {
+      border: 0;
+      outline: none;
+      box-shadow: none;
+    }
+  }
+
+  /* === Textarea (wraps Textarea primitive — strip its chrome) =======*/
+  &__textarea {
+    flex: 1 1 auto;
+    min-width: 0;
+    resize: none;
+    border: 0;
+    border-radius: 0;
+    background: transparent;
+    padding: var(--space-8) var(--space-12); /* 12px 12px*/
+    outline: none;
+    box-shadow: none;
+
+    &:focus-visible {
+      outline: none;
+      border: 0;
+      box-shadow: none;
+    }
+
+    &:disabled {
+      background: transparent;
+    }
+
+    &[aria-invalid='true'] {
+      border: 0;
+      outline: none;
+      box-shadow: none;
+    }
+  }
+}

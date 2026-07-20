@@ -1,0 +1,14 @@
+{
+  "id": "sidebar-shell",
+  "name": "SidebarShell",
+  "status": "in-progress",
+  "schemaVersion": 1,
+  "description": "The sidebar KIT (one module): chassis (panel chrome + header/nav/footer slots, data-expanded collapse driver) + SidebarToggle (chevron Lottie) + SidebarGroupHeader (disclosure section header). Stories compose the FULL production sidebar (nav + Recents + profile) and the mobile drawer panel.",
+  "tags": [
+    "brand",
+    "brand-molecule"
+  ],
+  "entry": "SidebarShell.tsx",
+  "stories": "SidebarShell.stories.tsx",
+  "changelog": "CHANGELOG.md"
+}

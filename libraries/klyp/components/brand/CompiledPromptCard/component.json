@@ -1,0 +1,14 @@
+{
+  "id": "compiled-prompt-card",
+  "name": "CompiledPromptCard",
+  "status": "in-progress",
+  "schemaVersion": 1,
+  "description": "TODO: Card showing the final compiled prompt with copy and edit actions.",
+  "tags": [
+    "brand",
+    "brand-molecule"
+  ],
+  "entry": "CompiledPromptCard.tsx",
+  "stories": "CompiledPromptCard.stories.tsx",
+  "changelog": "CHANGELOG.md"
+}

@@ -1,0 +1,37 @@
+/* =====================================================================*/
+/* Badge.stories.scss — layout helpers for story previews only.          */
+/* Not consumed by production. Kept here so we can drop inline styles    */
+/* from Badge.stories.tsx (Biome no-inline-styles rule).                 */
+/* =====================================================================*/
+
+.klyp-Badge-stories__column {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-8);
+  align-items: flex-start;
+}
+
+.klyp-Badge-stories__row {
+  display: flex;
+  gap: var(--space-8);
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.klyp-Badge-stories__row--sizes {
+  gap: var(--space-12);
+}
+
+.klyp-Badge-stories__matrixRow {
+  display: grid;
+  grid-template-columns: 80px repeat(6, auto);
+  gap: var(--space-8);
+  align-items: center;
+}
+
+.klyp-Badge-stories__matrixLabel {
+  font-size: var(--font-size-11);
+  color: var(--color-fg-muted, var(--neutral-1000));
+  font-family: var(--font-sans);
+  text-transform: capitalize;
+}

@@ -1,0 +1,14 @@
+{
+  "id": "message-actions",
+  "name": "MessageActions",
+  "status": "in-progress",
+  "schemaVersion": 1,
+  "description": "Action row under a chat message — copy, insert-in-prompt, download, regenerate, edit. Role/variant-aware; reveal is owned by the consumer.",
+  "tags": [
+    "brand",
+    "brand-molecule"
+  ],
+  "entry": "MessageActions.tsx",
+  "stories": "MessageActions.stories.tsx",
+  "changelog": "CHANGELOG.md"
+}

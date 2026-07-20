@@ -1,0 +1,204 @@
+/* =====================================================================*/
+/* VoiceDictation.scss — composer mic button + full-width recording bar*/
+/* =====================================================================*/
+/* All values via Klyp DTCG tokens. ONE `__face` element: a square mic button*/
+/* when collapsed, the recording bar (waveform · timer · ✗ · ✓) when expanded —*/
+/* an INSTANT swap, no morph. In `cover` mode the bar lifts into a full-width*/
+/* absolute overlay over the composer footer (Send is hidden + un-hittable).*/
+/* ✗ / ✓ are @klyp/ui ToolButtons; the waveform is neutral (single-accent).*/
+
+.klyp-VoiceDictation {
+  display: inline-flex;
+  align-items: center;
+  min-width: 0;
+  gap: var(--space-6);
+
+  /* Fluid — the wrapper fills its container so the recording bar can stretch*/
+  /* full width (waveform grows, bar count scales).*/
+  &[data-fluid] {
+    display: flex;
+    width: 100%;
+  }
+}
+
+/* Screen-reader-only announcement source (1px = canonical visually-hidden).*/
+.klyp-VoiceDictation__sr {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* Visible error (role=alert) + neutral "didn't catch that" notice (collapsed).*/
+.klyp-VoiceDictation__error,
+.klyp-VoiceDictation__notice {
+  font: var(--type-buttons-sm);
+  font-weight: var(--font-weight-medium);
+  white-space: nowrap;
+}
+.klyp-VoiceDictation__error {
+  color: var(--color-status-danger);
+}
+.klyp-VoiceDictation__notice {
+  color: var(--color-fg-muted);
+}
+
+/* === The face ========================================================*/
+/* Square mic button (collapsed) OR the recording bar (expanded). Carries the*/
+/* chrome — clean even 1px border + --r-chip corner, like a Button surface.*/
+.klyp-VoiceDictation__face {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-6);
+  height: var(--control-size-md);
+  min-width: var(--control-size-md);
+  border: var(--bw-default) solid var(--alpha-white-03);
+  border-radius: var(--r-chip);
+  background: var(--color-bg-surface-solid);
+  color: var(--color-fg-primary);
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  outline: none;
+
+  /* Recording bar — no box: drop the surface + border so the waveform reads as*/
+  /* "running" directly on the canvas (composer input). Waveform fills the left,*/
+  /* controls pin to the right.*/
+  &[data-view='holding'],
+  &[data-view='toggle'] {
+    justify-content: flex-start;
+    padding-inline: var(--space-4);
+    background: transparent;
+    border-color: transparent;
+  }
+
+  &[data-view='error'] {
+    color: var(--color-status-danger);
+    cursor: default;
+  }
+  &[data-disabled] {
+    cursor: not-allowed;
+    opacity: var(--opacity-disabled);
+  }
+  /* Hover — lighten the collapsed mic button (a tone up + brighter border, like*/
+  /* the other footer controls). Excluded: the recording bar (holding/toggle,*/
+  /* which is box-less), the transcribing spinner, and the disabled state.*/
+  /* Native :hover — the face is a plain div (no RAC `data-hovered`). Instant, so*/
+  /* it never bleeds into the instant mic↔bar swap.*/
+  &:not([data-view='holding']):not([data-view='toggle']):not([data-view='transcribing']):not([data-disabled]):hover {
+    background: var(--color-bg-surface-hover);
+    border-color: var(--color-border-default);
+  }
+  &:focus-visible {
+    outline: var(--bw-default) solid var(--color-ring);
+    outline-offset: var(--space-2);
+  }
+}
+
+/* Fluid recording bar fills the wrapper width.*/
+.klyp-VoiceDictation[data-fluid] .klyp-VoiceDictation__face[data-view='holding'],
+.klyp-VoiceDictation[data-fluid] .klyp-VoiceDictation__face[data-view='toggle'] {
+  width: 100%;
+}
+
+/* Cover mode — lift the bar into a full-width absolute overlay covering the*/
+/* (position:relative) parent (composer footer) so Send is hidden + un-hittable.*/
+/* ✗ / ✓ land EXACTLY on the mic / Send slots by MIRRORING the footer's own*/
+/* geometry — pure CSS, no runtime measurement (the prior JS-measured*/
+/* `--vd-cover-pad-right` was off by the face's 1px border + the 6-vs-8 gap*/
+/* mismatch, and went stale on resize):*/
+/*   footer (right edge):  … [mic 36] –8– [Send 36]│   gap --space-8, no padding*/
+/*   bar    (right edge):  … [✗ 36]   –8– [✓ 36]  │   gap 8 + pad-right 0 below*/
+/* Same --control-size-md widths + same gap + flush right edge ⇒ ✗ ≡ mic and*/
+/* ✓ ≡ Send at ANY footer width, live through resize. Contract: the consumer*/
+/* places the mic immediately before a square --control-size-md control at the*/
+/* end of the row (the composer footer does exactly that).*/
+.klyp-VoiceDictation[data-cover] .klyp-VoiceDictation__face {
+  position: absolute;
+  inset: 0;
+  width: auto;
+  z-index: 2;
+  /* Solid composer-panel fill — the SAME token the composer chassis uses*/
+  /* (PromptField bg = --color-bg-panel), so the overlay matches its surface*/
+  /* exactly and covers the footer controls seamlessly (looks "background-less"),*/
+  /* so Send is hidden + un-hittable.*/
+  background: var(--color-bg-panel);
+  border-radius: 0;
+  /* The face's 1px (transparent) border would inset the content box and push*/
+  /* the whole ✗ ✓ cluster 1px left of the footer's edge — drop it here.*/
+  border: 0;
+  /* The footer's own gap, so ✗–✓ spacing = mic–Send spacing (8px, not the*/
+  /* collapsed bar's 6px).*/
+  gap: var(--space-8);
+  /* ✓ pins flush to the footer's right edge — exactly the Send slot.*/
+  padding-right: 0;
+}
+
+/* Collapsed mic glyph, centred in the square face.*/
+.klyp-VoiceDictation__micGlyph {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  svg {
+    width: var(--icon-size-sm);
+    height: var(--icon-size-sm);
+  }
+}
+
+/* Live waveform — fills the bar; the bar COUNT scales with width (the canvas*/
+/* reads this CSS box for its DPR-aware backing store, so set width/height here).*/
+.klyp-VoiceDictation__wave {
+  display: block;
+  flex: 1 1 var(--space-96);
+  min-width: var(--space-48);
+  height: var(--space-24);
+  color: var(--color-fg-muted);
+}
+
+/* Elapsed timer — tabular figures so the width is stable while it ticks.*/
+.klyp-VoiceDictation__time {
+  flex-shrink: 0;
+  min-width: var(--space-32);
+  font: var(--type-buttons-sm);
+  font-weight: var(--font-weight-medium);
+  font-variant-numeric: tabular-nums;
+  color: var(--color-fg-primary);
+  text-align: center;
+
+  /* Approaching the auto-stop cap → warn tint.*/
+  &[data-warn] {
+    color: var(--color-status-danger);
+  }
+}
+
+/* ✗ ✓ are ToolButton `solid` (size md, --control-size-md) — the boxed chrome (surface +*/
+/* border + full opacity + --r-chip corner) all comes from that variant, so it*/
+/* matches the mic button. We add only the brand specifics here: a danger-red ✗*/
+/* glyph + the swipe-armed highlight (gold is disallowed in pure-UI ToolButton).*/
+.klyp-VoiceDictation__cancel.klyp-ToolButton {
+  color: var(--color-status-danger);
+}
+/* Smooth the armed border alongside the bg (solid only animates background).*/
+.klyp-VoiceDictation__cancel.klyp-ToolButton,
+.klyp-VoiceDictation__done.klyp-ToolButton {
+  transition:
+    background-color var(--duration-fast) var(--easing-standard),
+    border-color var(--duration-fast) var(--easing-standard);
+}
+
+/* Swipe-armed control (during hold) — its background + border light up so it's*/
+/* obvious which fires on release: red = cancel (✗), gold = done (✓).*/
+.klyp-VoiceDictation__face[data-armed='cancel'] .klyp-VoiceDictation__cancel {
+  background: color-mix(in srgb, var(--color-status-danger) 16%, var(--color-bg-surface-solid));
+  border-color: var(--color-status-danger);
+}
+.klyp-VoiceDictation__face[data-armed='done'] .klyp-VoiceDictation__done {
+  background: color-mix(in srgb, var(--color-fg-accent) 16%, var(--color-bg-surface-solid));
+  border-color: var(--color-fg-accent);
+}

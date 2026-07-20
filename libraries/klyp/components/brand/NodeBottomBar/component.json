@@ -1,0 +1,12 @@
+{
+  "id": "node-bottom-bar",
+  "name": "NodeBottomBar",
+  "status": "in-progress",
+  "schemaVersion": 1,
+  "tags": [
+    "brand"
+  ],
+  "entry": "NodeBottomBar.tsx",
+  "stories": "NodeBottomBar.stories.tsx",
+  "changelog": "CHANGELOG.md"
+}

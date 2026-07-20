@@ -1,0 +1,252 @@
+/* =====================================================================*/
+/* SidebarShell.scss — the sidebar chassis (panel chrome + layout).     */
+/* =====================================================================*/
+/* Extracted from the AppSidebar frame (2026-07-02 sidebar              */
+/* decomposition). Owns: the panel surface + 8px gutter + right hairline*/
+/* seam, and the vertical layout contract header → nav → content →      */
+/* footer. Owns NO width — the host layout animates the track (the app  */
+/* grid's `--app-sidebar-width`). `data-expanded` on the root is the    */
+/* single collapse driver descendants hook their cascades off.          */
+/*                                                                      */
+/* Geometry contract: the 8px inline gutter pairs with the rows' fixed  */
+/* 36px icon slot, so a collapsed rail of width 2×8 + 36 = 52px centres */
+/* every icon with no horizontal jump (icon centre x = 26 both states). */
+
+.klyp-SidebarShell {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-8);
+  width: 100%;
+  height: 100%;
+  /* 8px gutter all round — see the geometry contract above. */
+  padding: var(--space-8);
+  overflow: hidden;
+  color: var(--color-fg-muted);
+  background: var(--color-bg-panel);
+  /* Flush square panel, edge-to-edge, NO rounding — a single hairline on
+     the right is the seam with the content area. */
+  border: 0;
+  border-inline-end: var(--bw-default) solid var(--alpha-white-03);
+  border-radius: 0;
+
+  /* ── Header — logo slot + collapse toggle ─────────────────────────── */
+  &__header {
+    display: flex;
+    align-items: center;
+    /* flex-start (NOT space-between): a max-width-collapsing logo lets the
+       toggle SLIDE left into the icon column — no teleport. */
+    justify-content: flex-start;
+    gap: 0;
+    flex: 0 0 auto;
+    min-height: 36px;
+  }
+
+  /* ── Primary nav — shrinkable, scrolls inside itself on short windows ─ */
+  &__nav {
+    flex: 0 1 auto;
+    min-height: 36px;
+    overflow-y: auto;
+    scrollbar-width: thin;
+    scrollbar-color: var(--color-border-subtle) transparent;
+    /* 4px padding + compensating margin so the rows' focus ring
+       (outline-offset 2 + 2px width = 4px band) isn't clipped by this box's
+       own overflow (review 2026-07-02). */
+    padding: var(--space-4);
+    margin: calc(-1 * var(--space-4));
+
+    /* Thin, dim, arrowless scrollbar. */
+    &::-webkit-scrollbar {
+      width: 4px;
+    }
+    &::-webkit-scrollbar-button {
+      display: none;
+      width: 0;
+      height: 0;
+    }
+    &::-webkit-scrollbar-thumb {
+      background: var(--color-border-subtle);
+      border-radius: var(--radius-full);
+    }
+    &::-webkit-scrollbar-track {
+      background: transparent;
+    }
+  }
+
+  &__list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    /* Tight, consistent row gap in BOTH expand states. */
+    gap: var(--space-4);
+  }
+
+  &__item {
+    /* Anchor for row-level overlays (e.g. quick actions on a row). */
+    position: relative;
+    display: block;
+    margin: 0;
+    padding: 0;
+
+    &[data-section-break='true'] {
+      margin-block-start: var(--space-8);
+    }
+  }
+
+  /* ── Footer — hairline-separated, pinned by the flex column ──────── */
+  &__footer {
+    flex: 0 0 auto;
+    padding-block-start: var(--space-8);
+    margin-block-start: var(--space-4);
+    border-block-start: var(--bw-default) solid var(--color-border-subtle);
+  }
+}
+
+/* =====================================================================*/
+/* SidebarToggle — collapse ⇄ expand icon button (part of the kit).     */
+/* =====================================================================*/
+/* Fixed 36px square (same box as the nav-row icon slot so the collapsed*/
+/* rail centres it); neutral hover wash; the chevron Lottie mirrors     */
+/* (scaleX(-1) → points right = expand) while collapsed.                */
+
+.klyp-SidebarToggle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  flex: 0 0 auto;
+  padding: 0;
+  background: transparent;
+  border: 0;
+  border-radius: var(--r-chip);
+  color: var(--color-fg-muted);
+  cursor: pointer;
+  transition:
+    background var(--duration-fast) var(--easing-standard),
+    color var(--duration-fast) var(--easing-standard);
+
+  /* Wash on hover OR keyboard focus only — NOT data-focused (which lingers
+     after a pointer click and would leave the toggle permanently filled). */
+  &[data-hovered],
+  &[data-focus-visible] {
+    background: var(--color-bg-surface-hover);
+    color: var(--color-fg-primary);
+  }
+  &[data-pressed] {
+    background: var(--color-bg-surface-solid);
+  }
+  &[data-focus-visible] {
+    outline: var(--bw-emphasis) solid var(--color-ring);
+    outline-offset: -2px;
+  }
+
+  /* Solid colour on the svg + opacity on the slot WRAPPER (frontend.md
+     icon-transparency rule) — brightens to full on hover/focus. */
+  .klyp-SidebarToggle__slot {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    color: var(--color-fg-on-active-nav);
+    opacity: var(--opacity-50);
+    transition: opacity var(--duration-fast) var(--easing-standard);
+
+    > svg {
+      display: block;
+    }
+  }
+  &[data-hovered] .klyp-SidebarToggle__slot,
+  &[data-focus-visible] .klyp-SidebarToggle__slot {
+    opacity: 1;
+  }
+
+  /* Chevron centred so the collapsed mirror flips in place; the flip itself
+     animates on the expand/collapse transition. */
+  .klyp-SidebarLottie {
+    transform-origin: center center;
+    transition: transform var(--duration-normal) var(--easing-standard);
+  }
+  &[data-expanded='false'] .klyp-SidebarLottie {
+    transform: scaleX(-1); /* points right = expand */
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    &,
+    .klyp-SidebarToggle__slot,
+    .klyp-SidebarLottie {
+      transition: none !important;
+    }
+  }
+}
+
+/* =====================================================================*/
+/* SidebarGroupHeader — section header + disclosure toggle (kit).       */
+/* =====================================================================*/
+/* Content-width label button (the hover ring hugs the label + chevron, */
+/* no full-row wash); the chevron shows on hover/focus only and rotates */
+/* -90° (points right) while the section is collapsed. A `trailing`     */
+/* action (e.g. a "+ New chat" pill) pins to the right edge.            */
+
+.klyp-SidebarGroupHeader {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-4);
+
+  .klyp-SidebarGroupHeader__toggle {
+    flex: 0 0 auto;
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-4);
+    padding: var(--space-4) var(--space-8);
+    border: 0;
+    border-radius: var(--r-chip);
+    background: transparent;
+    cursor: pointer;
+    text-align: start;
+    font-family: var(--font-sans);
+    font-size: var(--font-size-12);
+    font-weight: var(--font-weight-regular);
+    color: var(--color-fg-muted);
+    white-space: nowrap;
+    transition: color var(--duration-fast) var(--easing-standard);
+
+    /* No wash on hover — only the text brightens. */
+    &:hover,
+    &:focus-visible {
+      color: var(--color-fg-primary);
+    }
+    &:focus-visible {
+      outline: var(--bw-emphasis) solid var(--color-ring);
+      outline-offset: -2px;
+    }
+  }
+
+  .klyp-SidebarGroupHeader__chevron {
+    flex: 0 0 auto;
+    color: var(--color-fg-muted);
+    /* Chevron shows ONLY on hover / focus. */
+    opacity: 0;
+    transition:
+      transform var(--duration-fast) var(--easing-standard),
+      opacity var(--duration-fast) var(--easing-standard);
+  }
+  .klyp-SidebarGroupHeader__toggle:hover .klyp-SidebarGroupHeader__chevron,
+  .klyp-SidebarGroupHeader__toggle:focus-visible .klyp-SidebarGroupHeader__chevron {
+    opacity: 1;
+  }
+  .klyp-SidebarGroupHeader__toggle[data-collapsed='true'] .klyp-SidebarGroupHeader__chevron {
+    transform: rotate(-90deg); /* points right when collapsed */
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .klyp-SidebarGroupHeader__toggle,
+    .klyp-SidebarGroupHeader__chevron {
+      transition: none !important;
+    }
+  }
+}

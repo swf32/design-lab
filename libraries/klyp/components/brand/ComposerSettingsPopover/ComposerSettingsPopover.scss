@@ -1,0 +1,336 @@
+/* =====================================================================*/
+/* ComposerSettingsPopover — pill trigger + per-modality settings panel.*/
+/* =====================================================================*/
+/* Layout: vertical stack, no left-side labels — every control spans the*/
+/* full panel width. Image/Video params sit in an equal-ish dropdown row.*/
+/**/
+/* Tokens-only. Control heights use --control-size-md, mirroring the*/
+/* BrandSelect + TabSwitcher control-height precedent; the panel is the*/
+/* 340px width constant (see __panel).*/
+
+.klyp-ComposerSettingsPopover {
+  /* ── Trigger pill (composer footer) ──────────────────────────── */
+  /* The trigger is the DS <Button variant="primary" size="md" animateWidth>.*/
+  /* It owns ALL the chrome — surface-solid fill, border, --r-chip radius,*/
+  /* --control-size-md height, hover / pressed / focus-visible / disabled — AND*/
+  /* the fluid WIDTH morph (it tweens its real width when the provider / label /*/
+  /* preview content changes, instead of snapping). We tune only two things on*/
+  /* top of the DS Button so the pill keeps its legacy look:*/
+  /* 1) SYMMETRIC padding both sides (Val 2026-07-05). The old 10/18 asymmetry*/
+  /*    assumed an icon-lead pill — but the split SETTINGS pill has no icon, and*/
+  /*    the model pill reads better even too. [data-animate-width] lifts*/
+  /*    specificity above .klyp-Button.*/
+  /* 2) badge→text gap at 10px (the DS Button's default content gap is 6px).*/
+  &__trigger[data-animate-width] {
+    padding-inline: var(--space-12);
+  }
+  &__trigger .klyp-Button__fluidContent {
+    gap: var(--space-10);
+  }
+
+  /* ── Starter-hint accent glow (`triggerGlow` prop → data-accent-hint) ── */
+  /* Host-driven transient hint (chat: hovering a StartCreating card) with the
+     SAME gold treatment as Button variant='accent' — WITHOUT swapping the
+     variant: the accent radial is a background-image and gradients don't
+     transition (the gold wash would snap in). So the radial sits on a ::before
+     overlay whose OPACITY tweens over --duration-fast, while the accent
+     shadows ride the Button's own box-shadow transition (same duration).
+     z-index:-1 + the Button's isolation:isolate paint the wash above the fill
+     but under the label; the Button's overflow:hidden clips it to the pill. */
+  &__trigger::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    background: var(--fx-accent-glow-bg);
+    opacity: 0;
+    transition: opacity var(--duration-fast) var(--easing-standard);
+    pointer-events: none;
+  }
+  &__trigger[data-accent-hint]:not([data-disabled]) {
+    box-shadow: var(--fx-accent-glow-shadow);
+
+    &::before {
+      opacity: 1;
+    }
+  }
+
+  /* Provider icon wrapper — inline-flex keeps the logo centered. */
+  &__triggerProvider {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    /* No badge frame (design lead 2026-06-30): the brand logo floats frameless
+       — its own transparent art, no border / rounded-square / clip. The earlier
+       2026-06-18 hairline-square frame is reverted; the 20px box now only sizes
+       and centers the glyph (Kling / Seedance / Gemini / OpenAI / Anthropic via
+       @klyp/brand ProviderIcon), which keeps its OWN colours. */
+    inline-size: var(--space-20);
+    block-size: var(--space-20);
+  }
+
+  &__triggerLabel {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    min-inline-size: 0;
+    /* Muted at rest, lifts to primary on Button hover — restores the legacy
+       pill's narrow treatment (the DS Button primary paints fg-primary). */
+    color: var(--color-fg-muted);
+  }
+  &__trigger[data-hovered] &__triggerLabel {
+    color: var(--color-fg-primary);
+  }
+
+  /* Inline preview — model · aspect · resolution/size. Hidden by default*/
+  /* (narrow footers keep the short modality label). Activates at the ≥480px*/
+  /* CONTAINER breakpoint below where there's room for the full string.*/
+  /* Truncates with ellipsis if the model name runs long.*/
+  &__triggerPreview {
+    display: none;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    min-inline-size: 0;
+    max-inline-size: 32ch;
+  }
+
+  /* Compact by CONTAINER, not viewport. PromptField sets `container-type:
+     inline-size`, so the pill (a descendant) queries the COMPOSER width: when
+     the composer is wide enough the trigger swaps the short modality label for
+     the full "model · aspect · resolution" preview; on a phone-width composer
+     it keeps the short label so the single-row footer never overflows. Was a
+     `@media (min-width: 900px)` VIEWPORT query — which showed the wide preview
+     inside a 360px composer on a desktop viewport, pushing the footer off the
+     edge (Val 2026-06-30, the catalog Adaptive 360px preview). When the pill is
+     used with no ancestor container the query is simply inert → short label. */
+  @container (min-width: 480px) {
+    &__triggerLabel {
+      display: none;
+    }
+    &__triggerPreview {
+      display: inline;
+    }
+  }
+
+  /* The SETTINGS pill shows its params preview (e.g. "9:16 · 720p") at EVERY*/
+  /* width — never the generic "Settings" word. The adaptive short-label swap*/
+  /* above is only meaningful for the MODEL pill (short modality name on a*/
+  /* narrow footer); the settings pill's short label carries no information,*/
+  /* so on phones it matched desktop is what we want (Val 2026-07-06).*/
+  &__trigger[data-section='settings'] {
+    .klyp-ComposerSettingsPopover__triggerLabel {
+      display: none;
+    }
+    .klyp-ComposerSettingsPopover__triggerPreview {
+      display: inline;
+    }
+  }
+
+  /* ── Popover surface ─────────────────────────────────────────── */
+  /* Popover (solid) already owns bg / border / shadow — the old block*/
+  /* fought the now-deleted ui/Popover primitive with 5× !important. We only*/
+  /* nudge radius (--r-section 16 vs Popover's --r-card 12) and drop its*/
+  /* 4px gutter so the panel owns its own padding. The two-class selector*/
+  /* (.klyp-Popover lands on the same element) beats Popover's*/
+  /* single-class rule by specificity — no !important needed.*/
+  &__popoverSurface.klyp-Popover {
+    border-radius: var(--r-section);
+    padding: 0;
+    /* The footer (modality tab bar) sits FLUSH against the height-morph box —
+       the panel's own bottom padding (--space-10) is the only gap to the tab
+       bar, so it reads like the inter-row gap. Without this the base Popover gap
+       (8px) STACKS on the panel's bottom padding = a too-wide gap before the
+       tabs. The footer re-asserts its own 12px side + bottom inset (__panelFooter). */
+    gap: 0;
+
+    /* Mobile (<480px) — center on screen instead of anchoring to the*/
+    /* far-left trigger. `left`/`transform` are INLINE styles set by RAC*/
+    /* positioning → !important is the only way to win (not a hack).*/
+    @media (max-width: 480px) {
+      left: 50% !important;
+      transform: translateX(-50%) !important;
+      max-inline-size: calc(100vw - var(--space-32));
+    }
+  }
+
+  /* RACDialog focus-trap wrapper — no chrome of its own.*/
+  &__dialog {
+    outline: none;
+  }
+
+  /* ── Panel ───────────────────────────────────────────────────── */
+  /* Flat vertical stack, controls span full width. tabular-nums on all*/
+  /* TabSwitcher labels for stable digit widths during the FLIP spring.*/
+  &__panel {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-10);
+    /* Layout constant — settings panel width. Bumped 300→340 (design lead
+       2026-06-18) so the video select-row (Duration | Aspect | Resolution)
+       has room for "9:16" + ratio glyph + chevron without truncating to
+       "9:…". Capped to the viewport (minus the --space-32 gutter the mobile
+       surface already enforces) so it never overflows on narrow phones. */
+    inline-size: min(340px, calc(100vw - var(--space-32)));
+    /* Hard-lock the width so no child's min-content can push the panel past
+       340 (mirrors the app `klyp-feature-chat-ComposerSettings__panel` fix,
+       design lead 2026-06-23). */
+    min-inline-size: 0;
+    /* Bottom padding = the inter-row gap (--space-10), not --space-12, so the
+       gap from the last settings row to the modality-tab-bar footer matches the
+       gaps BETWEEN rows (the footer is flush — see __popoverSurface gap:0).
+       Top/sides stay 12. Inline preview (standalone panel) has no footer, so its
+       last row simply sits 10px from the bottom — visually unchanged. */
+    padding: var(--space-12) var(--space-12) var(--space-10);
+
+    .klyp-TabSwitcher__option {
+      font-variant-numeric: tabular-nums;
+    }
+
+    /* Dropdown pill stretches full width — otherwise the pill sizes to content*/
+    /* and reads as cramped next to the full-width TabSwitchers. (Migrated off*/
+    /* BrandSelect → unified Dropdown 2026-06-29.)*/
+    .klyp-Dropdown-pill {
+      inline-size: 100%;
+    }
+  }
+
+  /* ── Fixed footer (modality tab bar) ─────────────────────────── */
+  /* The modality switcher, rendered in the Popover `footer` slot OUTSIDE the
+     height-morph box so it stays anchored at the bottom while the panel above
+     glides. As a flex child of the popover root it stretches to the popover
+     width (the __panel above drives that); it re-asserts the panel's 12px
+     horizontal + bottom inset so the tabs line up with the content above. */
+  &__panelFooter {
+    padding: 0 var(--space-12) var(--space-12);
+  }
+
+  /* ── Select row (dropdowns side-by-side) ─────────────────────── */
+  /*   • video — Duration | Aspect | Resolution (3-up, adaptive widths)*/
+  /*   • image — Aspect | Size (equal 50/50)*/
+  &__selectRow {
+    display: grid;
+    gap: var(--space-8);
+    inline-size: 100%;
+
+    /* Video: Duration narrow, Aspect + Resolution wider. When Resolution*/
+    /* is omitted (single-resolution model), collapses to a 2-up grid.*/
+    &[data-modality='video'] {
+      /* Duration wide enough for a two-digit "10s" / "15s" so it no longer
+         truncates to "1…"; the extra room comes off Aspect (centre), which
+         still fits "9:16" + ratio glyph; Resolution keeps its share
+         (Val 2026-06-29, was 0.8/1.3/1.1). */
+      grid-template-columns: 0.9fr 1.2fr 1.1fr;
+
+      &:not(:has(> *:nth-child(3))) {
+        grid-template-columns: 0.9fr 1.2fr;
+      }
+    }
+
+    &[data-modality='image'] {
+      grid-template-columns: 1fr 1fr;
+    }
+
+    .klyp-Dropdown-pill {
+      inline-size: 100%;
+    }
+  }
+
+  /* ── Toggle row (full-width Switch as a button-like row) ──────── */
+  /* RAC Switch is a `<label>` wrapping the input — the whole row is the*/
+  /* click target. Label left, track right (row-reverse). Height tracks*/
+  /* --control-size-md, matching the BrandSelect / TabSwitcher controls above.*/
+  &__toggleRow.klyp-Switch {
+    display: flex;
+    flex-direction: row-reverse;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-12);
+    inline-size: 100%;
+    block-size: var(--control-size-md); /* matches the row above */
+    padding-inline: var(--space-12);
+    border-radius: var(--r-chip);
+    border: var(--bw-default) solid transparent;
+    background: transparent;
+    color: var(--color-fg-primary);
+    font-size: var(--font-size-13);
+    cursor: pointer;
+    transition:
+      background var(--duration-fast) var(--easing-standard),
+      border-color var(--duration-fast) var(--easing-standard);
+
+    &[data-hovered]:not([data-disabled]) {
+      background: var(--color-bg-surface-hover);
+      border-color: var(--color-border-subtle);
+    }
+
+    /* Keep the off-track DARKER than the hovered row — the row-hover bg
+       (--color-bg-surface-hover) and the Switch primitive's own hover-track
+       colour are identical, so the track blends into the row. Pin it to the
+       darker resting surface (Val 2026-06-30). Specificity 6 beats the
+       primitive hover rule (5). Selected (on) state untouched. */
+    &[data-hovered]:not([data-disabled]):not([data-selected]) .klyp-Switch__track {
+      background: var(--color-bg-surface-solid);
+    }
+
+    &[data-focus-visible] {
+      outline: var(--bw-default) solid var(--color-ring);
+      outline-offset: var(--bw-emphasis);
+    }
+
+    .klyp-Switch__label {
+      flex: 1;
+      min-inline-size: 0;
+      font-weight: var(--font-weight-medium);
+      display: inline-flex;
+      align-items: baseline;
+      gap: var(--space-6);
+      /* Keep the row on ONE line: the bold label never wraps; a long hint
+         truncates (see __toggleRowHint) instead of breaking the label onto a
+         second line (Val 2026-06-30 — "Motion Control" was wrapping). */
+      white-space: nowrap;
+      overflow: hidden;
+    }
+  }
+
+  /* Inline hint inside a ToggleRow label — muted "(~50% cost)" on the*/
+  /* same line, slightly smaller and translucent. Truncates with an ellipsis*/
+  /* so a long hint can't push the label to a second line — the row stays one*/
+  /* --control-size-md line.*/
+  &__toggleRowHint {
+    font-size: var(--font-size-11);
+    color: var(--color-fg-muted);
+    font-weight: var(--font-weight-regular);
+    min-inline-size: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  /* Motion-control attach hint — muted helper line under the orientation*/
+  /* switcher (where to attach the character image + driving video).*/
+  &__motionHint {
+    margin: 0;
+    padding: var(--space-6) var(--space-8);
+    font-size: var(--font-size-12);
+    font-weight: var(--font-weight-regular);
+    color: var(--color-fg-muted);
+    line-height: 1.4;
+  }
+}
+
+/* ── Catalog story-only: inline panel frame ──────────────────────────── */
+/* The real popover chrome (bg / border / shadow / radius) lives on the
+   .klyp-Popover surface, which only exists while the popover is OPEN. The
+   catalog previews render <ComposerSettingsPanel> INLINE (no popover) so the
+   panel is visible without a click — this wrapper reproduces the Popover solid
+   surface so the inline panel reads like the real floating one. Not used in the
+   app. Mirrors the tokens in Popover.scss (.klyp-Popover[data-surface='solid']). */
+.klyp-ComposerSettingsPopover-storyPanel {
+  display: inline-block;
+  background: var(--color-bg-surface);
+  border: var(--bw-default) solid var(--color-border-faint);
+  border-radius: var(--r-section);
+  box-shadow: var(--shadow-panel);
+  color: var(--color-fg-primary);
+}

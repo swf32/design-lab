@@ -1,0 +1,14 @@
+{
+  "id": "snake-border",
+  "name": "SnakeBorder",
+  "status": "in-progress",
+  "schemaVersion": 1,
+  "description": "TODO: Animated snake-trace border used as a key-moment embellishment.",
+  "tags": [
+    "brand",
+    "brand-atom"
+  ],
+  "entry": "SnakeBorder.tsx",
+  "stories": "SnakeBorder.stories.tsx",
+  "changelog": "CHANGELOG.md"
+}

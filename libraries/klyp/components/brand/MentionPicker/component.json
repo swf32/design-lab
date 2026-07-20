@@ -1,0 +1,14 @@
+{
+  "id": "mention-picker",
+  "name": "MentionPicker",
+  "status": "in-progress",
+  "schemaVersion": 1,
+  "description": "Rich `@`-asset mention picker for textareas — search header, grouped suggestions, keyboard nav.",
+  "tags": [
+    "brand",
+    "brand-molecule"
+  ],
+  "entry": "MentionPicker.tsx",
+  "stories": "MentionPicker.stories.tsx",
+  "changelog": "CHANGELOG.md"
+}

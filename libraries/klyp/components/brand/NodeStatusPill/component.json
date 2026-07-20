@@ -1,0 +1,14 @@
+{
+  "id": "node-status-pill",
+  "name": "NodeStatusPill",
+  "status": "in-progress",
+  "schemaVersion": 1,
+  "description": "TODO: Status pill on a canvas node (queue/running/done/failed).",
+  "tags": [
+    "brand",
+    "brand-atom"
+  ],
+  "entry": "NodeStatusPill.tsx",
+  "stories": "NodeStatusPill.stories.tsx",
+  "changelog": "CHANGELOG.md"
+}

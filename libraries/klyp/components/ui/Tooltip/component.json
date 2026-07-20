@@ -1,0 +1,13 @@
+{
+  "id": "tooltip",
+  "name": "Tooltip",
+  "status": "in-progress",
+  "schemaVersion": 1,
+  "description": "Hover/focus tooltip — 5 tones, pill shape, optional arrow, max-width.",
+  "tags": [
+    "ui"
+  ],
+  "entry": "Tooltip.tsx",
+  "stories": "Tooltip.stories.tsx",
+  "changelog": "CHANGELOG.md"
+}

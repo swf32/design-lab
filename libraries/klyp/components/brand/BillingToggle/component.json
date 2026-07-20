@@ -1,0 +1,14 @@
+{
+  "id": "billing-toggle",
+  "name": "BillingToggle",
+  "status": "in-progress",
+  "schemaVersion": 1,
+  "description": "Monthly / Annual segmented switcher — TabSwitcher pill wrapper with an optional \"Save N%\" chip.",
+  "tags": [
+    "brand",
+    "brand-atom"
+  ],
+  "entry": "BillingToggle.tsx",
+  "stories": "BillingToggle.stories.tsx",
+  "changelog": "CHANGELOG.md"
+}

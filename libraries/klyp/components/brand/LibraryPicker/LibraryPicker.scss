@@ -1,0 +1,752 @@
+/* =====================================================================
+ * LibraryPicker — pick-from-library-or-upload modal.
+ *
+ * DESKTOP — a Dialog-primitives shell with a banded header that holds the
+ * toolbar inline with the title + close:
+ *   ┌───────────────────────────────────────────────┐
+ *   │ Library  [sections][type][source]  [search] │ ✕ │  ← header band
+ *   ├───────────────────────────────────────────────┤
+ *   │ ▲ upload band (horizontal, dashed) — collapses  │
+ *   │   to a 40px strip on scroll, stays visible      │
+ *   ├───────────────────────────────────────────────┤
+ *   │ grid (scrollable masonry)                       │
+ *   ├───────────────────────────────────────────────┤
+ *   │ N selected                          [Use N]     │
+ *   └───────────────────────────────────────────────┘
+ * When the library is EMPTY the body is replaced by ONE full-screen
+ * dropzone (no strip / grid / footer / scroll).
+ * MOBILE keeps the toolbar at the top of the body (vaul sheet, unchanged).
+ *
+ * Dragging a file ANYWHERE over the modal turns the WHOLE surface into a
+ * drop target (full-cover overlay, react-dropzone root). The band is the
+ * resting affordance + the explicit Upload button (opens the OS dialog).
+ *
+ * Color discipline: single elevation = the modal's `--color-bg-surface`.
+ * No inner cards; the band + overlay separate with a dashed border only.
+ * ===================================================================== */
+
+/* DialogContent override — scoped via the className we pass to <DialogContent>.
+   We reuse the global `klyp-Modal__content--full` sizing class for parity with
+   the shared Modal, then constrain it to a centred capped shell. */
+.klyp-Modal__content--full.klyp-LibraryPicker__modal {
+  max-width: min(1080px, 92vw);
+  width: 100%;
+  height: min(720px, 86svh);
+  /* Card radius — 20px. The phone sheet below resets it to 0. */
+  border-radius: var(--r-panel);
+  /* The desktop shell is built from Dialog primitives directly (NOT the shared
+     Modal), so the picker root owns the full surface. Drop the default body
+     padding — the header band + main section carry their own. */
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+/* DialogContent wraps our children in an inner `klyp-Dialog__dialog` section
+   (ships `flex: 0 1 auto` + body padding). Make THAT fill the capped content
+   box and drop its padding, so the picker root inside it fills the surface and
+   self-contains the grid scroll. The picker root already carries `flex: 1 1 0`. */
+.klyp-LibraryPicker__modal > .klyp-Dialog__dialog {
+  flex: 1 1 auto;
+  min-height: 0;
+  padding: 0;
+}
+
+/* The Dialog primitive pads any non-header/footer/close child of `__dialog`
+   (its default body gutter, opted out only by `.klyp-Modal__body`). Our picker
+   root IS that child, but it owns its gutters via the header / main / footer
+   bands — so zero the inherited Dialog body padding. The `:not()` chain mirrors
+   the Dialog rule's exclusions so this matches at higher specificity. */
+.klyp-LibraryPicker__modal
+  > .klyp-Dialog__dialog
+  > .klyp-LibraryPicker:not(.klyp-Dialog__header):not(.klyp-Dialog__footer):not(.klyp-Dialog__close) {
+  padding: 0;
+}
+
+/* =====================================================================
+ * Desktop header band — [ title ] [ toolbar ] [ divider ] [ close ✕ ]
+ * on a single row. Local to LibraryPicker (the shared Modal header is
+ * untouched).
+ * ===================================================================== */
+.klyp-LibraryPicker__header {
+  display: flex;
+  align-items: center;
+  gap: var(--space-12);
+  min-width: 0;
+  /* 24 top + sides (the modal perimeter), 12 bottom — pairs with __main's 12
+     top so the gap between the header band and the grid is 24. */
+  padding: var(--space-24) var(--space-24) var(--space-12);
+}
+
+.klyp-LibraryPicker__headerTitle {
+  flex: 0 0 auto;
+  margin: 0;
+}
+
+/* Holds the ModalToolbar (controls-left / search-right). Takes the remaining
+   width and may shrink — `min-width:0` lets the toolbar truncate/clip rather
+   than push the divider + close off the row. */
+.klyp-LibraryPicker__headerToolbar {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.klyp-LibraryPicker__headerDivider {
+  flex: 0 0 auto;
+  width: 1px;
+  align-self: stretch;
+  background: var(--color-border-subtle);
+  margin: var(--space-8) 0;
+}
+
+.klyp-LibraryPicker__close {
+  flex: 0 0 auto;
+}
+
+/* =====================================================================
+ * Root — relative (drag-overlay anchor), single-column flex.
+ * ===================================================================== */
+.klyp-LibraryPicker {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 0;
+  min-height: 0;
+  /* `clip` — contains overflow but is NOT a scroll container, so the picker
+     never sprouts its own scrollbar (unlike `auto`) and never leaks one onto
+     the Modal body (unlike `visible`). Resting control borders sit inside the
+     box, so they're untouched. The grid self-contains its scroll via
+     `__grid { overflow-y: auto; overflow-x: hidden }`. */
+  overflow: clip;
+  /* …but allow an 8px halo so small things that float just OUTSIDE a child's box
+     near the picker edge aren't shaved off — e.g. the Source count badge above
+     its trigger, or a control's focus ring. Horizontal toolbar overflow beyond
+     the halo is still clipped (no scrollbar leak onto the Modal body). */
+  overflow-clip-margin: var(--space-8);
+}
+
+/* Main body column. On desktop it holds ONLY the body content (the toolbar
+   lives in the header band); on mobile it ALSO holds the toolbar at the top.
+   Flex column so the variable body (loading / full dropzone / strip+grid+footer)
+   adapts — the grid/dropzone child takes the remaining height (`flex:1`). */
+.klyp-LibraryPicker__main {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  min-width: 0;
+  gap: var(--space-12);
+  flex: 1 1 auto;
+  /* 24 side gutters + 12 top/bottom. The 12s pair with the header's 12 bottom
+     and the footer's 12 top → 24 gaps between bands; 24 sides = the modal
+     perimeter. The phone sheet overrides the inline gutter below. */
+  padding: var(--space-12) var(--space-24);
+}
+
+/* Empty state — __main is the LAST band (no footer), so give it the full 24
+   bottom and the lone dropzone keeps a 24 perimeter all around. */
+.klyp-LibraryPicker__main:last-child {
+  padding-bottom: var(--space-24);
+}
+
+/* Empty state — the full-screen dropzone is the lone child; it fills the body. */
+.klyp-LibraryPicker__main > .klyp-LibraryPicker__dropband[data-empty] {
+  flex: 1 1 auto;
+}
+
+/* The scrollable grid takes the remaining height between the strip + footer. */
+.klyp-LibraryPicker__main > .klyp-LibraryPicker__grid {
+  flex: 1 1 auto;
+}
+
+/* =====================================================================
+ * Toolbar — title + filter cluster (single line on desktop).
+ * ===================================================================== */
+/* Toolbar row — a thin wrapper around the shared <ModalToolbar> (which owns the
+   controls-left / search-right layout + the responsive stack). On MOBILE this
+   `__toolbar` wrapper sits at the top of `__main`; on DESKTOP the same
+   ModalToolbar lives in the header band via `__headerToolbar` (no wrapper div). */
+.klyp-LibraryPicker__toolbar {
+  min-width: 0;
+}
+
+/* Desktop search width — pin the right-side SearchField to 256px via the
+   ModalToolbar's custom property (it right-pins the search built-in). Applied
+   on both the mobile wrapper and the desktop header-toolbar slot so the search
+   field width matches in both shells. The mobile stack ignores this (search
+   goes full-width below the controls). */
+.klyp-LibraryPicker__toolbar,
+.klyp-LibraryPicker__headerToolbar {
+  --modal-toolbar-search-w: calc(var(--space-128) * 2); /* 256px */
+}
+
+/* Desktop header: pack the toolbar cluster (controls + search) to the RIGHT,
+   flush toward the divider / close button — the "Library" title owns the left.
+   (Scoped to the header so the mobile body toolbar keeps its default layout.) */
+.klyp-LibraryPicker__headerToolbar .klyp-ModalToolbar__row {
+  justify-content: flex-end;
+}
+.klyp-LibraryPicker__headerToolbar .klyp-ModalToolbar__controls {
+  flex: 0 0 auto;
+}
+
+/* The single filter button (Type + Source popover) must never shrink — on
+   mobile the iconOnly fullWidth section TabSwitcher stretches and pushes flush
+   against it; on desktop it keeps its 40×40 box beside the section tabs.
+   (AdvancedFilterPopover.scss already sets `flex: 0 0 auto`; this re-asserts it
+   scoped to the picker toolbar so a future base change can't squish it here.) */
+.klyp-LibraryPicker__toolbar .klyp-LibraryPicker__filterTrigger {
+  flex-shrink: 0;
+}
+
+/* =====================================================================
+ * Axis pills (desktop) — Type + Source multiselect AdvancedFilterPopover
+ * triggers. Each renders as a labelled select-style pill (static "Type" /
+ * "Source" label + chevron via the popover's own `[data-labelled]` chrome,
+ * with a StatusDot when ≥1 value is picked). The popover trigger already
+ * ships `flex: 0 0 auto`; re-assert it here scoped to the picker so a future
+ * base change can't squish the pills in this toolbar.
+ * ===================================================================== */
+.klyp-LibraryPicker__toolbar .klyp-LibraryPicker__axisSelect,
+.klyp-LibraryPicker__headerToolbar .klyp-LibraryPicker__axisSelect {
+  flex-shrink: 0;
+}
+
+/* =====================================================================
+ * Upload band — horizontal dashed strip under the toolbar.
+ * Collapses to a 40px strip on grid scroll (data-collapsed).
+ * ===================================================================== */
+.klyp-LibraryPicker__dropband {
+  /* The whole band is ONE button — reset UA chrome. */
+  appearance: none;
+  width: 100%;
+  /* ~144px resting — a touch taller than 2× the old 64px band. */
+  --_dropband-h: calc(var(--space-128) + var(--space-16));
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-8);
+  height: var(--_dropband-h);
+  /* __main is a flex column (redesign 2026-06-26 switched it from grid). A flex
+     item with a fixed height STILL shrinks (default flex-shrink:1) once the
+     sibling __grid (flex:1 1 auto) claims the space → the resting band collapsed
+     to a sliver and overflow:hidden clipped the icon + copy. Pin it. The
+     [data-empty] full-screen variant re-overrides with `flex: 1 1 auto` below. */
+  flex-shrink: 0;
+  padding: var(--space-16) var(--space-24);
+  background: transparent;
+  /* Thin 1px dashed — the 2px dashed read as heavy/cheap. */
+  border: var(--bw-default) dashed var(--color-border-strong);
+  /* --r-card (12px) — a calm inner radius for the inset band; matches the grid
+     tiles + the drag overlay (the card itself is 20px / --r-panel). */
+  border-radius: var(--r-card);
+  color: var(--color-fg-primary);
+  cursor: pointer;
+  overflow: hidden;
+  text-align: center;
+  transition:
+    height var(--duration-fast) var(--easing-standard),
+    gap var(--duration-fast) var(--easing-standard),
+    background-color var(--duration-fast) var(--easing-standard),
+    border-color var(--duration-fast) var(--easing-standard),
+    transform var(--duration-fast) var(--easing-standard);
+
+  /* Hover: a quiet "one tone up" fill (surface-solid = one step above the
+     modal surface) + the dashed border goes solid — the whole slab arms. */
+  &:hover {
+    background: var(--color-bg-surface-solid);
+    border-color: var(--color-border-default);
+    border-style: solid;
+  }
+
+  /* Press: the DS button convention — a 1px nudge, never scale. */
+  &:active {
+    transform: translateY(1px);
+  }
+
+  &:focus-visible {
+    outline: var(--bw-emphasis) solid var(--color-ring);
+    outline-offset: calc(-1 * var(--bw-emphasis));
+  }
+
+  &[data-collapsed] {
+    /* Collapsed: a horizontal strip — icon to the LEFT of the text (not a
+       tiny icon stacked on top). */
+    flex-direction: row;
+    height: var(--space-40);
+    gap: var(--space-8);
+  }
+
+  /* Empty state — the band BECOMES the body: a full-height centred dropzone
+     filling `__main` (flex:1 set on the parent rule), no fixed height, no
+     scroll. The bigger icon + copy read as the primary affordance. */
+  &[data-empty] {
+    height: auto;
+    flex-direction: column;
+    gap: var(--space-12);
+
+    .klyp-LibraryPicker__dropbandIcon {
+      width: var(--space-48);
+      height: var(--space-48);
+    }
+    .klyp-LibraryPicker__dropbandCopy {
+      font-size: var(--font-size-16);
+    }
+  }
+
+  /* Package self-containment — the global reduced-motion reset lives in
+     apps/web; gate the collapse here too for consumers outside the app. */
+  @media (prefers-reduced-motion: reduce) {
+    transition: none;
+  }
+}
+
+/* Icon — fixed 28px box so the row never reflows; it SCALES (transform) on
+   collapse instead of swapping pixel size (the snap), and carries the 50%
+   opacity on the WRAPPER (icon-opacity rule — duo-tone must not be alpha'd
+   per-path). Lifts to 0.7 on hover as the band arms. */
+.klyp-LibraryPicker__dropbandIcon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: var(--space-40);
+  height: var(--space-40);
+  color: var(--color-fg-muted);
+  opacity: var(--opacity-50);
+  transition:
+    width var(--duration-fast) var(--easing-standard),
+    height var(--duration-fast) var(--easing-standard),
+    opacity var(--duration-fast) var(--easing-standard);
+
+  > svg {
+    width: 100%;
+    height: 100%;
+  }
+}
+
+.klyp-LibraryPicker__dropband:hover .klyp-LibraryPicker__dropbandIcon {
+  opacity: var(--opacity-70);
+}
+
+/* Collapsed: the icon BOX itself shrinks to 18px (the svg fills it, so it
+   scales smoothly with NO phantom space) and the tight gap brings it right up
+   to the compact line — fixes the "icon too far from the text" gap. */
+.klyp-LibraryPicker__dropband[data-collapsed] .klyp-LibraryPicker__dropbandIcon {
+  width: var(--space-24);
+  height: var(--space-24);
+}
+
+/* Copy — a SINGLE line sized to the currently-shown text (full or compact,
+   swapped in JS by bandCollapsed). One text node, no stacked crossfade: the box
+   never inherits the wider line's width, so the icon stays right beside it and
+   the collapse doesn't reflow. */
+.klyp-LibraryPicker__dropbandCopy {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: var(--font-size-13);
+  color: var(--color-fg-primary);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .klyp-LibraryPicker__dropbandIcon {
+    transition: none;
+  }
+}
+
+/* =====================================================================
+ * Grid — scrollable masonry pane.
+ * ===================================================================== */
+.klyp-LibraryPicker__grid {
+  min-height: 0;
+  min-width: 0;
+  /* Only the vertical axis scrolls. `overflow-x: hidden` is EXPLICIT: a bare
+     `overflow-y: auto` makes the used `overflow-x` compute to `auto` too, so the
+     masonry being ~scrollbar-width wider than the content box (the vertical
+     scrollbar steals that width) leaked a horizontal scrollbar at the grid's
+     bottom edge. Hidden clips that transient sliver — no horizontal scrollbar. */
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding-right: var(--space-4);
+}
+
+/* Section switch (stale-while-revalidate) — the previous items stay mounted
+   while the new section resolves; a subtle dim signals "loading" without the
+   full-body spinner blanking the sheet (the mobile reload-flash fix). */
+.klyp-LibraryPicker__grid[data-refetching] {
+  opacity: var(--opacity-70);
+  transition: opacity var(--duration-fast) var(--easing-standard);
+
+  @media (prefers-reduced-motion: reduce) {
+    transition: none;
+  }
+}
+
+/* Loading state — bespoke centred spinner + label. */
+.klyp-LibraryPicker__loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--gap-stack);
+  height: 100%;
+  min-height: calc(var(--space-128) + var(--space-128));
+  text-align: center;
+  color: var(--color-fg-muted);
+
+  > p {
+    font-size: var(--font-size-13);
+    margin: 0;
+  }
+}
+
+/* =====================================================================
+ * Footer — selection label + confirm button.
+ * ===================================================================== */
+/* Footer band: its own band (like the header) AND the selection row
+   (summary left + primary action right). */
+.klyp-LibraryPicker__footer {
+  flex: 0 0 auto;
+  /* Its own band (like the header): 12 top (pairs with __main's 12 bottom →
+     24 gap), 24 sides + 24 bottom = the modal perimeter. */
+  padding: var(--space-12) var(--space-24) var(--space-24);
+  border-top: var(--bw-default) solid var(--color-border-subtle);
+
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-12);
+
+  /* The primary action never shrinks below its label. */
+  > .klyp-Button {
+    flex-shrink: 0;
+  }
+}
+
+/* Live selection summary — truncates so a long label never pushes the
+   button off-row. */
+.klyp-LibraryPicker__footerLabel {
+  flex: 1 1 auto;
+  min-width: 0;
+  margin: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-family: var(--font-sans);
+  font-size: var(--font-size-12);
+  color: var(--color-fg-muted);
+}
+
+/* =====================================================================
+ * Whole-modal drop overlay — shown only while a file is dragged over.
+ * pointer-events:none so the drop reaches the dropzone root underneath.
+ * ===================================================================== */
+.klyp-LibraryPicker__dropOverlay {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-12);
+  pointer-events: none;
+  /* Radius derived from the outer section (16px) one step down the ramp →
+     --r-card (12px). The overlay sits inside the card's 24px padding, so a
+     strict concentric value (16 − 24) is ≤0; a soft 12px reads far cleaner
+     than sharp corners on a big surface. */
+  border-radius: var(--r-card);
+  /* White (theme-aware fg), NOT gold — the gold dashed frame read as cheap. */
+  border: var(--bw-emphasis) dashed var(--color-fg-primary);
+  background: color-mix(in srgb, var(--color-bg-surface) 88%, transparent);
+  color: var(--color-fg-primary);
+  /* Mounts conditionally — fade in on enter so the scrim doesn't pop hard. */
+  animation: klyp-LibraryPicker-overlay-in var(--duration-fast) var(--easing-standard);
+
+  &[data-reject] {
+    border-color: var(--color-status-danger);
+    color: var(--color-status-danger);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    animation: none;
+  }
+}
+
+@keyframes klyp-LibraryPicker-overlay-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.klyp-LibraryPicker__dropOverlayText {
+  margin: 0;
+  font-size: var(--font-size-16);
+  font-weight: var(--font-weight-medium);
+}
+
+/* SR-only drag-state live region (visual overlay is aria-hidden). */
+.klyp-LibraryPicker__srLive {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* =====================================================================
+ * Adaptive
+ * ===================================================================== */
+@media (min-width: 640px) and (max-width: 720px) {
+  /* Tablet & below: fill the overlay's available box rather than the base
+     384px card. Side/vertical margins are owned by the Dialog overlay's own
+     16px padding (kept ≥640px). `100%` (not `100svh`) tracks the fixed
+     overlay exactly, so no small-vs-large-viewport gap leaks. */
+  .klyp-Modal__content--full.klyp-LibraryPicker__modal {
+    max-width: 100%;
+    width: 100%;
+    height: min(720px, 100%);
+  }
+}
+
+/* Phone (≤639.98) — the picker renders as a vaul bottom-SHEET, NOT the Modal,
+   so the old Modal-sizing rules are gone. These rules style the shared picker
+   BODY for the phone layout; they apply inside the sheet because the body
+   classes are identical in both shells. */
+@media (max-width: 639.98px) {
+  /* Mobile controls row = [iconOnly fullWidth TabSwitcher][filter button].
+     ModalToolbar (container query) already stacks controls-over-search; the
+     controls row itself stays one line:
+     — Section: the iconOnly fullWidth TabSwitcher takes all remaining width
+       (it renders `data-fullwidth`, which stretches its own items). It must be
+       allowed to shrink (min-width:0) so it never pushes the filter button off
+       the row or forces horizontal overflow. */
+  .klyp-LibraryPicker__toolbar .klyp-ModalToolbar__controls > .klyp-TabSwitcher {
+    /* flex-basis 0 (not auto) so the section fills only the space LEFT BY the
+       filter button — `data-fullwidth` sets `width: 100%`, and an `auto` basis
+       would honour it, eat the whole row and push the filter to a 2nd line.
+       Basis 0 overrides that width; the tabs still stretch via fullWidth. */
+    flex: 1 1 0;
+    min-width: 0;
+  }
+  /* — Filter button: pinned to the right of the section bar, never shrinks
+       (already declared above; re-asserted here for the mobile row). */
+  .klyp-LibraryPicker__toolbar
+    .klyp-ModalToolbar__controls
+    > .klyp-LibraryPicker__filterTrigger {
+    flex: 0 0 auto;
+  }
+
+  /* On phones the toolbar lives at the TOP of `__main` (mobile keeps the
+     toolbar in the body, not a header). When there ARE items, the upload band
+     sits AFTER the grid (above the footer) via flex `order` as a compact bottom
+     strip that collapses to 40px on grid scroll — same as desktop now (the JS
+     phone gate was removed, Val 2026-06-30). When EMPTY the full-screen dropzone
+     is the lone body child, so order is moot. */
+  .klyp-LibraryPicker__toolbar {
+    order: 1;
+  }
+  .klyp-LibraryPicker__grid {
+    order: 2;
+  }
+  .klyp-LibraryPicker__dropband {
+    order: 3;
+  }
+  .klyp-LibraryPicker__footer {
+    order: 4;
+    /* The band sits directly above the footer here — drop the divider + extra
+       top spacing so the band↔footer gap equals the grid↔band gap (both the
+       grid's 12px row gap), instead of band↔footer reading much larger. Tighten
+       the band too: side gutter = __main's 16, small 8 bottom (the sheet's own
+       padding-bottom carries the safe-area), so "Nothing selected" stops eating
+       height. */
+    margin-top: 0;
+    padding: 0 var(--space-16) var(--space-8);
+    border-top: none;
+  }
+}
+
+/* =====================================================================
+ * Mobile bottom-sheet (vaul) shell — only mounted on phones (isPhone).
+ * Surface palette mirrors MobilePanelSheet / the model-picker family. vaul
+ * drives `transform` for the drag/dismiss; we only style the chrome.
+ * ===================================================================== */
+.klyp-LibraryPicker__sheetOverlay {
+  position: fixed;
+  inset: 0;
+  z-index: var(--z-modal, 1000);
+  background: var(--color-bg-modal-backdrop);
+  -webkit-backdrop-filter: var(--fx-glass-blur-soft);
+  backdrop-filter: var(--fx-glass-blur-soft);
+}
+
+.klyp-LibraryPicker__sheet {
+  /* vaul anchors via className (it does NOT set position inline) + drives
+     transform on top for the drag. */
+  position: fixed;
+  inset-inline: 0;
+  bottom: 0;
+  z-index: var(--z-modal, 1000);
+
+  display: flex;
+  flex-direction: column;
+  block-size: 94svh;
+  max-block-size: 94svh;
+
+  background: color-mix(in oklab, var(--color-bg-surface) 92%, transparent);
+  -webkit-backdrop-filter: var(--fx-glass-blur);
+  backdrop-filter: var(--fx-glass-blur);
+  /* Top corners a touch rounder than --r-section (16) — owner asked +4px. */
+  border-top-left-radius: var(--r-panel);
+  border-top-right-radius: var(--r-panel);
+  border-top: var(--bw-default) solid var(--color-border-default);
+  color: var(--color-fg-primary);
+  outline: none;
+  /* Always keep breathing room under the footer — the "Use selection" row must
+     never jam against the sheet's bottom edge (the owner read that flush look as
+     "clipped") — plus the device safe-area home-indicator + keyboard offset. */
+  padding-bottom: calc(var(--space-16) + var(--safe-area-bottom, var(--space-0)) + var(--kb-offset, var(--space-0)));
+}
+
+/* Drag-affordance bar — neutral, never gold. Qualified with vaul's own
+   `[data-vaul-handle]` hook → (0,3,0), so it beats vaul's injected default
+   `[data-vaul-handle]` rule (0,1,0: 32×5px / opacity 0.7) with margin to spare —
+   even if a future vaul ships a (0,2,0) handle selector. Within the `^1.1.2`
+   range `data-vaul-handle` is a stable public styling hook, so coupling to it is
+   safe (a bare class scope would only tie a (0,2,0) vaul rule on source order). */
+.klyp-LibraryPicker__sheet .klyp-LibraryPicker__sheetHandle[data-vaul-handle] {
+  /* Tighter to the title row — was 12/4 (owner asked smaller gap below). */
+  margin-block: var(--space-10) var(--space-2);
+  margin-inline: auto;
+  /* Thinner (2px, was 4) + wider (48, was 40) + faint (0.4) — a quiet, modern
+     drag affordance rather than a heavy bar (owner 2026-06-18). */
+  inline-size: var(--space-48);
+  block-size: var(--space-2);
+  border-radius: var(--radius-full);
+  background: var(--color-fg-subtle);
+  opacity: var(--opacity-40);
+  flex-shrink: 0;
+  cursor: grab;
+
+  &:active {
+    cursor: grabbing;
+  }
+}
+
+.klyp-LibraryPicker__sheetTitleRow {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-8);
+  padding-inline: var(--space-16);
+  /* Tight top (handle gap) → comfortable bottom before the toolbar. */
+  padding-block: var(--space-2) var(--space-12);
+}
+
+.klyp-LibraryPicker__sheetTitle {
+  margin: 0;
+  font-size: var(--font-size-16);
+  font-weight: var(--font-weight-medium);
+  color: var(--color-fg-primary);
+}
+
+/* Explicit, labelled close (the handle is the gesture; this is the a11y/SR
+   close). Sized to the DS control ladder (--control-size-md = 36px) so it
+   matches the toolbar control family EXACTLY — the iconOnly TabSwitcher and the
+   filter button are both --control-size-md. It used to be a 40px outlier that
+   read as "bigger than the filter button" (owner 2026-06-30); still ≥ the
+   WCAG 2.5.5 (AA) 24px min. */
+.klyp-LibraryPicker__sheetClose {
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--control-size-md);
+  height: var(--control-size-md);
+  background: var(--color-bg-surface);
+  border: var(--bw-default) solid var(--color-border-subtle);
+  border-radius: var(--r-chip);
+  color: var(--color-fg-muted);
+  cursor: pointer;
+  transition:
+    background-color var(--duration-fast) var(--easing-standard),
+    color var(--duration-fast) var(--easing-standard),
+    border-color var(--duration-fast) var(--easing-standard);
+
+  > svg {
+    width: var(--space-18);
+    height: var(--space-18);
+  }
+
+  &:hover {
+    background: var(--color-bg-surface-solid);
+    border-color: var(--color-border-default);
+    color: var(--color-fg-primary);
+  }
+  &:focus-visible {
+    outline: var(--bw-emphasis) solid var(--color-ring);
+    outline-offset: calc(-1 * var(--bw-emphasis));
+  }
+}
+
+/* ── Inside the sheet — adapt the shared body ─────────────────────────────── */
+/* Horizontal gutter (the sheet surface has no content padding of its own). */
+.klyp-LibraryPicker__sheet .klyp-LibraryPicker__main {
+  padding-inline: var(--space-16);
+}
+/* The grid is the scroll region; keep its scroll-chain from bubbling into the
+   vaul drag / the page. */
+.klyp-LibraryPicker__sheet .klyp-LibraryPicker__grid {
+  overscroll-behavior: contain;
+}
+/* Dropzone band on phone — a COMPACT resting strip (row layout: icon beside the
+   copy, ~64px) instead of the old 96px stacked block. It now collapses to a 40px
+   strip on grid scroll just like desktop (the scroll listener wires in both
+   shells — Val 2026-06-30), so it never eats the grid's vertical space. The
+   `:not([data-collapsed])` guard keeps this off the scrolled state below; the
+   base `[data-empty]` rule (column, full-height) still wins for the empty-state
+   dropzone because this only sets row geometry it doesn't carry. */
+.klyp-LibraryPicker__sheet .klyp-LibraryPicker__dropband:not([data-empty]):not([data-collapsed]) {
+  --_dropband-h: var(--space-64);
+  flex-direction: row;
+  gap: var(--space-8);
+  block-size: var(--_dropband-h);
+  padding: var(--space-12) var(--space-16);
+
+  .klyp-LibraryPicker__dropbandIcon {
+    width: var(--space-28);
+    height: var(--space-28);
+  }
+}
+
+/* Collapsed (scrolled) on phone — a 40px row strip. The base [data-collapsed]
+   rule already flips it to row + 40px + 24px icon; re-assert block-size here at
+   sheet specificity so the 64px resting height above can't win on source order. */
+.klyp-LibraryPicker__sheet .klyp-LibraryPicker__dropband[data-collapsed] {
+  --_dropband-h: var(--space-40);
+  block-size: var(--space-40);
+  padding: var(--space-8) var(--space-16);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .klyp-LibraryPicker__sheetClose {
+    transition: none;
+  }
+  /* vaul's injected slide-open/close keyframe has no internal reduced-motion
+     guard — neutralize it here so the package is self-contained (not only
+     covered by the app's global reset). */
+  .klyp-LibraryPicker__sheet {
+    animation-duration: 0.01ms !important;
+  }
+}

@@ -1,0 +1,180 @@
+/* =====================================================================*/
+/* Badge.scss — Geist-aligned status pill (v2, 2026-05-15)               */
+/* =====================================================================*/
+/* Visual + sizing parity with vercel.com/geist/badge, verified via DOM  */
+/* inspection 2026-05-15. 11 intents × 2 variants × 3 sizes. `inverted`, */
+/* `featured`, `premium` are single-look intents — variant is ignored.   */
+/* `featured` / `premium` use Klyp gold + platinum tokens (no vendor     */
+/* hex), replacing Geist's Trial / Turborepo gradients.                  */
+
+.klyp-Badge {
+  position: relative;
+  isolation: isolate;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: fit-content;
+  background: transparent;
+  border-radius: var(--radius-full);
+  text-transform: capitalize;
+  white-space: nowrap;
+  overflow: hidden;
+
+  font: var(--type-label); /* 12 → 16 box (sm/md); lg → type.body below */
+  font-weight: var(--font-weight-medium);
+
+  /* 1px inset 5%-white border with Plus-Lighter blend (Figma parity). */
+  /* On a pseudo-element so we can apply the blend mode to the stroke  */
+  /* alone — `border` on the root would force the same blend on text.  */
+  &::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    border: 1px solid var(--alpha-white-05);
+    pointer-events: none;
+    mix-blend-mode: plus-lighter;
+  }
+
+  & > .klyp-Badge__iconWrap {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    pointer-events: none;
+
+    & > svg {
+      width: 100%;
+      height: 100%;
+    }
+  }
+
+  &:focus-visible {
+    outline: var(--bw-default) solid var(--color-ring);
+    outline-offset: var(--bw-emphasis);
+  }
+
+  /* === Sizes — heights, paddings, font, icon, gap (Geist-matched) ===== */
+  &[data-size='sm'] {
+    height: var(--space-20);
+    padding: 0 var(--space-6);
+    gap: var(--space-3); /* text = base type.label (12 → 16) */
+
+    & > .klyp-Badge__iconWrap {
+      width: var(--space-12);
+      height: var(--space-12);
+    }
+  }
+  &[data-size='md'] {
+    height: var(--space-24);
+    padding: 0 var(--space-10);
+    gap: var(--space-4); /* text = base type.label (12 → 16) */
+
+    & > .klyp-Badge__iconWrap {
+      width: var(--space-14);
+      height: var(--space-14);
+    }
+  }
+  &[data-size='lg'] {
+    height: var(--space-32);
+    padding: 0 var(--space-12);
+    font: var(--type-body); /* 14 → 18 box */
+    font-weight: var(--font-weight-medium);
+    gap: var(--space-6);
+
+    & > .klyp-Badge__iconWrap {
+      width: var(--space-16);
+      height: var(--space-16);
+    }
+  }
+
+  /* === Subtle — bg = -200 shade, fg = -900 shade ====================== */
+  &[data-variant='subtle'] {
+    &[data-intent='gray']   { background: var(--color-badge-gray-bg);   color: var(--color-badge-gray-fg); }
+    &[data-intent='blue']   { background: var(--color-badge-blue-bg);   color: var(--color-badge-blue-fg); }
+    &[data-intent='purple'] { background: var(--color-badge-purple-bg); color: var(--color-badge-purple-fg); }
+    &[data-intent='amber']  { background: var(--color-badge-amber-bg);  color: var(--color-badge-amber-fg); }
+    &[data-intent='red']    { background: var(--color-badge-red-bg);    color: var(--color-badge-red-fg); }
+    &[data-intent='pink']   { background: var(--color-badge-pink-bg);   color: var(--color-badge-pink-fg); }
+    &[data-intent='green']  { background: var(--color-badge-green-bg);  color: var(--color-badge-green-fg); }
+    &[data-intent='teal']   { background: var(--color-badge-teal-bg);   color: var(--color-badge-teal-fg); }
+    /* Gold's primitive scale is light-mode-tuned (gold.200 is cream-light,
+       not the dark tint that amber.200/blue.200/etc. land at on dark mode).
+       Synthesize the dark warm wash through the soft-gold overlay token so
+       subtle gold matches the visual rhythm of the other intents: dark
+       tinted bg + bright same-hue fg. Tone of voice, not just colour. */
+    &[data-intent='gold']   { background: var(--color-badge-gold-bg);   color: var(--color-badge-gold-fg); }
+  }
+
+  /* === Solid — saturated -500 fill + white text ====================== */
+  /* WCAG fix 2026-06-17 (Variant B). The APCA rebuild turned -800/-900 into
+     light pastels, so the old white-on-(-800/-900) failed (1.5–2.6:1). -500 is
+     the vibrant step where white text passes ≥5:1, and it's theme-invariant —
+     a dark saturated chip reads on both klyp (dark) and unreals (light). */
+  &[data-variant='solid'] {
+    &[data-intent='gray']   { background: var(--neutral-500);    color: var(--neutral-0); }
+    &[data-intent='blue']   { background: var(--blue-500);       color: var(--neutral-0); }
+    &[data-intent='purple'] { background: var(--purple-500);     color: var(--neutral-0); }
+    &[data-intent='amber']  { background: var(--amber-500);      color: var(--neutral-0); }
+    &[data-intent='red']    { background: var(--red-500);        color: var(--neutral-0); }
+    &[data-intent='pink']   { background: var(--pink-500);       color: var(--neutral-0); }
+    &[data-intent='green']  { background: var(--green-500);      color: var(--neutral-0); }
+    &[data-intent='teal']   { background: var(--teal-500);       color: var(--neutral-0); }
+    &[data-intent='gold']   { background: var(--gold-500);       color: var(--neutral-0); }
+  }
+
+  /* === Outline — transparent surface, intent color on stroke + text === */
+  /* The ::after pseudo-border picks up the option color via currentColor   */
+  /* and drops the plus-lighter blend (which only makes sense over a fill). */
+  &[data-variant='outline'] {
+    background: transparent;
+
+    &::after {
+      border-color: currentColor;
+      mix-blend-mode: normal;
+    }
+
+    /* Route through the brand-aware badge-fg semantic tokens (not raw -700)*/
+    /* so outline text is theme-correct: klyp = light -900 on dark page;*/
+    /* unreals = dark -400/-500 on light page. Raw -700 went light in the*/
+    /* APCA rebuild and failed on the unreals light page (2.3:1).*/
+    &[data-intent='gray']   { color: var(--color-badge-gray-fg); }
+    &[data-intent='blue']   { color: var(--color-badge-blue-fg); }
+    &[data-intent='purple'] { color: var(--color-badge-purple-fg); }
+    &[data-intent='amber']  { color: var(--color-badge-amber-fg); }
+    &[data-intent='red']    { color: var(--color-badge-red-fg); }
+    &[data-intent='pink']   { color: var(--color-badge-pink-fg); }
+    &[data-intent='green']  { color: var(--color-badge-green-fg); }
+    &[data-intent='teal']   { color: var(--color-badge-teal-fg); }
+    &[data-intent='gold']   { color: var(--color-badge-gold-fg); }
+  }
+
+  /* === Single-look intents (variant ignored) ========================== */
+  &[data-intent='inverted'] {
+    background: var(--neutral-1000);
+    color: var(--surface-root);
+  }
+  /* Figma-anchored warm-gold gradient — bottom light gold → top muted dark gold.
+     Inner highlight along the top edge mimics specular reflection (Figma effect
+     node_id 6:903, fileKey lUkXssFaIoEdogEkZDwSLk, captured 2026-05-16). */
+  &[data-intent='featured'] {
+    background: linear-gradient(0deg, var(--gold-700) 0%, var(--gold-400) 99%);
+    box-shadow: inset 0 -2px 5px 0 var(--alpha-white-50);
+    color: var(--surface-root);
+  }
+  /* Platinum → gold metallic ramp. Same inset highlight as featured for parity. */
+  &[data-intent='premium'] {
+    background: linear-gradient(0deg, var(--gold-700) 0%, var(--neutral-700) 99%);
+    box-shadow: inset 0 -2px 5px 0 var(--alpha-white-50);
+    color: var(--surface-root);
+  }
+
+  /* === Disabled =====================================================*/
+  /* Static pill — dim to read as inactive when attached to a disabled*/
+  /* row/feature. Opacity on the root so the inset border + icon dim as*/
+  /* one layer (per the frontend.md anti-double-opacity rule).*/
+  &[data-disabled] {
+    opacity: var(--opacity-disabled);
+  }
+}

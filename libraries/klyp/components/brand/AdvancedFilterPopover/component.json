@@ -1,0 +1,14 @@
+{
+  "id": "advanced-filter-popover",
+  "name": "AdvancedFilterPopover",
+  "status": "in-progress",
+  "schemaVersion": 1,
+  "description": "\"More filters\" icon-button + popover whose rows read as one menu (section label + menu-row options). A single accent dot marks active filters; nothing when none.",
+  "tags": [
+    "brand",
+    "brand-molecule"
+  ],
+  "entry": "AdvancedFilterPopover.tsx",
+  "stories": "AdvancedFilterPopover.stories.tsx",
+  "changelog": "CHANGELOG.md"
+}

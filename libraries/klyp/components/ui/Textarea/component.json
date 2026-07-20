@@ -1,0 +1,13 @@
+{
+  "id": "textarea",
+  "name": "Textarea",
+  "status": "in-progress",
+  "schemaVersion": 1,
+  "description": "Multi-line text input with token-driven sizing and focus ring.",
+  "tags": [
+    "ui"
+  ],
+  "entry": "Textarea.tsx",
+  "stories": "Textarea.stories.tsx",
+  "changelog": "CHANGELOG.md"
+}

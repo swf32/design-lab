@@ -1,0 +1,39 @@
+/* =====================================================================*/
+/* NodeBottomBar.scss — Klyp brand molecule (Canvas Phase D, 2026-05-12)*/
+/* =====================================================================*/
+/* Bottom toolbar strip for canvas nodes — slot-based, transparent (lives*/
+/* inside the card body, not over it).*/
+/**/
+/* Cleanup C3 (the design lead 2026-05-12, Audit A finding #3): single-child slot*/
+/* wrappers (__stepper / __settings / __action / __spacer) удалены —*/
+/* flex layout сам распределяет children. `margin-inline-start: auto`*/
+/* на последнем child пинует action к правому краю без spacer-div'a.*/
+/**/
+/* Token reminder (Klyp DTCG, post-2026-05-01):*/
+/*   --space-N == 2 * N px  (e.g. --space-8 == 8px, --space-16 == 16px).*/
+/* Pattern reference: ../Chip/Chip.scss, ../NodeFrame/NodeFrame.scss.*/
+
+.klyp-NodeBottomBar {
+  display: flex;
+  align-items: center;
+  gap: var(--space-8); /* 8px between adjacent children*/
+  width: 100%;
+  background: transparent;
+
+  /* Action (the required, always-last slot) pinned to the right edge.*/
+  /* Workse via `:last-child` because actionSlot is the last node we render*/
+  /* (see NodeBottomBar.tsx). Replaces the prior dedicated `__spacer` div.*/
+  > *:last-child {
+    margin-inline-start: auto;
+  }
+
+  /* Chips slot — the only remaining wrapper. Variadic (2+ chips) so they*/
+  /* need a shared flex parent with a tighter intra-slot gap than the*/
+  /* inter-slot gap above.*/
+  &__chips {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-6); /* 6px intra-slot — tighter than 8px inter-slot*/
+    flex-shrink: 0;
+  }
+}

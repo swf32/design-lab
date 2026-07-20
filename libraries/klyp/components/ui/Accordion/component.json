@@ -1,0 +1,13 @@
+{
+  "id": "accordion",
+  "name": "Accordion",
+  "status": "in-progress",
+  "schemaVersion": 1,
+  "description": "Collapsible disclosure list — multiple items, RAC Disclosure under the hood.",
+  "tags": [
+    "ui"
+  ],
+  "entry": "Accordion.tsx",
+  "stories": "Accordion.stories.tsx",
+  "changelog": "CHANGELOG.md"
+}

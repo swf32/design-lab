@@ -1,0 +1,12 @@
+{
+  "id": "conversation-row",
+  "name": "ConversationRow",
+  "status": "in-progress",
+  "schemaVersion": 1,
+  "tags": [
+    "brand"
+  ],
+  "entry": "ConversationRow.tsx",
+  "stories": "ConversationRow.stories.tsx",
+  "changelog": "CHANGELOG.md"
+}

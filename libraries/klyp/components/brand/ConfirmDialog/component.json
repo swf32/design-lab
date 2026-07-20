@@ -1,0 +1,14 @@
+{
+  "id": "confirm-dialog",
+  "name": "ConfirmDialog",
+  "status": "in-progress",
+  "schemaVersion": 1,
+  "description": "Generic confirm modal over Modal — Cancel + Confirm footer, destructive/primary tones.",
+  "tags": [
+    "brand",
+    "brand-molecule"
+  ],
+  "entry": "ConfirmDialog.tsx",
+  "stories": "ConfirmDialog.stories.tsx",
+  "changelog": "CHANGELOG.md"
+}

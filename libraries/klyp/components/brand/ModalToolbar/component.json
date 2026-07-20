@@ -1,0 +1,14 @@
+{
+  "id": "modal-toolbar",
+  "name": "ModalToolbar",
+  "status": "in-progress",
+  "schemaVersion": 1,
+  "description": "Modal toolbar band — filter controls left, search right (stacks on mobile).",
+  "tags": [
+    "brand",
+    "brand-molecule"
+  ],
+  "entry": "ModalToolbar.tsx",
+  "stories": "ModalToolbar.stories.tsx",
+  "changelog": "CHANGELOG.md"
+}

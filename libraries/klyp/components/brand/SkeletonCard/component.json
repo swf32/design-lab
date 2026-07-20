@@ -1,0 +1,14 @@
+{
+  "id": "skeleton-card",
+  "name": "SkeletonCard",
+  "status": "in-progress",
+  "schemaVersion": 1,
+  "description": "TODO: Pre-shaped skeleton placeholder card for grid loading states.",
+  "tags": [
+    "brand",
+    "brand-atom"
+  ],
+  "entry": "SkeletonCard.tsx",
+  "stories": "SkeletonCard.stories.tsx",
+  "changelog": "CHANGELOG.md"
+}

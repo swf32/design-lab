@@ -1,0 +1,193 @@
+/* =====================================================================*/
+/* Checkbox.scss — Klyp canonical single-row primitive*/
+/* =====================================================================*/
+/* All values via Klyp DTCG tokens — no magic numbers, no hex.*/
+/**/
+/* Note: `CheckboxGroup.scss` also defines a `.klyp-Checkbox` block for*/
+/* its variant='default' | 'card' children. That block scopes its rules*/
+/* under `[data-variant]` attributes — the standalone Checkbox in this*/
+/* file never sets `data-variant`, so the two stylesheets don't collide.*/
+/* Shared base typography / flex / gap intentionally matches across both.*/
+
+.klyp-Checkbox {
+  position: relative;
+  display: inline-flex;
+  align-items: flex-start;
+  gap: var(--space-8);
+  cursor: pointer;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+
+  font: var(--type-body); /* 14 → 18 box */
+  font-weight: var(--font-weight-medium);
+  color: var(--color-fg-primary);
+
+  /* === Box ============================================================*/
+  &__box {
+    position: relative;
+    flex-shrink: 0;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border: var(--bw-default) solid var(--color-border-default);
+    border-radius: var(--radius-sm);
+    background: var(--color-bg-surface);
+    color: var(--color-fg-inverse);
+    /* Vertical optical alignment with first text line.*/
+    margin-top: var(--space-2);
+    transition:
+      background var(--duration-fast) var(--easing-standard),
+      border-color var(--duration-fast) var(--easing-standard),
+      color var(--duration-fast) var(--easing-standard);
+  }
+
+  &__check,
+  &__dash {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity var(--duration-fast) var(--easing-standard);
+  }
+
+  /* === Label ==========================================================*/
+  &__label {
+    display: inline-flex;
+    flex-direction: column;
+    gap: var(--space-2);
+    min-width: 0;
+  }
+
+  &__desc {
+    font: var(--type-body-sm); /* 12 → 16 box */
+    color: var(--color-fg-muted);
+  }
+
+  /* Invalid reason text — pairs the red border with a cause (WCAG 1.4.1).*/
+  &__error {
+    font: var(--type-body-sm); /* 12 → 16 box */
+    color: var(--color-status-danger);
+  }
+
+  /* === Sizes ==========================================================*/
+  &[data-size='sm'] {
+    /* Label inherits base type.body (14 → 18 box); sm differs only by box size.*/
+    .klyp-Checkbox__box {
+      width: var(--icon-size-sm); /* 16px */
+      height: var(--icon-size-sm);
+      margin-top: 0;
+    }
+  }
+
+  &[data-size='md'] {
+    .klyp-Checkbox__box {
+      width: var(--space-18); /* 18px */
+      height: var(--space-18);
+    }
+  }
+
+  /* === Selected =======================================================*/
+  &[data-selected]:not([data-indeterminate]) {
+    .klyp-Checkbox__box {
+      background: var(--color-fg-primary);
+      border-color: var(--color-fg-primary);
+    }
+    .klyp-Checkbox__check {
+      opacity: 1;
+    }
+  }
+
+  /* === Indeterminate ==================================================*/
+  &[data-indeterminate] {
+    .klyp-Checkbox__box {
+      background: var(--color-fg-primary);
+      border-color: var(--color-fg-primary);
+    }
+    .klyp-Checkbox__dash {
+      opacity: 1;
+    }
+  }
+
+  /* === Success tone (opt-in) ==========================================*/
+  /* Green checked/indeterminate fill for explicit "task complete"*/
+  /* semantics only — single-accent rule means green is never the default.*/
+  /* The dark check glyph (inherited box `color`) stays legible on green.*/
+  /* Invalid wins over success via the later [data-invalid] block.*/
+  &[data-tone='success'] {
+    &[data-selected]:not([data-indeterminate]) .klyp-Checkbox__box,
+    &[data-indeterminate] .klyp-Checkbox__box {
+      background: var(--color-status-success);
+      border-color: var(--color-status-success);
+    }
+  }
+
+  /* === Hover ==========================================================*/
+  &[data-hovered]:not([data-disabled]):not([data-selected]):not([data-indeterminate]) {
+    .klyp-Checkbox__box {
+      border-color: var(--color-border-strong);
+    }
+  }
+
+  /* === Pressed ========================================================*/
+  &[data-pressed]:not([data-disabled]) {
+    .klyp-Checkbox__box {
+      filter: brightness(0.95);
+    }
+  }
+
+  /* === Focus ==========================================================*/
+  /* Offset outline ring (mirrors Switch) — independent of box-border*/
+  /* contrast, stays visible on a filled (checked) box.*/
+  &[data-focus-visible] {
+    .klyp-Checkbox__box {
+      outline: var(--bw-default) solid var(--color-ring);
+      outline-offset: var(--bw-emphasis);
+    }
+  }
+
+  /* === Invalid ========================================================*/
+  &[data-invalid] {
+    .klyp-Checkbox__box {
+      border-color: var(--color-status-danger);
+    }
+
+    &[data-selected]:not([data-indeterminate]) .klyp-Checkbox__box,
+    &[data-indeterminate] .klyp-Checkbox__box {
+      background: var(--color-status-danger);
+      border-color: var(--color-status-danger);
+      color: var(--color-fg-primary);
+    }
+  }
+
+  /* === Read-only ======================================================*/
+  /* Non-editable affordance: default cursor + muted UNCHECKED box. Never*/
+  /* touches the checked fill (that would hide the checkmark). Mirrors the*/
+  /* readonly treatment on Input/Textarea.*/
+  &[data-readonly]:not([data-disabled]) {
+    cursor: default;
+
+    &:not([data-selected]):not([data-indeterminate]) .klyp-Checkbox__box {
+      background: var(--color-bg-surface);
+      border-color: var(--color-border-default);
+    }
+  }
+
+  /* === Disabled =======================================================*/
+  &[data-disabled] {
+    cursor: not-allowed;
+    opacity: var(--opacity-disabled);
+  }
+}
+
+/* === Reduced motion ==================================================*/
+/* Box/check/dash cross-fades are non-essential — disable them under*/
+/* prefers-reduced-motion so selection is instant (matches Switch).*/
+@media (prefers-reduced-motion: reduce) {
+  .klyp-Checkbox__box,
+  .klyp-Checkbox__check,
+  .klyp-Checkbox__dash {
+    transition: none;
+  }
+}

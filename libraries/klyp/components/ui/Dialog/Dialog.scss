@@ -1,0 +1,353 @@
+/* =====================================================================*/
+/* Dialog.scss — Klyp canonical primitive (Phase 2 of React Aria migration)*/
+/* =====================================================================*/
+/* All values via Klyp DTCG tokens — no magic numbers.*/
+/* Architecture: ../../../../MIGRATION-REACT-ARIA-2026-04-30.md §6/§16*/
+/**/
+/* RAC emits:*/
+/*   [data-entering], [data-exiting] on Modal & ModalOverlay.*/
+
+.klyp-Dialog {
+  /* === Overlay (backdrop) ==============================================*/
+  &__overlay {
+    position: fixed;
+    inset: 0;
+    z-index: var(--z-modal);
+    /* Default backdrop = dimmed + blur. `data-backdrop` overrides below. */
+    background: var(--color-bg-modal-backdrop);
+    -webkit-backdrop-filter: blur(var(--blur-3));
+    backdrop-filter: blur(var(--blur-3));
+
+    /* opaque — dimmed, no blur (cheaper over video / canvas). */
+    &[data-backdrop='opaque'] {
+      -webkit-backdrop-filter: none;
+      backdrop-filter: none;
+    }
+
+    /* transparent — no backdrop at all. */
+    &[data-backdrop='transparent'] {
+      background: transparent;
+      -webkit-backdrop-filter: none;
+      backdrop-filter: none;
+    }
+
+    /* Center the Modal inside the overlay (RAC ModalOverlay is the*/
+    /* positioning parent for Modal — flex centering keeps content*/
+    /* visually anchored without absolute fixed-percent transforms).*/
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: var(--space-16);
+
+    &[data-entering] {
+      animation: klyp-dialog-fade-in var(--duration-fast) var(--easing-standard);
+    }
+
+    &[data-exiting] {
+      animation: klyp-dialog-fade-out var(--duration-fast) var(--easing-standard);
+    }
+  }
+
+  /* === Content (Modal wrapper) =========================================*/
+  &__content {
+    position: relative;
+    width: 100%;
+    max-width: calc(100% - (var(--space-16) * 2));
+    background: var(--color-bg-surface);
+    border: var(--bw-default) solid var(--color-border-default);
+    border-radius: var(--r-section);
+    /* Banded layout (consistency with Modal, 2026-06-24): content carries NO
+       padding — header / body / footer are full-width bands, each self-padded. */
+    padding: 0;
+    color: var(--color-fg-primary);
+    font: var(--type-body); /* 14 → 18 box */
+    box-shadow: var(--shadow-panel);
+    z-index: var(--z-modal);
+    outline: none;
+
+    /* Never taller than the viewport: cap height and let the inner dialog
+       scroll. Without this, tall content (long forms / lists) grows the card
+       off-screen and the footer buttons become unreachable. `100svh` (small
+       viewport height) keeps the cap correct under mobile browser chrome; the
+       `--space-32` budget matches the overlay's 16px padding top + bottom. */
+    display: flex;
+    flex-direction: column;
+    max-height: calc(100svh - var(--space-32));
+    overflow: hidden; /* clip rounded corners; the scroll lives on __dialog */
+
+    @media (min-width: 640px) {
+      /* Bare-Dialog default card width; Modal overrides via its width classes. */
+      max-width: var(--modal-w-xs);
+    }
+
+    &[data-entering] {
+      animation:
+        klyp-dialog-fade-in var(--duration-fast) var(--easing-standard),
+        klyp-dialog-zoom-in var(--duration-fast) var(--easing-standard);
+    }
+
+    &[data-exiting] {
+      animation:
+        klyp-dialog-fade-out var(--duration-fast) var(--easing-standard),
+        klyp-dialog-zoom-out var(--duration-fast) var(--easing-standard);
+    }
+  }
+
+  /* === Inner Dialog (focus-trap + content layout) ======================*/
+  &__dialog {
+    outline: none;
+    display: flex;
+    flex-direction: column;
+    /* Bands sit flush — no inter-band gap (each band owns its padding). */
+    gap: 0;
+    /* Scroll the body when the card hits its max-height (set on __content).
+       `min-height: 0` lets this flex child shrink below its content size so
+       overflow actually kicks in; `flex: 1 1 auto` fills the capped card. */
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow-y: auto;
+
+    /* Slim scrollbar, invisible at rest — fades in only while hovering the
+       scroll area. Replaces the chunky default OS scrollbar. */
+    scrollbar-width: thin;
+    scrollbar-color: transparent transparent;
+
+    &::-webkit-scrollbar {
+      width: 6px;
+    }
+
+    &::-webkit-scrollbar-track {
+      background: transparent;
+    }
+
+    &::-webkit-scrollbar-thumb {
+      background: transparent;
+      border-radius: var(--radius-full);
+      transition: background var(--duration-fast) var(--easing-standard);
+    }
+
+    &:hover {
+      scrollbar-color: var(--color-fg-muted) transparent;
+
+      &::-webkit-scrollbar-thumb {
+        background: var(--color-fg-muted);
+      }
+    }
+
+    &::-webkit-scrollbar-thumb:hover {
+      background: var(--color-fg-subtle);
+    }
+
+    &[data-focus-visible] {
+      outline: none;
+    }
+  }
+
+  /* Body band — any loose child between header and footer gets the 12/24 band
+     (matches Modal's __body). Modal wraps its body in klyp-Modal__body, which
+     owns the same padding, so it's excluded to avoid double-padding. */
+  &__dialog > :not(&__header):not(&__footer):not(&__close):not(.klyp-Modal__body) {
+    padding: var(--space-12) var(--space-24);
+  }
+
+  /* Reserve title space for the absolute close (bare Dialog only — Modal renders
+     its close as a header flex-sibling, so its title needs no reserve). */
+  &__dialog:has(> &__close) &__title {
+    padding-inline-end: var(--space-64);
+  }
+
+  /* === Close (top-right X button) ======================================*/
+  /* Klyp Button handles its own visual styling (variant ghost, size*/
+  /* icon-sm) — we only place it absolutely.*/
+  /* */
+  /* Compound selector `.klyp-Dialog__close.klyp-Button` bumps specificity*/
+  /* to (0,0,2,0) so it beats the bare `.klyp-Button { position: relative }`*/
+  /* rule that ships in Button.scss (same single-class specificity, but*/
+  /* Button.scss loads later in the bundle and would otherwise win). Bare*/
+  /* `&__close` selector falls through and the close button ends up in*/
+  /* normal flex flow — pushing the modal height by ~44px and bleeding an*/
+  /* empty band below the footer.*/
+  &__close.klyp-Button {
+    position: absolute;
+    top: var(--space-16);
+    right: var(--space-16);
+    /* Above the sticky header (z-index 1) so the header's surface background
+       can't paint over the X when the body scrolls. */
+    z-index: 2;
+  }
+
+  /* Visually-hidden text inside the close button (sr-only equivalent).*/
+  &__sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+  }
+
+  /* === Header band — 24 sides / 24 top / 12 bottom (matches Modal) ======*/
+  &__header {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-4);
+    padding: var(--space-24) var(--space-24) var(--space-12);
+  }
+
+  /* Pin the visible header to the top while the body scrolls under it (scroll
+     lives on __dialog). Surface bg covers content scrolling beneath; z-index
+     keeps it above the body.
+     EXCLUDE sr-only headers: Command reuses <DialogHeader> as a hidden a11y
+     label (klyp-Command__sr-only) that hides via position:absolute + clip —
+     forcing position:sticky here would override that and un-hide it. */
+  &__header:not(.klyp-Command__sr-only) {
+    position: sticky;
+    top: 0;
+    z-index: 1;
+    background: var(--color-bg-surface);
+  }
+
+  /* === Footer band — 12 top / 24 sides / 24 bottom, no divider (matches Modal) */
+  /* Pinned to the bottom while the body scrolls (same technique as header). */
+  &__footer {
+    position: sticky;
+    bottom: 0;
+    z-index: 1;
+    background: var(--color-bg-surface);
+    margin: 0;
+    padding: var(--space-12) var(--space-24) var(--space-24);
+    display: flex;
+    flex-direction: column-reverse;
+    gap: var(--space-8);
+    border-top: 0;
+
+    @media (min-width: 640px) {
+      flex-direction: row;
+      justify-content: flex-end;
+    }
+  }
+
+  /* === Title ===========================================================*/
+  &__title {
+    margin: 0;
+    font: var(--type-heading-xs); /* 18 → 24 box */
+    font-weight: var(--font-weight-medium);
+    color: var(--color-fg-primary);
+  }
+
+  /* === Description ====================================================*/
+  &__description {
+    margin: 0;
+    font: var(--type-body); /* 14 → 18 box */
+    color: var(--color-fg-muted);
+    overflow-wrap: anywhere;
+
+    a {
+      text-decoration: underline;
+      text-underline-offset: 3px;
+
+      &:hover {
+        color: var(--color-fg-primary);
+      }
+    }
+  }
+
+  /* === Mobile bottom-sheet (≤639px) ====================================*/
+  /* Below 640px the centered card becomes a bottom-anchored sheet:
+   *   - overlay aligns content to viewport bottom (no side padding)
+   *   - content goes full-width with top corners rounded only
+   *   - entry animation switches from zoom to slideUp
+   * Pairs with the desktop ≥640px sizes on `klyp-Dialog__content`. */
+  @media (max-width: 639.98px) {
+    &__overlay {
+      align-items: flex-end;
+      justify-content: stretch;
+      padding: 0;
+    }
+
+    &__content {
+      max-width: 100%;
+      width: 100%;
+      border-bottom-left-radius: 0;
+      border-bottom-right-radius: 0;
+    }
+
+    &__content[data-entering] {
+      animation: klyp-dialog-slide-up var(--duration-fast) var(--easing-standard);
+    }
+
+    &__content[data-exiting] {
+      animation: klyp-dialog-slide-down var(--duration-fast) var(--easing-standard);
+    }
+  }
+
+  /* === Reduced-motion guard ============================================*/
+  /* WCAG 2.3.3 — users with `prefers-reduced-motion` get static dialogs:
+   * scrim still fades (instant) but content snaps without zoom/slide. */
+  @media (prefers-reduced-motion: reduce) {
+    &__overlay[data-entering],
+    &__overlay[data-exiting],
+    &__content[data-entering],
+    &__content[data-exiting] {
+      animation: none;
+    }
+  }
+}
+
+/* === Keyframes =========================================================*/
+@keyframes klyp-dialog-fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes klyp-dialog-fade-out {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+  }
+}
+
+@keyframes klyp-dialog-zoom-in {
+  from {
+    transform: scale(0.95);
+  }
+  to {
+    transform: scale(1);
+  }
+}
+
+@keyframes klyp-dialog-zoom-out {
+  from {
+    transform: scale(1);
+  }
+  to {
+    transform: scale(0.95);
+  }
+}
+
+@keyframes klyp-dialog-slide-up {
+  from {
+    transform: translateY(100%);
+  }
+  to {
+    transform: translateY(0);
+  }
+}
+
+@keyframes klyp-dialog-slide-down {
+  from {
+    transform: translateY(0);
+  }
+  to {
+    transform: translateY(100%);
+  }
+}

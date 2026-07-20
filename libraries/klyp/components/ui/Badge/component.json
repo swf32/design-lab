@@ -1,0 +1,13 @@
+{
+  "id": "badge",
+  "name": "Badge",
+  "status": "in-progress",
+  "schemaVersion": 1,
+  "description": "Geist-parity status pill — 11 intents (incl. Featured / Premium gold-platinum gradients) × solid/subtle × 3 sizes.",
+  "tags": [
+    "ui"
+  ],
+  "entry": "Badge.tsx",
+  "stories": "Badge.stories.tsx",
+  "changelog": "CHANGELOG.md"
+}

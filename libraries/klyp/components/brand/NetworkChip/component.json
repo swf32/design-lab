@@ -1,0 +1,14 @@
+{
+  "id": "network-chip",
+  "name": "NetworkChip",
+  "status": "in-progress",
+  "schemaVersion": 1,
+  "description": "Compact ticker · network identity chip with optional logo, sm/md sizes, selected state.",
+  "tags": [
+    "brand",
+    "brand-atom"
+  ],
+  "entry": "NetworkChip.tsx",
+  "stories": "NetworkChip.stories.tsx",
+  "changelog": "CHANGELOG.md"
+}

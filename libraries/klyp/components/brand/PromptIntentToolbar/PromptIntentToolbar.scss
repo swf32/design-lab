@@ -1,0 +1,93 @@
+/* =====================================================================*/
+/* PromptIntentToolbar.scss — Klyp brand molecule (Phase 3 of Tailwind → SCSS migration)*/
+/* =====================================================================*/
+/* All values via Klyp DTCG tokens — no magic numbers.*/
+/* Pattern reference: ../Chip/Chip.scss*/
+
+.klyp-PromptIntentToolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-4);
+
+  border-bottom: var(--bw-default) solid var(--color-border-subtle);
+  padding-bottom: var(--space-8);
+
+  /* Mobile (≤767px): hide the entire intent-chip strip — Action /
+   * Dialogue / Description / @insert. Tap targets too small for thumbs,
+   * row overflows on 390px viewport. Power-user controls stay desktop-
+   * only. The script-history button (sibling in scene/asset editor's
+   * __scriptIntentRow) is unaffected — separate component. the design lead 2026-05-07. */
+  @media (max-width: 767px) {
+    display: none;
+  }
+
+  &__group {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+  }
+
+  &__intent,
+  &__mention {
+    appearance: none;
+    background: transparent;
+    border: 0;
+    cursor: pointer;
+
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-2);
+
+    padding-block: var(--space-4);
+    padding-inline: var(--space-6);
+    border-radius: var(--radius-sm, var(--r-chip));
+
+    font-family: var(--font-sans);
+    font-size: var(--font-size-12);
+    font-weight: var(--font-weight-medium);
+    line-height: var(--line-height-tight);
+    letter-spacing: var(--ls-body);
+    color: var(--color-fg-muted);
+
+    transition: background-color var(--duration-fast) var(--easing-standard),
+      color var(--duration-fast) var(--easing-standard);
+
+    &:hover {
+      background-color: var(--color-border-subtle);
+      color: var(--color-fg-primary);
+    }
+
+    &:focus-visible {
+      outline: none;
+      box-shadow: 0 0 0 var(--bw-default) var(--color-ring);
+    }
+  }
+
+  &__intent[data-active] {
+    background-color: var(--color-surface-solid);
+    color: var(--color-fg-primary);
+  }
+
+  &__divider {
+    display: inline-block;
+    align-self: center;
+    width: var(--bw-default);
+    height: var(--space-10);
+    margin-inline: var(--space-4);
+    background-color: var(--color-border-subtle);
+  }
+
+  &__mentionSymbol {
+    color: var(--color-fg-accent);
+  }
+
+  &__trailing {
+    margin-left: auto;
+    align-self: center;
+    font-family: var(--font-sans);
+    font-size: var(--font-size-12);
+    font-variant-numeric: tabular-nums;
+    color: var(--color-fg-muted);
+  }
+}

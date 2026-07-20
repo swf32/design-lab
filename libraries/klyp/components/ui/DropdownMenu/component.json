@@ -1,0 +1,13 @@
+{
+  "id": "dropdown-menu",
+  "name": "DropdownMenu",
+  "status": "in-progress",
+  "schemaVersion": 1,
+  "description": "Keyboard-navigable menu with submenus, checkboxes, and shortcuts.",
+  "tags": [
+    "ui"
+  ],
+  "entry": "DropdownMenu.tsx",
+  "stories": "DropdownMenu.stories.tsx",
+  "changelog": "CHANGELOG.md"
+}

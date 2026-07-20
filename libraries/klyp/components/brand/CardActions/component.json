@@ -1,0 +1,14 @@
+{
+  "id": "card-actions",
+  "name": "CardActions",
+  "status": "in-progress",
+  "schemaVersion": 1,
+  "description": "TODO: Right-aligned action row used at the bottom of a card.",
+  "tags": [
+    "brand",
+    "brand-atom"
+  ],
+  "entry": "CardActions.tsx",
+  "stories": "CardActions.stories.tsx",
+  "changelog": "CHANGELOG.md"
+}

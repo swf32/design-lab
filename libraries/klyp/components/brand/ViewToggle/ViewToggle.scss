@@ -1,0 +1,42 @@
+/* =====================================================================*/
+/* ViewToggle — thin overrides over <TabSwitcher>*/
+/* =====================================================================*/
+/**/
+/* All chrome (outer pill, active fill, hover, focus ring, height, the*/
+/* icon→label row and gap) inherits from <TabSwitcher>. Each option is*/
+/* built by TabSwitcher from the `icon` prop + label child, laid out in*/
+/* its `__inner` flex-row (icon | label, center-aligned, --space-4 gap,*/
+/* icon pinned to --tab-switcher-icon-size). We only:*/
+/*   1. Collapse to icon-only under 360px container width — labels hide*/
+/*      and the option tightens to icon + --space-8 padding, so the outer*/
+/*      pill shrinks to two square-ish icon slots instead of leaving the*/
+/*      label's empty horizontal slot. Mirrors TabSwitcher's own*/
+/*      `[data-icon-only]` chrome, but driven by container width here.*/
+/**/
+/* Tokens-only. No magic numbers. The narrow-collapse breakpoint mirrors the*/
+/* host section header's container-type rule (set in route .scss files).*/
+
+/* Narrow-toolbar collapse — icon-only. Reads from the nearest*/
+/* `container-type: inline-size` ancestor (route section header). The aria*/
+/* label on each Item keeps screen-reader output intact (label text stays*/
+/* in the DOM, just visually hidden).*/
+@container (max-width: 360px) {
+  .klyp-ViewToggle {
+    .klyp-TabSwitcher__option[data-has-icon] {
+      gap: 0;
+      padding-inline: var(--space-8);
+    }
+
+    .klyp-TabSwitcher__label {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      padding: 0;
+      margin: -1px;
+      overflow: hidden;
+      clip: rect(0, 0, 0, 0);
+      white-space: nowrap;
+      border: 0;
+    }
+  }
+}

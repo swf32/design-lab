@@ -1,0 +1,127 @@
+/**
+ * MobilePanelSheet — Tier 4 brand molecule.
+ *
+ * Tokens-only. Mirrors the chat-composer ModelPicker surface palette
+ * (glass + backdrop-filter) so the mobile editor sheet feels like part
+ * of the same product family as the model picker chip.
+ *
+ * vaul renders Drawer.Content with `position: fixed; bottom: 0` and
+ * applies `transform: translateY(...)` to drive the snap-point
+ * animation. We do NOT override `transform`, only the surface chrome.
+ */
+
+.klyp-MobilePanelSheet__overlay {
+  position: fixed;
+  inset: 0;
+  z-index: var(--z-modal, 1000);
+  background: var(--color-bg-modal-backdrop);
+  -webkit-backdrop-filter: blur(var(--blur-3));
+  backdrop-filter: blur(var(--blur-3));
+}
+
+.klyp-MobilePanelSheet {
+  /* vaul does NOT set position inline — it expects the className to anchor*/
+  /* the content. Without these four lines the Drawer.Content renders at its*/
+  /* default flow position (basically off-screen / invisible). Lifted from*/
+  /* vaul docs example. vaul drives `transform` on top of these for snap*/
+  /* animation; we don't override transform.*/
+  position: fixed;
+  inset-inline: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: var(--z-modal, 1000);
+
+  display: flex;
+  flex-direction: column;
+  block-size: 100%;
+  /* Was 97svh (leaves a 3% peek at the top per vaul docs example). the design lead*/
+  /* 2026-05-07: "шторку поднять верх нельзя — не покрывает экран". The*/
+  /* drag-handle on the sheet itself is sufficient close affordance, no*/
+  /* need for a top-of-screen peek of background. svh = small-viewport-*/
+  /* height — excludes iOS Safari's dynamic toolbar, so the sheet still*/
+  /* doesn't fight the URL bar / bottom nav on real iPhones.*/
+  max-block-size: 100svh;
+
+  /* Surface — match the chat ModelPicker menu palette so the sheet reads*/
+  /* as part of the same product chrome (`prompt-composer/model-picker.scss`).*/
+  background: color-mix(in oklab, var(--color-bg-surface) 92%, transparent);
+  -webkit-backdrop-filter: var(--fx-glass-blur);
+  backdrop-filter: var(--fx-glass-blur);
+  border-top-left-radius: var(--r-section);
+  border-top-right-radius: var(--r-section);
+  border-top: var(--bw-default) solid var(--color-border-default);
+  color: var(--color-fg-primary);
+  outline: none;
+  /* Safe-area + keyboard offset. vaul drives `transform` for the snap*/
+  /* position; we only add internal padding for the home-indicator and*/
+  /* an optional offset when iOS keyboard is up.*/
+  padding-bottom: calc(var(--safe-area-bottom, var(--space-0)) + var(--kb-offset, var(--space-0)));
+}
+
+.klyp-MobilePanelSheet__handle {
+  margin-block: var(--space-12) var(--space-4);
+  margin-inline: auto;
+  inline-size: var(--space-24); /* 24px — Apple-standard handle width*/
+  block-size: var(--sheet-handle-h);
+  border-radius: var(--radius-full);
+  background: var(--color-fg-subtle);
+  flex-shrink: 0;
+  cursor: grab;
+
+  &:active {
+    cursor: grabbing;
+  }
+
+  /* Reduced motion — vaul handles the animation; nothing to disable here,*/
+  /* but the cursor stays helpful even with no transform.*/
+}
+
+.klyp-MobilePanelSheet__header {
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  padding-inline: var(--space-24);
+  padding-block: var(--space-8) var(--space-16);
+}
+
+.klyp-MobilePanelSheet__title {
+  margin: 0;
+  font-family: var(--font-sans);
+  font-size: var(--font-size-16);
+  font-weight: var(--font-weight-semibold);
+  line-height: var(--line-height-tight);
+  color: var(--color-fg-primary);
+}
+
+.klyp-MobilePanelSheet__description {
+  margin: 0;
+  font-family: var(--font-sans);
+  font-size: var(--font-size-13);
+  line-height: var(--line-height-normal);
+  color: var(--color-fg-muted);
+}
+
+.klyp-MobilePanelSheet__body {
+  flex: 1 1 0%;
+  min-block-size: 0;
+  padding-inline: var(--space-24);
+  padding-block-end: var(--space-24);
+
+  /* Body scroll behaviour follows the snap state. At peek, the user is*/
+  /* glancing — content is locked to prevent confusion (drag is for snap,*/
+  /* not scroll). At expand, content scrolls vertically inside the sheet.*/
+  /* vaul listens to drag-on-content and disambiguates: drag from the top*/
+  /* toward bottom dismisses, drag from the body content scrolls.*/
+  &[data-scrollable='true'] {
+    overflow-y: auto;
+    /* `-webkit-overflow-scrolling: touch` is auto-applied on iOS 13+ —*/
+    /* explicit declaration is deprecated and lints noisy. Removed*/
+    /* 2026-05-07.*/
+  }
+
+  &[data-scrollable='false'] {
+    overflow: hidden;
+  }
+}

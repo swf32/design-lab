@@ -1,0 +1,14 @@
+{
+  "id": "picker-card",
+  "name": "PickerCard",
+  "status": "in-progress",
+  "schemaVersion": 1,
+  "description": "Standalone radio tile — visual + label + sub + radio dot, vertical/horizontal layouts, 3 sizes.",
+  "tags": [
+    "brand",
+    "brand-atom"
+  ],
+  "entry": "PickerCard.tsx",
+  "stories": "PickerCard.stories.tsx",
+  "changelog": "CHANGELOG.md"
+}

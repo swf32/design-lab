@@ -1,0 +1,13 @@
+{
+  "id": "tool-button",
+  "name": "ToolButton",
+  "status": "in-progress",
+  "schemaVersion": 1,
+  "description": "Icon-only button sized for toolbars — square tap target with tooltip slot.",
+  "tags": [
+    "ui"
+  ],
+  "entry": "ToolButton.tsx",
+  "stories": "ToolButton.stories.tsx",
+  "changelog": "CHANGELOG.md"
+}

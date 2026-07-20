@@ -1,0 +1,13 @@
+{
+  "id": "markdown-boundary",
+  "name": "MarkdownBoundary",
+  "status": "in-progress",
+  "schemaVersion": 1,
+  "description": "Safety net for Markdown rendering — catches a render crash and shows the raw text instead of a blank message, plus a scoped shadcn→DTCG CSS-var shim so streamdown picks up our theme.",
+  "tags": [
+    "ui"
+  ],
+  "entry": "MarkdownBoundary.tsx",
+  "stories": "MarkdownBoundary.stories.tsx",
+  "changelog": "CHANGELOG.md"
+}

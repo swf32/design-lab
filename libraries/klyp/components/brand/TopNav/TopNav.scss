@@ -1,0 +1,112 @@
+/* =====================================================================*/
+/* TopNav.scss — Klyp brand atom (Phase 3 of Tailwind → SCSS migration)*/
+/* =====================================================================*/
+/* Slot-based top navigation skeleton. Owns layout (sticky, glass, height).*/
+/* Brand-specific content lives in consumers (e.g. AppHeader).*/
+/* All values via Klyp DTCG tokens — no magic numbers.*/
+
+.klyp-TopNav {
+  /* Default sticky behavior (toggleable via data-sticky="false"). Header
+     sits at the top of its containing block — for routes that own their
+     own scroll port (AppShell main, pricing-page __scroll wrapper), the
+     scrollbar lives INSIDE that scroll container BELOW the header, so
+     the native scrollbar doesn't cross the header right edge. The earlier
+     `width: 100vw + margin-inline` escape trick was rolled back 2026-05-28
+     round 7 (Val) — it caused horizontal overflow whenever the html
+     scrollbar-gutter consumed inline space. */
+  position: sticky;
+  top: 0;
+  z-index: var(--z-header);
+
+  -webkit-backdrop-filter: blur(var(--blur-16));
+  backdrop-filter: blur(var(--blur-16));
+
+  /* Transition applies whenever the transparent variant toggles between
+     transparent/glass states. Reduced-motion handled below. */
+  transition:
+    background var(--duration-fast) var(--easing-standard),
+    border-color var(--duration-fast) var(--easing-standard),
+    backdrop-filter var(--duration-fast) var(--easing-standard);
+
+  @media (prefers-reduced-motion: reduce) {
+    transition: none;
+  }
+
+  &[data-sticky='false'] {
+    position: static;
+    top: auto;
+    z-index: auto;
+  }
+
+  /* Transparent variant — chromeless at top of page, fades in glass +
+     1px hairline once scrolled past the sentinel. JS sets `data-stuck`
+     via IntersectionObserver. (Phase 1 of Header Migration 2026-05-28.)
+
+     The hairline lives as an `inset` box-shadow instead of a real
+     `border-bottom` — borders count toward the element's total height
+     (even with `border-box`, when no explicit height is set), and the
+     browser rendered `var(--bw-default) = 1px` as 0.8 device-pixels at
+     125% Windows DPI scaling. Result: header was 56.8px instead of
+     `--header-h = 56px`, dragging the AppShell body (and its sidebar)
+     down by ~1px versus EditorShell routes (which pin sidebar to
+     `padding-top: var(--header-h)`). `box-shadow inset` is paint-only,
+     so the visible chrome is unchanged but the box stays exactly
+     `__inner`-tall. Fix verified via Playwright 2026-05-28. */
+  &[data-transparent='true'] {
+    background: transparent;
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+
+    &[data-stuck='true'] {
+      background: var(--color-bg-glass);
+      -webkit-backdrop-filter: blur(var(--blur-16));
+      backdrop-filter: blur(var(--blur-16));
+      box-shadow: inset 0 calc(-1 * var(--bw-default)) 0 var(--color-border-subtle);
+    }
+  }
+
+  /* 1px sentinel rendered above the sticky header in normal flow. When
+     it scrolls out of viewport, IntersectionObserver flips data-stuck
+     to true.
+
+     `margin-bottom: -1px` cancels the sentinel's flow contribution so
+     the sticky header sits flush at y=0 instead of being pushed down
+     1px. Without this, AppShell routes' sidebar sat 1px lower than
+     EditorShell routes' sidebar (which uses an `absolute`-positioned
+     topheader slot — no flow contribution). Observer still fires
+     correctly: sentinel occupies y=0..1, and any scroll ≥ 1px takes
+     it out of view. Fix verified via Playwright 2026-05-28. */
+  &__sentinel {
+    height: 1px;
+    margin-bottom: -1px;
+    width: 100%;
+    pointer-events: none;
+  }
+
+  &__inner {
+    display: flex;
+    width: 100%;
+    height: var(--header-h); /* 56px — hard-pinned per ARCHITECTURE sec 10*/
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-16);
+    padding-left: var(--space-16);
+    padding-right: var(--space-16);
+  }
+
+  &__leading,
+  &__trailing {
+    display: flex;
+    flex-shrink: 0;
+    align-items: center;
+    gap: var(--space-8);
+  }
+
+  &__center {
+    display: flex;
+    flex: 1 1 0%;
+    align-items: center;
+    justify-content: center;
+    gap: var(--space-8);
+  }
+}

@@ -1,0 +1,128 @@
+/* =====================================================================*/
+/* Textarea.scss — Klyp canonical primitive (Phase 2 of React Aria migration)*/
+/* =====================================================================*/
+/* All values via Klyp DTCG tokens — no magic numbers.*/
+/* Architecture: ../../../../MIGRATION-REACT-ARIA-2026-04-30.md §6/§16*/
+
+.klyp-Textarea {
+  /* === Base ============================================================*/
+  display: block;
+  width: 100%;
+  min-width: 0;
+  margin: 0;
+  border: var(--bw-default) solid var(--color-border-default);
+  border-radius: var(--r-chip); /* semantic alias — matches Input */
+  background: transparent;
+  outline: none;
+  appearance: none;
+  /* CSS auto-grow for PLAIN (non-autoGrow) fields, no JS. Progressive
+     enhancement: Chrome/Edge 123+ and Safari 26.2+ honour `field-sizing`;
+     Firefox (stable) + older Safari don't (the per-size min-height floor keeps
+     the box usable). Need guaranteed cross-browser grow + a max-rows cap? Pass
+     the `autoGrow` prop (JS height — see `&[data-autogrow]` below). */
+  field-sizing: content;
+  -webkit-tap-highlight-color: transparent;
+
+  /* One ramp like Input: base = type.body (14 → 18); only sm goes smaller.
+     md and lg keep the SAME font — size changes the box, not the kerning. */
+  font: var(--type-body);
+  color: var(--color-fg-primary);
+
+  transition:
+    border-color var(--duration-fast) var(--easing-standard),
+    background var(--duration-fast) var(--easing-standard),
+    box-shadow var(--duration-fast) var(--easing-standard),
+    opacity var(--duration-fast) var(--easing-standard);
+
+  /* === Placeholder ====================================================*/
+  &::placeholder {
+    color: var(--color-fg-muted);
+    opacity: 1;
+  }
+
+  /* === Sizes ===========================================================*/
+  /* Default `md` from the React layer reproduces the prior single-size box.
+     min-height is a FLOOR — `field-sizing: content` still grows past it. */
+  /* Horizontal padding mirrors Input per size (8 / 12 / 12); vertical is kept
+     close to horizontal so the text block doesn't sit in a wide letterbox. */
+  &[data-size='sm'] {
+    min-height: var(--space-48);
+    padding: var(--space-6) var(--space-8);
+    font: var(--type-body-sm); /* 12 → 16 box — the only size that shrinks */
+  }
+
+  &[data-size='md'] {
+    min-height: var(--space-64); /* was 4rem — now tokenised */
+    padding: var(--space-10) var(--space-12);
+  }
+
+  &[data-size='lg'] {
+    min-height: var(--space-80);
+    padding: var(--space-12);
+  }
+
+  /* === Auto-grow (JS, `autoGrow` prop) =================================*/
+  /* JS sets an explicit inline `height`, so the box must NOT also be governed
+     by the per-size min-height floor or CSS `field-sizing` — neutralise both
+     and let JS own the height (line-height × clamp(minRows…maxRows), scroll
+     past the cap). Placed after the size block so `min-height: 0` wins on order. */
+  &[data-autogrow] {
+    field-sizing: fixed;
+    min-height: 0;
+  }
+
+  /* === Resize ==========================================================*/
+  /* Default `none` from the React layer (grip-free; field auto-grows instead). */
+  &[data-resize='none'] { resize: none; }
+  &[data-resize='vertical'] { resize: vertical; }
+  &[data-resize='horizontal'] { resize: horizontal; }
+  &[data-resize='both'] { resize: both; }
+
+  /* === States =========================================================*/
+  &:hover:not(:disabled):not([readonly]) {
+    border-color: var(--color-border-strong);
+  }
+
+  &:focus-visible {
+    /* Suppress the GLOBAL native focus ring. We render a real <textarea> (no
+       `data-rac`), so `:focus-visible:where(:not([data-rac]))` in globals.scss
+       paints a 1px outline at offset 2px ON TOP of our ring — the "two borders"
+       bug. Base `outline: none` (0,1,0) ties the global and loses on order;
+       this (0,2,0) selector wins. RAC's Input dodges it via `data-rac`. */
+    outline: none;
+    border-color: var(--color-border-focus);
+    /* No-shift focus — flush shadow ring outside the box, not a thicker border.
+       Same family fix as Input. Эталон: SearchField.scss. */
+    box-shadow: 0 0 0 var(--bw-default) var(--color-border-focus);
+  }
+
+  &:disabled {
+    opacity: var(--opacity-disabled);
+    cursor: not-allowed;
+    background: var(--color-bg-surface);
+  }
+
+  /* Invalid via the hand-set `aria-invalid` only — same as Input. A bare
+     native <textarea> never receives RAC's `data-invalid` (that's set on RAC's
+     slotted <TextArea> inside <TextField>), so a `[data-invalid]` selector
+     here would ship dead. Consumers flip `aria-invalid` directly. */
+  &[aria-invalid='true'] {
+    border-color: var(--color-status-danger);
+
+    &:focus-visible {
+      border-color: var(--color-status-danger);
+      box-shadow: 0 0 0 var(--bw-default) var(--color-status-danger);
+    }
+  }
+
+  /* readonly ≠ disabled: the value is content the user reads/copies — keep it
+     at full contrast, same as Input. */
+  &[readonly] {
+    color: var(--color-fg-primary);
+  }
+
+  /* === Reduced motion =================================================*/
+  @media (prefers-reduced-motion: reduce) {
+    transition: none;
+  }
+}

@@ -1,0 +1,242 @@
+/* =====================================================================*/
+/* Tooltip.scss — Klyp canonical primitive (React Aria)*/
+/* =====================================================================*/
+/* All values via Klyp DTCG tokens — no magic numbers.*/
+/* Architecture: ../../../../MIGRATION-REACT-ARIA-2026-04-30.md §6/§16*/
+/**/
+/* RAC Tooltip renders [data-placement='top|bottom|left|right'],*/
+/* [data-entering], [data-exiting]. OverlayArrow renders [data-placement]*/
+/* matching parent.*/
+/**/
+/* Custom data-attrs (this primitive):*/
+/*   [data-tone='default|danger|warning|success|info']*/
+/*   [data-shape='default|pill']*/
+
+.klyp-Tooltip {
+  /* === Popup =========================================================*/
+  /* Subtle 5% white border (--color-border-subtle). Pair this with the*/
+  /* polyline arrow trick (see Tooltip.tsx) — polygon fills the body*/
+  /* colour and polyline strokes only the two slanted sides, so the*/
+  /* body's top border doesn't show as a seam above the arrow tip.*/
+  position: relative;
+  z-index: var(--z-overlay);
+  max-width: 280px;
+  /* Padding: 8px vertical, 12px horizontal — a touch more side breathing*/
+  /* room than top/bottom (the old 6/12 split was too lopsided; pure 8/8 was*/
+  /* a hair tight on the sides). Pairs with the chip radius below.*/
+  padding: var(--space-8) var(--space-12);
+  border: var(--bw-default) solid var(--color-border-subtle);
+  /* `--r-chip` (10px) — the chip/pill/badge radius. With the balanced 8px*/
+  /* inset this reads as a crisp rounded chip rather than the old tight 6px*/
+  /* (`--radius-sm`) corner. Semantic alias per styles.md radii ramp.*/
+  border-radius: var(--r-chip);
+  background: var(--color-bg-surface-solid);
+  box-shadow: var(--shadow-soft);
+
+  font: var(--type-label); /* 12 → 16 box */
+  font-weight: var(--font-weight-medium);
+  color: var(--color-fg-primary);
+
+  /* Smooth show/hide driven by RAC data-entering/exiting. We FADE + slide*/
+  /* a few px toward the trigger — we do NOT scale. Scaling a text-bearing*/
+  /* element re-rasterises the text each frame (blur) and, anchored to a*/
+  /* placement origin, drifts it as it grows — which reads as a "jitter"*/
+  /* on open. A small whole-px translate stays crisp.*/
+  transition:
+    opacity var(--duration-fast) var(--easing-standard),
+    transform var(--duration-fast) var(--easing-standard);
+
+  &[data-entering] {
+    will-change: transform, opacity;
+    animation: klyp-tooltip-in var(--duration-fast) var(--easing-standard) both;
+  }
+
+  &[data-exiting] {
+    will-change: transform, opacity;
+    animation: klyp-tooltip-out var(--duration-fast) var(--easing-standard) both;
+  }
+
+  /* === Placement-aware entry offset (slides in from the trigger side) =*/
+  &[data-placement='top'] {
+    --enter-from: translate(0, var(--space-4));
+  }
+  &[data-placement='bottom'] {
+    --enter-from: translate(0, calc(var(--space-4) * -1));
+  }
+  &[data-placement='left'] {
+    --enter-from: translate(var(--space-4), 0);
+  }
+  &[data-placement='right'] {
+    --enter-from: translate(calc(var(--space-4) * -1), 0);
+  }
+
+  /* === Shape variants ===============================================*/
+  &[data-shape='pill'] {
+    border-radius: var(--radius-full);
+    padding: var(--space-6) var(--space-14);
+  }
+
+  /* === Tone variants ================================================*/
+  /* Each tone uses the paired --color-badge-<hue>-{bg,fg} tokens — the*/
+  /* SAME contrast-verified, brand-aware recipe Badge[variant=subtle]*/
+  /* uses (tinted bg + saturated same-hue fg). The previous recipe put*/
+  /* the saturated -900 status token (a FG/icon colour) into the*/
+  /* background with white@90% text, which failed WCAG AA (~1.9–2.3:1).*/
+  /* The tinted pair fixes contrast in both klyp-dark and unreals-light*/
+  /* and keeps every status surface on one token contract. Border drops*/
+  /* to transparent — the tinted fill defines the shape cleanly.*/
+  &[data-tone='danger'] {
+    background: var(--color-badge-red-bg);
+    border-color: transparent;
+    color: var(--color-badge-red-fg);
+
+    .klyp-Tooltip__arrow-fill {
+      fill: var(--color-badge-red-bg);
+    }
+    .klyp-Tooltip__arrow-stroke {
+      stroke: transparent;
+    }
+  }
+
+  &[data-tone='warning'] {
+    background: var(--color-badge-amber-bg);
+    border-color: transparent;
+    color: var(--color-badge-amber-fg);
+
+    .klyp-Tooltip__arrow-fill {
+      fill: var(--color-badge-amber-bg);
+    }
+    .klyp-Tooltip__arrow-stroke {
+      stroke: transparent;
+    }
+  }
+
+  &[data-tone='success'] {
+    background: var(--color-badge-green-bg);
+    border-color: transparent;
+    color: var(--color-badge-green-fg);
+
+    .klyp-Tooltip__arrow-fill {
+      fill: var(--color-badge-green-bg);
+    }
+    .klyp-Tooltip__arrow-stroke {
+      stroke: transparent;
+    }
+  }
+
+  &[data-tone='info'] {
+    background: var(--color-badge-blue-bg);
+    border-color: transparent;
+    color: var(--color-badge-blue-fg);
+
+    .klyp-Tooltip__arrow-fill {
+      fill: var(--color-badge-blue-bg);
+    }
+    .klyp-Tooltip__arrow-stroke {
+      stroke: transparent;
+    }
+  }
+
+  /* === Optional leading status icon (non-colour signal, WCAG 1.4.1) ==*/
+  /* Caller-provided icon (keeps this primitive @klyp/icons-free). Render*/
+  /* inline so it doesn't change the layout of text-only tooltips.*/
+  &__icon {
+    display: inline-flex;
+    align-items: center;
+    vertical-align: middle;
+    margin-right: var(--space-4);
+    width: var(--icon-size-sm);
+    height: var(--icon-size-sm);
+
+    svg {
+      width: 100%;
+      height: 100%;
+    }
+  }
+
+  /* === Arrow =========================================================*/
+  /* Two-shape svg (see Tooltip.tsx): a solid polygon for the fill and*/
+  /* an open polyline for the border (left + right slanted sides only,*/
+  /* skipping the top edge so the body border doesn't seam through).*/
+  &__arrow {
+    position: absolute;
+    width: var(--space-10);
+    height: var(--space-10);
+
+    svg {
+      display: block;
+      overflow: visible;
+    }
+
+    &-fill {
+      fill: var(--color-bg-surface-solid);
+      stroke: none;
+    }
+
+    &-stroke {
+      fill: none;
+      stroke: var(--color-border-subtle);
+      stroke-width: var(--bw-default);
+      stroke-linejoin: round;
+    }
+
+    /* Arrow rotation per placement. RAC positions the arrow element via*/
+    /* `bottom`/`top`/`left`/`right` so we only need to flip the SVG.*/
+    &[data-placement='top'] svg {
+      transform: rotate(0deg);
+    }
+    &[data-placement='bottom'] svg {
+      transform: rotate(180deg);
+    }
+    &[data-placement='left'] svg {
+      transform: rotate(-90deg);
+    }
+    &[data-placement='right'] svg {
+      transform: rotate(90deg);
+    }
+  }
+
+  /* When arrow is disabled via prop the OverlayArrow node is unmounted,*/
+  /* so no extra rule is needed.*/
+}
+
+/* === Reduced motion ================================================*/
+/* Respect prefers-reduced-motion: show/hide instantly (no scale, no*/
+/* fade). RAC removes the element synchronously when no transition or*/
+/* animation is running, so the tooltip still closes correctly.*/
+@media (prefers-reduced-motion: reduce) {
+  .klyp-Tooltip {
+    transition: none;
+
+    &[data-entering] {
+      opacity: 1;
+      transform: none;
+      animation: none;
+    }
+    &[data-exiting] {
+      animation: none;
+    }
+  }
+}
+
+@keyframes klyp-tooltip-in {
+  from {
+    opacity: 0;
+    transform: var(--enter-from, translate(0, var(--space-4)));
+  }
+  to {
+    opacity: 1;
+    transform: translate(0, 0);
+  }
+}
+
+@keyframes klyp-tooltip-out {
+  from {
+    opacity: 1;
+    transform: translate(0, 0);
+  }
+  to {
+    opacity: 0;
+    transform: var(--enter-from, translate(0, var(--space-4)));
+  }
+}

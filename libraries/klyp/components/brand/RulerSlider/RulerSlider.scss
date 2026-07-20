@@ -1,0 +1,233 @@
+/* =====================================================================
+ * RulerSlider — horizontal port of the CSS ruler slider. Tokens only.
+ * =====================================================================
+ *
+ * Faithful to the reference: native range input + datalist ruler, the
+ * knurled neumorphic dial thumb, ruler marks that bulge up over the thumb on
+ * a cosine wave (linear fallback). Re-oriented horizontal; the original's
+ * hardcoded colours/sizes are swapped for Klyp DTCG tokens.
+ *
+ * Two custom props drive it: `--val` (current stop index) + per-mark `--idx`.
+ * `--pct` (= val/max) positions the white fill + ruler marks against the
+ * native thumb, whose centre travels [thumb/2 … 100%−thumb/2].
+ */
+
+.klyp-RulerSlider {
+  /* $u-equivalents from the reference, scaled for an in-dialog slider. */
+  --rs-thumb-d: var(--space-40); /* dial diameter */
+  --rs-thumb-p: var(--space-8); /* dial padding (knurl ring inset) */
+  --rs-thumb-f: 0.42; /* knurl sizing factor */
+  --rs-track-t: var(--space-6); /* rail thickness */
+  --rs-reach: 3; /* how many marks the thumb proximity bulges (smaller = tighter arc) */
+  --rs-lift: var(--space-16); /* peak bulge height of the ruler over the thumb */
+  /* Filled portion travels green → amber → red as the value climbs. */
+  --rs-fillw: calc(var(--pct) * (100% - var(--rs-thumb-d)) + var(--rs-thumb-d) / 2);
+
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-8);
+  width: 100%;
+  min-width: 0;
+  /* Sit the whole ruler slider 16px lower (Val). */
+  margin-top: var(--space-16);
+}
+
+/* ---- Ruler (above the track) ------------------------------------- */
+.klyp-RulerSlider__ruler {
+  position: relative;
+  height: var(--space-32);
+  /* Pull the ruler 16px closer to the thumb (Val). */
+  margin-bottom: calc(-1 * var(--space-16));
+}
+
+.klyp-RulerSlider__mark {
+  /* Distance from the thumb, in stop-index units → cosine bulge. */
+  --abs: max(var(--val) - var(--idx), var(--idx) - var(--val));
+  --rel: calc(var(--abs) / var(--rs-reach));
+  --sel: max(0, 1 - var(--rel) * var(--rel)); /* no-trig fallback */
+  /* Quadratic on --sel → peak over the thumb, sides drop to the baseline fast. */
+  --off: calc(var(--sel) * var(--sel) * var(--rs-lift));
+
+  position: absolute;
+  bottom: 0;
+  /* Align to the native thumb centre: pct across (track − thumb) + half. */
+  left: calc((var(--idx) / var(--max)) * (100% - var(--rs-thumb-d)) + var(--rs-thumb-d) / 2);
+  display: flex;
+  justify-content: center;
+  width: var(--border-width-2);
+  height: var(--space-10);
+  border-radius: var(--radius-full);
+  background: var(--color-fg-muted);
+  /* Centre on its position, then lift UP over the thumb by --off. */
+  transform: translate(-50%, calc(-1 * var(--off)));
+  opacity: calc(0.25 + 0.75 * var(--sel));
+  transition:
+    transform var(--duration-base) var(--easing-standard),
+    opacity var(--duration-base) var(--easing-standard);
+
+  &[data-major='true'] {
+    height: var(--space-16);
+    background: var(--color-fg-primary);
+    opacity: 1;
+  }
+
+  /* Cosine-falloff bulge where trig is supported — squared so the sides
+   * drop back to the baseline quickly and the arc reads as a sharp bend. */
+  @supports (top: calc(sin(5deg) * 1px)) {
+    --sel: max(0, 1 - var(--rel));
+    --off: calc(
+      (0.5 - 0.5 * cos(var(--sel) * 180deg)) * (0.5 - 0.5 * cos(var(--sel) * 180deg)) *
+        var(--rs-lift)
+    );
+  }
+}
+
+.klyp-RulerSlider__markLabel {
+  position: absolute;
+  bottom: 100%;
+  margin-bottom: var(--space-4);
+  font-family: var(--font-sans);
+  font-size: var(--font-size-12);
+  font-variant-numeric: tabular-nums;
+  color: var(--color-fg-primary);
+  white-space: nowrap;
+}
+
+/* ---- Track ------------------------------------------------------- */
+.klyp-RulerSlider__track {
+  position: relative;
+  height: var(--rs-thumb-d);
+}
+
+.klyp-RulerSlider__rail {
+  position: absolute;
+  inset-inline: 0;
+  top: 50%;
+  height: var(--rs-track-t);
+  transform: translateY(-50%);
+  border-radius: var(--radius-full);
+  background: var(--color-slider-rail);
+}
+
+/* Gradient fill: the bar spans the full track and carries a green→amber→red
+ * gradient anchored to the track, so the colour under the thumb shifts as the
+ * value climbs (the reference's progress colouring). A clip-path reveals only
+ * the filled portion (left of the thumb centre). */
+.klyp-RulerSlider__fill {
+  position: absolute;
+  inset-inline: 0;
+  top: 50%;
+  height: var(--rs-track-t);
+  transform: translateY(-50%);
+  background: linear-gradient(90deg, var(--green-700), var(--amber-700), var(--red-600));
+  clip-path: inset(0 calc(100% - var(--rs-fillw)) 0 0 round var(--radius-full));
+  transition: clip-path var(--duration-base) var(--easing-standard);
+}
+
+/* ---- Native range input + knurled dial thumb -------------------- */
+.klyp-RulerSlider__input {
+  -webkit-appearance: none;
+  appearance: none;
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  background: transparent;
+  cursor: pointer;
+
+  &:focus {
+    outline: none;
+  }
+
+  &::-webkit-slider-runnable-track {
+    height: 100%;
+    background: transparent;
+  }
+  &::-moz-range-track {
+    height: 100%;
+    background: transparent;
+  }
+
+  /* The dial — knurled metal disc with neumorphic depth, ported from the
+   * reference thumb mixin (silver → token striping, #1f1f1f base → surface,
+   * grey glows → alpha tokens). */
+  &::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    box-sizing: border-box;
+    border: none;
+    padding: var(--rs-thumb-p);
+    width: var(--rs-thumb-d);
+    height: var(--rs-thumb-d);
+    border-radius: 50%;
+    box-shadow:
+      inset 0 0 1px 1px var(--alpha-white-10),
+      /* central disc cover, leaving a knurl ring at the rim */
+      inset 0 0 0
+        calc(0.5 * var(--rs-thumb-f) * (var(--rs-thumb-d) - 2 * var(--rs-thumb-p)) + var(--rs-thumb-p))
+        var(--color-slider-thumb-bg),
+      var(--space-4) calc(-1 * var(--space-4)) var(--space-4) var(--alpha-white-10),
+      calc(-1 * var(--space-4)) var(--space-4) var(--space-12) var(--alpha-black-40),
+      var(--space-12) calc(-1 * var(--space-12)) var(--space-12) var(--alpha-white-10),
+      calc(-1 * var(--space-12)) var(--space-12) var(--space-20) var(--alpha-black-50);
+    background:
+      repeating-conic-gradient(
+          from 60deg,
+          transparent 0%,
+          var(--alpha-black-20) 1deg 59deg,
+          transparent 60deg 50%
+        )
+        0 / calc(var(--rs-thumb-f) * 100%) 100% space content-box,
+      var(--color-slider-thumb-bg);
+    transition: box-shadow var(--duration-base) var(--easing-standard);
+  }
+
+  &::-moz-range-thumb {
+    box-sizing: border-box;
+    border: none;
+    padding: var(--rs-thumb-p);
+    width: var(--rs-thumb-d);
+    height: var(--rs-thumb-d);
+    border-radius: 50%;
+    box-shadow:
+      inset 0 0 1px 1px var(--alpha-white-10),
+      inset 0 0 0
+        calc(0.5 * var(--rs-thumb-f) * (var(--rs-thumb-d) - 2 * var(--rs-thumb-p)) + var(--rs-thumb-p))
+        var(--color-slider-thumb-bg),
+      var(--space-4) calc(-1 * var(--space-4)) var(--space-4) var(--alpha-white-10),
+      calc(-1 * var(--space-4)) var(--space-4) var(--space-12) var(--alpha-black-40),
+      var(--space-12) calc(-1 * var(--space-12)) var(--space-12) var(--alpha-white-10),
+      calc(-1 * var(--space-12)) var(--space-12) var(--space-20) var(--alpha-black-50);
+    background:
+      repeating-conic-gradient(
+          from 60deg,
+          transparent 0%,
+          var(--alpha-black-20) 1deg 59deg,
+          transparent 60deg 50%
+        )
+        0 / calc(var(--rs-thumb-f) * 100%) 100% space content-box,
+      var(--color-slider-thumb-bg);
+  }
+
+  &:focus-visible::-webkit-slider-thumb {
+    outline: var(--border-width-2) solid var(--color-border-focus);
+    outline-offset: var(--space-2);
+  }
+  &:focus-visible::-moz-range-thumb {
+    outline: var(--border-width-2) solid var(--color-border-focus);
+    outline-offset: var(--space-2);
+  }
+}
+
+/* Hide the native datalist tick marks (we draw our own ruler). */
+.klyp-RulerSlider datalist {
+  display: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .klyp-RulerSlider__fill,
+  .klyp-RulerSlider__mark {
+    transition-duration: 0ms;
+  }
+}

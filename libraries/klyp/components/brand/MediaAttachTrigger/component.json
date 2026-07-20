@@ -1,0 +1,14 @@
+{
+  "id": "media-attach-trigger",
+  "name": "MediaAttachTrigger",
+  "status": "in-progress",
+  "schemaVersion": 1,
+  "description": "Media-aware 44px attach entry point — splayed kind icons + mode dropdown (Start&End / Reference).",
+  "tags": [
+    "brand",
+    "brand-molecule"
+  ],
+  "entry": "MediaAttachTrigger.tsx",
+  "stories": "MediaAttachTrigger.stories.tsx",
+  "changelog": "CHANGELOG.md"
+}

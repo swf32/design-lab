@@ -1,0 +1,14 @@
+{
+  "id": "modal",
+  "name": "Modal",
+  "status": "in-progress",
+  "schemaVersion": 1,
+  "description": "Branded modal wrapper — composes Dialog with header/body/footer slots.",
+  "tags": [
+    "brand",
+    "brand-molecule"
+  ],
+  "entry": "Modal.tsx",
+  "stories": "Modal.stories.tsx",
+  "changelog": "CHANGELOG.md"
+}

@@ -1,0 +1,215 @@
+/* =====================================================================*/
+/* AdvancedFilterPopover — extensible "more filters" icon-button + panel.*/
+/* =====================================================================*/
+/* Trigger = ghost icon-button (square --control-size-md, --r-chip corners, subtle*/
+/* bg + border) with optional active-count badge top-right. Same chrome*/
+/* as `<Button size="icon" variant="ghost">` so it reads as a sibling*/
+/* of other toolbar icon buttons.*/
+/**/
+/* Popover = Popover (shared catalog wrapper) → Dialog → stack*/
+/* of (label, slot) rows. Host owns filter state.*/
+/**/
+/* Tokens-only. The icon-button height uses --control-size-md; the 18px glyph mirrors Button*/
+/* icon-sibling precedent (flagged for future token extraction).*/
+
+.klyp-AdvancedFilterPopover {
+  /* ── Trigger button (icon-only) ─────────────────────────────── */
+  &__trigger {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    /* Fixed-size icon button — never shrink in a flex toolbar. Without
+       this, a sibling that grows (e.g. an expanding search field) steals
+       width and squishes the trigger below --control-size-md (owner 2026-05-30). */
+    flex: 0 0 auto;
+    width: var(--control-size-md);
+    height: var(--control-size-md);
+    padding: 0;
+    border: var(--bw-default) solid var(--color-border-subtle);
+    border-radius: var(--r-chip);
+    background: var(--color-bg-surface);
+    color: var(--color-fg-muted);
+    cursor: pointer;
+    -webkit-user-select: none;
+    user-select: none;
+    transition:
+      background var(--duration-fast) var(--easing-standard),
+      color var(--duration-fast) var(--easing-standard),
+      border-color var(--duration-fast) var(--easing-standard);
+
+    &[data-hovered] {
+      background: var(--color-bg-surface-solid);
+      color: var(--color-fg-primary);
+    }
+
+    &[data-focus-visible] {
+      outline: var(--bw-default) solid var(--color-fg-accent);
+      outline-offset: var(--bw-default);
+    }
+
+    &[data-pressed] {
+      background: var(--color-bg-surface-solid);
+    }
+
+    /* `data-active` attribute is still emitted when consumers pass an
+       `activeCount`, but we no longer paint a separate active state on
+       the trigger itself — the badge counter (below) is the only
+       affordance. Keep the attribute for downstream consumers that
+       want a custom style hook. */
+
+    &[data-disabled] {
+      opacity: var(--opacity-50);
+      cursor: not-allowed;
+    }
+  }
+
+  &__triggerIcon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    color: currentColor;
+
+    > svg {
+      width: 18px;
+      height: 18px;
+    }
+  }
+
+  /* ── Labelled select-style trigger (data-labelled) ──────────── */
+  /* The desktop "Type" / "Source" multiselect: the trigger reads as a select
+     pill — a static axis label + chevron — instead of the 40×40 icon button.
+     Auto width (the label never changes, so it can't jump); shares the chip
+     chrome (border / radius / hover) of the icon trigger above. */
+  &__trigger[data-labelled='true'] {
+    width: auto;
+    min-width: 0;
+    padding: 0 var(--space-12);
+    gap: var(--space-8);
+    justify-content: flex-start;
+    color: var(--color-fg-primary);
+  }
+
+  &__triggerLabel {
+    min-width: 0;
+    overflow: hidden;
+    font-size: var(--font-size-13);
+    font-weight: var(--font-weight-medium);
+    white-space: nowrap;
+    text-overflow: ellipsis;
+  }
+
+  &__triggerChevron {
+    flex-shrink: 0;
+    width: var(--icon-size-sm);
+    height: var(--icon-size-sm);
+    color: var(--color-fg-muted);
+    transition: transform var(--duration-fast) var(--easing-standard);
+  }
+
+  /* RAC sets aria-expanded on the trigger button while the popover is open. */
+  &__trigger[aria-expanded='true'] &__triggerChevron {
+    transform: rotate(180deg);
+  }
+
+  /* ── Indicator dot (shown when any filter is active) ────────── */
+  /* Decorative "has active filters" cue — a single <StatusDot> at the same
+     top-right corner as the badge, just a touch tighter to the chip edge
+     (the dot is smaller than the badge, so −2px reads as "on the edge"). The
+     dot's colour/size come from <StatusDot>. */
+  &__indicator {
+    position: absolute;
+    top: calc(-1 * var(--space-2));
+    right: calc(-1 * var(--space-2));
+    display: inline-flex;
+    pointer-events: none;
+  }
+
+  /* ── SR-only live region (active-filter count announcements) ── */
+  &__srStatus {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    margin: -1px;
+    padding: 0;
+    border: 0;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+
+  /* ── Popover content ───────────────────────────────────────── */
+  /* Adaptive width — content-sized, no fixed min-width. The dialog
+     grows to fit whichever row has the widest control (BrandSelect
+     trigger, TabSwitcher row, etc) and clamps via Popover's
+     `max-width: 90vw` against the viewport edge.
+     Compound `.klyp-Popover&` selector — needed because the
+     Popover.scss `min-width: var(--menu-min-width)` rule has
+     equal specificity (1 class) AND loads AFTER this file (the
+     `import { Popover }` chain pulls its SCSS in second), so a
+     plain `&__popover` override gets beaten by source order. Compound
+     bumps to 2 classes → wins regardless of order. */
+  &__popover.klyp-Popover {
+    min-width: 0;
+    width: max-content;
+  }
+
+  /* Reads as a menu surface. NO own padding — the wrapping `.klyp-Popover`
+     already supplies the 4px edge gutter; a second --space-4 here doubled it
+     (8px inset). Drop it so the menu-row lists sit nearly flush and their
+     hover-fill extends like real menu items. Section gap stays compact. */
+  &__dialog {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-4);
+    outline: none;
+  }
+
+  /* ── Row (label + slot) ────────────────────────────────────── */
+  &__row {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-2);
+  }
+
+  /* Section header — same recipe as DropdownMenu `__label` (12/medium/muted)
+     with the menu inline padding so the label aligns over the row content. */
+  &__rowLabel {
+    font: var(--type-label); /* 12 → 16 box */
+    font-weight: var(--font-weight-medium);
+    color: var(--color-fg-muted);
+    padding: var(--space-4) var(--space-12) var(--space-2);
+  }
+
+  &__rowSlot {
+    /* Slot stretches its single child (BrandSelect, etc) to the full
+       row width so all rows visually equal popover's max-content edge.
+       Without `width: 100%` on the wrapper + trigger, a content-sized
+       `inline-flex` trigger sits left-aligned with empty space on the
+       right when a sibling row is wider (the design lead 2026-05-26). */
+    display: flex;
+    align-items: stretch;
+  }
+
+  /* Migrated off BrandSelect → unified Dropdown pill (2026-06-29). The row now
+     renders a single `.klyp-Dropdown-pill` (no RAC Select wrapper / __trigger
+     child), so stretch THAT full-width to keep the three axes one-column. The
+     pill's label has `flex: 1 1 auto`, so the chevron lands at the right edge. */
+  &__rowSlot > .klyp-Dropdown-pill {
+    inline-size: 100%;
+  }
+
+  /* Multi-select checkbox lists + single-select radio lists (menu-row variant)
+     stretch full width and sit flush like menu items (gap 0 → each row's own
+     padding + hover-fill provides the rhythm, mirroring DropdownMenu `__menu`
+     gap: 0). */
+  &__rowSlot > .klyp-CheckboxGroup,
+  &__rowSlot > .klyp-RadioGroup {
+    width: 100%;
+  }
+
+  &__rowSlot > .klyp-CheckboxGroup[data-layout='rows'],
+  &__rowSlot > .klyp-RadioGroup[data-layout='rows'] {
+    gap: 0;
+  }
+}

@@ -1,0 +1,189 @@
+/* =====================================================================*/
+/* AudioPlayer.scss — Klyp canonical primitive                         */
+/* =====================================================================*/
+/* All values via Klyp DTCG tokens — no magic numbers.                */
+
+.klyp-AudioPlayer {
+  /* === Layout ========================================================*/
+  display: flex;
+  align-items: center;
+  gap: var(--gap-cluster);
+  padding: var(--padding-chip-y) var(--padding-chip-x);
+  border-radius: var(--r-section);
+  background: var(--color-bg-surface);
+  border: var(--bw-default) solid var(--color-border-default);
+  width: 100%;
+  min-width: 0;
+
+  /* === Track (scrubber flex-grow) ====================================*/
+  &__track {
+    flex: 1;
+    min-width: 0;
+  }
+
+  /* === Play/Pause button ============================================*/
+  &__playBtn {
+    flex-shrink: 0;
+    display: grid;
+    place-items: center;
+    width: var(--control-size-md);
+    height: var(--control-size-md);
+    border-radius: var(--r-chip);
+    background: var(--color-bg-surface-solid);
+    border: var(--bw-default) solid var(--color-border-default);
+    color: var(--color-fg-primary);
+    cursor: pointer;
+    outline: none;
+    transition:
+      background var(--duration-fast) var(--easing-standard, ease),
+      border-color var(--duration-fast) var(--easing-standard, ease);
+
+    &[data-hovered] {
+      background: var(--color-bg-surface-hover);
+      border-color: var(--color-border-strong);
+    }
+
+    &[data-pressed] {
+      background: var(--color-bg-surface-hover);
+      transform: scale(0.95);
+    }
+
+    &[data-focus-visible] {
+      outline: var(--bw-default) solid var(--color-ring);
+      outline-offset: var(--bw-emphasis);
+    }
+  }
+
+  /* Spinner animation — play-promise-guarded buffering state */
+  &__spinnerSvg {
+    animation: klyp-audio-spin 0.9s linear infinite;
+    transform-origin: center;
+  }
+
+  @keyframes klyp-audio-spin {
+    to { transform: rotate(360deg); }
+  }
+
+  /* === Time readouts =================================================*/
+  &__times {
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    gap: var(--gap-cluster);
+    white-space: nowrap;
+  }
+
+  &__time {
+    /* Value + hidden sizers stack in ONE grid cell — the cell (and so the
+       whole times block) keeps the width of the widest sizer, no reflow when
+       the readout's glyph count changes ('--:--' → '0:12', 9:59 → 10:00). */
+    display: inline-grid;
+    justify-items: start;
+    font-size: var(--font-size-11);
+    font-variant-numeric: tabular-nums;
+    color: var(--color-fg-muted);
+    line-height: 1em;
+
+    /* Current time hugs the '/' separator — spare width stays on the outside. */
+    &[data-align='end'] {
+      justify-items: end;
+    }
+  }
+
+  &__timeValue,
+  &__timeSizer {
+    grid-area: 1 / 1;
+  }
+
+  &__timeSizer {
+    visibility: hidden;
+  }
+
+  &__timeSep {
+    color: var(--color-fg-subtle);
+    font-size: var(--font-size-11);
+  }
+
+  /* === Playback-rate cycling button =================================*/
+  &__rateBtn {
+    flex-shrink: 0;
+    display: grid;
+    place-items: center;
+    height: var(--control-size-sm);
+    padding: 0 var(--gap-cluster);
+    border-radius: var(--r-chip);
+    background: var(--color-bg-surface-solid);
+    border: var(--bw-default) solid var(--color-border-default);
+    /* --color-fg-muted fails WCAG AA at 11px (~3.5:1). Use --color-fg for
+       ≥4.5:1 contrast at this small font size. */
+    color: var(--color-fg);
+    cursor: pointer;
+    font-size: var(--font-size-11);
+    font-variant-numeric: tabular-nums;
+    outline: none;
+    transition:
+      background var(--duration-fast) var(--easing-standard, ease),
+      color var(--duration-fast) var(--easing-standard, ease);
+
+    &[data-hovered] {
+      background: var(--color-bg-surface-hover);
+      color: var(--color-fg-primary);
+    }
+
+    &[data-pressed] {
+      transform: scale(0.95);
+    }
+
+    &[data-focus-visible] {
+      outline: var(--bw-default) solid var(--color-ring);
+      outline-offset: var(--bw-emphasis);
+    }
+  }
+
+  /* Label + hidden widest-label sizer share ONE grid cell (the button is
+     display:grid) — without grid-area both spans would stack as two implicit
+     rows and break the control height. The cell width = widest label, so the
+     button never resizes when the rate label's glyph count changes. */
+  &__rateLabel,
+  &__rateSizer {
+    grid-area: 1 / 1;
+  }
+
+  &__rateSizer {
+    visibility: hidden;
+  }
+
+  /* === Loading state ================================================*/
+  &[data-loading] {
+    .klyp-AudioPlayer__playBtn {
+      opacity: var(--opacity-70);
+      pointer-events: none;
+    }
+  }
+
+  /* === Disabled state ===============================================*/
+  &[data-disabled] {
+    opacity: var(--opacity-disabled);
+    pointer-events: none;
+  }
+
+  /* === Playing state ================================================*/
+  &[data-playing] {
+    .klyp-AudioPlayer__playBtn {
+      border-color: var(--color-border-accent);
+    }
+  }
+
+  /* === Reduced motion ===============================================*/
+  @media (prefers-reduced-motion: reduce) {
+    &__spinnerSvg {
+      animation: none;
+      opacity: var(--opacity-50);
+    }
+
+    &__playBtn,
+    &__rateBtn {
+      transition: none;
+    }
+  }
+}

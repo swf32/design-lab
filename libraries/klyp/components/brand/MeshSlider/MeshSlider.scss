@@ -1,0 +1,127 @@
+/* MeshSlider — chunky 32px pill, dark rail, golden mesh fill + mesh thumb. */
+.klyp-MeshSlider {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-8);
+  width: 100%;
+}
+
+.klyp-MeshSlider__slider {
+  width: 100%;
+}
+
+/* Pill track (overflow visible — the thumb is edge-anchored to stay inside, so
+ * nothing needs clipping at this level). */
+.klyp-MeshSlider__track {
+  position: relative;
+  width: 100%;
+  height: var(--space-40);
+  touch-action: none;
+}
+
+/* Rounded window clipping the rail + mesh fill — button radius (Val: match
+ * the buttons → --r-chip). */
+.klyp-MeshSlider__window {
+  position: absolute;
+  inset: 0;
+  border-radius: var(--r-chip);
+  overflow: hidden;
+}
+
+.klyp-MeshSlider__rail {
+  position: absolute;
+  inset: 0;
+  /* Darker, greyer track than the thin AllowanceSlider rail (Val). */
+  background: var(--color-bg-surface-solid);
+}
+
+/* Filled portion (left of thumb) — hosts the mesh over a gold-tinted base
+ * (MeshButton подложка). Left corners rounded, right corners square (it runs
+ * under the thumb). Width set inline (reaches the thumb's right edge). */
+.klyp-MeshSlider__fill {
+  position: absolute;
+  left: 0;
+  top: 0;
+  height: 100%;
+  border-radius: var(--r-chip) 0 0 var(--r-chip);
+  overflow: hidden;
+  background: color-mix(in srgb, var(--gold-700) 10%, var(--color-bg-surface));
+}
+
+/* Thumb — 32×32 mesh square (r-card), white arrow. Edge-anchored: RAC sets
+ * `left: pct%`; translate centres it, the margin pulls it back so at the
+ * extremes the thumb sits flush INSIDE the track (left edge at 0 / right edge
+ * at end) instead of half-overflowing — also why nothing clips it. */
+.klyp-MeshSlider__thumb {
+  position: absolute;
+  top: 50%;
+  width: var(--space-32);
+  height: var(--space-40);
+  border-radius: var(--r-chip);
+  overflow: hidden;
+  isolation: isolate;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  /* Plain white thumb (tokens), black arrow — no mesh. */
+  background: var(--color-fg-primary);
+  transform: translate(-50%, -50%);
+  margin-left: calc((0.5 - var(--thumb-pct, 0)) * var(--space-32));
+  box-shadow: 0 2px 8px var(--alpha-black-20);
+  cursor: grab;
+
+  &[data-dragging] {
+    cursor: grabbing;
+  }
+
+  &[data-focus-visible] {
+    outline: var(--bw-emphasis) solid var(--color-border-focus);
+    outline-offset: var(--space-2);
+  }
+}
+
+/* White arrow above the mesh; subtle drift to read as "drag me". */
+.klyp-MeshSlider__arrow {
+  position: relative;
+  z-index: 1;
+  color: var(--color-fg-inverse);
+  animation: klyp-meshslider-nudge 1.6s ease-in-out infinite;
+}
+
+@keyframes klyp-meshslider-nudge {
+  0%,
+  100% {
+    transform: translateX(0);
+  }
+  50% {
+    transform: translateX(2px);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .klyp-MeshSlider__arrow {
+    animation: none;
+  }
+}
+
+/* Endpoint labels (min / max). */
+.klyp-MeshSlider__ticks {
+  display: flex;
+  justify-content: space-between;
+}
+
+.klyp-MeshSlider__tick {
+  appearance: none;
+  padding: 0;
+  background: transparent;
+  border: 0;
+  cursor: pointer;
+  font-family: var(--font-sans);
+  font-size: var(--font-size-12);
+  color: var(--color-fg-muted);
+  font-variant-numeric: tabular-nums;
+
+  &[data-active='true'] {
+    color: var(--color-fg-primary);
+  }
+}

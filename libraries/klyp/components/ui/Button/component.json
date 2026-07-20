@@ -1,0 +1,13 @@
+{
+  "id": "button",
+  "name": "Button",
+  "status": "in-progress",
+  "schemaVersion": 1,
+  "description": "Neutral action button — 6 variants + 9 sizes, optional state machine (idle/processing/success/error) with icon swap, label spring, shake/pop.",
+  "tags": [
+    "ui"
+  ],
+  "entry": "Button.tsx",
+  "stories": "Button.stories.tsx",
+  "changelog": "CHANGELOG.md"
+}

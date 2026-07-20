@@ -1,0 +1,196 @@
+/* =====================================================================*/
+/* Toast.scss — Klyp wrapper over the `sonner` toast library             */
+/* =====================================================================*/
+/* The `sonner` package ships its own stylesheet whose selectors are    */
+/* scoped on `[data-sonner-toast][data-styled='true']` (specificity     */
+/* 0,2,1). Our class `.klyp-Toast` alone would only be (0,1,0) — it     */
+/* loses every cascade fight. We pin to `[data-sonner-toast].klyp-Toast`*/
+/* everywhere to match sonner's parent specificity, then child rules    */
+/* ride on top.                                                          */
+/*                                                                       */
+/* CSS vars (--normal-bg, --normal-text, --normal-border,                */
+/* --border-radius) are wired up to Klyp tokens in Toast.tsx.            */
+
+.klyp-Toaster {
+  /* Pass-through wrapper. Sonner positions / animates toasts itself. */
+}
+
+[data-sonner-toast].klyp-Toast {
+  font: var(--type-body); /* 14 → 18 box */
+  padding: var(--space-12) var(--space-16);
+  box-shadow: var(--shadow-toast);
+  gap: var(--space-12);
+  align-items: flex-start;
+
+  /* Speed up sonner's default enter/exit (~400ms) to system default */
+  transition-duration: var(--duration-normal) !important;
+  animation-duration: var(--duration-normal) !important;
+
+  /* Title — Geist medium */
+  [data-title] {
+    font-weight: var(--font-weight-medium); /* inherits base type.body line box */
+  }
+
+  /* Description — secondary fg, slightly smaller */
+  [data-description] {
+    color: var(--color-fg-muted);
+    font: var(--type-body-sm); /* 12 → 16 box (was raw line-height: 1.4) */
+    margin-top: var(--space-2);
+  }
+
+  /* Icon container — Sonner wraps user-passed icons in [data-icon] and
+   * sets its own 16px box via `[data-sonner-toast] [data-icon] { width: 16px; height: 16px }`.
+   * Same specificity (0,3,1) as ours — Sonner's runtime `<style>` injection
+   * loads AFTER our SCSS bundle so it wins ties. `!important` is the only
+   * reliable way to size both the container and the inline SVG. */
+  [data-icon] {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    width: var(--icon-size-md) !important;
+    height: var(--icon-size-md) !important;
+    margin: 0;
+  }
+
+  .klyp-Toast__icon {
+    width: var(--icon-size-md) !important;
+    height: var(--icon-size-md) !important;
+  }
+
+  /* Per-type icon + title colouring (data-type written by Sonner) */
+  &[data-type='success'] {
+    [data-title] { color: var(--color-status-success); }
+    .klyp-Toast__icon { color: var(--color-status-success); }
+  }
+
+  &[data-type='info'] {
+    [data-title] { color: var(--color-status-info); }
+    .klyp-Toast__icon { color: var(--color-status-info); }
+  }
+
+  &[data-type='warning'] {
+    [data-title] { color: var(--color-status-warning); }
+    .klyp-Toast__icon { color: var(--color-status-warning); }
+  }
+
+  &[data-type='error'] {
+    [data-title] { color: var(--color-status-danger); }
+    .klyp-Toast__icon { color: var(--color-status-danger); }
+  }
+
+  .klyp-Toast__icon--spin {
+    animation: klyp-toast-spin var(--duration-slow) linear infinite;
+    transform-origin: center;
+  }
+
+  /* Action button — `action: { label, onClick }` on the toast options.
+   * Sonner adds [data-button] to the rendered button and ships its own
+   * skin (no border, 4px radius, 8px symmetric padding) via runtime
+   * `<style>` injection. Same selector specificity, so we need
+   * `!important` on the skin properties to win the cascade. */
+  [data-button] {
+    font: var(--type-buttons-sm); /* 12 → 16 box (button label) */
+    font-weight: var(--font-weight-medium);
+    padding: var(--padding-control-y) var(--padding-control-x) !important;
+    border-radius: var(--r-chip) !important;
+    border: var(--bw-default) solid var(--color-border-default) !important;
+    background: transparent !important;
+    color: var(--color-fg-primary) !important;
+    cursor: pointer;
+    flex-shrink: 0;
+    transition: background var(--duration-fast) ease;
+    height: auto !important;
+
+    &:hover {
+      background: var(--color-bg-surface-solid) !important;
+    }
+
+    &:focus-visible {
+      outline: var(--bw-emphasis) solid var(--color-fg-accent);
+      outline-offset: var(--bw-emphasis);
+    }
+  }
+
+  /* Close button — `closeButton: true` on the toaster.
+   *
+   * Sonner defaults to top-LEFT in LTR (Emil's stylistic choice) but every
+   * major design system (Material UI, Radix, shadcn, Carbon) and NN/g put
+   * dismiss at top-RIGHT. Override left → right so muscle memory from
+   * OS-level notifications carries through. The action button (Sonner
+   * `action` slot) stays inline at the trailing edge of the content row,
+   * so right-side × sits in the outer corner without colliding with it.
+   *
+   * Visual: borderless solid pill in `--color-bg-elevated` so it sits a
+   * notch above the toast surface (was: same-as-toast bg + 1px border —
+   * border-only ring with invisible glyph against same-color background).
+   * Inner `<svg>` is forced to `--icon-size-sm` and `currentColor` so the
+   * × glyph stays visible regardless of what Sonner's runtime stylesheet
+   * tries to overwrite. `!important` is required: Sonner publishes its
+   * CSS at runtime via `<style>` injection and the order vs our SCSS
+   * isn't deterministic. */
+  [data-close-button] {
+    left: auto !important;
+    right: 0 !important;
+    transform: translate(35%, -35%) !important;
+
+    position: absolute;
+    border-radius: var(--radius-full) !important;
+    border: 0 !important;
+    background: var(--color-bg-surface-solid) !important;
+    color: var(--color-fg-primary) !important;
+    width: 22px !important;
+    height: 22px !important;
+    padding: 0 !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    cursor: pointer;
+    z-index: 2 !important;
+    box-shadow: 0 0 0 1px var(--color-border-default), var(--shadow-toast);
+    transition: background var(--duration-fast) ease, transform var(--duration-fast) ease;
+
+    /* Hide sonner's bundled SVG completely — we draw our own × via two
+     * crossed bars in pseudo-elements. Survives any runtime style change
+     * sonner makes to the inner svg (which is what kept blanking the
+     * glyph in prior attempts). */
+    > svg {
+      display: none !important;
+    }
+
+    &::before,
+    &::after {
+      content: '';
+      position: absolute;
+      width: 10px;
+      height: 1.5px;
+      background: currentColor;
+      border-radius: 2px;
+      pointer-events: none;
+    }
+    &::before { transform: rotate(45deg); }
+    &::after  { transform: rotate(-45deg); }
+
+    &:hover {
+      background: var(--color-bg-surface-hover) !important;
+      transform: translate(35%, -35%) scale(1.06) !important;
+    }
+
+    &:focus-visible {
+      outline: var(--bw-emphasis) solid var(--color-fg-accent);
+      outline-offset: var(--bw-emphasis);
+    }
+  }
+}
+
+@keyframes klyp-toast-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .klyp-Toast__icon--spin {
+    animation: none;
+  }
+}

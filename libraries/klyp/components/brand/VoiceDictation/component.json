@@ -1,0 +1,14 @@
+{
+  "id": "voice-dictation",
+  "name": "VoiceDictation",
+  "status": "in-progress",
+  "schemaVersion": 1,
+  "description": "Composer mic that swaps to a recording bar — tap or hold-to-talk dictation.",
+  "tags": [
+    "brand",
+    "brand-molecule"
+  ],
+  "entry": "VoiceDictation.tsx",
+  "stories": "VoiceDictation.stories.tsx",
+  "changelog": "CHANGELOG.md"
+}

@@ -1,0 +1,84 @@
+/* =====================================================================
+ * PriceTicker — blur+Y crossfade animated price.
+ * =====================================================================
+ *
+ * Layout: inline-flex baseline-aligned row.
+ *   [ struck-through previous ]   [ live price ]
+ *
+ * Motion v12 owns all animation (root `layout` for width, AnimatePresence
+ * for strike enter/exit, AnimatePresence keyed on `value` for live-price
+ * crossfade). SCSS only handles structure + typographic inheritance from
+ * the consumer (PricingTierCard.__price sets font-size 28px + heading
+ * weight).
+ *
+ * `font-variant-numeric: tabular-nums` is REQUIRED — without it digits
+ * have proportional widths and the crossfade visibly shifts pixels.
+ *
+ * Tokens only. No `transition:` rules — Motion handles every state change.
+ */
+
+.klyp-PriceTicker {
+  position: relative;
+  display: inline-flex;
+  align-items: flex-end;
+  gap: var(--space-8);
+  font-variant-numeric: tabular-nums;
+  /* Inherit font sizing from the consumer (e.g. `__price` in
+     PricingTierCard sets font-size 28px + heading weight). */
+  font-size: inherit;
+  font-weight: inherit;
+  color: inherit;
+  /* Uniform line-height so the strike chip + live price share a
+     baseline regardless of body's inherited line-height. */
+  line-height: 1;
+
+  &__previous {
+    /* Pre-discount / pre-toggle chip — muted + struck through, fixed
+       14px so the strike reads as a secondary chip beside the live
+       price (28px), bottom-aligned in row. */
+    display: inline-block;
+    font-size: var(--font-size-14);
+    color: var(--color-fg-muted);
+    text-decoration: line-through;
+    text-decoration-thickness: var(--bw-emphasis);
+    text-decoration-color: var(--neutral-700);
+    text-decoration-skip-ink: none;
+    font-variant-numeric: tabular-nums;
+    /* `--fw-body` (regular/400) — was `--fw-regular`, which is NOT a real
+     * token (no fallback) so the strike chip silently inherited the live
+     * price's heading weight instead of rendering regular. */
+    font-weight: var(--fw-body);
+    line-height: 1;
+    transform-origin: bottom left;
+  }
+
+  &__currentWrap {
+    /* Wraps the sizer + the absolute-positioned live span. Sizer in flow
+       claims width = `max-content` of current `value`; live span overlays. */
+    position: relative;
+    display: inline-block;
+    line-height: 1;
+  }
+
+  &__currentSizer {
+    /* In-flow placeholder — invisible but claims the layout width so the
+       wrap stays the size of the new value during the crossfade. */
+    visibility: hidden;
+    display: inline-block;
+    white-space: nowrap;
+    font-variant-numeric: tabular-nums;
+    line-height: 1;
+  }
+
+  &__current {
+    /* Overlay layer — animates via Motion. Position absolute so old + new
+       can overlap during exit/enter without a layout shift. */
+    position: absolute;
+    inset-inline-start: 0;
+    inset-block-end: 0;
+    display: inline-block;
+    white-space: nowrap;
+    font-variant-numeric: tabular-nums;
+    line-height: 1;
+  }
+}

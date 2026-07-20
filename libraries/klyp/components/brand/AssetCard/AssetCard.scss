@@ -1,0 +1,486 @@
+/* =====================================================================*/
+/* AssetCard.scss — image-bleed entity tile, fluid + container-query driven*/
+/* =====================================================================*/
+/* Klyp Tier 4 brand molecule. All values via Klyp DTCG tokens — no magic*/
+/* numbers. Variants resolved via `data-kind` (drives type-pill colour),*/
+/* `data-style` (`bleed` default | `classic` legacy), `data-loading`.*/
+/**/
+/* Aspect ratio is forced 3/4. Width is fluid via parent grid track.*/
+/* Container queries drive inner sizing across three breakpoints:*/
+/*   xs (<200px)  — image + pill + title only*/
+/*   sm (200-339) — image + pill + title + 1-line description*/
+/*   md (≥340)    — full anatomy with 24px title + 2-line description*/
+/**/
+/* Pattern reference: ./AssetCard.tsx JSDoc*/
+
+.klyp-AssetCard {
+  position: relative;
+  display: block;
+  width: 100%;
+  aspect-ratio: 3 / 4;
+  /* `overflow: clip` (Chrome 90+, Safari 16+, FF 81+) replaces `hidden` —*/
+  /* WordPress Gutenberg #59366 closed the same rounded-corner seam bug*/
+  /* by switching to it. Doesn't establish a stacking context like*/
+  /* `hidden` does, plays cleaner with sticky/popovers + AA at corners.*/
+  overflow: clip;
+  /* Own stacking + composite context — Tailwind discuss #5675 + Clagnut*/
+  /* 2020 ship this for the absolute-positioned cover image case.*/
+  /* Combined with `overflow: clip` = canonical 2026 fix per multi-agent*/
+  /* research synthesis.*/
+  isolation: isolate;
+  text-align: left;
+
+  /* Card image-bleed backdrop — image fades to transparent at the bottom*/
+  /* via mask-image, revealing this backdrop. Reads as a gradient overlay*/
+  /* without needing a separate `__gradient` element. Uses --color-card-fade*/
+  /* (semantic alias): on klyp this resolves to bg.root (dark), on unreals*/
+  /* (light theme) it resolves to neutral.900 (#141414) so light-bg covers*/
+  /* still fade into darkness — keeps the cinematic dark-fade contract.*/
+  background: var(--color-card-fade);
+  border: none;
+  border-radius: var(--r-card);
+
+  font-family: var(--font-sans);
+  color: var(--color-fg-primary);
+
+  appearance: none;
+  margin: 0;
+  padding: 0;
+  cursor: pointer; /* every card on display surfaces is clickable (button OR <Link> wrapper)*/
+
+  /* Self-as-container so inner anatomy reacts to card width, not viewport.*/
+  container-type: inline-size;
+  container-name: assetcard;
+
+  /* Smooth hover lift — ease-out-expo decelerates into rest position,*/
+  /* reads as "card gracefully rising". 300ms is the sweet spot: noticeable*/
+  /* but not sluggish. Symmetric on hover-out (CSS transition default).*/
+  transition: transform 300ms cubic-bezier(0.16, 1, 0.3, 1);
+
+  /* Reset native button chrome.*/
+  &:where(button) {
+    background: var(--color-card-fade);
+  }
+
+  /* Inside-border drawn by ::after pseudo so it sits ABOVE absolutely-*/
+  /* positioned children (image, gradient, content). On root, `border` /*/
+  /* `box-shadow inset` paints with the background layer — invisible*/
+  /* behind the cover image. Pseudo-element with z-index 10 is the*/
+  /* canonical fix.*/
+  &::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    z-index: 10;
+    border-radius: inherit;
+    box-shadow: inset 0 0 0 2px var(--color-border-subtle);
+    transition: box-shadow var(--duration-fast, 150ms) var(--easing-standard, ease);
+  }
+
+  /* Hover lift + image zoom — applies regardless of `data-interactive`.*/
+  /* Cards wrapped in `<Link>` (no onClick prop) get the same anim as*/
+  /* cards with onClick (button render).*/
+  /* Hover lift + border — real pointer devices only. On touch :hover sticks
+   * after tap (no pointerleave), leaving one card raised vs its grid neighbours.
+   * Matches the AllowanceSlider.scss precedent. */
+  @media (hover: hover) and (pointer: fine) {
+    &:hover::after {
+      box-shadow: inset 0 0 0 2px var(--color-border-default);
+    }
+
+    &:hover {
+      transform: translateY(-6px);
+    }
+    /* No image-zoom on hover — card lift is enough motion. (User feedback*/
+    /* 2026-05-04: parallel scale + lift was over-animated.)*/
+  }
+
+  &:focus-visible {
+    outline: none;
+    /* Outset gold ring stacked OUTSIDE the inset border on `::after`.*/
+    box-shadow: 0 0 0 2px color-mix(in srgb, var(--color-border-focus) 60%, transparent);
+  }
+
+  /* Reduced motion — no lift, no scale.*/
+  @media (prefers-reduced-motion: reduce) {
+    &:hover {
+      transform: none;
+    }
+  }
+}
+
+/* =====================================================================*/
+/* Layer 1 — Image (or placeholder when no cover)*/
+/**/
+/* No nested wrapper. Image (or placeholder) renders directly inside the*/
+/* card root. Layer stack: root → image → content → ::after border.*/
+/**/
+/* `mask-image` fades the image to transparent at the bottom 20% of*/
+/* the card. Card root has dark `--color-bg-root` BG → reads as a*/
+/* gradient overlay without a separate gradient layer (one fewer DOM*/
+/* node + one fewer compositing layer). Stops: black at 80% (top 80%*/
+/* fully visible) → transparent at 100% (bottom).*/
+/* =====================================================================*/
+.klyp-AssetCard__image {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  z-index: 0;
+  -webkit-mask-image: linear-gradient(180deg, black 80%, transparent 100%);
+  mask-image: linear-gradient(180deg, black 80%, transparent 100%);
+}
+
+.klyp-AssetCard__placeholder {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  -webkit-mask-image: linear-gradient(180deg, black 80%, transparent 100%);
+  mask-image: linear-gradient(180deg, black 80%, transparent 100%);
+  background:
+    radial-gradient(140% 70% at 0% 30%, var(--color-overlay-gold-12) 0%, transparent 60%),
+    linear-gradient(
+      to bottom right,
+      var(--color-bg-surface),
+      var(--color-bg-glass),
+      var(--color-bg-glass-deep)
+    );
+}
+
+/* =====================================================================*/
+/* Content overlay — type-pill + title + description (bottom-left)*/
+/* =====================================================================*/
+.klyp-AssetCard__content {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-8);
+  padding: var(--space-16);
+  pointer-events: none; /* text never blocks card click*/
+}
+
+/* =====================================================================*/
+/* Type-pill — chip with backdrop-blur + colored dot*/
+/* =====================================================================*/
+.klyp-AssetCard__typePill {
+  display: inline-flex;
+  align-items: center;
+  /* Symmetric padding (left/right equal) + a touch more breathing room*/
+  /* around the dot. User feedback 2026-05-04: dot was too small + side*/
+  /* padding asymmetric → text felt off-centre.*/
+  gap: var(--space-8);
+  align-self: flex-start;
+
+  padding: var(--space-8) var(--space-12);
+  border: var(--bw-default) solid var(--color-border-subtle);
+  border-radius: var(--radius-sm);
+
+  background: var(--color-bg-glass);
+  -webkit-backdrop-filter: blur(6px);
+  backdrop-filter: blur(6px);
+
+  color: var(--color-fg-primary);
+  font-size: var(--font-size-12);
+  font-weight: var(--font-weight-medium);
+  line-height: var(--line-height-tight);
+}
+
+.klyp-AssetCard__typePillDot {
+  display: inline-block;
+  flex-shrink: 0;
+  width: var(--space-8);
+  height: var(--space-8);
+  border-radius: var(--radius-full);
+  background: var(--color-fg-muted);
+
+  /* Colour by kind — uses existing semantic mention*//* tokens.*/
+  .klyp-AssetCard__typePill[data-kind='character'] & {
+    background: var(--color-mention-character);
+  }
+  .klyp-AssetCard__typePill[data-kind='location'] & {
+    background: var(--color-mention-location);
+  }
+  .klyp-AssetCard__typePill[data-kind='outfit'] & {
+    background: var(--color-mention-outfit);
+  }
+  .klyp-AssetCard__typePill[data-kind='vibe'] & {
+    background: var(--color-mention-vibe);
+  }
+  .klyp-AssetCard__typePill[data-kind='scene'] & {
+    background: var(--color-mention-scene);
+  }
+  .klyp-AssetCard__typePill[data-kind='script'] & {
+    background: var(--color-mention-script);
+  }
+  .klyp-AssetCard__typePill[data-kind='prop'] & {
+    background: var(--color-mention-prop);
+  }
+  .klyp-AssetCard__typePill[data-kind='shot'] & {
+    background: var(--color-mention-shot);
+  }
+  /* Series + episode use neutral muted dot — `series` and `episode` cards*/
+  /* appear in dense grids (10+ per screen) and a gold dot per card would*/
+  /* breach the single-accent budget (`styles.md` ≤ 2 Warm Gold uses per*/
+  /* screen). Reserve gold for the leading `<AddCard>` CTA + focus ring.*/
+  .klyp-AssetCard__typePill[data-kind='series'] &,
+  .klyp-AssetCard__typePill[data-kind='episode'] & {
+    background: var(--color-fg-muted);
+  }
+}
+
+.klyp-AssetCard__typePillLabel {
+  display: inline-block;
+}
+
+/* =====================================================================*/
+/* Title + description*/
+/* =====================================================================*/
+.klyp-AssetCard__title {
+  margin: 0;
+  font-size: var(--font-size-14);
+  font-weight: var(--font-weight-medium);
+  line-height: var(--line-height-snug);
+  /* Title sits on the dark image-bleed fade — constant white in both brands
+     (was fg.primary → black on unreals light, unreadable over the dark fade). */
+  color: var(--color-scrim-on);
+
+  display: -webkit-box;
+  -webkit-line-clamp: 1;
+  line-clamp: 1;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.klyp-AssetCard__description {
+  margin: 0;
+  font-size: var(--font-size-12);
+  font-weight: var(--font-weight-regular);
+  line-height: var(--line-height-snug);
+  /* Muted white over the dark fade, constant in both brands. */
+  color: var(--color-scrim-on-muted);
+
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+
+  /* Empty description (NBSP fallback) collapses to zero height — pill +*/
+  /* title hug the bottom of the card naturally instead of floating above*/
+  /* a reserved-but-empty description slot. User feedback 2026-05-04.*/
+  &:empty,
+  &[aria-hidden='true'] {
+    display: none;
+  }
+}
+
+/* =====================================================================*/
+/* Container query breakpoints — drive inner scaling*/
+/* =====================================================================*/
+@container assetcard (min-width: 200px) {
+  .klyp-AssetCard__title {
+    font-size: var(--font-size-16);
+  }
+  .klyp-AssetCard__description {
+    font-size: var(--font-size-13);
+    -webkit-line-clamp: 2;
+    line-clamp: 2;
+  }
+}
+
+@container assetcard (min-width: 340px) {
+  .klyp-AssetCard__content {
+    padding: var(--space-24);
+    gap: var(--space-8);
+  }
+  .klyp-AssetCard__title {
+    font-size: var(--font-size-24);
+    line-height: var(--line-height-tight);
+  }
+  .klyp-AssetCard__description {
+    font-size: var(--font-size-14);
+    -webkit-line-clamp: 3;
+    line-clamp: 3;
+  }
+  .klyp-AssetCard__typePillLabel {
+    font-size: var(--font-size-13);
+  }
+}
+
+/* Below 200px container — hide description completely (text becomes noise).*/
+@container assetcard (max-width: 199px) {
+  .klyp-AssetCard__description {
+    display: none;
+  }
+  /* Shrink pill at xs so it doesn't eat the overlay width.*/
+  .klyp-AssetCard__typePill {
+    padding: var(--space-2) var(--space-4);
+  }
+  .klyp-AssetCard__typePillLabel {
+    font-size: var(--font-size-11);
+  }
+}
+
+/* =====================================================================*/
+/* Slots — drag (top-left) + actions (top-right)*/
+/* =====================================================================*/
+.klyp-AssetCard__dragSlot {
+  position: absolute;
+  top: var(--space-12);
+  left: var(--space-12);
+  z-index: 3;
+  pointer-events: auto;
+}
+
+/* Favourite toggle slot — Library v2 (2026-05-23). Same top-left anchor as
+ * `__dragSlot` but mutually exclusive at the render level: cards that pass
+ * `favouriteSlot` don't pass `dragHandle` and vice versa, so no z-fight. */
+.klyp-AssetCard__favouriteSlot {
+  position: absolute;
+  top: var(--space-12);
+  left: var(--space-12);
+  z-index: 4;
+  pointer-events: auto;
+}
+
+.klyp-AssetCard__actionsSlot {
+  position: absolute;
+  top: var(--space-12);
+  right: var(--space-12);
+  z-index: 3;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-8);
+  pointer-events: auto;
+}
+
+/* =====================================================================*/
+/* Loading skeleton — shimmer overlay*/
+/* =====================================================================*/
+.klyp-AssetCard__skeleton {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    var(--color-bg-glass),
+    transparent
+  );
+  background-size: 200% 100%;
+  animation: klyp-AssetCard-shimmer 1.6s infinite linear;
+
+  @media (prefers-reduced-motion: reduce) {
+    animation: none;
+    background: var(--color-bg-glass);
+  }
+}
+
+@keyframes klyp-AssetCard-shimmer {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
+}
+
+/* =====================================================================*/
+/* Selection mode — hover-actions hidden, checkbox overlay top-left,*/
+/* 2px gold outline when `data-selected`. Driven by `selectionMode` /*/
+/* `selected` props on `<AssetCard>` (Task 21).*/
+/**/
+/* All rules below are FLAT (no parent `.klyp-AssetCard { ... }` wrapper)*/
+/* on purpose — wrapping them caused SASS to emit an empty parent shell*/
+/* `.klyp-AssetCard {}` that DevTools surfaces as a duplicate rule next*/
+/* to the canonical block at the top of this file. (the design lead 2026-05-15.)*/
+/* =====================================================================*/
+.klyp-AssetCard[data-selection-mode='true'] {
+  cursor: pointer;
+}
+
+.klyp-AssetCard[data-selection-mode='true'][data-selected='true'] {
+  outline: 2px solid var(--color-accent);
+  outline-offset: -2px;
+  transition: outline var(--duration-fast) var(--easing-standard);
+}
+
+.klyp-AssetCard__selectionMark {
+  position: absolute;
+  top: var(--space-12);
+  left: var(--space-12);
+  width: 24px;
+  height: 24px;
+  z-index: 4;
+  display: grid;
+  place-items: center;
+  border-radius: var(--radius-full);
+  background-color: color-mix(in oklab, var(--color-bg-surface) 80%, transparent);
+  -webkit-backdrop-filter: var(--fx-glass-blur-soft);
+  backdrop-filter: var(--fx-glass-blur-soft);
+  color: var(--color-fg-primary);
+
+  &[data-selected='true'] {
+    color: var(--color-accent);
+  }
+}
+
+.klyp-AssetCard__selectionMark__empty {
+  width: 14px;
+  height: 14px;
+  border: 1.5px solid var(--color-fg-muted);
+  border-radius: var(--radius-full);
+}
+
+/* Cover-area shimmer — pulses just the image / placeholder while AI gen*/
+/* is in flight. Text + pill stay legible (animation only on cover layer).*/
+.klyp-AssetCard__image[data-cover-loading],
+.klyp-AssetCard__placeholder[data-cover-loading] {
+  animation: klyp-AssetCard-cover-pulse 1.4s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .klyp-AssetCard__image[data-cover-loading],
+  .klyp-AssetCard__placeholder[data-cover-loading] {
+    animation: none;
+  }
+  .klyp-AssetCard[data-selection-mode='true'][data-selected='true'] {
+    transition: none;
+  }
+}
+
+@keyframes klyp-AssetCard-cover-pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.55; }
+}
+
+/* =====================================================================*/
+/* Archived state — soft-deleted entity gets a 50% wash + "Archived" chip*/
+/* in the top-left corner. Wash applied as `opacity: 0.5` on the root so*/
+/* every layer (image, gradient, content, pill, actionsSlot) fades*/
+/* uniformly. The Archived chip is a `::after` pseudo so we don't need*/
+/* to plumb it through the JSX tree — pure presentation.*/
+/* =====================================================================*/
+.klyp-AssetCard[data-archived='true'] {
+  opacity: 0.5;
+}
+.klyp-AssetCard[data-archived='true']::after {
+  content: 'Archived';
+  position: absolute;
+  top: var(--space-12);
+  left: var(--space-12);
+  z-index: 4;
+  padding: var(--space-2) var(--space-8);
+  background-color: color-mix(in oklab, var(--color-bg-surface) 90%, transparent);
+  border-radius: var(--r-chip);
+  font-size: 11px;
+  color: var(--color-fg-muted);
+  line-height: 1;
+}

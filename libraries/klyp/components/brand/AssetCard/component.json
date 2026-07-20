@@ -1,0 +1,14 @@
+{
+  "id": "asset-card",
+  "name": "AssetCard",
+  "status": "in-progress",
+  "schemaVersion": 1,
+  "description": "Library asset tile — thumb, title, type chip, hover actions.",
+  "tags": [
+    "brand",
+    "brand-molecule"
+  ],
+  "entry": "AssetCard.tsx",
+  "stories": "AssetCard.stories.tsx",
+  "changelog": "CHANGELOG.md"
+}

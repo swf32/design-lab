@@ -1,0 +1,1223 @@
+/* =====================================================================
+ * PricingTierCard — neutral + recommended tier card for `/pricing`.
+ * =====================================================================
+ *
+ * Source of truth: `_handoff/PRICING-ROUTE-2026-05-15/ARCHITECTURE.md` §3.
+ *
+ * Visual contract (hover stack — 2026-05-20, mirrors BalanceCard):
+ *   • Neutral (Starter / Creator) → `--color-bg-surface` bg. Base 1px
+ *     ring `--color-border-default`. On hover: silver corner blob fades
+ *     in, silver gradient ring (`::after`) layers on top of base ring
+ *     with pixel-perfect corner alignment, `--fx-card-inset-glow-silver`
+ *     inset bloom stacks under the lift shadow.
+ *   • Recommended (Creator Plus, `data-recommended="true"`) → same bg.
+ *     Base 1px ring `--color-border-accent` (gold-300). On hover: gold
+ *     corner blob with `plus-lighter` additive blend, gold gradient
+ *     hover ring, `--fx-card-inset-glow-gold` inset bloom. Pairs with
+ *     the in-frame "Popular" `<Badge intent="gold" variant="subtle">`
+ *     (flat light gold, replaced the metallic gold-gradient `featured`
+ *     on 2026-05-20 per the design lead).
+ *   • Studio (`data-tier="studio"`, no `recommended` flag) → same bg.
+ *     Base 1px ring stays NEUTRAL (`--color-border-default`, same as
+ *     Starter / Creator). The Klyp blue identity surfaces ONLY on hover:
+ *     blue corner blob with `plus-lighter` additive blend, blue gradient
+ *     hover ring, and a blue inset bloom. All three read the vivid
+ *     `--blue-600` (#2883ff) core directly (Val 2026-06-19) — the prior
+ *     `--color-status-info` / `--fx-card-inset-glow-blue` route resolves to
+ *     blue-900 (#b4d3ff, pale since the 2026-06-17 scale rebuild) and washed
+ *     the hover state out. Studio gets the blue tint on hover without the
+ *     "Popular" badge — two independent signals.
+ *   • All ring layers across the three branches live at `inset: 0`
+ *     with `border-radius: inherit`, so they trace the card's outer
+ *     corner exactly — no half-pixel drift at the four corners.
+ *
+ * Tokens only. The two literal exceptions (`1px` ring padding +
+ * `1em` line-height) are project-canon per `.claude/rules/styles.md`.
+ * The `2px` translate delta on hover uses `--space-2` (token).
+ */
+
+.klyp-PricingTierCard {
+  position: relative;
+  /* New stacking context so the blob + ring + content z-index ladder stays
+   * self-contained and doesn't clash with parent grid layers. */
+  isolation: isolate;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-16);
+
+  /* `height: 100%` — claim the full grid row height when the parent grid
+   * sets `grid-auto-rows: 1fr` (see `pricing-page.scss`). The locked
+   * `__upper` min-height keeps `__divider` + `__featuresHead` on one
+   * baseline across the 4-card row; shorter tiers grow empty slack inside
+   * `__upper`, not between the allowance panel and the features block. */
+  height: 100%;
+  padding: var(--padding-panel);
+  background: var(--color-bg-surface);
+  /* No native border — base 1px ring is drawn via `::before` mask-composite
+   * so the colored hover ring (`::after`) can stack on it pixel-perfectly at
+   * the corners. Both rings sit at `inset: 0` with `border-radius: inherit`,
+   * matching the card's outer radius exactly — no half-pixel drift. */
+  border-radius: var(--r-panel);
+  box-shadow: var(--fx-card-lift-shadow);
+
+  font-family: var(--font-sans);
+  color: var(--color-fg-primary);
+
+  /* Hover lift — translateY + box-shadow swap. NO `scale()` (the design lead 2026-05-23):
+   * `scale(1.01)` re-rasterizes the text glyph hinting on the boundary
+   * `1.0 ↔ 1.01`, producing a visible sub-pixel snap of the features /
+   * models list text when the transition returns to identity. translate
+   * alone moves the already-rasterized bitmap through the compositor —
+   * no glyph re-hint, no snap. Industry reference: Linear /pricing uses
+   * background+border-color only (no transform); Stripe /pricing uses
+   * translateY + shadow swap, scale reserved for icons / popovers, not
+   * tier cards. The 1% scale signal was lost in the noise of shadow +
+   * ring + blob anyway. All hover transitions across the card (lift,
+   * blob, ring, CTA wake) share `--duration-slow` (360ms) for a cohesive
+   * single-rhythm feel — the design lead 2026-05-20: «все 360 мс примерно».
+   * `z-index: 1` on hover keeps the lifted card on top of its neighbours
+   * (each card has its own `isolation: isolate` stacking context;
+   * siblings stay at z:0). */
+  transition:
+    transform var(--duration-slow) var(--easing-standard),
+    box-shadow var(--duration-slow) var(--easing-standard);
+
+  &:is(:hover, [data-hint-open='true'], :focus-within) {
+    transform: translateY(calc(var(--space-2) * -1));
+    z-index: 1;
+  }
+
+  /* ---- Hover blob (corner-anchored radial) -------------------------- *
+   * `__blobClip` is an absolute wrapper with `overflow: hidden` +
+   * `border-radius: inherit` — clips the blurred blob to the card's
+   * rounded rect. Lives separately from the article-level overflow so
+   * future floating decorations (tooltip, popover) can poke out of the
+   * card without losing the rounded clip on the goo-mesh. The two
+   * `::before` / `::after` rings are mask-composite and self-clipping,
+   * so they don't need this wrapper.
+   *
+   * Blur snapped to `--blur-32` (same step BalanceCard uses).
+   */
+  &__blobClip {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    overflow: hidden;
+    border-radius: inherit;
+    z-index: 0;
+    /* iOS Safari (audit 4.1): the child `__mesh` / `__hoverBlob` are
+     * `filter`-promoted to their own composited layers and ignore this
+     * wrapper's rounded `overflow: hidden`, so blob corners poke square
+     * past the card radius. Self-clip the wrapper via the documented
+     * `-webkit-mask` route (solid fill through `padding-box`, rounded via
+     * `border-radius: inherit`) — WebKit honours the rounded mask box for
+     * the composited subtree and keeps sub-pixel AA. Same fix as
+     * `MeshButton.__mesh` (2026-06-03). ⚠ requires re-check on real iOS. */
+    -webkit-mask: linear-gradient(#000 0 0) padding-box;
+            mask: linear-gradient(#000 0 0) padding-box;
+  }
+
+  /* ---- Perpetual goo-mesh ------------------------------------------- *
+   * Four lemon-sliced blobs (a/b/c/d) inside `__mesh`. Each blob's
+   * CENTRE sits ON a card edge (a=LEFT 90%Y, b=BOTTOM 30%X, c=BOTTOM
+   * 70%X, d=RIGHT 90%Y) — half-blob visible inside the card, half
+   * clipped by `__blobClip overflow:hidden` per the design lead's lemon-slice
+   * directive. Varied sizes 145-175cqi (≈415-501px on 286w card, in
+   * the design lead's 400-600 range) + scale 0.85-1.1 in keyframes for breathing.
+   * Drift ±18cqi/cqb. Palette per `[data-tone]`. */
+  &__svgFilter {
+    position: absolute;
+    width: 0;
+    height: 0;
+    pointer-events: none;
+  }
+
+  &__mesh {
+    position: absolute;
+    inset: 0;
+    /* `--blur-32` token (32px). Was `var(--mesh-blur, 31px)` — `--mesh-blur`
+     * is never defined anywhere, so it always fell through to a raw `31px`
+     * literal (token-rule violation). Matches `__hoverBlob`'s `--blur-32`. */
+    filter: url(#klyp-PricingTierCard-goo) blur(var(--blur-32));
+
+    /* Stabilise the blob compositor layer (the design lead 2026-05-21):
+     * `isolation: isolate` opens its own stacking context so the inner
+     * `mix-blend-mode: hard-light` on the blobs only composites against
+     * the mesh's own pixels — not with the article's `::before` ring +
+     * `__hoverBlob` + outer scenery. `translateZ(0)` forces a dedicated
+     * GPU layer so subpixel rounding on the animated translate is
+     * resolved consistently every frame. Together these eliminated the
+     * purple/blue blob shimmer at low-alpha gradient stops where
+     * hard-light's per-pixel formula was flipping between its multiply
+     * and screen branches around the 50%-lightness threshold. */
+    isolation: isolate;
+    transform: translateZ(0);
+
+    /* `container-type: size` exposes the mesh's own dimensions (= card
+     * dimensions, since `inset: 0` makes them equal) as `cqi` (inline-
+     * size, ≈ card width) and `cqb` (block-size, ≈ card height). The
+     * blob keyframes below translate by `±20cqi` / `±20cqb` so the
+     * drift amplitude is always exactly ±20% of CARD width / height —
+     * not ±20% of the blob's own width (which would be smaller).
+     * Without container-type, `cqi` / `cqb` would resolve against the
+     * nearest ancestor that IS a container — or fall back to the small
+     * viewport. Setting it here scopes them to the card. */
+    container-type: size;
+  }
+
+  &__blob {
+    /* Four lemon-sliced blobs (the design lead 2026-05-23 «как долька лимона»).
+     * Each blob's CENTRE sits ON a card edge — half-blob inside,
+     * half clipped by `__blobClip overflow:hidden`.
+     *
+     * SIZING (the design lead «300×300 до 600×600 могут размер менять») —
+     * varied per-blob in 300-600px range:
+     *   • a (BOTTOM-LEFT corner):  115cqi = ~329-414px (quarter visible)
+     *   • b (BOTTOM 33% X):        130cqi = ~372-468px (half visible)
+     *   • c (BOTTOM 67% X, LIGHT): 155cqi = ~443-558px — biggest
+     *   • d (BOTTOM-RIGHT corner): 140cqi = ~401-504px (quarter visible)
+     * (Corner-anchored a + d render as quarter-blobs in the card
+     * corners — matches the design lead's red-circle drawing where blobs spill
+     * past both LEFT/RIGHT edge AND BOTTOM edge.)
+     * Plus each blob breathes via scale 0.85-1.1 inside keyframes,
+     * adding extra size variation during the cycle.
+     *
+     * POSITIONING — anchor at the card edge then centre the box on
+     * the anchor via `translate(-50%, -50%)`. Because the blob is
+     * bigger than the card (140-175% of card width), the half-blob
+     * past the edge IS clipped — the lemon-slice effect.
+     *
+     * Anchors a + d further lowered to BOTTOM CORNERS (0%/100% and
+     * 100%/100%) so they render as quarter-blobs in the corners,
+     * spilling past two edges each (the design lead «опускай ниже» + red-circle
+     * drawing showing corner spillover beyond card borders).
+     *
+     * COLORS — primary / shadow / light, with one explicit LIGHT
+     * blob (c) per the design lead «1 свет».
+     *
+     * DRIFT — ±18cqi/cqb on translate + scale 0.85-1.1 — gives
+     * clearly visible ambient motion (the design lead: «почему они теперь не
+     * двигаются»). Durations 32-38s (audit recommended this range
+     * to make motion velocity ~7-8 px/s peak — well above the
+     * perception floor at 3-5 px/s). */
+    position: absolute;
+    aspect-ratio: 1;
+    border-radius: 50%;
+    mix-blend-mode: hard-light;
+    will-change: transform;
+    animation-play-state: running;
+
+    /* Blob a — primary tone. CENTRE on BOTTOM-LEFT CORNER (0%, 100%).
+     * Quarter-blob visible in the corner. Gradient bumped (48% / 65%
+     * stop) — corner-anchored centre is OUTSIDE the card, only the
+     * gradient PERIPHERY enters, so peripheral opacity must be high.
+     * 140cqi = ~400px on 286w / ~504px on 360w card. */
+    &[data-blob='a'] {
+      width: 149cqi;
+      aspect-ratio: 3 / 2;
+      top: 108%;
+      left: 10%;
+      transform: translate(-50%, -50%);
+      background: radial-gradient(
+        ellipse at center,
+        color-mix(in oklch, var(--mesh-blob-a) 15%, transparent) 0%,
+        color-mix(in oklch, var(--mesh-blob-a) 0%, transparent) 65%
+      ) no-repeat;
+      animation: klyp-tiercard-drift-a calc(34s * var(--blob-a-mult, 1)) ease-in-out infinite;
+      animation-delay: var(--blob-a-delay, -7s);
+    }
+
+    /* Blob b — shadow tone. CENTRE on BOTTOM edge, 33% X. Half-blob
+     * visible above bottom edge. Brightness bumped to 42% / 60%. */
+    &[data-blob='b'] {
+      width: 94cqi;
+      top: 108%;
+      left: 33%;
+      transform: translate(-50%, -50%);
+      background: radial-gradient(
+        circle at center,
+        color-mix(in oklch, var(--mesh-blob-b) 14%, transparent) 0%,
+        color-mix(in oklch, var(--mesh-blob-b) 0%, transparent) 60%
+      ) no-repeat;
+      animation: klyp-tiercard-drift-b calc(38s * var(--blob-b-mult, 1)) ease-in-out infinite;
+      animation-delay: var(--blob-b-delay, -19s);
+    }
+
+    /* Blob c — LIGHT tone. CENTRE on BOTTOM edge, 67% X. BIGGEST
+     * (165cqi = ~472px on 286w / ~594px on 360w — top of the design lead's
+     * 300-600 range). */
+    &[data-blob='c'] {
+      width: 118cqi;
+      top: 108%;
+      left: 67%;
+      transform: translate(-50%, -50%);
+      background: radial-gradient(
+        circle at center,
+        color-mix(in oklch, var(--mesh-blob-c) 15%, transparent) 0%,
+        color-mix(in oklch, var(--mesh-blob-c) 0%, transparent) 60%
+      ) no-repeat;
+      animation: klyp-tiercard-drift-c calc(32s * var(--blob-c-mult, 1)) ease-in-out infinite;
+      animation-delay: var(--blob-c-delay, -11s);
+    }
+
+    /* Blob d — primary tone. CENTRE on BOTTOM-RIGHT CORNER. Mirror
+     * of a — same gradient brightness boost for corner-clipping
+     * visibility. 150cqi. */
+    &[data-blob='d'] {
+      width: 160cqi;
+      aspect-ratio: 3 / 2;
+      top: 108%;
+      left: 90%;
+      transform: translate(-50%, -50%);
+      background: radial-gradient(
+        ellipse at center,
+        color-mix(in oklch, var(--mesh-blob-d) 14%, transparent) 0%,
+        color-mix(in oklch, var(--mesh-blob-d) 0%, transparent) 65%
+      ) no-repeat;
+      animation: klyp-tiercard-drift-d calc(36s * var(--blob-d-mult, 1)) ease-in-out infinite;
+      animation-delay: var(--blob-d-delay, -23s);
+    }
+  }
+
+  /* ---- Per-tone mesh palette ---------------------------------------- *
+   * 2026-05-20 (the design lead: «блобы как в creator во всех карточках но их цветов»
+   * + «не экономь токены»): switched from raw `rgba(R,G,B, alpha)` RGB
+   * triples to `color-mix(var(--mesh-primary) 16%, transparent)` so the
+   * palette flows from semantic `--color-tier-mesh-{primary,shadow}-<tone>`
+   * tokens. Removes the RGB-triple exception that used to live in
+   * `.claude/rules/styles.md` — every value here is now a token reference.
+   *
+   * Selector switched from `[data-tier]` to `[data-tone]` so the visual
+   * palette is decoupled from the analytics id. `tone` defaults from
+   * `id` via DEFAULT_TIER_TONE in TSX, but callers can override (e.g.
+   * embed a Studio card with a gold mesh for a partner page). */
+  /* Per-blob distinct tones (the design lead 2026-05-23 «разные тона у всех типа у
+   * нас есть страница колорс и там есть тона рядом с основным»). Each
+   * blob picks a different adjacent step from the primitive scale so
+   * the 4 blobs render in 4 distinct shades instead of recycling
+   * primary/shadow/light. Adjacent steps chosen per the /colors page
+   * primitives (purple 100=darkest → 1000=lightest, etc.). */
+  &[data-tone='silver'] {
+    --mesh-primary: var(--color-tier-mesh-primary-silver);
+    --mesh-shadow:  var(--color-tier-mesh-shadow-silver);
+    --mesh-light:   var(--color-tier-mesh-light-silver);
+    --mesh-blob-a: var(--neutral-1000);
+    --mesh-blob-b: var(--silver-300);
+    --mesh-blob-c: var(--neutral-900);
+    --mesh-blob-d: var(--silver-500);
+  }
+
+  &[data-tone='purple'] {
+    --mesh-primary: var(--color-tier-mesh-primary-purple);
+    --mesh-shadow:  var(--color-tier-mesh-shadow-purple);
+    --mesh-light:   var(--color-tier-mesh-light-purple);
+    --mesh-blob-a: var(--purple-500);
+    --mesh-blob-b: var(--purple-700);
+    --mesh-blob-c: var(--purple-800);
+    --mesh-blob-d: var(--purple-900);
+  }
+
+  &[data-tone='gold'] {
+    --mesh-primary: var(--color-tier-mesh-primary-gold);
+    --mesh-shadow:  var(--color-tier-mesh-shadow-gold);
+    --mesh-light:   var(--color-tier-mesh-light-gold);
+    --mesh-blob-a: var(--gold-700);
+    --mesh-blob-b: var(--gold-500);
+    --mesh-blob-c: var(--gold-800);
+    --mesh-blob-d: var(--gold-600);
+  }
+
+  &[data-tone='blue'] {
+    --mesh-primary: var(--color-tier-mesh-primary-blue);
+    --mesh-shadow:  var(--color-tier-mesh-shadow-blue);
+    --mesh-light:   var(--color-tier-mesh-light-blue);
+    /* Saturated core of the blue scale (Val 2026-06-19): the 2026-06-17 scale
+     * rebuild pushed 700–900 pale (#5fa0ff / #80b4ff / #b4d3ff), so the old
+     * 400/700/800/900 mix read as washed grey-blue at the blobs' ~15% alpha.
+     * 500/600 (#0267dd / #2883ff) are the vivid core; c keeps one lighter step
+     * (700) for depth variation — same deep→light shape as the purple tone. */
+    --mesh-blob-a: var(--blue-500);
+    --mesh-blob-b: var(--blue-600);
+    --mesh-blob-c: var(--blue-700);
+    --mesh-blob-d: var(--blue-600);
+  }
+
+  &__hoverBlob {
+    /* Wide, flat horizontal oval in the top-left zone (design lead 2026-06-04:
+     * «на 50% шире, по высоте на 50% меньше, выше на 25%»). 175.5→263.25% wide,
+     * 94.5→47.25% tall, raised 25pp (top −13.5→−38.5%). NOTE: keep the centre
+     * partially inside the card — the gradient hot-spot sits at `22% 35%` of
+     * the blob, so pushing it fully into the corner makes the blob vanish. */
+    position: absolute;
+    top: -12%;
+    left: -31.5%;
+    width: 197.44%;
+    height: 47.25%;
+    pointer-events: none;
+    filter: blur(var(--blur-32));
+    opacity: 0;
+    /* `--duration-slow` (360ms) — unified hover rhythm across the card
+     * (the design lead 2026-05-20). Was `--duration-normal` (220ms). */
+    transition: opacity var(--duration-slow) var(--easing-standard);
+  }
+
+  /* Corner hover blob — per-tone radial gradient. Geometry inherited from
+   * `__hoverBlob` base above (verbatim from BalanceCard); only the radial
+   * stops + blend mode differ per tone.
+   *
+   *   • silver: white at 40% / 18% stops, NO blend (matches BalanceCard
+   *     default — neutral white reads against the dark mesh without
+   *     additive amplification).
+   *   • purple / gold / blue: accent token at 65% / 25% stops, with
+   *     `mix-blend-mode: plus-lighter` (additive — brightens the mesh
+   *     underneath so the hover state is unambiguous).
+   *
+   * Selector switched from `[data-recommended]` / `[data-tier]` to
+   * `[data-tone]` so the trio follows the tone palette, not the analytics
+   * id (the design lead 2026-05-20: Studio in blue, Creator in purple, both without
+   * `recommended`; Creator Plus in gold WITH `recommended`). */
+  &[data-tone='silver'] .klyp-PricingTierCard__hoverBlob {
+    background: radial-gradient(
+      ellipse 50% 45% at 22% 35%,
+      color-mix(in oklch, white 40%, transparent) 0%,
+      color-mix(in oklch, white 18%, transparent) 35%,
+      transparent 70%
+    );
+  }
+
+  &[data-tone='purple'] .klyp-PricingTierCard__hoverBlob {
+    /* `--purple-700` (#8e4ec6 — same hex as 600 in sRGB) per the design lead
+     * 2026-05-20: brighter / more saturated than purple-500 (#5f2e85),
+     * keeps the corner glow visible against the perpetual mesh.
+     * `::after` ring stays on purple-500 for tonal layering — the ring
+     * stays the "calm" hue, the blob is the "hot spot". */
+    background: radial-gradient(
+      ellipse 50% 45% at 22% 35%,
+      color-mix(in oklch, var(--purple-700) 65%, transparent) 0%,
+      color-mix(in oklch, var(--purple-700) 25%, transparent) 35%,
+      transparent 70%
+    );
+    mix-blend-mode: plus-lighter;
+  }
+
+  /* Gold tone (Creator Plus) keeps the ORIGINAL warm gold (--gold-700) for its
+   * hover glow, NOT --color-fg-accent — that token went iris on the 2026-06-29
+   * brand-accent swap (Val). This tier's mesh + Popular badge stay gold, so the
+   * hover blob/ring must stay gold too (else gold mesh + iris glow clash). */
+  &[data-tone='gold'] .klyp-PricingTierCard__hoverBlob {
+    background: radial-gradient(
+      ellipse 50% 45% at 22% 35%,
+      color-mix(in oklch, var(--gold-700) 65%, transparent) 0%,
+      color-mix(in oklch, var(--gold-700) 25%, transparent) 35%,
+      transparent 70%
+    );
+    mix-blend-mode: plus-lighter;
+  }
+
+  /* Hover hot-spot uses the vivid `--blue-600` core directly (Val 2026-06-19),
+   * NOT `--color-status-info`: that semantic = blue-900 (#b4d3ff), gone pale
+   * after the 2026-06-17 scale rebuild, so the corner glow read washed-out. */
+  &[data-tone='blue'] .klyp-PricingTierCard__hoverBlob {
+    background: radial-gradient(
+      ellipse 50% 45% at 22% 35%,
+      color-mix(in oklch, var(--blue-600) 65%, transparent) 0%,
+      color-mix(in oklch, var(--blue-600) 25%, transparent) 35%,
+      transparent 70%
+    );
+    mix-blend-mode: plus-lighter;
+  }
+
+  &:is(:hover, [data-hint-open='true'], :focus-within) .klyp-PricingTierCard__hoverBlob {
+    opacity: 1;
+  }
+
+  /* ---- Base 2px ring (always visible) ------------------------------- *
+   * BalanceCard parity (2px, not the previous 1px) per design feedback
+   * (match the BalanceCard component exactly) — the
+   * 2px thickness IS itself a signal (a thicker rim reads as "lifted
+   * surface" without needing the hover state). Mask-composite cuts the
+   * inner square so only a 2px outline remains. `inset: 0` +
+   * `border-radius: inherit` means the ring traces the card's outer
+   * corner exactly — same radius, same position, no half-pixel drift
+   * vs the `::after` hover ring that stacks on top.
+   *
+   * Background tone is `--color-border-subtle` (= --alpha-white-05, ~5%
+   * white) — BalanceCard parity. Lighter than the previous
+   * `--color-border-default` (10%) so the perpetual mesh underneath has
+   * room to breathe without the ring competing for attention. */
+  &::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    padding: var(--space-2);
+    background: var(--color-border-subtle);
+    -webkit-mask:
+      linear-gradient(#fff 0 0) content-box,
+      linear-gradient(#fff 0 0);
+    -webkit-mask-composite: xor;
+    mask:
+      linear-gradient(#fff 0 0) content-box,
+      linear-gradient(#fff 0 0);
+    mask-composite: exclude;
+    pointer-events: none;
+    z-index: 2;
+  }
+
+  /* All four tones intentionally keep the same neutral base ring at rest.
+   * The tone identity surfaces ONLY on hover (corner blob + `::after`
+   * colored ring + tone-specific inset bloom). Per the design lead 2026-05-20: every
+   * tier reads as "quiet card" at rest, "color comes alive on hover" —
+   * no static gold/blue ring competing with the perpetual mesh. */
+
+  /* ---- Hover colored ring (fades in on top of base ring) ------------ *
+   * Geometry mirrors `::before` (2px mask-composite, inset:0, border-
+   * radius:inherit) so the two rings superpose pixel-perfectly at the
+   * four corners — same radius, same position, no drift. Per-tone via
+   * `[data-tone]` matches the hoverBlob tone branches above. */
+  &::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    padding: var(--space-2);
+    -webkit-mask:
+      linear-gradient(#fff 0 0) content-box,
+      linear-gradient(#fff 0 0);
+    -webkit-mask-composite: xor;
+    mask:
+      linear-gradient(#fff 0 0) content-box,
+      linear-gradient(#fff 0 0);
+    mask-composite: exclude;
+    pointer-events: none;
+    z-index: 2;
+    opacity: 0;
+    /* `--duration-slow` (360ms) — unified hover rhythm across the card
+     * (the design lead 2026-05-20). Was `--duration-fast` (140ms) for BalanceCard-
+     * parity; now all hover layers share one ease for a calmer feel. */
+    transition: opacity var(--duration-slow) var(--easing-standard);
+  }
+
+  &[data-tone='silver']::after {
+    background: linear-gradient(
+      155deg,
+      color-mix(in oklch, white 50%, transparent) 0%,
+      color-mix(in oklch, white 1%, transparent) 44%
+    );
+  }
+
+  &[data-tone='purple']::after {
+    background: linear-gradient(
+      155deg,
+      color-mix(in oklch, var(--purple-500) 50%, transparent) 0%,
+      color-mix(in oklch, var(--purple-500) 1%, transparent) 44%
+    );
+    mix-blend-mode: plus-lighter;
+  }
+
+  &[data-tone='gold']::after {
+    /* Gold (--gold-700), not --color-fg-accent (now iris) — Creator Plus tier
+     * stays gold after the brand-accent swap (Val 2026-06-29). See hoverBlob note. */
+    background: linear-gradient(
+      155deg,
+      color-mix(in oklch, var(--gold-700) 50%, transparent) 0%,
+      color-mix(in oklch, var(--gold-700) 1%, transparent) 44%
+    );
+    mix-blend-mode: plus-lighter;
+  }
+
+  &[data-tone='blue']::after {
+    /* Vivid `--blue-600` core (Val 2026-06-19) — see the hoverBlob note above
+     * on why `--color-status-info` (blue-900, pale) was dropped here. */
+    background: linear-gradient(
+      155deg,
+      color-mix(in oklch, var(--blue-600) 50%, transparent) 0%,
+      color-mix(in oklch, var(--blue-600) 1%, transparent) 44%
+    );
+    mix-blend-mode: plus-lighter;
+  }
+
+  &:is(:hover, [data-hint-open='true'], :focus-within)::after {
+    opacity: 1;
+  }
+
+  /* Inset hover glow — per-tone token from `semantic.tokens.json`. Layer
+   * 1 = lift shadow (always on), Layer 2 = tinted inset bloom (hover
+   * only). Tokens added 2026-05-20 alongside the universal mesh:
+   *   --fx-card-inset-glow-silver  (was BalanceCard non-primary)
+   *   --fx-card-inset-glow-gold    (was BalanceCard primary)
+   *   --fx-card-inset-glow-purple  (NEW — Creator)
+   *   --fx-card-inset-glow-blue    (NEW — Studio) */
+  &[data-tone='silver']:is(:hover, [data-hint-open='true'], :focus-within) {
+    box-shadow: var(--fx-card-lift-shadow), var(--fx-card-inset-glow-silver);
+  }
+
+  &[data-tone='purple']:is(:hover, [data-hint-open='true'], :focus-within) {
+    box-shadow: var(--fx-card-lift-shadow), var(--fx-card-inset-glow-purple);
+  }
+
+  &[data-tone='gold']:is(:hover, [data-hint-open='true'], :focus-within) {
+    box-shadow: var(--fx-card-lift-shadow), var(--fx-card-inset-glow-gold);
+  }
+
+  &[data-tone='blue']:is(:hover, [data-hint-open='true'], :focus-within) {
+    /* Inline saturated blue inset bloom (Val 2026-06-19): the token
+     * `--fx-card-inset-glow-blue` resolves through `--color-status-info`
+     * (blue-900, pale since the 2026-06-17 scale rebuild), so the Studio
+     * hover bloom read washed-out. Drive it off the vivid `--blue-600` core
+     * directly — same blur/alpha recipe as the token, saturated source. */
+    box-shadow:
+      var(--fx-card-lift-shadow),
+      inset 0 0 var(--blur-50) color-mix(in oklch, var(--blue-600) 30%, transparent);
+  }
+
+  /* All direct children sit above the blob layer.
+   * `__blobClip` is excluded so it stays at z-index 0 (under content).
+   * `__svgFilter` is excluded — it's a 0×0 SVG holding only filter defs,
+   * shouldn't participate in the z-index ladder. The badgeSlot is now an
+   * ordinary in-flow child (refactored 2026-05-21) and participates in
+   * the content layer at z:1 — no special exclude needed. */
+  > *:not(.klyp-PricingTierCard__blobClip):not(.klyp-PricingTierCard__svgFilter) {
+    position: relative;
+    z-index: 1;
+  }
+
+  /* ---- Mesh state branches ------------------------------------------ *
+   * `data-mesh` attribute on the article root (set by TSX from `mesh`
+   * prop, coerced to `static` under prefers-reduced-motion):
+   *   • 'animated' — default; perpetual drift via @keyframes.
+   *   • 'static'   — blobs visible, animation paused at delay-shifted
+   *                  offset (per-instance phase shift keeps the four
+   *                  cards visually distinct even in static mode).
+   *   • 'off'      — mesh entirely hidden; only the hover trio plays
+   *                  on `:hover` (BalanceCard-like quiet surface for
+   *                  embed contexts). The corner `__hoverBlob` still
+   *                  fades in because it's a sibling of `__mesh` inside
+   *                  `__blobClip`, not a child. */
+  &[data-mesh='static'] &__blob {
+    animation-play-state: paused;
+  }
+
+  &[data-mesh='off'] &__mesh {
+    display: none;
+  }
+
+  &__upper {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-16);
+    flex-shrink: 0;
+  }
+
+  /* ---- Head: tier name + badge row + pitch -------------------------- *
+   * `__head` is a flex column: row 1 = `__nameRow` (h3 + optional Badge,
+   * single flex row, adaptive width), row 2 = `__pitch` (paragraph,
+   * `min-height: var(--space-40)` keeps cards aligned even with 1- vs
+   * 2-line pitches).
+   *
+   * Standalone `__badgeSlot` from the 2026-05-21 in-frame migration was
+   * removed when the badge moved next to the tier name on the same row
+   * (the design lead 2026-05-21: «бадж и заголовок засунь в одну секцию с адаптивной
+   * шириной — бадж справа, название слева»). Saved a row of vertical
+   * space + reads as a contextual qualifier of the tier name rather than
+   * a free-standing pill. */
+  &__head {
+    display: flex;
+    flex-direction: column;
+    /* `--space-8` (8px) — the design lead 2026-05-21: «у карточек гэп сделай 8пкс
+     * примерно». Was --space-4 (4px) — too tight between the name-row
+     * and the pitch paragraph; the 8px breath reads as a deliberate
+     * spacing rhythm. */
+    gap: var(--space-8);
+  }
+
+  /* Flex row carrying the tier name + (optional) gold "Popular" badge.
+   * `__name` flexes-grow to claim slack; badge stays content-sized and
+   * pins to the right via `justify-content: space-between`. `align-items:
+   * center` lines the badge baseline visually with the h3 cap-height
+   * (font-size-24 medium @ ~28px cap-height vs Badge xs ~16px tall —
+   * centering reads cleaner than baseline alignment here). `gap`
+   * provides breathing room when the title is short and the badge is
+   * wide enough to nearly touch. */
+  &__nameRow {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-12);
+  }
+
+  &__name {
+    /* `<h3>` — reset browser defaults; the visual size is set explicitly.
+     * Per the design lead 2026-05-20:
+     *   • sentence case with capital first letter (NOT all-caps);
+     *   • font-size-24 («заголовок 24пкс примерно»);
+     *   • font-weight-medium (500), not --fw-heading (600). Aligns with
+     *     project rule (styles.md): «medium 500 is the heaviest weight,
+     *     no font-weight 700». */
+    margin: 0;
+    font-size: var(--font-size-24);
+    font-weight: var(--font-weight-medium);
+    color: var(--color-fg-primary);
+  }
+
+  &__pitch {
+    margin: 0;
+    /* `--space-40` (40px) min-height — fits ~2 lines of font-size-13 at
+     * line-height 1.4 (≈18.2px per line × 2 = 36.4px + 4px slack). Bumped
+     * from previous `--space-32` (32px) per the 2026-05-20 alignment audit
+     * (the design lead: «верхняя половина выровнена одинаково по левому верхнему углу»).
+     * Studio's pitch is 14 words and wraps to 2 lines at 4-col grid width
+     * while the other 3 tiers fit on 1 line — locking the min-height
+     * keeps the price-row y-coord identical across all 4 cards. */
+    min-height: var(--space-40);
+    font-size: var(--font-size-13);
+    color: var(--color-fg-muted);
+  }
+
+  /* ---- Price block --------------------------------------------------- */
+  &__priceBlock {
+    display: flex;
+    flex-direction: column;
+    /* 8px gap (the design lead 2026-05-23 — «вот тут 8 пкс примерно»). Was `--space-4`
+       which crowded the bundle / save-row / renew-row trio. */
+    gap: var(--space-8);
+    /* Counter-scale removed 2026-05-23 — was compensating for `scale(1.01)`
+     * on the article root; that scale itself was dropped (text re-rasterize
+     * snap on transition out). No scale = no counter needed. */
+  }
+
+  &__priceBundle {
+    /* Hosts the PriceTicker (live + strike) on the left and the unit
+       column on the right. Motion lives inside PriceTicker; this row is
+       a passive flex container. */
+    display: flex;
+    align-items: flex-end;
+    flex-wrap: nowrap;
+    gap: var(--space-8);
+    line-height: 1;
+  }
+
+  &__price {
+    font-size: var(--font-size-28);
+    line-height: 1;
+    font-weight: var(--fw-heading);
+    letter-spacing: var(--letter-spacing-tight);
+    color: var(--color-fg-primary);
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+  }
+
+  &__priceUnit {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    justify-content: flex-end;
+    gap: var(--space-2);
+    line-height: 1;
+    font-size: var(--font-size-12);
+    color: var(--color-fg-muted);
+    /* `--fw-body` (regular/400) — was `--fw-regular`, which is NOT a real
+     * token (no fallback) so it silently resolved to inherited weight. */
+    font-weight: var(--fw-body);
+  }
+
+  &__priceUnitLine {
+    display: block;
+    line-height: 1;
+    white-space: nowrap;
+  }
+
+  &__saveRow {
+    /* Flex inline row: save-line text on the left, optional (i) trigger
+       on the right (the design lead 2026-05-23 — «давай рядом с save»). Text swaps
+       in place — no Motion stack (was reserving double height). */
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-6);
+    min-height: var(--space-16);
+    font-size: var(--font-size-12);
+    /* `--color-fg-primary` (white) — the design lead 2026-05-21: «save $X/yr вот эту
+     * везде белым а не золотым». Was `--color-fg-accent` (gold). Gold on
+     * the saveLine pulled the eye away from the price headline above it
+     * (which is also primary white) — keeping both white reads as one
+     * unified "$X.XX / mo · annual · saving Y" block instead of two
+     * competing typographies. */
+    color: var(--color-fg-primary);
+  }
+
+  &__saveRowText {
+    /* Wrap the save-line text so the (i) trigger sits as an independent
+       flex item next to it (the design lead 2026-05-23). */
+    display: inline;
+  }
+
+  /* Dead `&__saveRow[data-variant='save']` (50% dim) + `&__renewRow` blocks
+   * removed 2026-06-05 — the TSX only ever renders `data-variant="renew"` on
+   * `__saveRow` (and never a `__renewRow` element / `save` / `includes`
+   * variant), so those rules never matched. The renew row styles via base
+   * `__saveRow`. (If the renew sub-line should read muted like the old
+   * `__renewRow` intent, add a `&__saveRow[data-variant='renew']` rule.) */
+
+  /* `__discountTip` standalone trigger rule deleted 2026-05-23 — the
+     `<DiscountBreakdownTip>` component now reuses `__infoTip` for trigger
+     chrome (the design lead: «возьми тултип как внизу»). Popover body styles below
+     stay scoped to `__discountTipBody*` since the popover content is
+     structured (title + list + total) rather than a single string. */
+
+  &__discountTipBody {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-8);
+    /* Popover min-width. Literal on purpose — 180 is not on the `--space-N`
+     * scale (tops at 128) and a token isn't warranted for one popover. Was
+     * `var(--space-160, 180px)`, but `--space-160` does NOT exist so it only
+     * "worked" via the px fallback — the fake token reference was misleading. */
+    min-inline-size: 180px;
+  }
+
+  &__discountTipTitle {
+    /* Sentence case — the design lead 2026-05-23 «удали капс». */
+    font-size: var(--font-size-12);
+    color: var(--color-fg-muted);
+  }
+
+  &__discountTipList {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-4);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  &__discountTipRow {
+    display: flex;
+    justify-content: space-between;
+    gap: var(--space-12);
+    font-size: var(--font-size-13);
+    color: var(--color-fg-primary);
+    font-variant-numeric: tabular-nums;
+  }
+
+  &__discountTipPct {
+    /* Green discount % — the design lead 2026-05-23 «там сделай зеленые цифры
+       скидок». Was `--color-fg-accent` (gold); recoloured to status
+       success (green-900 #62c073). */
+    color: var(--color-status-success);
+    font-variant-numeric: tabular-nums;
+  }
+
+  &__discountTipTotal {
+    display: flex;
+    justify-content: space-between;
+    gap: var(--space-12);
+    padding-top: var(--space-6);
+    border-top: 1px solid var(--color-border-subtle);
+    font-size: var(--font-size-13);
+    /* `--fw-emphasis` (medium/500) — was `--fw-medium`, which is NOT a real
+     * token (no fallback) so the Total row silently rendered at normal weight. */
+    font-weight: var(--fw-emphasis);
+    color: var(--color-fg-primary);
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* ---- CTA slot ------------------------------------------------------ */
+  /* Wrapper only — no chrome of its own. The caller's button owns its
+   * own height / radius / fill. We just ensure the slot stretches full
+   * width so a `<MeshButton size="md">` or `<a>` fills the card column. */
+  &__ctaSlot {
+    display: flex;
+    flex-direction: column;
+
+    /* Any direct child (MeshButton, anchor) gets `width: 100%`. The CTA
+     * must NOT inherit gold flat fill from the card unless it's MeshButton;
+     * we don't paint any background here. */
+    > * {
+      width: 100%;
+    }
+
+    /* "Your current plan" — active subscription on this exact tier.
+       Disabled visual: dim the CTA to muted opacity, kill cursor, keep
+       it focusable only via the underlying button's own disabled state
+       (handled in TSX via `isDisabled` on MeshButton). the design lead 2026-05-22
+       round 3: «на текущей показывается Your current plan вместо
+       кнопки». */
+    &[data-cta-state='current'] {
+      opacity: 0.6;
+      pointer-events: none;
+    }
+
+    /* Leading TierGlyph desaturated at rest — the colored glyph
+     * (creator purple / creatorPlus gold / studio blue) was the only
+     * saturated element on an otherwise monochrome resting CTA, so it
+     * read as a stray pop. Grayscale aligns it with the muted button;
+     * colour wakes on card hover / focus below, mirroring the mesh /
+     * blob / ring wake (Val 2026-06-05). `--duration-slow` matches the
+     * card's unified hover rhythm. */
+    .klyp-TierGlyph {
+      filter: grayscale(1);
+      transition: filter var(--duration-slow) var(--easing-standard);
+    }
+  }
+
+  /* TierGlyph CTA icon wakes to full colour alongside the rest of the
+   * card (mesh / blob / ring). `:focus-within` keeps the keyboard path
+   * in parity with pointer hover. */
+  &:is(:hover, [data-hint-open='true'], :focus-within)
+    .klyp-PricingTierCard__ctaSlot
+    .klyp-TierGlyph {
+    filter: grayscale(0);
+  }
+
+  /* Allowance panel — extracted to `<AllowancePanel>` brand molecule
+   * 2026-05-23. SCSS lives at `packages/brand/src/AllowancePanel/`. */
+
+/* ---- Divider ------------------------------------------------------- */
+  &__divider {
+    flex-shrink: 0;
+    margin-bottom: var(--space-4);
+    height: 1px;
+    background: var(--color-border-default);
+  }
+
+  /* ---- Features list ------------------------------------------------- */
+  &__featuresHead {
+    /* Per the design lead 2026-05-20: sentence case + regular weight — was uppercase +
+     * fw-heading + wide tracking ("WHAT YOU GET / MONTH"). The new look is
+     * a normal heading line, no shouting. */
+    font-size: var(--font-size-13);
+    color: var(--color-fg-muted);
+  }
+
+  &__features {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-10);
+  }
+
+  &__feature {
+    display: flex;
+    align-items: flex-start;
+    gap: var(--space-8);
+    /* Regular weight per the design lead 2026-05-20 — was fw-emphasis. Bold reserved
+     * for price + tier name only across the card. Unitless line-height —
+     * styles.md exception list allows `1em` only; switched to unitless
+     * `1.4` to satisfy the no-raw-units rule. */
+    font-size: var(--font-size-13);
+    color: var(--color-fg-primary);
+    line-height: 1.4;
+
+    /* The check icon — uniform white across ALL tiers (the design lead 2026-05-21:
+     * «сделай везде белую, в Creator+ не золотую»). Was `--color-fg-muted`
+     * with a gold override on `[data-recommended='true']` further below;
+     * gold override removed in the same pass. Icon is now `CheckCircleBulk`
+     * (Iconsax bulk variant — duo-tone circle ring + checkmark fill, both
+     * `currentColor`-driven). 16px size matches font-size-13 cap-height. */
+    > svg {
+      flex: none;
+      margin-top: var(--space-2);
+      color: var(--color-fg-primary);
+    }
+
+    /* Emphasized rows — "What you get" headline (videos / images / text runs).
+     * Per the design lead 2026-05-20: emphasis carried by size only (font-size-14 vs
+     * baseline 13), NOT by weight — bold stays reserved for price + name.
+     * tabular-nums keeps the digits aligned across the toggle flip. */
+    &[data-emphasis='true'] {
+      font-size: var(--font-size-14);
+      font-variant-numeric: tabular-nums;
+    }
+
+    /* Unavailable on this tier — a faint-ring ✕ bullet (CloseCircleBulk) with
+     * the label text at 30% opacity. The icon's own opacities (ring 10%, ✕
+     * 30%) live on its SVG paths in the TSX, so only the text is dimmed here
+     * (design lead 2026-06-04). `> span` covers both the plain label and the
+     * `__featureBody` wrapper (both are spans). */
+    &[data-available='false'] {
+      > span {
+        opacity: 0.3;
+      }
+    }
+  }
+
+  /* Stacked label + note rendering — used when a feature row supplies
+   * `note?: string` or `tooltip?: string`. Column flex keeps the bullet
+   * icon aligned to the primary label's first line; the note sits below
+   * muted + smaller. */
+  &__featureBody {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-2);
+    min-width: 0;
+  }
+
+  /* Inline row for label text + an optional `(i)` info-tip trigger. Allows
+   * the tooltip glyph to sit flush after the last word of the label, even
+   * when the label wraps onto two lines. */
+  &__featureLabelLine {
+    display: inline-flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: var(--space-4);
+    min-width: 0;
+  }
+
+  &__featureNote {
+    font-size: var(--font-size-12);
+    color: var(--color-fg-muted);
+    /* Drop tabular-nums inheritance — note is prose, not numbers. */
+    font-variant-numeric: normal;
+  }
+
+  /* Tiny info-circle trigger that opens a Tooltip on hover/focus. Strips
+   * RAC's native button chrome and inherits the parent's color via
+   * `currentColor` so the glyph reads as a quiet inline annotation rather
+   * than a competing control. */
+  &__infoTip {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+    border: 0;
+    /* RAC renders a native <button>; `appearance: none` kills the UA control
+     * chrome (belt-and-suspenders with the bg/border/padding resets) so the
+     * shared (i) trigger — reused by DiscountBreakdownTip too — never leaks a
+     * native box on any engine. */
+    appearance: none;
+    background: transparent;
+    color: var(--color-fg-muted);
+    cursor: help;
+    transition: color var(--duration-fast) var(--easing-standard);
+
+    &[data-hovered],
+    &[data-focus-visible] {
+      color: var(--color-fg-primary);
+    }
+
+    &[data-focus-visible] {
+      outline: var(--bw-default) solid var(--color-ring);
+      outline-offset: var(--space-2);
+      border-radius: var(--radius-full);
+    }
+  }
+
+  /* ---- Models section -------------------------------------------------
+   * Head + list rendered below the features list when `models` is
+   * supplied. Restored 2026-05-22 (the design lead): the head was deleted on
+   * 2026-05-21 («удалим кэп»), reinstated today as parallel structure
+   * to `__featuresHead` + `__features` above, with check-circle bullets
+   * on each row so the section reads as "what you get → these models".
+   * Same string across tiers since Klyp's pitch is "every model, every
+   * tier"; the model rows themselves sit at the same size/colour as
+   * feature labels (font-size-13 + fg-primary) — first-class, not a
+   * supporting-detail step-down.                                       */
+  &__modelsHead {
+    /* Mirrors `__featuresHead` exactly — sentence case, muted, regular
+     *  weight. Keeping these two heads typographically identical means
+     *  the eye reads them as parallel section anchors inside the same
+     *  card, not two different hierarchies. */
+    font-size: var(--font-size-13);
+    color: var(--color-fg-muted);
+  }
+
+  &__modelsList {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-10);
+  }
+
+  &__model {
+    display: flex;
+    align-items: center;
+    gap: var(--space-8);
+    font-size: var(--font-size-13);
+    color: var(--color-fg-primary);
+    line-height: 1.4;
+
+    /* CheckCircleBulk — same treatment as features rows (white duo-tone
+     *  bullet, no top nudge since model rows are single-line so center
+     *  alignment works cleanly). */
+    > svg {
+      flex: none;
+      color: var(--color-fg-primary);
+    }
+  }
+
+  /* Per-tier gold override on the recommended (Creator Plus) check icon
+   * was removed 2026-05-21 — the design lead: «сделай везде белую, в Creator+ не
+   * золотую». All four tiers share the same white check now; tier
+   * identity is carried by the mesh palette + hover trio + badge, not
+   * by checklist colour. */
+
+  /* ---- Reduced motion ----------------------------------------------- */
+  /* Disables the translate lift + the hover-blob / hover-ring fades +
+   * stops the perpetual mesh blob drift. The base ring (`::before`) is
+   * non-motion and stays as-is. */
+  @media (prefers-reduced-motion: reduce) {
+    transition: none;
+
+    &:is(:hover, [data-hint-open='true'], :focus-within) {
+      transform: none;
+    }
+
+    &__hoverBlob,
+    &::after {
+      transition: none;
+    }
+
+    &__blob {
+      animation: none !important;
+    }
+  }
+}
+
+/* Info hint tooltip — portaled outside the card. Built on the @klyp/ui*/
+/* Tooltip primitive (was HoverPopover, retired 2026-06-24): the body is*/
+/* read-only copy, so the hover-into bridge was unused. Tooltip's default*/
+/* surface (--color-bg-surface-solid) reads clearly against the dark page.*/
+/* Pricing keeps only the genuinely pricing-specific overrides: tighter*/
+/* max-width and looser line-height for the multi-line discount list.*/
+.klyp-PricingTierCard__infoPopover {
+  max-width: 16rem;
+  line-height: var(--line-height-normal);
+}
+
+/* =====================================================================
+ * Keyframes — `klyp-tiercard-drift-*`. Four blobs (a..d), each lemon-
+ * sliced at a card edge (a=LEFT, b=BOTTOM-left, c=BOTTOM-right, d=RIGHT).
+ * Drift amplitude tightened to ±15cqi/cqb (was ±20%) because the new
+ * blobs are huge (140-150cqi) — at ±20% they'd swing visibly across
+ * the whole card; ±15% reads as ambient breathing.
+ *
+ * Why `translate(-50%, -50%)` is repeated inside every keyframe step:
+ * CSS `transform` is a single property — animation keyframe values
+ * REPLACE the declared initial `transform: translate(-50%, -50%)` while
+ * playing. Omitting the centring translate in any step would snap the
+ * blob to its `top` / `left` anchor with its TOP-LEFT corner there,
+ * losing the lemon-slice centring. Repeating it preserves the slice.
+ *
+ * Why `cqi` / `cqb` not px / blob-relative %: `1cqi` = 1% of `__mesh`
+ * container inline-size (= 1% of card width, because `__mesh` is
+ * `inset:0` inside the card and has `container-type: size`). `1cqb`
+ * = same for block-size (height). Drift becomes responsive to the
+ * card's grid cell — same visual amplitude on the 4-col pricing page
+ * and on a wider standalone card.
+ *
+ * Why 4-step paths (0/25/50/75/100): a pure 2-step ping-pongs between
+ * two fixed offsets — robotic. 4-step visits four corners of the ±15%
+ * box in a non-self-crossing path, reading as organic drift.
+ * ===================================================================== */
+
+@keyframes klyp-tiercard-drift-a {
+  /* a — drift halved per the design lead 2026-05-23 «двигались меньше на 50%».
+   * Drift ±9cqi/cqb + scale 0.95-1.05. */
+  0%, 100% { transform: translate(-50%, -50%) translate(0, 0) scale(1); }
+  25%      { transform: translate(-50%, -50%) translate(9cqi, -6cqb) scale(0.95); }
+  50%      { transform: translate(-50%, -50%) translate(-5cqi, -9cqb) scale(1.05); }
+  75%      { transform: translate(-50%, -50%) translate(8cqi, 5cqb) scale(0.975); }
+}
+
+@keyframes klyp-tiercard-drift-b {
+  0%, 100% { transform: translate(-50%, -50%) translate(0, 0) scale(1); }
+  25%      { transform: translate(-50%, -50%) translate(-8cqi, 9cqb) scale(1.025); }
+  50%      { transform: translate(-50%, -50%) translate(-9cqi, -6cqb) scale(0.975); }
+  75%      { transform: translate(-50%, -50%) translate(5cqi, -8cqb) scale(1.0); }
+}
+
+@keyframes klyp-tiercard-drift-c {
+  0%, 100% { transform: translate(-50%, -50%) translate(0, 0) scale(1); }
+  25%      { transform: translate(-50%, -50%) translate(8cqi, 9cqb) scale(0.925); }
+  50%      { transform: translate(-50%, -50%) translate(9cqi, -5cqb) scale(1.05); }
+  75%      { transform: translate(-50%, -50%) translate(-6cqi, -8cqb) scale(0.975); }
+}
+
+@keyframes klyp-tiercard-drift-d {
+  0%, 100% { transform: translate(-50%, -50%) translate(0, 0) scale(1); }
+  25%      { transform: translate(-50%, -50%) translate(-9cqi, -6cqb) scale(0.95); }
+  50%      { transform: translate(-50%, -50%) translate(5cqi, -9cqb) scale(1.05); }
+  75%      { transform: translate(-50%, -50%) translate(-8cqi, 5cqb) scale(0.975); }
+}
+
+/* =====================================================================
+ * Unreals brand overrides (the design lead 2026-05-26 → expanded 2026-05-27)
+ * =====================================================================
+ * On the unreals (light) build the colorful goo-mesh + hover blob stack
+ * reads as cyber-heavy and clashes with the editorial register. The brand
+ * has a SINGLE accent — Geist blue (--color-accent = blue.700). Pricing
+ * tier cards collapse to «синий + обводка» only — no purple / gold / green
+ * tones surface anywhere on the card or its hover state.
+ *
+ * Strip:
+ *   • all perpetual + hover blob layers (`__blobClip` wrappers)
+ *   • the goo SVG filter wrapper (not visible but cleaner DOM)
+ *   • per-tone `::after` hover ring backgrounds (silver/purple/gold/blue)
+ *     — replaced by a single blue accent gradient ring fading in on hover.
+ *   • per-tone box-shadow `--fx-card-inset-glow-*` on hover (gold / purple
+ *     tones would still surface their warm hue) — collapsed onto the
+ *     uniform blue inset+lift shadow below.
+ *   • discount popover green % — recoloured to brand accent blue.
+ *
+ * Keep:
+ *   • card lift translateY, surface bg, base 1px ring (border-subtle),
+ *     content/typography stack, divider, AllowancePanel chassis (already
+ *     brand-aware via --color-panel-glass-*).
+ */
+.klyp-PricingTierCard[data-brand='unreals'] {
+  .klyp-PricingTierCard__blobClip,
+  .klyp-PricingTierCard__svgFilter {
+    display: none !important;
+  }
+
+  /* Per-tone hover ring (`::after`) — neutralise every tone branch
+   *  (purple-500 / gold via --color-fg-accent / status-info blue / white)
+   *  onto a single blue accent gradient. Without these overrides the
+   *  per-tone `::after` rules above would still paint a coloured ring on
+   *  hover (Creator = purple, Creator+ = blue via brand-aware accent,
+   *  Studio = blue, Starter = white). One ring, one tone — unreals brand. */
+  &[data-tone='silver']::after,
+  &[data-tone='purple']::after,
+  &[data-tone='gold']::after,
+  &[data-tone='blue']::after {
+    background: linear-gradient(
+      155deg,
+      color-mix(in oklch, var(--color-accent) 40%, transparent) 0%,
+      color-mix(in oklch, var(--color-accent) 1%, transparent) 44%
+    );
+    /* Drop `plus-lighter` blend — it was meant to brighten warm hues on
+     * a dark surface; on a light surface with a single blue accent it
+     * desaturates the ring. `normal` blend keeps the blue truthful. */
+    mix-blend-mode: normal;
+  }
+
+  /* Per-tone hover `box-shadow` glow (silver/purple/gold/blue branches
+   *  above) → uniform blue. Listed at the same selector specificity as
+   *  the originals (0,3,0) so the later cascade-position wins. */
+  &[data-tone='silver']:is(:hover, [data-hint-open='true'], :focus-within),
+  &[data-tone='purple']:is(:hover, [data-hint-open='true'], :focus-within),
+  &[data-tone='gold']:is(:hover, [data-hint-open='true'], :focus-within),
+  &[data-tone='blue']:is(:hover, [data-hint-open='true'], :focus-within) {
+    /* Tokenised — was raw px (32/-4/16/40/-16px) + raw rgba(0,0,0,0.04).
+     * `1px` ring spread stays literal (allowed). Alpha → `--alpha-black-05`
+     * (5% vs prior 4% — imperceptible). Negative spreads via calc(). */
+    box-shadow:
+      inset 0 0 0 1px color-mix(in oklch, var(--color-accent) 28%, transparent),
+      inset 0 0 var(--space-32) calc(var(--space-4) * -1)
+        color-mix(in oklch, var(--color-accent) 14%, transparent),
+      0 1px var(--space-2) var(--alpha-black-05),
+      0 var(--space-16) var(--space-40) calc(var(--space-16) * -1)
+        color-mix(in oklch, var(--color-accent) 28%, transparent);
+  }
+
+  /* Discount popover percentages — green status-success on klyp signals
+   *  a savings %, on unreals the brand-single-accent rule wins: every
+   *  positive emphasis goes through `--color-accent` (blue). */
+  .klyp-PricingTierCard__discountTipPct {
+    color: var(--color-accent);
+  }
+}

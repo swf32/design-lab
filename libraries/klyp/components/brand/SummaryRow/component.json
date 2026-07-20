@@ -1,0 +1,14 @@
+{
+  "id": "summary-row",
+  "name": "SummaryRow",
+  "status": "in-progress",
+  "schemaVersion": 1,
+  "description": "Label:value row with tabular-nums, emphasis variants, tone tints, optional hint.",
+  "tags": [
+    "brand",
+    "brand-atom"
+  ],
+  "entry": "SummaryRow.tsx",
+  "stories": "SummaryRow.stories.tsx",
+  "changelog": "CHANGELOG.md"
+}

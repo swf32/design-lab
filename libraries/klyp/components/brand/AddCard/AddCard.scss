@@ -1,0 +1,153 @@
+.klyp-AddCard {
+  position: relative;
+  display: flex;
+  width: 100%;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-4);
+
+  /* Inline-SVG dashed border drawn INSIDE the card. Stroke 1.5px,*/
+  /* rounded dash caps, dash 1.5 + gap 1.5 (cycle 3, in svg units).*/
+  /* `pathLength="300"` on the <rect> makes the cycle divide evenly*/
+  /* across the perimeter — no asymmetric corners. CSS animates*/
+  /* `stroke-dashoffset` on hover to spin dashes clockwise (snake).*/
+  border: none;
+  border-radius: var(--r-card);
+  background: var(--color-bg-glass);
+  color: var(--color-fg-muted);
+
+  cursor: pointer;
+  /* 150ms for colour, 300ms ease-out-expo for transform — matches*/
+  /* AssetCard hover lift for consistency across the grid.*/
+  transition:
+    background-color 150ms var(--easing-standard),
+    color 150ms var(--easing-standard),
+    transform 300ms cubic-bezier(0.16, 1, 0.3, 1);
+
+  &:hover {
+    background: var(--color-bg-glass-deep);
+    color: var(--color-fg-primary);
+    transform: translateY(-6px);
+  }
+
+  &:focus-visible {
+    outline: none;
+    box-shadow: 0 0 0 var(--bw-default) color-mix(in oklab, var(--color-ring) 50%, transparent);
+  }
+
+  &:active {
+    transform: scale(0.99);
+  }
+
+  &:disabled,
+  &[aria-disabled='true'] {
+    pointer-events: none;
+    cursor: not-allowed;
+    opacity: 0.5;
+  }
+
+  /* ── Slots ───────────────────────────────────────────────────────────*/
+  &__icon {
+    display: flex;
+    width: var(--icon-size-lg);
+    height: var(--icon-size-lg);
+    align-items: center;
+    justify-content: center;
+    font-size: var(--font-size-16);
+    font-weight: var(--font-weight-medium);
+    line-height: 1;
+  }
+
+  &__label {
+    font-size: var(--font-size-13);
+    font-weight: var(--font-weight-medium);
+  }
+
+  &__description {
+    display: -webkit-box;
+    overflow: hidden;
+    max-width: 20ch;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 1;
+    font-size: var(--font-size-13);
+    color: var(--color-fg-subtle);
+  }
+
+  /* ── Aspect variants ─────────────────────────────────────────────────*/
+  /* 16:9, 4:3, auto: let the grid row dictate height (height:100%)*/
+  /* with a 180px floor for narrow tracks. 3:4 and 1:1 stay aspect-locked*/
+  /* because library uses a uniform shape (no meta strip asymmetry).*/
+  &[data-aspect='16/9'],
+  &[data-aspect='4/3'],
+  &[data-aspect='auto'] {
+    height: 100%;
+    min-height: 180px;
+  }
+
+  &[data-aspect='3/4'] {
+    aspect-ratio: 3 / 4;
+  }
+
+  &[data-aspect='1/1'] {
+    aspect-ratio: 1 / 1;
+  }
+
+  /* ── SVG dashed border ───────────────────────────────────────────────*/
+  /* SVG inset 1px from every card edge so the centered 1.5px stroke*/
+  /* (0.75px each side) renders fully inside the card without clipping*/
+  /* at the SVG viewport bounds. Rect at SVG bounds; rx=11 = card r-12*/
+  /* minus 1px inset to keep the stroke parallel to the card corner.*/
+  &__border {
+    position: absolute;
+    top: 1px;
+    right: 1px;
+    bottom: 1px;
+    left: 1px;
+    width: calc(100% - 2px);
+    height: calc(100% - 2px);
+    pointer-events: none;
+    overflow: visible;
+
+    > rect {
+      stroke: var(--color-border-subtle);
+      transition: stroke 150ms var(--easing-standard);
+    }
+  }
+
+  /* Hover stroke colour bump only — snake animation removed per request.*/
+  &:hover &__border > rect {
+    stroke: var(--color-border-default);
+  }
+
+  /* ── Accent variants ─────────────────────────────────────────────────*/
+  &[data-accent='gold'] &__border > rect {
+    stroke: color-mix(in oklab, var(--color-accent) 40%, transparent);
+  }
+
+  &[data-accent='gold']:hover &__border > rect {
+    stroke: var(--color-accent);
+  }
+
+  &[data-accent='gold']:hover {
+    color: var(--color-fg-accent);
+  }
+
+  &[data-accent='gold']:hover .klyp-AddCard__icon {
+    color: var(--color-fg-accent);
+  }
+
+  /* ── Size variants (padding scale) ───────────────────────────────────*/
+  &[data-size='sm'] {
+    padding: var(--space-12);
+  }
+
+  &[data-size='md'] {
+    padding: var(--space-16);
+  }
+
+  &[data-size='lg'] {
+    padding: var(--space-24);
+  }
+}
+

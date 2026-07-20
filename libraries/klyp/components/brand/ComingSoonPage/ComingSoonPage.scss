@@ -1,0 +1,97 @@
+.klyp-ComingSoonPage {
+  container-type: inline-size;
+  container-name: coming-soon;
+  display: flex;
+  flex: 1 1 0%;
+  align-items: flex-start;
+
+  &__inner {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-32);
+    margin-left: auto;
+    margin-right: auto;
+    width: 100%;
+    max-width: 48rem;
+    padding: var(--space-48) var(--space-16);
+
+    @container coming-soon (min-width: 600px) {
+      padding: var(--space-64) var(--space-32);
+    }
+  }
+
+  &__eyebrow {
+    display: flex;
+    align-items: center;
+    gap: var(--space-12);
+  }
+
+  &__icon {
+    display: grid;
+    place-items: center;
+    width: var(--space-28);
+    height: var(--space-28);
+    border-radius: var(--radius-lg);
+    border: var(--bw-default) solid var(--color-border-subtle);
+    background: var(--color-bg-glass-deep);
+    color: var(--color-fg-muted);
+
+    & > svg {
+      width: var(--icon-size-sm);
+      height: var(--icon-size-sm);
+    }
+  }
+
+  &__rule {
+    display: block;
+    height: 1px;
+    width: var(--icon-size-xl);
+    background: var(--color-border-default);
+  }
+
+  &__eyebrowLabel {
+    font-size: var(--font-size-12);
+    font-weight: var(--font-weight-medium);
+    color: var(--color-fg-muted);
+  }
+
+  &__title {
+    font-family: var(--font-sans), sans-serif;
+    font-weight: var(--font-weight-semibold);
+    letter-spacing: -0.02em;
+    font-size: var(--font-size-24);
+    line-height: var(--line-height-tight);
+    color: var(--color-fg-primary);
+  }
+
+  &__description {
+    max-width: 60ch;
+    font-size: var(--font-size-15);
+    line-height: 1.75;
+    color: var(--color-fg-muted);
+  }
+
+  &__kicker {
+    font-size: var(--font-size-12);
+    font-weight: var(--font-weight-medium);
+    color: var(--color-fg-subtle);
+  }
+
+  &__back {
+    padding-top: var(--space-12);
+  }
+
+  &__backLink {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-4);
+    font-size: var(--font-size-12);
+    font-weight: var(--font-weight-medium);
+    color: var(--color-fg-accent);
+    transition: color var(--duration-fast) var(--easing-standard, ease);
+
+    &:hover {
+      color: var(--color-accent-hover);
+    }
+  }
+}

@@ -1,0 +1,14 @@
+{
+  "id": "brand-mark",
+  "name": "BrandMark",
+  "status": "in-progress",
+  "schemaVersion": 1,
+  "description": "TODO: Klyp wordmark / logo lockup — sizes and themed variants.",
+  "tags": [
+    "brand",
+    "brand-atom"
+  ],
+  "entry": "BrandMark.tsx",
+  "stories": "BrandMark.stories.tsx",
+  "changelog": "CHANGELOG.md"
+}

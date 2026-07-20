@@ -1,0 +1,458 @@
+/* =====================================================================*/
+/* Dropdown — unified branded menu. Layers ONLY the bits the @klyp/ui*/
+/* DropdownMenu primitive doesn't own: long-list scroll, the data-driven*/
+/* row layout (icon · label/description · meta) and the scoped staggered*/
+/* reveal. Everything else (surface, hover, indicators, entrance) is*/
+/* inherited from .klyp-DropdownMenu — this class is appended to it.*/
+/* =====================================================================*/
+
+.klyp-Dropdown {
+  /* Per-item stagger step — ADAPTIVE, derived from tokens (no hardcoded ms).*/
+  /* The step scales INVERSELY with the row count so the WHOLE cascade stays*/
+  /* bounded: a short list reads as a quick ~13–20ms ripple, a long (20-row)*/
+  /* list compresses to ~5ms so it never crawls. Tuned FAST (2026-06-29).*/
+  /*   • ideal  = --duration-fast (140ms) / --stagger-count → total budget*/
+  /*     ÷ rows ≈ a fixed ~140ms whole-cascade length regardless of length.*/
+  /*   • floor  = --duration-instant / 16 (5ms) — never imperceptibly tight.*/
+  /*   • ceil   = --duration-instant / 4 (20ms) — never sluggish on 2–3 rows.*/
+  /* `--stagger-count` (= option count) is set inline on the inner menu node*/
+  /* (`.klyp-DropdownMenu__menu`, which receives the surface `style`), so the*/
+  /* step is computed THERE — where the count is in scope — and inherits down*/
+  /* to the rows. The fallback (8) keeps the step sane if it's ever absent.*/
+  .klyp-DropdownMenu__menu {
+    --dropdown-stagger-step: clamp(
+      calc(var(--duration-instant) / 16),
+      calc(var(--duration-fast) / var(--stagger-count, 8)),
+      calc(var(--duration-instant) / 4)
+    );
+  }
+
+  /* === Long-list scroll ==============================================*/
+  /* The DropdownMenu surface has no height cap of its own (it doesn't go*/
+  /* through the brand Popover). Without this a long option list overflows*/
+  /* the viewport and collides with the trigger. Cap + scroll the root.*/
+  max-height: 60vh;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+
+  /* macOS-style thin scrollbar — invisible at rest, fades in on hover.*/
+  scrollbar-width: thin;
+  scrollbar-color: transparent transparent;
+
+  &::-webkit-scrollbar {
+    width: var(--space-6);
+  }
+  &::-webkit-scrollbar-thumb {
+    background: transparent;
+    border-radius: var(--radius-full);
+    transition: background var(--duration-fast) var(--easing-standard);
+  }
+  &:hover {
+    scrollbar-color: var(--color-fg-muted) transparent;
+
+    &::-webkit-scrollbar-thumb {
+      background: var(--color-fg-muted);
+    }
+  }
+
+  /* Suppress the scrollbar DURING the open animation — RAC's just-computed*/
+  /* max-height + the staggered rows can momentarily flash a scrollbar that*/
+  /* vanishes once layout settles. Hide overflow while entering; the base*/
+  /* `overflow-y: auto` returns the instant `[data-entering]` clears.*/
+  &[data-entering] {
+    overflow: hidden;
+  }
+
+  /* === Row gap =======================================================*/
+  /* The primitive menu/group are flush flex columns (gap: 0) — adjacent rows*/
+  /* (and their rounded hover/selected backgrounds) touch. Add a small gap so*/
+  /* every row's bg sits on its own band: between rows WITHIN a section (the*/
+  /* group is the flex parent there) AND between top-level rows / section*/
+  /* groups (the menu is the flex parent). Scoped to .klyp-Dropdown so other*/
+  /* menus stay flush.*/
+  .klyp-DropdownMenu__menu,
+  .klyp-DropdownMenu__group {
+    gap: var(--space-2);
+  }
+
+  /* === Data-driven row layout ========================================*/
+  /* Leading icon — SOLID colour on the svg, any dim via WRAPPER opacity.*/
+  /* NEVER alpha straight on the glyph: outline strokes overlap at joins, so*/
+  /* per-shape alpha double-composites and the icon visibly doubles (see*/
+  /* frontend.md "Icon transparency"). `white` is opaque → safe to flatten.*/
+  .klyp-Dropdown__icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    width: var(--icon-size-md);
+    height: var(--icon-size-md);
+    color: white;
+
+    svg {
+      width: 100%;
+      height: 100%;
+    }
+  }
+
+  /* Destructive (delete) rows tint the glyph red.*/
+  .klyp-DropdownMenu__item[data-variant='destructive'] .klyp-Dropdown__icon {
+    color: var(--color-status-danger);
+  }
+
+  /* Unselected selectable rows → dim the glyph via WRAPPER opacity (one*/
+  /* flattened layer, no double-composite), matching the muted label. Bright*/
+  /* again on select / hover / focus (the not()-chain releases the dim).*/
+  .klyp-DropdownMenu__item--checkbox:not([data-selected]):not([data-hovered]):not([data-focused])
+    .klyp-Dropdown__icon,
+  .klyp-DropdownMenu__item--radio:not([data-selected]):not([data-hovered]):not([data-focused])
+    .klyp-Dropdown__icon {
+    opacity: var(--opacity-50);
+  }
+
+  .klyp-Dropdown__text {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-2);
+    min-width: 0; /* allow truncation in the flex row */
+    flex: 1 1 auto;
+  }
+
+  .klyp-Dropdown__label {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .klyp-Dropdown__desc {
+    font: var(--type-label); /* 12 → 16 box */
+    color: var(--color-fg-muted);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .klyp-Dropdown__meta {
+    margin-left: auto;
+    flex-shrink: 0;
+    padding-left: var(--space-8);
+    font: var(--type-label);
+    color: var(--color-fg-muted);
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* === Selectable rows = the Library menu-row checkbox (NEUTRAL, no gold) ==*/
+  /* The row recipe already matches DropdownMenu __item ≡ @klyp/ui CheckboxGroup*/
+  /* menu-row (min-height 36 · gap 8 · pad 8/12 · --r-inner-section). Here we*/
+  /* re-shape the INDICATOR to the @klyp/ui Checkbox box — 18px, 4px corners,*/
+  /* IN-FLOW (not absolute), neutral fg fill when selected (no Warm Gold) — and*/
+  /* draw OUR rounded checkmark (the CheckGlyph svg: rounded caps/joins, the*/
+  /* same path as @klyp/ui Checkbox `__check`).*/
+  .klyp-DropdownMenu__item--checkbox {
+    /* Indicator is in-flow now → drop the abspos left-reserve padding.*/
+    padding-left: var(--space-12);
+
+    .klyp-DropdownMenu__item-indicator {
+      position: static;
+      inset: auto;
+      transform: none;
+      margin: 0;
+      /* Wider gap from the checkbox to the icon/label: row gap 8 + 4 = 12.*/
+      margin-inline-end: var(--space-4);
+      width: var(--space-18);
+      height: var(--space-18);
+      border-radius: var(--radius-4);
+      border-color: var(--color-border-default);
+
+      /* Our rounded checkmark — a touch smaller than the box (14 in 18), dark*/
+      /* on the neutral fill. Base toggles its opacity on [data-selected].*/
+      > svg {
+        width: var(--space-14);
+        height: var(--space-14);
+        color: var(--color-fg-inverse);
+      }
+    }
+
+    &[data-selected] .klyp-DropdownMenu__item-indicator {
+      background: var(--color-fg-primary);
+      border-color: var(--color-fg-primary);
+    }
+  }
+
+  /* Radio (single-select) — neutral dot, no gold.*/
+  .klyp-DropdownMenu__item--radio[data-selected] .klyp-DropdownMenu__item-indicator {
+    background: var(--color-fg-primary);
+    border-color: var(--color-fg-primary);
+    box-shadow: inset 0 0 0 var(--space-2) var(--color-bg-surface);
+  }
+
+  /* === Selection legibility — dim the UNSELECTED rows ==================*/
+  /* All-white rows read as "everything's selected"; muting the unselected*/
+  /* ones makes the chosen row obvious at a glance (the indicator alone isn't*/
+  /* enough). Hover / focus / selected brighten back to full fg; the leading*/
+  /* icon inherits (muted → bright), mirroring @klyp/ui CheckboxGroup menu-row.*/
+  /* Scoped to selectable rows only — action-menu items stay full fg.*/
+  .klyp-DropdownMenu__item--checkbox,
+  .klyp-DropdownMenu__item--radio {
+    color: var(--color-fg-muted);
+
+    &[data-selected],
+    &[data-hovered],
+    &[data-focused] {
+      color: var(--color-fg-primary);
+    }
+  }
+
+  /* === Staggered reveal (scoped — existing menus are untouched) =======*/
+  /* Each rendered element — section header AND row — fades + rises + scales*/
+  /* up, offset by its RENDER-ORDER index `--i` (set inline in Dropdown.tsx,*/
+  /* counting headers) × the stagger step. Driving the delay off the render*/
+  /* index keeps the cascade continuous across sections AND animates the*/
+  /* headers in their own visual slot, while staying unbounded in length (vs*/
+  /* CSS nth-child, which restarts per group and caps at a fixed count). `both`*/
+  /* fill-mode holds the element hidden through its delay so the cascade reads*/
+  /* cleanly. RAC unmounts the popover on close → replays on each open.*/
+  .klyp-DropdownMenu__item,
+  .klyp-DropdownMenu__label {
+    animation: klyp-Dropdown-item-in var(--duration-fast) var(--easing-decelerate) both;
+    animation-delay: calc(var(--i, 0) * var(--dropdown-stagger-step));
+  }
+
+  /* Opening UPWARD — RAC sets data-placement=top on the popover. Reverse the*/
+  /* cascade (n-1-i) so the element NEAREST the trigger (the bottom one)*/
+  /* reveals first and it reads as flowing out of the trigger, not into it.*/
+  /* Applies to headers too, so a grouped menu reverses cleanly as one list.*/
+  &[data-placement='top'] .klyp-DropdownMenu__item,
+  &[data-placement='top'] .klyp-DropdownMenu__label {
+    animation-delay: calc((var(--n, 1) - 1 - var(--i, 0)) * var(--dropdown-stagger-step));
+  }
+}
+
+/* Per-row reveal — fade + slight grow. Deliberately NO translateY: a vertical*/
+/* rise transiently overflows the menu's scroll box (overflow-y: auto) and*/
+/* flashes a scrollbar/gutter in-out on open, and the stagger outlives*/
+/* [data-entering] so the clip-while-entering guard can't fully cover it.*/
+/* scale(0.96) shrinks toward the row's centre — never extends past the box.*/
+/* Same trade the Popover child cascade made (klyp-Popover-child-in), for the*/
+/* same reason (scrollbar flash, Val 2026-07-03).*/
+@keyframes klyp-Dropdown-item-in {
+  from {
+    opacity: 0;
+    transform: scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+/* Reduced motion — no stagger, no rise. Rows appear with the surface*/
+/* (the container itself reduces to an opacity fade in Popover/DropdownMenu).*/
+@media (prefers-reduced-motion: reduce) {
+  .klyp-Dropdown .klyp-DropdownMenu__item,
+  .klyp-Dropdown .klyp-DropdownMenu__label {
+    animation: none;
+  }
+}
+
+/* Value-picker rows (indicator="none") — no checkbox/radio dot. The selected*/
+/* row reads via a subtle background tint, not an indicator (chat model-picker*/
+/* look). Hover/focus bg is inherited from the base .klyp-DropdownMenu__item.*/
+.klyp-Dropdown__item--value[data-selected] {
+  background: var(--color-bg-surface-solid);
+}
+
+/* =====================================================================*/
+/* Pill trigger — select-style chip for filters / value pickers. Mirrors*/
+/* the AdvancedFilterPopover labelled pill: chip chrome, a static label*/
+/* (filter axis OR the current value), a chevron that rotates while open,*/
+/* and a small NEUTRAL active-dot (no gold) when activeCount > 0. This is*/
+/* the TRIGGER button (outside the popover), so it lives at the top level.*/
+/* =====================================================================*/
+.klyp-Dropdown-pill {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-8);
+  min-height: var(--control-size-md);
+  padding: 0 var(--space-12);
+  border: var(--bw-default) solid var(--color-border-faint);
+  border-radius: var(--r-chip);
+  background: var(--color-bg-surface);
+  color: var(--color-fg-primary);
+  font-size: var(--font-size-13);
+  font-weight: var(--font-weight-medium);
+  cursor: pointer;
+  transition:
+    background var(--duration-fast) var(--easing-standard),
+    border-color var(--duration-fast) var(--easing-standard);
+
+  &[data-hovered] {
+    background: var(--color-bg-surface-solid);
+  }
+
+  &[data-focus-visible] {
+    outline: var(--bw-default) solid var(--color-ring);
+    outline-offset: var(--bw-default);
+  }
+
+  /* Leading logo slot (e.g. provider logo on a model picker). The logo is a*/
+  /* self-coloured brand SVG — we only size the box, never recolour it.*/
+  &__icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    width: var(--icon-size-sm);
+    height: var(--icon-size-sm);
+  }
+
+  /* Label grows to fill the pill so the chevron is pinned to the RIGHT edge*/
+  /* (select-style alignment). On a hug-content pill (toolbar filter) the*/
+  /* shrink-to-fit container gives no extra space, so the chevron stays*/
+  /* adjacent — no-op there. Long labels truncate via min-width:0 + ellipsis.*/
+  &__label {
+    flex: 1 1 auto;
+    min-width: 0;
+    overflow: hidden;
+    text-align: start;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  &__chevron {
+    flex-shrink: 0;
+    width: var(--icon-size-sm);
+    height: var(--icon-size-sm);
+    color: var(--color-fg-muted);
+    transition: transform var(--duration-fast) var(--easing-standard);
+  }
+
+  /* RAC sets aria-expanded on the trigger button while the menu is open.*/
+  &[aria-expanded='true'] &__chevron {
+    transform: rotate(180deg);
+  }
+
+  /* Neutral active-filter dot (no gold) — top-right, on the chip edge.*/
+  &__dot {
+    position: absolute;
+    top: calc(-1 * var(--space-2));
+    right: calc(-1 * var(--space-2));
+    width: var(--space-8);
+    height: var(--space-8);
+    border-radius: var(--radius-full);
+    /* Brand accent (Val 2026-06-29) — gold on klyp, blue on unreals. Was the*/
+    /* neutral fg dot; the design lead now wants active filters to read as brand.*/
+    background: var(--color-accent);
+    border: var(--bw-default) solid var(--color-bg-surface);
+  }
+}
+
+/* =====================================================================*/
+/* Detail side-card (renderDetail) — an absolutely-positioned SIBLING of*/
+/* the menu INSIDE the popover (the primitive's `aside` slot). Inside =*/
+/* interactive under RAC's modal inert-outside, rides the popover's own*/
+/* entrance/exit, can never stack under other overlays. The popover root*/
+/* is the containing block (it has will-change: transform), so the card*/
+/* anchors to its edge with pure CSS — no measured top/left. JS decides*/
+/* only the SIDE (data-side) + the width custom prop (single source in*/
+/* Dropdown.tsx detailWidthPx(); the min() here is the no-JS fallback).*/
+/* =====================================================================*/
+
+/* Aside mode restructures the scroll: the ROOT stops scrolling (overflow*/
+/* visible so the side card isn't clipped; RAC's inline max-height still*/
+/* bounds the surface) and the INNER menu becomes the scroll container.*/
+.klyp-Dropdown[data-has-aside] {
+  overflow: visible;
+  max-height: none;
+  display: flex;
+  flex-direction: column;
+
+  .klyp-DropdownMenu__menu {
+    min-height: 0;
+    max-height: 60vh;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+
+    /* Same macOS-style thin scrollbar as the root default above.*/
+    scrollbar-width: thin;
+    scrollbar-color: transparent transparent;
+
+    &::-webkit-scrollbar {
+      width: var(--space-6);
+    }
+    &::-webkit-scrollbar-thumb {
+      background: transparent;
+      border-radius: var(--radius-full);
+      transition: background var(--duration-fast) var(--easing-standard);
+    }
+    &:hover {
+      scrollbar-color: var(--color-fg-muted) transparent;
+
+      &::-webkit-scrollbar-thumb {
+        background: var(--color-fg-muted);
+      }
+    }
+  }
+
+  /* Entrance scrollbar-flash suppression moves inward with the scroll.*/
+  &[data-entering] .klyp-DropdownMenu__menu {
+    overflow: hidden;
+  }
+}
+
+.klyp-Dropdown__detail {
+  position: absolute;
+  top: 0;
+  /* Vertical FOLLOW — the card centres on the hovered row (Val 2026-07-03:*/
+  /* "ходить вместе с нейронками", not glued to the popover top). The y comes*/
+  /* from Dropdown.tsx positionDetail() (row centre − card half-height,*/
+  /* clamped to the VIEWPORT) and glides between rows on the instant timing*/
+  /* so it reads as one cursor-tracking motion.*/
+  transform: translateY(var(--dropdown-detail-y, 0px));
+  transition: transform var(--duration-instant) var(--easing-standard);
+  width: var(--dropdown-detail-width, min(20rem, 40vw));
+  /* NO height cap, NO internal scroll — the card is always its natural*/
+  /* height and may extend past the menu's box; the JS clamps it to the*/
+  /* viewport instead (Val 2026-07-03: "пусть высоты всегда хватает, и*/
+  /* скроллбара в этом компоненте не будет видно никогда"). A short menu*/
+  /* used to lend the card its max-height → clipped content + a scrollbar.*/
+  overflow: visible;
+  /* The wrapper stays mounted even with no card content (stable scroll*/
+  /* structure) — keep it pointer-inert; only the content interacts.*/
+  pointer-events: none;
+
+  .klyp-Dropdown__detailInner {
+    pointer-events: auto;
+  }
+
+  &[data-side='right'] {
+    left: calc(100% + var(--space-8));
+  }
+  &[data-side='left'] {
+    right: calc(100% + var(--space-8));
+  }
+
+  /* Hovered-option swap — the keyed inner remounts, quick fade+rise so the*/
+  /* content change reads as one motion language with the row stagger. The*/
+  /* card's appearance itself is carried by the popover entrance.*/
+  .klyp-Dropdown__detailInner {
+    animation: klyp-Dropdown-item-in var(--duration-fast) var(--easing-decelerate) both;
+  }
+
+  /* Belt-and-suspenders: the JS also skips detail mode on hover-less*/
+  /* devices (mobile presentation is a separate task, Val 2026-07-02).*/
+  @media (hover: none) {
+    display: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .klyp-Dropdown__detail {
+    transition: none;
+
+    .klyp-Dropdown__detailInner {
+      animation: none;
+    }
+  }
+}

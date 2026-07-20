@@ -1,0 +1,14 @@
+{
+  "id": "favourite-toggle",
+  "name": "FavouriteToggle",
+  "status": "in-progress",
+  "schemaVersion": 1,
+  "description": "Heart toggle pill for media cards — RAC ToggleButton, glass background, accent fill on active.",
+  "tags": [
+    "brand",
+    "brand-atom"
+  ],
+  "entry": "FavouriteToggle.tsx",
+  "stories": "FavouriteToggle.stories.tsx",
+  "changelog": "CHANGELOG.md"
+}

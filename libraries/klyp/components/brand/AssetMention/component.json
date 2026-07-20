@@ -1,0 +1,14 @@
+{
+  "id": "asset-mention",
+  "name": "AssetMention",
+  "status": "in-progress",
+  "schemaVersion": 1,
+  "description": "Grouped `@`-mention picker dropdown — listbox under a textarea, keyboard nav, kind groups.",
+  "tags": [
+    "brand",
+    "brand-atom"
+  ],
+  "entry": "AssetMention.tsx",
+  "stories": "AssetMention.stories.tsx",
+  "changelog": "CHANGELOG.md"
+}

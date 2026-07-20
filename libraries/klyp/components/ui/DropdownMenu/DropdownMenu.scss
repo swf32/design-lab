@@ -1,0 +1,432 @@
+/* =====================================================================*/
+/* DropdownMenu.scss — Klyp canonical primitive (Phase 2 of React Aria migration)*/
+/* =====================================================================*/
+/* All values via Klyp DTCG tokens — no magic numbers.*/
+/* Architecture: ../../../../MIGRATION-REACT-ARIA-2026-04-30.md §6/§16*/
+/**/
+/* RAC emits on Popover:*/
+/*   [data-entering], [data-exiting], [data-placement='top'|'bottom'|'left'|'right']*/
+/* On MenuItem:*/
+/*   [data-hovered], [data-pressed], [data-focused], [data-focus-visible],*/
+/*   [data-disabled], [data-selected], [data-selection-mode]*/
+
+.klyp-DropdownMenu {
+  /* === Surface =========================================================*/
+  min-width: 9rem; /* 144px*/
+  max-width: 24rem;
+  background: var(--color-bg-surface);
+  /* Surface chrome aligned 2026-06-23 to the PopoverSurface contract so
+     DropdownMenu / ActionMenu / Popover read as one menu surface:
+     subtle 5% border, --r-card radius, panel shadow, --space-4 pad zone. */
+  border: var(--bw-default) solid var(--color-border-subtle);
+  border-radius: var(--r-card);
+  padding: var(--space-4);
+  color: var(--color-fg-primary);
+  font: var(--type-body); /* 14 → 18 box */
+  box-shadow: var(--shadow-panel);
+  z-index: var(--z-overlay);
+  outline: none;
+
+  /* Keep dropdown on its own GPU composite layer while mounted. Without this,*/
+  /* the browser demotes the layer when [data-entering] animation finishes —*/
+  /* subpixel coords snap to integer → visible 1px jitter on the last frame.*/
+  will-change: transform, opacity;
+
+  /* Scale should grow from the anchor edge, not the menu centre. RAC sets*/
+  /* data-placement to one of 'top' | 'bottom' | 'left' | 'right'.*/
+  &[data-placement='top']    { transform-origin: bottom center; }
+  &[data-placement='bottom'] { transform-origin: top center; }
+  &[data-placement='left']   { transform-origin: right center; }
+  &[data-placement='right']  { transform-origin: left center; }
+
+  /* === Inner Menu container (no chrome — it's role=menu) ==============*/
+  &__menu {
+    outline: none;
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+
+    &[data-focus-visible] {
+      outline: none;
+    }
+  }
+
+  /* === Group / Section ================================================*/
+  &__group {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+  }
+
+  /* === Label (Header inside section) ==================================*/
+  &__label {
+    display: block;
+    padding: var(--space-4) var(--space-12) var(--space-2);
+    font: var(--type-label); /* 12 → 16 box */
+    font-weight: var(--font-weight-medium);
+    color: var(--color-fg-muted);
+
+    &[data-inset='true'] {
+      padding-left: calc(var(--space-12) + var(--space-10));
+    }
+  }
+
+  /* === Item (base) ====================================================*/
+  &__item {
+    position: relative;
+    display: flex;
+    align-items: center;
+    /* Item recipe unified 2026-06-23 with ActionMenu (the reference menu
+       row): 20px icon + 14/medium label + 8/12 padding + concentric
+       --r-inner-section (12 surface − 4 pad). Function-specific bits
+       (check/radio indicator, shortcut, submenu chevron) keep their own
+       geometry below, re-based to the new 12px inline padding. */
+    min-height: var(--space-36);
+    gap: var(--space-8);
+    padding: var(--space-8) var(--space-12);
+    border-radius: var(--r-inner-section);
+    font: var(--type-body); /* 14 → 18 box */
+    color: var(--color-fg-primary);
+    cursor: default;
+    user-select: none;
+    outline: none;
+    transition:
+      background var(--duration-fast) var(--easing-standard),
+      color var(--duration-fast) var(--easing-standard);
+
+    > svg {
+      flex-shrink: 0;
+      pointer-events: none;
+      width: var(--icon-size-md);
+      height: var(--icon-size-md);
+    }
+
+    &[data-inset='true'] {
+      padding-left: calc(var(--space-12) + var(--space-10));
+    }
+
+    &[data-hovered]:not([data-disabled]),
+    &[data-focused]:not([data-disabled]) {
+      background: var(--color-bg-surface-solid);
+      color: var(--color-fg-primary);
+    }
+
+    &[data-focus-visible] {
+      outline: none;
+    }
+
+    &[data-disabled] {
+      opacity: var(--opacity-50);
+      pointer-events: none;
+    }
+
+    /* Destructive variant — red text, subtle red tint on hover.*/
+    &[data-variant='destructive'] {
+      color: var(--color-status-danger);
+
+      > svg {
+        color: var(--color-status-danger);
+      }
+
+      &[data-hovered]:not([data-disabled]),
+      &[data-focused]:not([data-disabled]) {
+        background: color-mix(
+          in oklch,
+          var(--color-status-danger) 12%,
+          transparent
+        );
+        color: var(--color-status-danger);
+      }
+    }
+
+    /* Sub-trigger keeps open state highlighted while submenu is open.*/
+    &--sub-trigger {
+      &[data-open],
+      &[data-pressed] {
+        background: var(--color-bg-surface-solid);
+      }
+    }
+
+    /* Radio — compact 12px abspos indicator: reserve room at the start*/
+    /* (--space-12 gutter + indicator + --space-8 label gap).*/
+    &--radio {
+      padding-left: calc(var(--space-12) + var(--icon-size-xs) + var(--space-8));
+    }
+
+    /* Checkbox — larger 18px IN-FLOW square box (mirrors @klyp/brand Dropdown's*/
+    /* MultiSelect), so it reads as a clear square, not a radio-like circle. The*/
+    /* box sits in the row flow, so no abspos reserve — just the row inline pad.*/
+    &--checkbox {
+      padding-left: var(--space-12);
+    }
+  }
+
+  /* === Item indicator (check / radio) =================================*/
+  /* Indicator is ALWAYS visible — empty ring (radio) or empty rounded*/
+  /* square (checkbox) at rest, filled dot / checkmark when selected.*/
+  /* Without the always-on outline the user has no signal that the row*/
+  /* is selectable, only the hover bg lights up.*/
+  &__item-indicator {
+    position: absolute;
+    left: var(--space-12);
+    top: 50%;
+    transform: translateY(-50%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: var(--icon-size-xs);
+    height: var(--icon-size-xs);
+    pointer-events: none;
+    box-sizing: border-box;
+    border: var(--bw-default) solid var(--color-border-default);
+    background: transparent;
+    color: var(--color-fg-primary);
+    transition:
+      background var(--duration-fast) var(--easing-standard),
+      border-color var(--duration-fast) var(--easing-standard);
+
+    /* Hide the bulk icon at rest — it only shows when checked.*/
+    > svg {
+      width: 100%;
+      height: 100%;
+      opacity: 0;
+      transition: opacity var(--duration-fast) var(--easing-standard);
+    }
+  }
+
+  /* Radio — circular ring.*/
+  &__item--radio &__item-indicator {
+    border-radius: var(--radius-full);
+  }
+
+  /* Checkbox — larger IN-FLOW square box (18px, 4px corners) so it reads as a*/
+  /* clear square (not a radio-like circle), matching @klyp/brand Dropdown's*/
+  /* MultiSelect indicator. The check svg is sized down inside the bigger box.*/
+  &__item--checkbox &__item-indicator {
+    position: static;
+    inset: auto;
+    transform: none;
+    margin: 0 var(--space-4) 0 0;
+    width: var(--space-18);
+    height: var(--space-18);
+    border-radius: var(--radius-4);
+
+    > svg {
+      width: var(--space-14);
+      height: var(--space-14);
+    }
+  }
+
+  /* Lift the ring contrast on row hover/focus so the user knows it's the*/
+  /* currently-targeted option.*/
+  &__item[data-hovered]:not([data-disabled]) &__item-indicator,
+  &__item[data-focused]:not([data-disabled]) &__item-indicator {
+    border-color: var(--color-fg-muted);
+  }
+
+  /* === Checked state ==================================================*/
+  /* RAC sets [data-selected] when selectionMode is on the Menu; our*/
+  /* Base-UI-compat path stamps [data-checked='true'] from the caller's*/
+  /* `checked` prop.*/
+
+  /* Radio — fill the whole ring with the accent and use a contrasting*/
+  /* inner dot. We render the dot via background + inner shadow so we*/
+  /* don't need to swap iconography.*/
+  &__item--radio[data-selected] &__item-indicator,
+  &__item--radio[data-checked='true'] &__item-indicator {
+    border-color: var(--color-fg-primary);
+    background: var(--color-fg-primary);
+    /* Inner dot = ring of the indicator background colour around a*/
+    /* centred filled area. Inset shadow paints a ring inside the box,*/
+    /* leaving a smaller centred disc filled with the accent.*/
+    box-shadow: inset 0 0 0 var(--space-2) var(--color-bg-surface);
+  }
+
+  &__item--radio[data-selected] &__item-indicator > svg,
+  &__item--radio[data-checked='true'] &__item-indicator > svg {
+    /* Hide the original CircleBulk icon — we paint the dot via*/
+    /* box-shadow above for crispness at every zoom level.*/
+    opacity: 0;
+  }
+
+  /* Checkbox — accent-filled box with the bulk checkmark on top.*/
+  &__item--checkbox[data-selected] &__item-indicator,
+  &__item--checkbox[data-checked='true'] &__item-indicator {
+    border-color: var(--color-fg-primary);
+    background: var(--color-fg-primary);
+    color: var(--color-bg-surface);
+  }
+
+  &__item--checkbox[data-selected] &__item-indicator > svg,
+  &__item--checkbox[data-checked='true'] &__item-indicator > svg {
+    opacity: 1;
+  }
+
+  /* === Sub chevron ====================================================*/
+  &__sub-chevron {
+    margin-left: auto;
+    width: var(--icon-size-xs);
+    height: var(--icon-size-xs);
+    color: var(--color-fg-muted);
+    flex-shrink: 0;
+    pointer-events: none;
+    /* ChevronDownOutline rotated to point right (›) — submenu affordance.*/
+    transform: rotate(-90deg);
+  }
+
+  /* === Separator ======================================================*/
+  &__separator {
+    height: 1px;
+    margin: var(--space-2) 0;
+    background: var(--color-border-subtle);
+    border: 0;
+  }
+
+  /* === Shortcut =======================================================*/
+  &__shortcut {
+    margin-left: auto;
+    font: var(--type-label); /* 12 → 16 box */
+    font-weight: var(--font-weight-medium);
+    color: var(--color-fg-muted);
+    letter-spacing: var(--letter-spacing-wide);
+  }
+
+  /* === Trigger fallback (path B) ======================================*/
+  &__trigger {
+    cursor: pointer;
+    background: transparent;
+    border: var(--bw-default) solid transparent;
+    color: inherit;
+    font-family: inherit;
+    font-size: inherit;
+
+    &[data-focus-visible] {
+      outline: var(--bw-default) solid var(--color-ring);
+      outline-offset: var(--bw-emphasis);
+    }
+
+    &[data-disabled] {
+      opacity: var(--opacity-50);
+      cursor: not-allowed;
+    }
+  }
+
+  /* === Animations =====================================================*/
+  &[data-entering] {
+    animation:
+      klyp-dropdown-fade-in var(--duration-fast) var(--easing-standard),
+      klyp-dropdown-zoom-in var(--duration-fast) var(--easing-standard);
+  }
+
+  &[data-exiting] {
+    animation:
+      klyp-dropdown-fade-out var(--duration-fast) var(--easing-standard),
+      klyp-dropdown-zoom-out var(--duration-fast) var(--easing-standard);
+  }
+
+  &[data-placement='bottom'][data-entering] {
+    animation-name:
+      klyp-dropdown-fade-in,
+      klyp-dropdown-zoom-in,
+      klyp-dropdown-slide-from-top;
+  }
+
+  &[data-placement='top'][data-entering] {
+    animation-name:
+      klyp-dropdown-fade-in,
+      klyp-dropdown-zoom-in,
+      klyp-dropdown-slide-from-bottom;
+  }
+
+  &[data-placement='left'][data-entering] {
+    animation-name:
+      klyp-dropdown-fade-in,
+      klyp-dropdown-zoom-in,
+      klyp-dropdown-slide-from-right;
+  }
+
+  &[data-placement='right'][data-entering] {
+    animation-name:
+      klyp-dropdown-fade-in,
+      klyp-dropdown-zoom-in,
+      klyp-dropdown-slide-from-left;
+  }
+
+  /* Sub-popup — slightly tighter min-width.*/
+  &--sub {
+    min-width: 6rem; /* 96px*/
+  }
+}
+
+/* === Keyframes =========================================================*/
+@keyframes klyp-dropdown-fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes klyp-dropdown-fade-out {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+  }
+}
+
+@keyframes klyp-dropdown-zoom-in {
+  from {
+    transform: scale(0.95);
+  }
+  to {
+    transform: scale(1);
+  }
+}
+
+@keyframes klyp-dropdown-zoom-out {
+  from {
+    transform: scale(1);
+  }
+  to {
+    transform: scale(0.95);
+  }
+}
+
+@keyframes klyp-dropdown-slide-from-top {
+  from {
+    translate: 0 calc(var(--space-8) * -1);
+  }
+  to {
+    translate: 0 0;
+  }
+}
+
+@keyframes klyp-dropdown-slide-from-bottom {
+  from {
+    translate: 0 var(--space-8);
+  }
+  to {
+    translate: 0 0;
+  }
+}
+
+@keyframes klyp-dropdown-slide-from-left {
+  from {
+    translate: calc(var(--space-8) * -1) 0;
+  }
+  to {
+    translate: 0 0;
+  }
+}
+
+@keyframes klyp-dropdown-slide-from-right {
+  from {
+    translate: var(--space-8) 0;
+  }
+  to {
+    translate: 0 0;
+  }
+}

@@ -1,0 +1,14 @@
+{
+  "id": "prompt-intent-toolbar",
+  "name": "PromptIntentToolbar",
+  "status": "in-progress",
+  "schemaVersion": 1,
+  "description": "TODO: Mode/intent toolbar above the prompt composer (assist vs pro).",
+  "tags": [
+    "brand",
+    "brand-molecule"
+  ],
+  "entry": "PromptIntentToolbar.tsx",
+  "stories": "PromptIntentToolbar.stories.tsx",
+  "changelog": "CHANGELOG.md"
+}

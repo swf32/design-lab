@@ -1,0 +1,193 @@
+// =====================================================================
+// MediaAttachTrigger — media-aware "meta" attach entry point.
+// =====================================================================
+//
+// 44px-tall dashed control (touch-min height) with a splayed file-type glyph
+// stack + adaptive label. Empty look + hover behaviour are lifted from the
+// AttachmentSlot DropSlot canonical (dashed edge, inset depth ring, hover lifts
+// to a surface and brightens the text) — but the stroke is 2px, not 1px. Root
+// wrapper hugs the button and owns the drop layer; `__button` is the visible
+// control (native <button> single-mode, RAC Button when it drives the dropdown).
+
+.klyp-MediaAttachTrigger {
+  display: inline-flex;
+  max-width: 100%;
+  min-width: 0;
+
+  &__button {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-8);
+    box-sizing: border-box;
+    min-width: 0;
+    height: var(--control-size-md); // 36px — matches the old AttachmentSlot empty pill
+    padding-inline: var(--space-8);
+    margin: 0;
+    border: var(--bw-default) dashed var(--color-border-subtle); // 1px dashed (old look — Val prefers it)
+    border-radius: var(--r-chip); // 10px
+    background: var(--color-bg-canvas);
+    box-shadow: inset 0 0 var(--space-10) var(--space-4) var(--color-bg-root); // inner depth ring
+    color: var(--color-fg-muted);
+    cursor: pointer;
+    text-align: start;
+    transition:
+      color var(--duration-base),
+      border-color var(--duration-base),
+      background var(--duration-base),
+      box-shadow var(--duration-base);
+
+    // Hover / focus — lift to a surface, brighten the text, drop the inset ring,
+    // and brighten the glyph stack. Mirrors AttachmentSlot's empty cell hover.
+    // Focus-visible reuses the SAME lift (no separate solid ring).
+    &:is(:hover, [data-hovered], :focus-visible, [data-focus-visible]) {
+      color: var(--color-fg-primary);
+      border-color: var(--color-border-strong);
+      background: var(--color-bg-surface);
+      box-shadow: none;
+      outline: none;
+
+      .klyp-MediaAttachTrigger__stack {
+        opacity: 1;
+      }
+    }
+
+    &:active {
+      transform: scale(0.97);
+    }
+
+    &:is(:disabled, [data-disabled]) {
+      cursor: not-allowed;
+      opacity: var(--opacity-disabled);
+    }
+  }
+
+  // Dragging a file over the trigger — accent the dashed edge (mirrors the
+  // composer field dropzone highlight + AttachmentSlot's per-slot drag-over).
+  &[data-dragover] .klyp-MediaAttachTrigger__button {
+    color: var(--color-fg-primary);
+    border-color: var(--color-accent);
+    background: var(--color-bg-surface);
+    box-shadow: none;
+  }
+
+  &[data-disabled] {
+    pointer-events: none;
+  }
+
+  // ── Icon stack — splayed file-type glyphs ──────────────────────────────
+  // The glyphs are bespoke duotone marks (dim --neutral-400 body + bright
+  // currentColor content) — they ARE the media-card tile, so no extra chrome.
+  // currentColor drives the bright layer; the wrapper opacity dims the whole
+  // stack at rest and lifts to 1 on hover (one flattened layer — never
+  // per-shape alpha).
+  &__stack {
+    display: inline-flex;
+    align-items: center;
+    flex-shrink: 0;
+    color: var(--color-fg-on-active-nav);
+    opacity: var(--opacity-40); // dim at rest; lifts to 1 on hover/focus
+    transition: opacity var(--duration-base);
+  }
+
+  &__tile {
+    display: grid;
+    place-items: center;
+    // Fan the glyphs: overlap each after the first so the stack reads as one
+    // clustered mark rather than a row of separate icons.
+    &:not(:first-child) {
+      margin-inline-start: calc(-1 * var(--space-8));
+    }
+
+    // 2-up: symmetric fan, no vertical nudge.
+    &[data-pos='left'] {
+      transform: rotate(-10deg);
+    }
+    &[data-pos='right'] {
+      transform: rotate(10deg);
+    }
+    &[data-pos='center'] {
+      z-index: 1;
+    }
+  }
+
+  // 3-up: the trio reads as an arc — sides drop ~2px, centre lifts ~2px
+  // (rather than a single lone raised glyph).
+  &__stack[data-count='3'] {
+    .klyp-MediaAttachTrigger__tile[data-pos='left'] {
+      transform: rotate(-10deg) translateY(var(--space-2));
+    }
+    .klyp-MediaAttachTrigger__tile[data-pos='right'] {
+      transform: rotate(10deg) translateY(var(--space-2));
+    }
+    .klyp-MediaAttachTrigger__tile[data-pos='center'] {
+      transform: translateY(calc(-1 * var(--space-2)));
+    }
+  }
+
+  // ── Hover motion — the stack "breathes" open (gated on reduced-motion) ──
+  @media (prefers-reduced-motion: no-preference) {
+    .klyp-MediaAttachTrigger__tile {
+      transition: transform var(--duration-base) ease;
+    }
+
+    // 1-up: gentle scale + tilt.
+    &__button:is(:hover, [data-hovered])
+      .klyp-MediaAttachTrigger__stack[data-count='1']
+      .klyp-MediaAttachTrigger__tile {
+      transform: scale(1.04) rotate(7deg);
+    }
+
+    // 2-up: sides spread outward.
+    &__button:is(:hover, [data-hovered])
+      .klyp-MediaAttachTrigger__stack[data-count='2']
+      .klyp-MediaAttachTrigger__tile[data-pos='left'] {
+      transform: rotate(-10deg) translateX(calc(-1 * var(--space-2)));
+    }
+    &__button:is(:hover, [data-hovered])
+      .klyp-MediaAttachTrigger__stack[data-count='2']
+      .klyp-MediaAttachTrigger__tile[data-pos='right'] {
+      transform: rotate(10deg) translateX(var(--space-2));
+    }
+
+    // 3-up: sides spread + stay dropped, centre lifts a touch more.
+    &__button:is(:hover, [data-hovered])
+      .klyp-MediaAttachTrigger__stack[data-count='3']
+      .klyp-MediaAttachTrigger__tile[data-pos='left'] {
+      transform: rotate(-10deg) translateY(var(--space-2)) translateX(calc(-1 * var(--space-2)));
+    }
+    &__button:is(:hover, [data-hovered])
+      .klyp-MediaAttachTrigger__stack[data-count='3']
+      .klyp-MediaAttachTrigger__tile[data-pos='right'] {
+      transform: rotate(10deg) translateY(var(--space-2)) translateX(var(--space-2));
+    }
+    &__button:is(:hover, [data-hovered])
+      .klyp-MediaAttachTrigger__stack[data-count='3']
+      .klyp-MediaAttachTrigger__tile[data-pos='center'] {
+      transform: translateY(calc(-1 * var(--space-4)));
+    }
+  }
+
+  &__label {
+    min-width: 0;
+    overflow: hidden;
+    font-size: var(--font-size-13);
+    font-weight: var(--font-weight-regular); // always 400 — never bold→light on hover
+    line-height: 1.25;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+  }
+
+  // ── Dropdown mode items ────────────────────────────────────────────────
+  &__modeLabel {
+    display: block;
+    font-size: var(--font-size-13);
+    font-weight: var(--font-weight-medium);
+  }
+
+  &__modeDesc {
+    display: block;
+    margin-block-start: var(--space-2);
+    font-size: var(--font-size-12);
+    color: var(--color-fg-muted);
+  }
+}

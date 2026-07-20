@@ -1,0 +1,14 @@
+{
+  "id": "mobile-panel-sheet",
+  "name": "MobilePanelSheet",
+  "status": "in-progress",
+  "schemaVersion": 1,
+  "description": "TODO: Bottom-anchored mobile sheet for panels that are side panels on desktop.",
+  "tags": [
+    "brand",
+    "brand-molecule"
+  ],
+  "entry": "MobilePanelSheet.tsx",
+  "stories": "MobilePanelSheet.stories.tsx",
+  "changelog": "CHANGELOG.md"
+}

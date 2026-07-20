@@ -1,0 +1,306 @@
+/* =====================================================================*/
+/* Avatar.scss — Klyp canonical primitive (Phase 2 of React Aria migration)*/
+/* =====================================================================*/
+/* All values via Klyp DTCG tokens — no magic numbers.*/
+/* Architecture: ../../../../MIGRATION-REACT-ARIA-2026-04-30.md §6/§16*/
+
+.klyp-Avatar {
+  /* === Base ============================================================*/
+  position: relative;
+  display: inline-flex;
+  flex-shrink: 0;
+  border-radius: var(--radius-full);
+  user-select: none;
+  isolation: isolate;
+  /* No `overflow: hidden` — image/fallback round themselves via
+     border-radius: inherit, and the status badge needs to overflow the
+     circle to sit on the rim. */
+
+  /* Sizes — sm 24px, md 32px, lg 40px (default).*/
+  width: var(--space-32);
+  height: var(--space-32);
+
+  /* Subtle hairline on top of the rounded shape, matching the prior*/
+  /* Tailwind `after:border ... after:mix-blend-darken` recipe.*/
+  &::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    border: var(--bw-default) solid var(--color-border-subtle);
+    pointer-events: none;
+    mix-blend-mode: lighten;
+  }
+
+  /* === Sizes ===========================================================*/
+  &[data-size='xs'] {
+    width: var(--space-20); /* 20px*/
+    height: var(--space-20);
+  }
+
+  &[data-size='sm'] {
+    width: var(--space-24); /* 24px*/
+    height: var(--space-24);
+  }
+
+  &[data-size='md'] {
+    width: var(--space-32); /* 32px*/
+    height: var(--space-32);
+  }
+
+  &[data-size='lg'] {
+    width: var(--space-40); /* 40px*/
+    height: var(--space-40);
+  }
+
+  &[data-size='xl'] {
+    width: var(--space-56); /* 56px*/
+    height: var(--space-56);
+  }
+
+  /* === Shape ramp — sharp / rounded / card / circle ====================*/
+  /* circle = default (radius-full, set on root). */
+  /* sharp 4px · rounded 8px · card 12px · circle full */
+  &[data-shape='sharp'] {
+    border-radius: var(--space-4); /* 4px — no radius-4 primitive, space-4 = 4px */
+  }
+
+  &[data-shape='rounded'] {
+    border-radius: var(--radius-8); /* 8px */
+  }
+
+  &[data-shape='card'],
+  &[data-shape='square'] {
+    /* square is a deprecated alias for card */
+    border-radius: var(--r-card); /* 12px */
+  }
+
+  /* === Loading (skeleton) ============================================*/
+  /* Opacity pulse — matches Skeleton primitive cadence (~1.6s) so
+     loading states across the system feel cohesive. `--duration-slow`
+     (360ms) is the motion-curve base; *4.5 lands at the natural
+     pulse rhythm. */
+  &__skeleton {
+    display: block;
+    width: 100%;
+    height: 100%;
+    border-radius: inherit;
+    background-color: var(--color-bg-surface-solid);
+    animation: klyp-avatar-pulse calc(var(--duration-slow) * 4.5) ease-in-out
+      infinite;
+
+    @media (prefers-reduced-motion: reduce) {
+      animation: none;
+      opacity: var(--opacity-70);
+    }
+  }
+
+  &[data-loading]::after {
+    /* Hide the hairline border ring while loading so the skeleton reads*/
+    /* as a single block.*/
+    display: none;
+  }
+
+  /* === Image =========================================================*/
+  &__image {
+    aspect-ratio: 1 / 1;
+    width: 100%;
+    height: 100%;
+    border-radius: inherit;
+    object-fit: cover;
+    display: block;
+  }
+
+  /* === Fallback ======================================================*/
+  &__fallback {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    height: 100%;
+    border-radius: inherit;
+    background: var(--color-bg-surface-solid);
+    color: var(--color-fg-muted);
+    font-family: var(--font-sans);
+    font-weight: var(--font-weight-medium);
+    font-size: var(--font-size-13);
+    line-height: 1;
+    text-transform: uppercase;
+  }
+
+  &[data-size='xs'] &__fallback {
+    font-size: var(--font-size-10);
+  }
+
+  &[data-size='sm'] &__fallback {
+    font-size: var(--font-size-12);
+  }
+
+  &[data-size='lg'] &__fallback {
+    font-size: var(--font-size-14);
+  }
+
+  &[data-size='xl'] &__fallback {
+    font-size: var(--font-size-18);
+  }
+
+  /* === Badge =========================================================*/
+  /* Pip in bottom-right corner — accent fill, ring matches page bg.*/
+  &__badge {
+    position: absolute;
+    bottom: 0;
+    right: 0;
+    z-index: 1;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: var(--radius-full);
+    background: var(--color-accent);
+    color: var(--color-fg-inverse);
+    box-shadow: 0 0 0 2px var(--color-bg-root);
+
+    width: var(--space-10); /* 10px (md default)*/
+    height: var(--space-10);
+
+    > svg {
+      width: var(--space-8); /* 8px*/
+      height: var(--space-8);
+    }
+  }
+
+  &[data-size='xs'] &__badge {
+    width: var(--space-6); /* 6px*/
+    height: var(--space-6);
+
+    > svg {
+      display: none;
+    }
+  }
+
+  &[data-size='sm'] &__badge {
+    width: var(--space-8); /* 8px*/
+    height: var(--space-8);
+
+    > svg {
+      display: none;
+    }
+  }
+
+  &[data-size='lg'] &__badge {
+    width: var(--space-12); /* 12px*/
+    height: var(--space-12);
+
+    > svg {
+      width: var(--space-8); /* 8px*/
+      height: var(--space-8);
+    }
+  }
+
+  &[data-size='xl'] &__badge {
+    width: var(--space-14); /* 14px*/
+    height: var(--space-14);
+
+    > svg {
+      width: var(--space-10); /* 10px*/
+      height: var(--space-10);
+    }
+  }
+
+  /* === Badge tones — status indicator colors ========================*/
+  &__badge[data-tone='online'] {
+    background: var(--color-status-success);
+  }
+
+  &__badge[data-tone='busy'] {
+    background: var(--color-status-danger);
+  }
+
+  &__badge[data-tone='away'] {
+    background: var(--color-status-warning);
+  }
+
+  &__badge[data-tone='offline'] {
+    background: var(--color-fg-muted);
+  }
+}
+
+@keyframes klyp-avatar-pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: var(--opacity-50);
+  }
+}
+
+/* =====================================================================*/
+/* Avatar group — overlapping stack with ring around each child.*/
+/* =====================================================================*/
+.klyp-AvatarGroup {
+  display: inline-flex;
+  align-items: center;
+
+  /* Negative space pulls each subsequent avatar over the previous.*/
+  > .klyp-Avatar,
+  > .klyp-AvatarGroupCount {
+    margin-left: calc(var(--space-8) * -1); /* -8px overlap*/
+
+    /* Ring effect using box-shadow so it doesn't disturb hairline ::after*/
+    /* and doesn't add layout box.*/
+    box-shadow: 0 0 0 2px var(--color-bg-root);
+  }
+
+  > .klyp-Avatar:first-child,
+  > .klyp-AvatarGroupCount:first-child {
+    margin-left: 0;
+  }
+}
+
+.klyp-AvatarGroupCount {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  border-radius: var(--radius-full);
+  background: var(--color-bg-surface-solid);
+  color: var(--color-fg-muted);
+  font-family: var(--font-sans);
+  font-weight: var(--font-weight-medium);
+  font-size: var(--font-size-13);
+
+  /* Default md footprint — matches Avatar md. */
+  width: var(--space-32);
+  height: var(--space-32);
+
+  > svg {
+    width: var(--space-16);
+    height: var(--space-16);
+  }
+
+  /* Size ramp — mirrors Avatar size blocks so GroupCount stays flush. */
+  &[data-size='xs'] {
+    width: var(--space-20);
+    height: var(--space-20);
+    font-size: var(--font-size-10);
+  }
+
+  &[data-size='sm'] {
+    width: var(--space-24);
+    height: var(--space-24);
+    font-size: var(--font-size-12);
+  }
+
+  &[data-size='lg'] {
+    width: var(--space-40);
+    height: var(--space-40);
+    font-size: var(--font-size-14);
+  }
+
+  &[data-size='xl'] {
+    width: var(--space-56);
+    height: var(--space-56);
+    font-size: var(--font-size-18);
+  }
+}

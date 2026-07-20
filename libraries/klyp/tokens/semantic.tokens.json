@@ -1,0 +1,1766 @@
+{
+  "schemaVersion": 1,
+  "name": "Klyp Semantic",
+  "defaultMode": "klyp",
+  "tokens": {
+    "color": {
+      "bg": {
+        "root": {
+          "type": "color",
+          "value": "{surface.root}",
+          "description": "Page background (surface.root #0F0F0F)"
+        },
+        "canvas": {
+          "type": "color",
+          "value": "{surface.canvas}",
+          "description": "Editor canvas — between root and surface. Central editor canvas, scenes preview frame."
+        },
+        "surface": {
+          "type": "color",
+          "value": "{surface.base}",
+          "description": "Opaque elevated surfaces"
+        },
+        "surface-elevated": {
+          "type": "color",
+          "value": "{surface.elevated}",
+          "description": "Resting low-emphasis elevation — nested cards inside surface-base, list rows; also the hover target for flat surface-base surfaces."
+        },
+        "surface-solid": {
+          "type": "color",
+          "value": "{surface.raised}",
+          "description": "Buttons, solid chips"
+        },
+        "surface-hover": {
+          "type": "color",
+          "value": "{surface.hover}",
+          "description": "Hover lift on raised surfaces — interactive feedback above surface-solid (added 2026-05-04 by design lead)"
+        },
+        "panel": {
+          "type": "color",
+          "value": "{surface.panel}",
+          "description": "Floating-chrome panel surface — sidebar, composer, right-bar + similar framing panels. Solid #181818, a subtle lift above the page (surface.root #0F0F0F) and softer than surface-raised buttons. Added 2026-06-29 (Val)."
+        },
+        "glass": {
+          "type": "color",
+          "value": "{glass.222-50}",
+          "description": "Frosted panels — canonical composer / sidebar bg @ 50%"
+        },
+        "glass-deep": {
+          "type": "color",
+          "value": "{glass.15-50}",
+          "description": "Sidebar panels"
+        },
+        "glass-deep-strong": {
+          "type": "color",
+          "value": "{glass.15-82}",
+          "description": "Sticky chrome — TopHeader @ 82% (paired with backdrop blur)"
+        },
+        "chrome": {
+          "type": "color",
+          "value": "{glass.15-10}",
+          "description": "Translucent header chrome (10% canvas)"
+        },
+        "rail": {
+          "type": "color",
+          "value": "{glass.222-30}",
+          "description": "Floating sidebar / RightBar / PromptComposer @ 30% (user feedback 2026-04-29)"
+        },
+        "modal-backdrop": {
+          "type": "color",
+          "value": "{glass.15-70}",
+          "description": "Modal / lightbox blur backdrop — AssetModal layer 1, asset-reference-lightbox"
+        },
+        "elev": {
+          "type": "color",
+          "value": "{surface.raised}",
+          "description": "Elevated surface — alias of surface-solid (one step above surface). Used by chat user message bubble fill."
+        },
+        "shell": {
+          "type": "color",
+          "value": "{surface.base}",
+          "description": "Shell surface — alias of surface (subtle). Used by chat assistant bubble fill (until commit #2 removes its use)."
+        }
+      },
+      "card": {
+        "$description": "Card-level surface aliases — independent of page bg.root so cards can have their own backdrop for image-bleed fade effects.",
+        "fade": {
+          "type": "color",
+          "value": "{color.bg.root}",
+          "description": "AssetCard image-bleed backdrop — colour revealed at the bottom of the card where the image mask fades to transparent. Klyp dark: same as page bg.root (#0F0F0F) so the fade reads as a seamless ambient gradient. Unreals light overrides this to a dark neutral so the image fade still goes dark-to-transparent (the light page bg.root would wash the bottom of every cover to off-white)."
+        }
+      },
+      "scrim": {
+        "$description": "Media scrim — constant DARK overlay/fade painted UNDER text that sits on top of imagery (cover photos, asset thumbnails, generation previews). THEME-INVARIANT: identical value in klyp dark AND unreals light (semantic.unreals.tokens.json repeats the same values, does NOT override). A caption over an arbitrary photo must always read as white-on-dark regardless of brand theme — so these tokens must never alias to bg/surface/fg tokens, which flip per theme. base = the dark colour stop; on / on-muted = the text/icon colours on top.",
+        "base": {
+          "type": "color",
+          "value": "{surface.root}",
+          "description": "Dark scrim colour — solid backdrop revealed under an image mask-fade (AssetCard/ChoiceCard) and the opaque colour stop in bottom-of-image scrim gradients (used inside color-mix(... X%, transparent) for the fade). surface.root (#0F0F0F), same in both brands."
+        },
+        "on": {
+          "type": "color",
+          "value": "{alpha.white.90}",
+          "description": "Primary text/icon on a media scrim — constant near-white (alpha-white-90, matches klyp fg.primary intensity) in BOTH brands so titles stay legible over photos on light-theme unreals."
+        },
+        "on-muted": {
+          "type": "color",
+          "value": "{alpha.white.70}",
+          "description": "Secondary text on a media scrim (descriptions, sub-labels) — constant muted white (alpha-white-70), both brands."
+        }
+      },
+      "border": {
+        "subtle": {
+          "type": "color",
+          "value": "{alpha.white.05}"
+        },
+        "faint": {
+          "type": "color",
+          "value": "{alpha.white.03}",
+          "description": "Faintest hairline border — Dropdown pill trigger (Val 2026-06-29: 0.03 opacity)"
+        },
+        "default": {
+          "type": "color",
+          "value": "{alpha.white.10}"
+        },
+        "strong": {
+          "type": "color",
+          "value": "{alpha.white.15}"
+        },
+        "accent": {
+          "type": "color",
+          "value": "{gold.700}",
+          "description": "Brand accent border — gold.700 #FDD59A."
+        },
+        "focus": {
+          "type": "color",
+          "value": "{alpha.white.20}",
+          "description": "1px inset focus stroke, paired with mix-blend-mode:plus-lighter"
+        }
+      },
+      "fg": {
+        "primary": {
+          "type": "color",
+          "value": "{alpha.white.90}"
+        },
+        "muted": {
+          "type": "color",
+          "value": "{alpha.white.50}"
+        },
+        "subtle": {
+          "type": "color",
+          "value": "{alpha.white.30}"
+        },
+        "inverse": {
+          "type": "color",
+          "value": "{surface.root}"
+        },
+        "accent": {
+          "type": "color",
+          "value": "{gold.700}",
+          "description": "Accent text/icon — gold.700 #FDD59A (on dark ≈ 13.8:1)."
+        },
+        "accent-purple": {
+          "type": "color",
+          "value": "{purple.900}",
+          "description": "Secondary purple label accent (MetaLabel tone='accent'). Klyp dark: purple.900 #e0c6ff — light lavender, high contrast on dark. Unreals overrides to purple.400 (dark, reads on light). Added 2026-06-17 (MetaLabel gold→purple)."
+        },
+        "on-active-nav": {
+          "type": "color",
+          "value": "{neutral.0}",
+          "description": "Solid white text/icon when nav item is in active state. Klyp uses primitive neutral.0 (#fff) directly because semantic fg.primary at 90% reads visibly translucent against the dark active wash. Unreals (light theme) overrides to dark text in semantic.unreals.tokens.json."
+        },
+        "icon-disabled": {
+          "type": "color",
+          "value": "{neutral.0}",
+          "description": "Disabled icon foreground (paired with wrapper opacity ~0.3-0.5). Klyp keeps it pure white because the wrapper opacity creates the muted look; on light theme Unreals overrides to dark."
+        },
+        "icon-muted": {
+          "type": "color",
+          "value": "{neutral.500}",
+          "description": "Solid rest colour for outline icons — NO alpha (multi-path glyphs double-composite under alpha colours, see frontend.md Icon transparency). neutral.500 #6e6e6e reads dim on the dark surface and stays legible on Unreals light without an override. Lift to fg.on-active-nav on hover/selection. Added 2026-07-02 (Val: command-palette icons)."
+        }
+      },
+      "accent": {
+        "type": "color",
+        "value": "{gold.700}",
+        "description": "Primary CTA fill — ⭐ solid pastel-gold brand accent #FDD59A (gold.700). Accent fill pairs with DARK text (--color-fg-inverse). Restored from the brief iris swap 2026-06-29 (Val)."
+      },
+      "accent-hover": {
+        "type": "color",
+        "value": "{gold.800}",
+        "description": "Hover — one step lighter (gold.800)."
+      },
+      "accent-pressed": {
+        "type": "color",
+        "value": "{gold.600}",
+        "description": "Pressed — one step darker (gold.600)."
+      },
+      "accent-muted": {
+        "type": "color",
+        "value": "{gold.500}",
+        "description": "Primary CTA fill end / muted accent (gold.500)."
+      },
+      "status": {
+        "$description": "Status semantic aliases. Mapped onto Geist scales (2026-05-13). Geist position semantics: 100-300 = component backgrounds, 400-600 = borders, 600-700 = vibrant fills, 800-900 = text/icons, 1000 = lightest tint. We use *-900 for fg/icon (highest legibility on dark), *-700 for strong vibrant fill, *-300 for muted destructive/success/warning fill end.",
+        "danger": {
+          "type": "color",
+          "value": "{red.600}",
+          "description": "Danger fg/icon/border on dark — red.600 #e95053, a true saturated red (≈ Geist error #e5484d), 5.03:1 on surface. Was red.900 #ffc2bd which read as PINK (semantic fix 2026-06-17)."
+        },
+        "danger-strong": {
+          "type": "color",
+          "value": "{red.500}",
+          "description": "Danger solid fill (destructive button bg) — red.500 #c4363c, deep true red, white text passes 5.33:1. Was red.700 #ff716f (light coral)."
+        },
+        "danger-muted": {
+          "type": "color",
+          "value": "{red.300}",
+          "description": "Destructive fill end / muted dark bg (red.300 #882327)."
+        },
+        "success": {
+          "type": "color",
+          "value": "{green.900}",
+          "description": "Success fg/icon on dark."
+        },
+        "success-strong": {
+          "type": "color",
+          "value": "{green.700}",
+          "description": "Success strong vibrant."
+        },
+        "success-muted": {
+          "type": "color",
+          "value": "{green.300}",
+          "description": "Success fill end (muted dark bg)."
+        },
+        "warning": {
+          "type": "color",
+          "value": "{amber.900}",
+          "description": "Warning fg/icon on dark."
+        },
+        "warning-strong": {
+          "type": "color",
+          "value": "{amber.700}",
+          "description": "Warning strong vibrant."
+        },
+        "warning-muted": {
+          "type": "color",
+          "value": "{amber.300}",
+          "description": "Warning fill end (muted dark bg)."
+        },
+        "info": {
+          "type": "color",
+          "value": "{blue.900}",
+          "description": "Info / in-progress fg — canvas node 'In Progress' border + status pill (CANVAS-SPEC §8.4). Distinct from accent (gold)."
+        },
+        "info-strong": {
+          "type": "color",
+          "value": "{blue.700}",
+          "description": "Info strong vibrant."
+        },
+        "info-muted": {
+          "type": "color",
+          "value": "{blue.300}",
+          "description": "Info fill end (muted dark bg)."
+        }
+      },
+      "ring": {
+        "type": "color",
+        "value": "{alpha.white.20}",
+        "description": "Global :focus-visible fallback for native elements outside RAC. Neutral white-20 — gold reserved for true accents (CTA, key state), not blanket focus halo. See .claude/rules/styles.md."
+      },
+      "badge": {
+        "$description": "Brand-aware subtle Badge palette. Klyp dark: bg = -200 dark-tinted shade, fg = -900 vibrant fg (Geist convention 100=darkest, 1000=lightest). Unreals light: overridden in semantic.unreals.tokens.json to bg = -1000 (lightest tint) + fg = -700 (vibrant mid) so subtle stays subtle on white. Added 2026-05-26.",
+        "gray-bg": {
+          "type": "color",
+          "value": "{neutral.200}"
+        },
+        "gray-fg": {
+          "type": "color",
+          "value": "{neutral.1000}"
+        },
+        "blue-bg": {
+          "type": "color",
+          "value": "{blue.200}"
+        },
+        "blue-fg": {
+          "type": "color",
+          "value": "{blue.900}"
+        },
+        "purple-bg": {
+          "type": "color",
+          "value": "{purple.200}"
+        },
+        "purple-fg": {
+          "type": "color",
+          "value": "{purple.900}"
+        },
+        "amber-bg": {
+          "type": "color",
+          "value": "{amber.200}"
+        },
+        "amber-fg": {
+          "type": "color",
+          "value": "{amber.900}"
+        },
+        "red-bg": {
+          "type": "color",
+          "value": "{red.200}"
+        },
+        "red-fg": {
+          "type": "color",
+          "value": "{red.900}"
+        },
+        "pink-bg": {
+          "type": "color",
+          "value": "{pink.200}"
+        },
+        "pink-fg": {
+          "type": "color",
+          "value": "{pink.900}"
+        },
+        "green-bg": {
+          "type": "color",
+          "value": "{green.200}"
+        },
+        "green-fg": {
+          "type": "color",
+          "value": "{green.900}"
+        },
+        "teal-bg": {
+          "type": "color",
+          "value": "{teal.200}"
+        },
+        "teal-fg": {
+          "type": "color",
+          "value": "{teal.900}"
+        },
+        "gold-bg": {
+          "type": "color",
+          "value": "color-mix(in srgb, {gold.700} 15%, transparent)",
+          "description": "Subtle gold badge bg — dark warm-gold wash (gold.700 @ 15%). Dedicated token (not the shared overlay.gold-* washes) so the gold-intent Badge / BadgeToggle stay gold. Unreals overrides to the brand-accent (blue) wash."
+        },
+        "gold-fg": {
+          "type": "color",
+          "value": "{gold.700}",
+          "description": "Klyp dark: warm-gold text for the Popular badge (gold.700 accent). Unreals overrides to blue.700 (brand accent on light theme)."
+        }
+      },
+      "overlay": {
+        "gold-10": {
+          "type": "color",
+          "value": "color-mix(in srgb, {gold.700} 10%, transparent)",
+          "description": "Soft gold tint — chip selected wash, episode card glow stop (gold.700)."
+        },
+        "gold-12": {
+          "type": "color",
+          "value": "color-mix(in srgb, {gold.700} 12%, transparent)",
+          "description": "Soft gold tint — AssetCard hover/focus underlay, app-rail active wash (gold.700)."
+        },
+        "gold-15": {
+          "type": "color",
+          "value": "color-mix(in srgb, {gold.700} 15%, transparent)",
+          "description": "Gold hover gradient stop — series cover-block (gold.700)."
+        },
+        "gold-30": {
+          "type": "color",
+          "value": "color-mix(in srgb, {gold.700} 30%, transparent)",
+          "description": "Scrollbar thumb / inset gold border — attachment-tray, script-editor (gold.700)."
+        }
+      },
+      "mention": {
+        "$description": "Asset-mention pills. Remapped 2026-05-13 onto Geist *-900 shades (variant B per design lead) — same kind→hue intent as the prior pastel-custom palette, now sourced from a coherent 10-step scale per kind.",
+        "character": {
+          "type": "color",
+          "value": "{blue.900}",
+          "description": "Asset-mention pill — character (Geist blue-900)."
+        },
+        "location": {
+          "type": "color",
+          "value": "{teal.900}",
+          "description": "Asset-mention pill — location (Geist teal-900)."
+        },
+        "outfit": {
+          "type": "color",
+          "value": "{purple.900}",
+          "description": "Asset-mention pill — outfit (Geist purple-900)."
+        },
+        "vibe": {
+          "type": "color",
+          "value": "{purple.900}",
+          "description": "Asset-mention pill — vibe (paired with outfit, same hue)."
+        },
+        "scene": {
+          "type": "color",
+          "value": "{red.900}",
+          "description": "Asset-mention pill — scene (Geist red-900)."
+        },
+        "script": {
+          "type": "color",
+          "value": "{green.900}",
+          "description": "Asset-mention pill — script (Geist green-900)."
+        },
+        "shot": {
+          "type": "color",
+          "value": "{alpha.white.50}",
+          "description": "Asset-mention pill — shot (muted, unchanged)."
+        },
+        "prop": {
+          "type": "color",
+          "value": "{amber.900}",
+          "description": "Asset-mention pill — prop (Geist amber-900, was yellow.400)."
+        }
+      },
+      "canvas": {
+        "bg-node-default": {
+          "type": "color",
+          "value": "{color.bg.surface}",
+          "description": "Canvas node body — default fill (matches generic surface)."
+        },
+        "bg-node-hovered": {
+          "type": "color",
+          "value": "{color.bg.surface-hover}",
+          "description": "Canvas node body — hovered fill (raised lift)."
+        },
+        "bg-node-selected": {
+          "type": "color",
+          "value": "{color.bg.surface-solid}",
+          "description": "Canvas node body — selected fill (one step elev). NOTE: substituted from plan's `surface-active` (no such token); using `surface-solid` for the selected state."
+        },
+        "border-node-default": {
+          "type": "color",
+          "value": "{color.border.subtle}",
+          "description": "Canvas node border — default. NOTE: substituted from plan's `border.muted` (no such token); using `border.subtle` (5% white)."
+        },
+        "border-node-generating": {
+          "type": "color",
+          "value": "{color.status.info}",
+          "description": "Canvas node border — In Progress (blue, animated by NodeFrame). CANVAS-SPEC §8.4."
+        },
+        "handle-text": {
+          "type": "color",
+          "value": "{color.fg.primary}",
+          "description": "Node connection handle — text I/O. Bumped 2026-05-10: was {color.fg.muted} (white@50%) — invisible 12px dot against dark canvas. Now full white (alpha-90) so users can see grab/drop targets. Loses kind-discrimination vs other handles but ensures visibility."
+        },
+        "handle-image": {
+          "type": "color",
+          "value": "{color.accent}",
+          "description": "Node connection handle — image I/O (gold)."
+        },
+        "handle-video": {
+          "type": "color",
+          "value": "{color.status.info}",
+          "description": "Node connection handle — video I/O (blue)."
+        },
+        "handle-audio": {
+          "type": "color",
+          "value": "{color.status.success}",
+          "description": "Node connection handle — audio I/O (green)."
+        },
+        "handle-media": {
+          "type": "color",
+          "value": "{color.fg.primary}",
+          "description": "Node connection handle — generic media (mixed). Bumped 2026-05-10: was {color.fg.subtle} (white@30%) — invisible against dark canvas. Now full white (alpha-90) so users can see grab/drop targets."
+        },
+        "handle-bg-default": {
+          "type": "color",
+          "value": "{surface.base}",
+          "description": "Card v3 (design lead 2026-05-12): handle bg in idle/generating — same as node bg so handle 'blends' with frame, contrast comes from border ring + icon. Mockup v6.3."
+        },
+        "handle-bg-selected": {
+          "type": "color",
+          "value": "{surface.hover}",
+          "description": "Card v3 (design lead 2026-05-12): handle bg in selected — lifted neutral mid (#2F2F2F surface.hover) for contrast against #222 card bg. Mockup v6.3 (was neutral.775 #2B2B2B)."
+        },
+        "handle-border-default": {
+          "type": "color",
+          "value": "{alpha.white.14}",
+          "description": "Card v3 (design lead 2026-05-12): handle ring in idle/generating — white 14%. Mockup v6.3."
+        },
+        "handle-border-selected": {
+          "type": "color",
+          "value": "{alpha.white.22}",
+          "description": "Card v3 (design lead 2026-05-12): handle ring in selected — white 22%. Mockup v6.3."
+        },
+        "border-card-v3-selected": {
+          "type": "color",
+          "value": "{alpha.white.10}",
+          "description": "Card v3 (design lead 2026-05-12): NEW canvas card selected border — white 10%, replaces gold. Single-accent rule: gold reserved for true accents, selection on a busy canvas with N nodes can't all be gold without diluting. Mockup v6.3."
+        },
+        "dot": {
+          "type": "color",
+          "value": "rgba(255, 255, 255, 0.28)",
+          "description": "Canvas background dot fill (xyflow <Background variant=Dots>). Equivalent contrast to Magnific's rgb(100,100,100) on pure black; on our neutral.950 bg this lands at ~0.28 alpha-white so dots read clearly at default zoom (≈0.75). 2px circle @ 19px gap. Vignette mask in CanvasViewport.scss further fades corners (Magnific-style sharp falloff at 595px from center)."
+        },
+        "sticky-bg": {
+          "type": "color",
+          "value": "{amber.700}",
+          "description": "Sticky-note marker bg. Remapped 2026-05-13 from legacy yellow.400 (#facc15) to Geist amber.700 (#ffb224) — same warm-yellow intent, now sourced from coherent amber scale. Not part of single-accent budget — sticky is informational paper, not attention."
+        }
+      },
+      "slider": {
+        "$description": "AllowanceSlider / Slider brand-wrapper palette. Brand-aware so the same component renders correctly on dark (klyp) + light (unreals) without the SCSS swapping tokens by brand. All values overridden in semantic.unreals.tokens.json. Added 2026-05-27 by design lead — light-theme contrast pass on AllowanceSlider/AllowancePanel.",
+        "rail": {
+          "type": "color",
+          "value": "{alpha.white.30}",
+          "description": "Unfilled portion of the slider track. Klyp dark: white 30%. Unreals light: black 18%."
+        },
+        "fill": {
+          "type": "color",
+          "value": "{color.fg.primary}",
+          "description": "Filled portion (progress) of the slider track. Klyp dark: alpha-white-90 (design lead 2026-05-20 «при заполнении пусть будет 100%»). Unreals light: accent (blue.700) — high contrast on white panel + brand-aware progress signal."
+        },
+        "thumb-bg": {
+          "type": "color",
+          "value": "{neutral.0}",
+          "description": "Slider thumb (pill stamp) bg fill. Klyp dark: white pill on dark rail. Unreals light: solid accent (blue.700) fill so the thumb reads as a distinct chip on the white panel — chevron icon flips to inverse white."
+        },
+        "thumb-border": {
+          "type": "color",
+          "value": "{alpha.black.12}",
+          "description": "Inset border of the thumb. Klyp dark: black 12% (subtle inner stroke on the white thumb). Unreals light: transparent — solid accent thumb already has full contrast against the white panel."
+        },
+        "thumb-icon": {
+          "type": "color",
+          "value": "{color.bg.canvas}",
+          "description": "Color of the chevron glyph inside the thumb. Klyp dark: dark glyph on white pill (--color-bg-canvas = neutral-925). Unreals light: white glyph on accent-blue pill (--color-fg-inverse). Key fix 2026-05-27 — previously alias resolved to white on white on unreals, glyph was invisible."
+        },
+        "thumb-halo-drag": {
+          "type": "color",
+          "value": "{alpha.white.15}",
+          "description": "Outer halo ring around the thumb during pointer drag — `box-shadow 0 0 0 4px <halo>`. Klyp dark: white 15% glow. Unreals light: accent blue 25% — visible feedback that reads on white."
+        },
+        "tick-inactive": {
+          "type": "color",
+          "value": "{alpha.white.30}",
+          "description": "Inactive tick label color. Klyp dark: white 30%. Unreals light: black 38% — visible-but-quiet so the active tick (fg.primary) still pops."
+        }
+      },
+      "panel": {
+        "$description": "Glass panel surface (AllowancePanel and similar slot-shaped cards). Klyp dark: white 3% glass with matching 3% border + backdrop-blur (design lead 2026-05-22 lighter glass). Unreals light: subtle inversion to a near-transparent darker tint so the panel still reads as a container against the white tier card — pure white-on-white would dissolve the chassis. Added 2026-05-27.",
+        "glass-bg": {
+          "type": "color",
+          "value": "{alpha.white.03}",
+          "description": "Bg fill for the glass panel. Klyp: white 3%. Unreals: black 4% — gentle tonal step below the white parent surface."
+        },
+        "glass-border": {
+          "type": "color",
+          "value": "{alpha.white.03}",
+          "description": "Border matching the glass bg. Klyp: white 3%. Unreals: black 8% — slightly stronger than bg so the chassis edge reads clearly."
+        }
+      },
+      "tier-mesh": {
+        "$description": "Per-tier mesh palette for `<PricingTierCard>` perpetual goo-mesh blobs. Three stops per tone: `primary` (saturated, drives blob `b` bottom-right), `shadow` (deeper, drives blob `d` bottom-left), `light` (lighter accent shade, drives blob `c` added 2026-05-21 to break the 8-bit colour-quantization banding that caused shimmer on dark tones — adds a third floating gradient at a different depth so the mesh has more breathing tonal layers). Used inside `color-mix(in oklch, var(--color-tier-mesh-X) 16%, transparent)` so tone changes ripple to mesh without touching the SCSS.",
+        "primary-silver": {
+          "type": "color",
+          "value": "{neutral.1000}",
+          "description": "Starter tier mesh primary — light off-white highlight. neutral.1000 (#eeeeee, ≈ old neutral.50) at 16% alpha in the radial gradient produces the light-silver glow."
+        },
+        "shadow-silver": {
+          "type": "color",
+          "value": "{neutral.700}",
+          "description": "Starter tier mesh shadow — muted silver depth (neutral.700 #a0a0a0, ≈ old neutral.500 #A1A1A1)."
+        },
+        "light-silver": {
+          "type": "color",
+          "value": "{neutral.0}",
+          "description": "Starter tier mesh light accent — pure white #FFFFFF. Lightest stop on the silver scale; drives blob `c` for an additional bright highlight on top of the neutral-50 primary."
+        },
+        "primary-purple": {
+          "type": "color",
+          "value": "{purple.500}",
+          "description": "Creator tier mesh primary — saturated purple highlight (mirrors MeshButton purple palette)."
+        },
+        "shadow-purple": {
+          "type": "color",
+          "value": "{purple.800}",
+          "description": "Creator tier mesh shadow — deeper purple depth."
+        },
+        "light-purple": {
+          "type": "color",
+          "value": "{purple.800}",
+          "description": "Creator tier mesh light accent — mid-purple #763DA9 (purple.800, one tone darker than purple.900 lavender). Drives blob `c`. design lead 2026-05-23: «фиолетовый светлый который самый — на тон темнее возьми из примитивов». NB: now same hex as shadow-purple — visual distinction comes from blob c's gradient opacity vs blob b's shadow."
+        },
+        "primary-gold": {
+          "type": "color",
+          "value": "{gold.800}",
+          "description": "Creator Plus tier mesh primary — warm light gold (gold.800 #caae84, paired with the gold `--color-fg-accent` and the Most Popular badge gradient)."
+        },
+        "shadow-gold": {
+          "type": "color",
+          "value": "{gold.500}",
+          "description": "Creator Plus tier mesh shadow — deep muted gold (gold.500 #856940)."
+        },
+        "light-gold": {
+          "type": "color",
+          "value": "{gold.900}",
+          "description": "Creator Plus tier mesh light accent — light cream gold (gold.900 #e2ceb0). Drives blob `c`."
+        },
+        "primary-blue": {
+          "type": "color",
+          "value": "{blue.400}",
+          "description": "Studio tier mesh primary — Klyp blue (sits below status-info but above blue-300 so the mesh reads cooler/deeper than the hover-trio's status-info blue)."
+        },
+        "shadow-blue": {
+          "type": "color",
+          "value": "{blue.800}",
+          "description": "Studio tier mesh shadow — deep blue depth."
+        },
+        "light-blue": {
+          "type": "color",
+          "value": "{blue.900}",
+          "description": "Studio tier mesh light accent — Klyp brand blue #52A8FF (blue.900, also `--color-status-info`). Drives blob `c`."
+        }
+      }
+    },
+    "canvas": {
+      "thumb-width": {
+        "type": "dimension",
+        "value": "240px",
+        "description": "Canvas reference / library-reference thumbnail width. Mockup v6.3 — 240px gives audio thumbs enough lane for waveform + filename without crowding the canvas; image/video preview stays in the same lane for consistency."
+      }
+    },
+    "r": {
+      "$description": "Semantic radii — 7 aliases. Consolidated 2026-05-13 from prior 9-alias set (button → chip, card-inner → card, canvas-card → panel, toggle → chip). Added --r-inner-section 2026-05-21 to enforce concentric formula `R_inner = R_outer − padding_outer` for items nested in popovers/cards. Naming matches industry pattern (Material 3, Polaris) but kept small for a solo-designer cognitive load.",
+      "inner-section": {
+        "type": "dimension",
+        "value": "{radius.8}",
+        "description": "8px — concentric inner radius for dropdown/menu items inside a popover. Use when outer is --r-section (16) with --space-8 padding, OR --r-card (12) with --space-4 padding (close-enough at small scale). Replaces ad-hoc `--r-card` for inner items in HistoryMenu / BrandMenu / BrandSelect."
+      },
+      "chip": {
+        "type": "dimension",
+        "value": "{radius.md}",
+        "description": "10px — chips, status pills, badges, buttons, pill toggles, segmented controls. All small interactive surfaces."
+      },
+      "card": {
+        "type": "dimension",
+        "value": "{radius.lg}",
+        "description": "12px — cards (top-level + inner). AssetCard, AddCard, list items, dropdown items, scene cards."
+      },
+      "section": {
+        "type": "dimension",
+        "value": "{radius.2xl}",
+        "description": "16px — toolbars, modals, callouts, content sections."
+      },
+      "panel": {
+        "type": "dimension",
+        "value": "{radius.3xl}",
+        "description": "20px — sidebars, inspectors, GlassPanel, canvas node cards (mockup v6.3)."
+      },
+      "hero": {
+        "type": "dimension",
+        "value": "{radius.4xl}",
+        "description": "24px — hero cards, marketing-tier surfaces."
+      },
+      "catalog-shell": {
+        "type": "dimension",
+        "value": "{radius.5xl}",
+        "description": "36px — /components catalog root (ComponentsLayout) outer framing."
+      }
+    },
+    "bw": {
+      "hairline": {
+        "type": "dimension",
+        "value": "{border.width.1}"
+      },
+      "default": {
+        "type": "dimension",
+        "value": "{border.width.1}"
+      },
+      "emphasis": {
+        "type": "dimension",
+        "value": "{border.width.2}"
+      }
+    },
+    "opacity": {
+      "disabled": {
+        "type": "number",
+        "value": "{opacity.50}",
+        "description": "Disabled-state visual dim — applied to wrapper / button / label when [data-disabled] or :disabled is set."
+      }
+    },
+    "menu": {
+      "min-width": {
+        "type": "dimension",
+        "value": "256px",
+        "description": "Popover / dropdown menu min-width — keeps share-menu, action-menu, etc. visually consistent and avoids cramped layouts when label set is short. Bumped 200 → 256 to match the live /referrals share menu (16rem) so 4-channel lists breathe (design lead, 2026-05-17)."
+      }
+    },
+    "type": {
+      "$description": "Curated text styles. Line box is an EXACT px value (line-box.*), NOT a unitless ratio — so font-size × line box is exactly whole, zero sub-pixel text (a ratio like 1.2857 gives 17.9998, not 18). Geist-parity. Rebuilt to px line boxes 2026-06-17.",
+      "display": {
+        "type": "typography",
+        "value": "{font-size.56} / {line-box.64} {font.sans}",
+        "description": "56px / 64px."
+      },
+      "heading-lg": {
+        "type": "typography",
+        "value": "{font-size.32} / {line-box.40} {font.sans}",
+        "description": "32px / 40px."
+      },
+      "heading-2xl": {
+        "type": "typography",
+        "value": "{font-size.28} / {line-box.36} {font.sans}",
+        "description": "28px / 36px. Modal / section titles."
+      },
+      "heading-xl": {
+        "type": "typography",
+        "value": "{font-size.24} / {line-box.32} {font.sans}",
+        "description": "24px / 32px."
+      },
+      "heading-md": {
+        "type": "typography",
+        "value": "{font-size.20} / {line-box.24} {font.sans}",
+        "description": "20px / 24px."
+      },
+      "heading-xs": {
+        "type": "typography",
+        "value": "{font-size.18} / {line-box.24} {font.sans}",
+        "description": "18px / 24px. Modal / sheet / dialog titles."
+      },
+      "heading-sm": {
+        "type": "typography",
+        "value": "{font-size.16} / {line-box.20} {font.sans}",
+        "description": "16px / 20px."
+      },
+      "body-lg": {
+        "type": "typography",
+        "value": "{font-size.16} / {line-box.20} {font.sans}",
+        "description": "Copy lg — 16px / 20px."
+      },
+      "body": {
+        "type": "typography",
+        "value": "{font-size.14} / {line-box.18} {font.sans}",
+        "description": "Copy / UI body — 14px / 18px."
+      },
+      "body-sm": {
+        "type": "typography",
+        "value": "{font-size.12} / {line-box.16} {font.sans}",
+        "description": "Copy sm / dense controls — 12px / 16px."
+      },
+      "body-tight": {
+        "type": "typography",
+        "value": "{font-size.14} / {line-box.18} {font.sans}",
+        "description": "14px / 18px (alias of body; kept for existing consumers)."
+      },
+      "body-editorial": {
+        "type": "typography",
+        "value": "{font-size.14} / {line-box.18} {font.sans}",
+        "description": "14px / 18px (long-form)."
+      },
+      "caption": {
+        "type": "typography",
+        "value": "{font-size.12} / {line-box.16} {font.sans}",
+        "description": "12px / 16px."
+      },
+      "label": {
+        "type": "typography",
+        "value": "{font-size.12} / {line-box.16} {font.sans}",
+        "description": "12px / 16px."
+      },
+      "label-sm": {
+        "type": "typography",
+        "value": "{font-size.10} / {line-box.12} {font.sans}",
+        "description": "Micro label / timestamp floor — 10px / 12px."
+      },
+      "overline": {
+        "type": "typography",
+        "value": "{font-size.12} / {line-box.16} {font.sans}",
+        "description": "12px / 16px. Eyebrow — pair with text-transform:uppercase + var(--ls-caps)."
+      },
+      "code": {
+        "type": "typography",
+        "value": "{font-size.14} / {line-box.18} {font.mono}",
+        "description": "14px / 18px, MONO. Addresses, hashes, model slugs."
+      },
+      "buttons-sm": {
+        "type": "typography",
+        "value": "{font-size.12} / {line-box.16} {font.sans}",
+        "description": "Button label — sm. 12px / 16px. Pair with --fw-emphasis (500)."
+      },
+      "buttons": {
+        "type": "typography",
+        "value": "{font-size.14} / {line-box.18} {font.sans}",
+        "description": "Button label — default/md. 14px / 18px. Pair with --fw-emphasis (500)."
+      },
+      "buttons-lg": {
+        "type": "typography",
+        "value": "{font-size.16} / {line-box.20} {font.sans}",
+        "description": "Button label — lg. 16px / 20px. Pair with --fw-emphasis (500)."
+      },
+      "buttons-xl": {
+        "type": "typography",
+        "value": "{font-size.18} / {line-box.24} {font.sans}",
+        "description": "Button label — xl. 18px / 24px. Pair with --fw-emphasis (500)."
+      }
+    },
+    "fw": {
+      "body": {
+        "type": "fontWeight",
+        "value": "{font-weight.regular}"
+      },
+      "emphasis": {
+        "type": "fontWeight",
+        "value": "{font-weight.medium}"
+      },
+      "heading": {
+        "type": "fontWeight",
+        "value": "{font-weight.semibold}"
+      },
+      "display": {
+        "type": "fontWeight",
+        "value": "{font-weight.bold}"
+      }
+    },
+    "ls": {
+      "heading": {
+        "type": "dimension",
+        "value": "{letter-spacing.tight}"
+      },
+      "body": {
+        "type": "dimension",
+        "value": "{letter-spacing.normal}"
+      },
+      "caps": {
+        "type": "dimension",
+        "value": "{letter-spacing.caps}"
+      }
+    },
+    "icon": {
+      "inline": {
+        "type": "dimension",
+        "value": "{icon-size.sm}",
+        "description": "Inline with body text"
+      },
+      "control": {
+        "type": "dimension",
+        "value": "{icon-size.md}",
+        "description": "Inside buttons, chips"
+      },
+      "nav": {
+        "type": "dimension",
+        "value": "{icon-size.lg}",
+        "description": "Rail nav items"
+      },
+      "hero": {
+        "type": "dimension",
+        "value": "{icon-size.xl}",
+        "description": "Empty states, hero blocks"
+      }
+    },
+    "gap": {
+      "$description": "Purpose-based gap aliases. Reach for these when intent is clear (cluster of chips, card-inner spacing, etc.). Otherwise use --space-N primitive directly. Renamed from t-shirt --sp-* on 2026-05-07; ported 2026-05-13.",
+      "cluster": {
+        "type": "dimension",
+        "value": "{space.4}",
+        "description": "Inline cluster items (chips, icon+text in a row, dense controls)"
+      },
+      "icon-text": {
+        "type": "dimension",
+        "value": "{space.4}",
+        "description": "Between an icon and its adjacent text label inside a button or chip"
+      },
+      "card-inner": {
+        "type": "dimension",
+        "value": "{space.12}",
+        "description": "Vertical/horizontal spacing between elements inside a card body"
+      },
+      "stack": {
+        "type": "dimension",
+        "value": "{space.12}",
+        "description": "Vertically stacked items (form rows, list items)"
+      },
+      "grid": {
+        "type": "dimension",
+        "value": "{space.16}",
+        "description": "Card-grid gap (static)"
+      },
+      "section": {
+        "type": "dimension",
+        "value": "{space.32}",
+        "description": "Spacing between page sections"
+      }
+    },
+    "padding": {
+      "$description": "Purpose-based padding aliases. Reach for these when intent is clear. Otherwise use --space-N primitive.",
+      "chip-x": {
+        "type": "dimension",
+        "value": "{space.8}",
+        "description": "Chip / pill / badge horizontal padding"
+      },
+      "chip-y": {
+        "type": "dimension",
+        "value": "{space.4}",
+        "description": "Chip / pill / badge vertical padding"
+      },
+      "control-x": {
+        "type": "dimension",
+        "value": "{space.12}",
+        "description": "Button / input / select horizontal padding"
+      },
+      "control-y": {
+        "type": "dimension",
+        "value": "{space.8}",
+        "description": "Button / input / select vertical padding"
+      },
+      "card": {
+        "type": "dimension",
+        "value": "{space.16}",
+        "description": "Card padding all-around"
+      },
+      "panel": {
+        "type": "dimension",
+        "value": "{space.20}",
+        "description": "Sidebar / inspector / floating panel padding"
+      },
+      "section-x": {
+        "type": "dimension",
+        "value": "{space.24}",
+        "description": "Section horizontal padding (static fallback to --gutter-page-x for fluid routes)"
+      },
+      "section-y": {
+        "type": "dimension",
+        "value": "{space.32}",
+        "description": "Section vertical padding (static fallback to --gutter-page-y for fluid routes)"
+      }
+    },
+    "gutter": {
+      "$description": "Fluid gutters (clamp-based, scale by container-inline-size). Replace static --padding-section-*/--gap-grid on routes that opt into container-type: inline-size.",
+      "page-x": {
+        "type": "string",
+        "value": "clamp({space.16}, 3cqi, {space.48})",
+        "description": "Fluid route horizontal gutter — space.16 (16px) → space.48 (48px)"
+      },
+      "page-y": {
+        "type": "string",
+        "value": "clamp({space.16}, 2cqi, {space.32})",
+        "description": "Fluid route vertical gutter — space.16 (16px) → space.32 (32px)"
+      },
+      "grid": {
+        "type": "string",
+        "value": "clamp({space.12}, 1.5cqi, {space.16})",
+        "description": "Fluid grid gap — space.12 (12px) → space.16 (16px)"
+      }
+    },
+    "fx": {
+      "glass-blur": {
+        "type": "string",
+        "value": "blur({blur.16})"
+      },
+      "glass-blur-md": {
+        "type": "string",
+        "value": "blur({blur.10})"
+      },
+      "glass-blur-soft": {
+        "type": "string",
+        "value": "blur({blur.3})"
+      },
+      "glass-blur-lg": {
+        "type": "string",
+        "value": "blur({blur.24})",
+        "description": "Floating-rail / prompt-composer 24px blur (user feedback 2026-04-29)"
+      },
+      "hero-blur": {
+        "type": "string",
+        "value": "blur({blur.150})"
+      },
+      "selection-glow": {
+        "type": "shadow",
+        "value": "{shadow.gold-inset}"
+      },
+      "panel-shadow": {
+        "type": "shadow",
+        "value": "{shadow.panel}"
+      },
+      "soft-shadow": {
+        "type": "shadow",
+        "value": "{shadow.soft}"
+      },
+      "card-lift-shadow": {
+        "type": "shadow",
+        "value": "{shadow.card-lift}",
+        "description": "Card drop-shadow used by BalanceCard (ground-plane lift on dark surface)."
+      },
+      "card-inset-glow-gold": {
+        "type": "shadow",
+        "value": "inset 0 0 {blur.50} color-mix(in oklch, {gold.700} 25%, transparent)",
+        "description": "Gold inset bloom — PricingTierCard Creator Plus (gold tone) + BalanceCard primary hover. Pinned to {gold.700} (was {color.fg.accent}, which went iris on the 2026-06-29 brand-accent swap → gold cards bloomed purple). soft gold inset bloom inside the card body, paired with --fx-card-lift-shadow as the outer layer."
+      },
+      "card-inset-glow-silver": {
+        "type": "shadow",
+        "value": "inset 0 0 {blur.50} color-mix(in oklch, white 22%, transparent)",
+        "description": "BalanceCard non-primary hover — soft silver inset bloom (neutral counterpart to the gold variant)."
+      },
+      "card-inset-glow-purple": {
+        "type": "shadow",
+        "value": "inset 0 0 {blur.50} color-mix(in oklch, {purple.700} 25%, transparent)",
+        "description": "PricingTierCard purple-tone hover (Creator tier) — soft purple inset bloom (purple.700 = #8e4ec6, brighter mid-saturation than purple.500; bumped 2026-05-20 per design lead for more visible glow against the perpetual mesh). Matches the BalanceCard primary/silver pattern but for the Creator mesh palette."
+      },
+      "card-inset-glow-blue": {
+        "type": "shadow",
+        "value": "inset 0 0 {blur.50} color-mix(in oklch, {color.status.info} 25%, transparent)",
+        "description": "PricingTierCard blue-tone hover (Studio tier) — soft Klyp-blue inset bloom (--color-status-info = blue-900). Mirrors the gold/silver recipe so all four PricingTierCard tones share the same box-shadow contract."
+      },
+      "button-highlight": {
+        "type": "shadow",
+        "value": "inset 0 0 5px 0 rgba(255, 255, 255, 0.5)",
+        "description": "Inset white highlight on buttons hover/pressed (Figma DS anchor — effect_3VPSU8)"
+      },
+      "gold-radial-40": {
+        "type": "string",
+        "value": "radial-gradient(circle at 50% 100%, rgba(253, 213, 154, 1) 0%, rgba(253, 213, 154, 0.4) 100%)",
+        "description": "Accent glow — badges / selected chips (legacy decoration). gold.700 #FDD59A (restored from the brief iris swap, 2026-06-29)."
+      },
+      "gold-linear": {
+        "type": "string",
+        "value": "linear-gradient(0deg, {gold.800} 0%, {gold.400} 100%)",
+        "description": "Primary/accent button fill — gold.800 (bottom, light) → gold.400 (top, dark). 0deg = upward."
+      },
+      "border-gradient-subtle": {
+        "type": "string",
+        "value": "linear-gradient(180deg, rgba(255, 255, 255, 0.1) 0%, rgba(255, 255, 255, 0.03) 100%)"
+      },
+      "accent-glow-bg": {
+        "type": "string",
+        "value": "radial-gradient(60% 160% at 50% 135%, color-mix(in srgb, {color.accent} 35%, transparent) 20%, transparent 90%)",
+        "description": "Accent-glow radial — soft brand-accent glow rising from the lower centre, fades to transparent (lay over a dark surface). Brand-aware via {color.accent} (gold klyp / blue unreals). Pair with --fx-accent-glow-shadow on a position:relative rounded box. Consumers: Button variant='accent', TabSwitcher tone='accent'."
+      },
+      "accent-glow-shadow": {
+        "type": "string",
+        "value": "inset 0 0 0 1px {alpha.white.15}, inset 0 0 6px 0 color-mix(in srgb, {color.accent} 55%, transparent)",
+        "description": "Accent-glow REST: uniform inset border (white 5%) over a soft inset accent inner-glow (blur 6). Inset-only → crisp on rounded corners, no layout shift, paints OVER content. Hover → --fx-accent-glow-shadow-hover (transition box-shadow)."
+      },
+      "accent-glow-shadow-hover": {
+        "type": "string",
+        "value": "inset 0 0 0 1px {alpha.white.30}, inset 0 0 8px 0 color-mix(in srgb, {color.accent} 80%, transparent)",
+        "description": "Accent-glow HOVER: border brightens (white 5%→30%) + accent inner-glow intensifies (blur 6→8). True-accent / key-state use only (single-accent rule)."
+      },
+      "neutral-glow-bg": {
+        "type": "string",
+        "value": "radial-gradient(60% 160% at 50% 135%, color-mix(in srgb, white 35%, transparent) 20%, transparent 90%)",
+        "description": "Neutral counterpart of --fx-accent-glow-bg — same radial geometry, white instead of {color.accent} (silver/gray read on the dark surface; follows the card-inset-glow-silver precedent). Consumer: Button variant='accent' glow='neutral'."
+      },
+      "neutral-glow-shadow": {
+        "type": "string",
+        "value": "inset 0 0 0 1px {alpha.white.15}, inset 0 0 6px 0 color-mix(in srgb, white 55%, transparent)",
+        "description": "Neutral-glow REST: identical structure to --fx-accent-glow-shadow with a white inner-glow (ring unchanged). Hover → --fx-neutral-glow-shadow-hover."
+      },
+      "neutral-glow-shadow-hover": {
+        "type": "string",
+        "value": "inset 0 0 0 1px {alpha.white.30}, inset 0 0 8px 0 color-mix(in srgb, white 80%, transparent)",
+        "description": "Neutral-glow HOVER: mirrors --fx-accent-glow-shadow-hover (ring 15%→30%, glow blur 6→8) with a white inner-glow."
+      }
+    },
+    "control": {
+      "size": {
+        "$description": "UNIFIED button/control height scale. Current: 24/32/36/44/56 (xs/sm/md/lg/xl). Tuned 2026-06-30 (Val) for a more compact default — md 40→36 and lg 48→44, validated against a cross-DS button-scale audit (shadcn new-york & Mantine both ship a 36 default; 44 = Chakra lg / iOS touch-min). This deliberately leaves the even-8px ladder (was 24/32/40/48/56) because a 36 default cannot sit on an 8px grid; the shadcn-style 4px fine-step in the 32–36 working band is intentional, and lg 48→44 removes the oversized 36→48 (12px) jump (now 36→44 = 8px). Every button-like element (Button, SolidButton, MeshButton, TabButton, IconButton, CopyButton) sets `height` from this; so do form controls that share it (LabeledSelect, BrandSelect, PromptField Submit, AttachButton, TabSwitcher, AudioControls…) — so they move with it (intended: 'one control scale'). Square icon-only buttons use it for width+height; text buttons use it for height + control.pad-x for inline padding.",
+        "xs": {
+          "type": "dimension",
+          "value": "24px",
+          "description": "Dense / mouse-only — Button xs, icon-xs, dense table & toolbar actions. = WCAG 2.5.8 min target; not a standalone CTA on touch."
+        },
+        "sm": {
+          "type": "dimension",
+          "value": "32px",
+          "description": "Compact — dense surfaces, secondary actions, footer chips."
+        },
+        "md": {
+          "type": "dimension",
+          "value": "36px",
+          "description": "⭐ DEFAULT — primary + secondary actions across the app. 40→36 on 2026-06-30 (Val): shorter default button/control height. 36 = shadcn h-9 / Mantine sm / Linear default. Off the even-8px grid by design (a 36 default can't sit on 8px); sm 32→md 36 is an intentional 4px fine-step (shadcn-style). Text inputs are NOT affected (own scale in Input.scss); selects/large forms use lg=44."
+        },
+        "lg": {
+          "type": "dimension",
+          "value": "44px",
+          "description": "Large — prominent / marketing CTAs, touch-primary; also the shared form-control height (selects, PromptField Submit). 48→44 on 2026-06-30 (Val): keeps md→lg an even +8 after md dropped to 36 (was a 12px jump at 48). 44 = Chakra lg / iOS 44px touch-min."
+        },
+        "xl": {
+          "type": "dimension",
+          "value": "56px",
+          "description": "Hero — the single biggest CTA per screen / landing only."
+        }
+      },
+      "pad-x": {
+        "$description": "Inline (horizontal) padding per button size — paired with control.size height for text buttons; scales with the height. Icon-only buttons use 0 (square).",
+        "xs": {
+          "type": "dimension",
+          "value": "{space.8}"
+        },
+        "sm": {
+          "type": "dimension",
+          "value": "{space.12}"
+        },
+        "md": {
+          "type": "dimension",
+          "value": "{space.16}"
+        },
+        "lg": {
+          "type": "dimension",
+          "value": "{space.20}"
+        },
+        "xl": {
+          "type": "dimension",
+          "value": "{space.24}"
+        }
+      }
+    },
+    "width": {
+      "prose": {
+        "type": "dimension",
+        "value": "48rem",
+        "description": "Reading column max-width (~768px). Used by chat thread, long-form content."
+      },
+      "composer": {
+        "type": "dimension",
+        "value": "45rem",
+        "description": "Composer shell max-width (720px @ 16px root) — the chat prompt-input column, sits inside width.prose (48rem thread) with breathing room. Added 2026-07-02 (Composer v2 controlled contract — replaces the raw 720px in Composer.scss)."
+      }
+    },
+    "modal": {
+      "w": {
+        "xs": {
+          "type": "dimension",
+          "value": "24rem",
+          "description": "384px — bare ui/Dialog primitive default card width. Sits below the branded ramp; Modal always overrides it via its size classes."
+        },
+        "dialog": {
+          "type": "dimension",
+          "value": "27.5rem",
+          "description": "440px — Dialog kind (confirm / alert / prompt). Tightest modal width."
+        },
+        "sm": {
+          "type": "dimension",
+          "value": "30rem",
+          "description": "480px — small content modal (short forms, agreements)."
+        },
+        "md": {
+          "type": "dimension",
+          "value": "35rem",
+          "description": "560px — default content modal (forms, settings)."
+        },
+        "lg": {
+          "type": "dimension",
+          "value": "45rem",
+          "description": "720px — large content modal (model picker, info)."
+        },
+        "xl": {
+          "type": "dimension",
+          "value": "57.5rem",
+          "description": "920px — wizards / creation flows."
+        },
+        "full": {
+          "type": "string",
+          "value": "min(1080px, 92vw)",
+          "description": "Immersive (Library / editor). Capped to 1080px or 92vw."
+        }
+      },
+      "h-full": {
+        "type": "string",
+        "value": "min(720px, 86svh)",
+        "description": "Height cap for the `full` modal — 720px or 86svh."
+      }
+    },
+    "duration": {
+      "base": {
+        "type": "duration",
+        "value": "{duration.normal}",
+        "description": "Default UI transition — alias of duration.normal (220ms). Used as semantic name in newer code."
+      }
+    },
+    "easing": {
+      "emphasis": {
+        "type": "cubicBezier",
+        "value": "cubic-bezier(0.32, 0.72, 0, 1)",
+        "description": "Apple HIG fluid emphasis curve — for hero motion / state changes that need extra snap."
+      },
+      "spring": {
+        "type": "cubicBezier",
+        "value": "cubic-bezier(0.34, 1.56, 0.64, 1)",
+        "description": "Overshoot spring curve — for transitions that should feel bouncy (shutter-up, slide-in). Used by canvas NodeBottomBar reveal."
+      }
+    },
+    "touch-target": {
+      "min": {
+        "type": "dimension",
+        "value": "24px",
+        "description": "WCAG 2.2 SC 2.5.8 AA — minimum interactive target. Floor for any tap surface (visual chip can be smaller, but tap area extends to this minimum)."
+      },
+      "comfort": {
+        "type": "dimension",
+        "value": "44px",
+        "description": "Apple HIG / WCAG 2.5.5 AAA — comfort target. Apply via @media (any-pointer: coarse) on chips, dropdown triggers, icon buttons that are primary nav."
+      }
+    },
+    "fab": {
+      "size": {
+        "type": "dimension",
+        "value": "56px",
+        "description": "Material FAB standard. Floating action buttons in mobile editor surfaces (EditorActionFab). Single-accent (gold) — max 1 per screen."
+      }
+    },
+    "sheet": {
+      "handle-h": {
+        "type": "dimension",
+        "value": "4px",
+        "description": "Drag-affordance bar at the top of bottom sheets — Apple-style."
+      },
+      "peek-h": {
+        "type": "string",
+        "value": "30svh",
+        "description": "Bottom-sheet peek detent — ~30% of small viewport. Quick glance at sheet content without losing background context. svh (small-viewport-height) excludes the iOS dynamic toolbar."
+      },
+      "expand-h": {
+        "type": "string",
+        "value": "88svh",
+        "description": "Bottom-sheet expand detent — ~88% of small viewport. Full content view, sheet still anchored to bottom with background peek above."
+      }
+    },
+    "composer": {
+      "h-mobile": {
+        "type": "string",
+        "value": "clamp(64px, 12cqi, 96px)",
+        "description": "Mobile composer height — fluid 64 → 96 by container width. Used by FAB offset calc and viewport-relative sticky offsets."
+      }
+    },
+    "kb-offset": {
+      "type": "dimension",
+      "value": "0px",
+      "description": "iOS keyboard offset — overwritten at runtime by useKeyboardOffset hook (visualViewport.resize observer). Default 0 = no shift. Applied to sticky composer / fixed FAB on focus-blur transitions."
+    },
+    "safe-area": {
+      "bottom": {
+        "type": "string",
+        "value": "env(safe-area-inset-bottom, 0px)",
+        "description": "iOS home-indicator safe area — semantic alias of env() for use in calc()/cascade. Default 0 outside iOS."
+      }
+    },
+    "thread": {
+      "row-estimate": {
+        "type": "dimension",
+        "value": "200px",
+        "description": "Estimated chat message-row height for content-visibility placeholder sizing (contain-intrinsic-size: auto <this>) — used by rows that were never painted; once painted the browser remembers the real size. ~median row incl. paddings. Added 2026-07-02 (chat scroll de-virtualization)."
+      }
+    }
+  },
+  "themes": {
+    "unreals": {
+      "tokens": {
+        "color": {
+          "bg": {
+            "root": {
+              "type": "color",
+              "value": "{neutral.1000}",
+              "description": "Page background — light off-white (neutral.1000 #eeeeee, ≈ old neutral.50)"
+            },
+            "canvas": {
+              "type": "color",
+              "value": "{neutral.0}",
+              "description": "Editor canvas — pure white"
+            },
+            "surface": {
+              "type": "color",
+              "value": "{neutral.0}",
+              "description": "Opaque elevated surfaces — white cards"
+            },
+            "surface-elevated": {
+              "type": "color",
+              "value": "{neutral.1000}",
+              "description": "Resting low-emphasis elevation — nested cards inside surface-base, list rows; also the hover target for flat surface-base surfaces. Light-theme: off-white tone (neutral.1000 #eeeeee) one step above the white surface-base — the lightest gray in the ramp between base (neutral.0) and hover (neutral.900)."
+            },
+            "surface-solid": {
+              "type": "color",
+              "value": "{neutral.1000}",
+              "description": "Buttons, solid chips — slight tint over surface (neutral.1000)"
+            },
+            "surface-hover": {
+              "type": "color",
+              "value": "{neutral.900}",
+              "description": "Hover lift on raised surfaces — DARKER (light gray neutral.900 #d1d1d1; inverted from dark theme where hover is LIGHTER)"
+            },
+            "glass": {
+              "type": "color",
+              "value": "{glass.white-50}",
+              "description": "Frosted panels — white @ 50%"
+            },
+            "glass-deep": {
+              "type": "color",
+              "value": "{glass.white-30}",
+              "description": "Sidebar panels — white @ 30%"
+            },
+            "glass-deep-strong": {
+              "type": "color",
+              "value": "{glass.white-82}",
+              "description": "Sticky chrome — white @ 82% (paired with backdrop blur)"
+            },
+            "chrome": {
+              "type": "color",
+              "value": "{glass.white-10}",
+              "description": "Translucent header chrome (10% white)"
+            },
+            "rail": {
+              "type": "color",
+              "value": "{glass.white-30}",
+              "description": "Floating sidebar / RightBar / PromptComposer @ 30%"
+            },
+            "modal-backdrop": {
+              "type": "color",
+              "value": "{glass.white-70}",
+              "description": "Modal / lightbox backdrop scrim — semi-opaque white"
+            },
+            "elev": {
+              "type": "color",
+              "value": "{neutral.0}",
+              "description": "Elevated surface — alias of surface"
+            },
+            "shell": {
+              "type": "color",
+              "value": "{neutral.1000}",
+              "description": "Shell surface — alias of root (subtle off-white, neutral.1000)"
+            }
+          },
+          "card": {
+            "$description": "Light-theme override: AssetCard image-bleed fade goes to a DARK neutral (neutral.900 = #141414), NOT bg.root (#EDEDED off-white). Otherwise the bottom 20% of every cover image would wash into the light page bg, killing the cinematic dark-fade contract that AssetCard relies on. Effectively this keeps Klyp's dark-fade aesthetic even on a light brand surface — covers stay punchy.",
+            "fade": {
+              "type": "color",
+              "value": "{surface.base}",
+              "description": "AssetCard image-bleed backdrop — dark neutral (surface.base #141414) so light-theme covers still fade into darkness (cinematic), not into the off-white page bg."
+            }
+          },
+          "scrim": {
+            "$description": "Media scrim — SAME values as semantic.tokens.json (klyp), repeated here intentionally so the cascade keeps them DARK on the unreals light theme too. A bottom-of-photo caption must read white-on-dark in both brands; aliasing to bg/surface/fg would flip it. Keep base/on/on-muted byte-identical to the klyp file.",
+            "base": {
+              "type": "color",
+              "value": "{surface.root}",
+              "description": "Dark scrim colour — constant #0F0F0F (surface.root) in light theme too, so cover-image fades and bottom scrims stay dark (cinematic) instead of washing to off-white."
+            },
+            "on": {
+              "type": "color",
+              "value": "{alpha.white.90}",
+              "description": "Primary text/icon on a media scrim — constant near-white even on the light brand, so titles over photos stay legible (was the bug: fg.primary resolved to black on light)."
+            },
+            "on-muted": {
+              "type": "color",
+              "value": "{alpha.white.70}",
+              "description": "Secondary text on a media scrim — constant muted white, both brands."
+            }
+          },
+          "border": {
+            "subtle": {
+              "type": "color",
+              "value": "{alpha.black.05}"
+            },
+            "faint": {
+              "type": "color",
+              "value": "{alpha.black.03}",
+              "description": "Light-theme faintest hairline border (Unreals counterpart of border.faint)"
+            },
+            "default": {
+              "type": "color",
+              "value": "{alpha.black.10}"
+            },
+            "strong": {
+              "type": "color",
+              "value": "{alpha.black.15}"
+            },
+            "focus": {
+              "type": "color",
+              "value": "{alpha.black.20}",
+              "description": "Focus stroke on light bg"
+            },
+            "accent": {
+              "type": "color",
+              "value": "{blue.500}",
+              "description": "Light-theme: accent border — blue.500 #0267dd (WCAG 2026-06-17: blue.700 went light #5fa0ff in the APCA rebuild → 2.6:1 on white)"
+            }
+          },
+          "accent": {
+            "type": "color",
+            "value": "{blue.500}",
+            "description": "Light-theme accent — blue.500 #0267dd (5.27:1 on white). Repointed from blue.700 which went light in the APCA rebuild (WCAG fix 2026-06-17)."
+          },
+          "accent-hover": {
+            "type": "color",
+            "value": "{blue.400}",
+            "description": "Light-theme: hover one step darker (blue.400 #0054bb)"
+          },
+          "accent-pressed": {
+            "type": "color",
+            "value": "{blue.300}",
+            "description": "Light-theme: pressed darkest (blue.300 #02469a)"
+          },
+          "accent-muted": {
+            "type": "color",
+            "value": "{blue.300}",
+            "description": "Light-theme: muted accent for backgrounds with weak emphasis"
+          },
+          "overlay": {
+            "gold-10": {
+              "type": "color",
+              "value": "color-mix(in srgb, {color.accent} 10%, transparent)",
+              "description": "Light theme: accent overlay 10% — repurposed gold-10 alias for blue (rename to overlay.accent-10 in Phase 2.3)"
+            },
+            "gold-12": {
+              "type": "color",
+              "value": "color-mix(in srgb, {color.accent} 12%, transparent)",
+              "description": "Light theme: accent overlay 12%"
+            },
+            "gold-15": {
+              "type": "color",
+              "value": "color-mix(in srgb, {color.accent} 15%, transparent)",
+              "description": "Light theme: accent overlay 15%"
+            },
+            "gold-30": {
+              "type": "color",
+              "value": "color-mix(in srgb, {color.accent} 30%, transparent)",
+              "description": "Light theme: accent overlay 30%"
+            }
+          },
+          "fg": {
+            "primary": {
+              "type": "color",
+              "value": "{alpha.black.90}"
+            },
+            "muted": {
+              "type": "color",
+              "value": "{alpha.black.65}",
+              "description": "Light-theme: secondary text — WCAG AA pass (5.2:1 on neutral.0, 4.8:1 on neutral.50). Raised from alpha.black.50 which failed 3.6:1 on neutral.50 (A11y P0 fix 2026-05-25)."
+            },
+            "subtle": {
+              "type": "color",
+              "value": "{alpha.black.30}",
+              "description": "Light-theme: DECORATIVE-ONLY (~2.0:1) — never for body text, only separators / glyph decoration"
+            },
+            "inverse": {
+              "type": "color",
+              "value": "{neutral.0}",
+              "description": "Light-theme: inverse text on dark accent — pure white"
+            },
+            "on-active-nav": {
+              "type": "color",
+              "value": "{alpha.black.90}",
+              "description": "Light-theme: active nav item text — dark (mirrors fg.primary intensity)"
+            },
+            "icon-disabled": {
+              "type": "color",
+              "value": "{alpha.black.30}",
+              "description": "Light-theme: disabled icon — black at 30% (semantic muted+ opacity)"
+            },
+            "accent": {
+              "type": "color",
+              "value": "{blue.500}",
+              "description": "Light-theme: accent text — blue.500 #0267dd (5.27:1 on white, AA for normal text). Repointed from blue.700 (WCAG fix 2026-06-17)."
+            },
+            "accent-purple": {
+              "type": "color",
+              "value": "{purple.400}",
+              "description": "Light-theme: secondary purple label accent (MetaLabel tone='accent') — purple.400 #7442a1, 5.94:1 on white. Klyp counterpart is purple.900 (light, on dark)."
+            }
+          },
+          "ring": {
+            "type": "color",
+            "value": "{blue.500}",
+            "description": "Global :focus-visible on light bg — accent-coloured outline blue.500 #0267dd (5.27:1 on neutral.0, passes WCAG 2.4.11). Repointed from blue.700 which went light in the APCA rebuild (WCAG fix 2026-06-17)."
+          },
+          "status": {
+            "$description": "Light-theme status overrides (WCAG fix 2026-06-17). Without these, status.* inherited klyp's -900 (light) values → ~1.3:1 on the light page. Each fg/-strong uses a dark saturated step (passes ≥4.5:1 on white as text and pairs with white as a solid fill); -muted is the lightest tint (-1000) for subtle status backgrounds.",
+            "danger": {
+              "type": "color",
+              "value": "{red.500}",
+              "description": "Danger fg/icon on light — 4.59:1 on page."
+            },
+            "danger-strong": {
+              "type": "color",
+              "value": "{red.500}",
+              "description": "Danger solid fill (white text passes)."
+            },
+            "danger-muted": {
+              "type": "color",
+              "value": "{red.1000}",
+              "description": "Danger subtle bg tint (light)."
+            },
+            "success": {
+              "type": "color",
+              "value": "{green.400}",
+              "description": "Success fg/icon on light — 5.94:1."
+            },
+            "success-strong": {
+              "type": "color",
+              "value": "{green.400}",
+              "description": "Success solid fill."
+            },
+            "success-muted": {
+              "type": "color",
+              "value": "{green.1000}",
+              "description": "Success subtle bg tint (light)."
+            },
+            "warning": {
+              "type": "color",
+              "value": "{amber.400}",
+              "description": "Warning fg/icon on light — 5.94:1."
+            },
+            "warning-strong": {
+              "type": "color",
+              "value": "{amber.400}",
+              "description": "Warning solid fill."
+            },
+            "warning-muted": {
+              "type": "color",
+              "value": "{amber.1000}",
+              "description": "Warning subtle bg tint (light)."
+            },
+            "info": {
+              "type": "color",
+              "value": "{blue.500}",
+              "description": "Info fg/icon on light — 4.54:1."
+            },
+            "info-strong": {
+              "type": "color",
+              "value": "{blue.500}",
+              "description": "Info solid fill."
+            },
+            "info-muted": {
+              "type": "color",
+              "value": "{blue.1000}",
+              "description": "Info subtle bg tint (light)."
+            }
+          },
+          "mention": {
+            "$description": "Light-theme mention-pill overrides (WCAG fix 2026-06-17). MentionPill paints the kind colour as TEXT on a 12% tint of itself; without these it inherited klyp's -900 (light) → light-on-near-white (~1.3:1) on the light theme. Each kind repointed to the same dark saturated step its hue uses for badges/status.",
+            "character": {
+              "type": "color",
+              "value": "{blue.500}",
+              "description": "character → blue.500 (dark, reads on its light tint)."
+            },
+            "location": {
+              "type": "color",
+              "value": "{teal.400}",
+              "description": "location → teal.400."
+            },
+            "outfit": {
+              "type": "color",
+              "value": "{purple.400}",
+              "description": "outfit → purple.400."
+            },
+            "vibe": {
+              "type": "color",
+              "value": "{purple.400}",
+              "description": "vibe → purple.400 (paired with outfit)."
+            },
+            "scene": {
+              "type": "color",
+              "value": "{red.500}",
+              "description": "scene → red.500."
+            },
+            "script": {
+              "type": "color",
+              "value": "{green.400}",
+              "description": "script → green.400."
+            },
+            "shot": {
+              "type": "color",
+              "value": "{alpha.black.65}",
+              "description": "shot → muted dark (alpha-black-65, matches fg.muted on light)."
+            },
+            "prop": {
+              "type": "color",
+              "value": "{amber.400}",
+              "description": "prop → amber.400."
+            }
+          },
+          "canvas": {
+            "handle-bg-default": {
+              "type": "color",
+              "value": "{neutral.0}",
+              "description": "Light theme: handle bg = white (same as node bg, contrast comes from border)"
+            },
+            "handle-bg-selected": {
+              "type": "color",
+              "value": "{neutral.1000}",
+              "description": "Light theme: handle bg selected = slight grey lift (neutral.1000 off-white)"
+            },
+            "handle-border-default": {
+              "type": "color",
+              "value": "{alpha.black.10}",
+              "description": "Light theme: handle ring 10% black"
+            },
+            "handle-border-selected": {
+              "type": "color",
+              "value": "{alpha.black.20}",
+              "description": "Light theme: handle ring selected 20% black"
+            },
+            "border-card-v3-selected": {
+              "type": "color",
+              "value": "{alpha.black.15}",
+              "description": "Light theme: canvas card selected border — 15% black"
+            },
+            "dot": {
+              "type": "color",
+              "value": "rgba(0, 0, 0, 0.28)",
+              "description": "Light theme: canvas background dot fill, inverted from white-0.28 to black-0.28"
+            }
+          },
+          "slider": {
+            "$description": "Light-theme override for AllowanceSlider palette (defaults in semantic.tokens.json). Rail inverts white-30 → black-18, fill switches to accent blue (was alpha-white-90 on dark = unreadable as black-90 on light), thumb becomes solid accent fill so it reads as a distinct chip on the white panel, glyph flips to inverse white, halo + tick-inactive use black equivalents. Added 2026-05-27 — AllowanceSlider/AllowancePanel light-theme pass.",
+            "rail": {
+              "type": "color",
+              "value": "{alpha.black.15}",
+              "description": "Light: black 15% — visible track on white panel without being heavy."
+            },
+            "fill": {
+              "type": "color",
+              "value": "{color.accent}",
+              "description": "Light: brand accent blue (blue.700) — high contrast on white, reads as progress."
+            },
+            "thumb-bg": {
+              "type": "color",
+              "value": "{color.accent}",
+              "description": "Light: solid accent pill (blue.700). White thumb on white panel would dissolve — accent fill makes it a distinct chip."
+            },
+            "thumb-border": {
+              "type": "color",
+              "value": "transparent",
+              "description": "Light: no inset border — accent fill provides full contrast against white panel."
+            },
+            "thumb-icon": {
+              "type": "color",
+              "value": "{color.fg.inverse}",
+              "description": "Light: white chevron glyph (fg.inverse = neutral-0) on accent-blue pill. The default klyp value (--color-bg-canvas) resolved to WHITE on unreals → invisible glyph. Key 2026-05-27 fix."
+            },
+            "thumb-halo-drag": {
+              "type": "color",
+              "value": "color-mix(in srgb, {color.accent} 25%, transparent)",
+              "description": "Light: 25% accent-blue halo during drag — visible feedback on white."
+            },
+            "tick-inactive": {
+              "type": "color",
+              "value": "{alpha.black.40}",
+              "description": "Light: black 40% — visible-but-quiet inactive tick. Active tick uses fg.primary (alpha-black-90) so the contrast step still reads."
+            }
+          },
+          "panel": {
+            "$description": "Light-theme glass panel override. Klyp white-3% over dark canvas → unreals needs a darker tint over white surface so the panel chassis stays legible (white-3% over white = invisible).",
+            "glass-bg": {
+              "type": "color",
+              "value": "{alpha.black.05}",
+              "description": "Light: black 5% — gentle tonal step below the parent white surface."
+            },
+            "glass-border": {
+              "type": "color",
+              "value": "{alpha.black.10}",
+              "description": "Light: black 10% — chassis edge slightly stronger than bg for legibility."
+            }
+          },
+          "badge": {
+            "$description": "Light-theme subtle Badge: bg = -1000 (lightest tint) + fg = a DARK saturated step (-400/-500). WCAG fix 2026-06-17: the APCA rebuild made -700 light, so the old -700 fg failed (~2.3:1) on the -1000 tint; repointed each fg to the nearest step passing ≥4.5:1 on its tint. Gray uses neutral.900 (light tint) + neutral.100 (dark text).",
+            "gray-bg": {
+              "type": "color",
+              "value": "{neutral.900}"
+            },
+            "gray-fg": {
+              "type": "color",
+              "value": "{neutral.100}"
+            },
+            "blue-bg": {
+              "type": "color",
+              "value": "{blue.1000}"
+            },
+            "blue-fg": {
+              "type": "color",
+              "value": "{blue.500}",
+              "description": "4.53:1 on blue.1000"
+            },
+            "purple-bg": {
+              "type": "color",
+              "value": "{purple.1000}"
+            },
+            "purple-fg": {
+              "type": "color",
+              "value": "{purple.400}",
+              "description": "5.94:1 on purple.1000"
+            },
+            "amber-bg": {
+              "type": "color",
+              "value": "{amber.1000}"
+            },
+            "amber-fg": {
+              "type": "color",
+              "value": "{amber.400}",
+              "description": "5.90:1 on amber.1000"
+            },
+            "red-bg": {
+              "type": "color",
+              "value": "{red.1000}"
+            },
+            "red-fg": {
+              "type": "color",
+              "value": "{red.500}",
+              "description": "4.58:1 on red.1000"
+            },
+            "pink-bg": {
+              "type": "color",
+              "value": "{pink.1000}"
+            },
+            "pink-fg": {
+              "type": "color",
+              "value": "{pink.500}",
+              "description": "4.62:1 on pink.1000"
+            },
+            "green-bg": {
+              "type": "color",
+              "value": "{green.1000}"
+            },
+            "green-fg": {
+              "type": "color",
+              "value": "{green.400}",
+              "description": "5.92:1 on green.1000"
+            },
+            "teal-bg": {
+              "type": "color",
+              "value": "{teal.1000}"
+            },
+            "teal-fg": {
+              "type": "color",
+              "value": "{teal.400}",
+              "description": "5.91:1 on teal.1000"
+            },
+            "gold-bg": {
+              "type": "color",
+              "value": "color-mix(in srgb, {color.accent} 15%, transparent)",
+              "description": "Unreals: gold-badge bg = brand-accent (blue) wash @15% — no warm gold in this brand. Preserves the pre-2026-06-29 look (the gold badge previously read the shared overlay.gold-15, which resolves to accent on unreals)."
+            },
+            "gold-fg": {
+              "type": "color",
+              "value": "{blue.500}",
+              "description": "Unreals light theme: Popular badge text uses brand accent blue.500 (no warm gold in this brand; matches new accent)."
+            }
+          }
+        },
+        "shadow": {
+          "$description": "Light-theme shadows. Override of primitives — heavy black 0.4-0.5 looks like sajev'evi bombs under floating elements on white bg. Tuned to ~0.08-0.12 black for subtle elevation that reads on light.",
+          "soft": {
+            "type": "shadow",
+            "value": "0 4px 14px 0 rgba(0,0,0,0.08)"
+          },
+          "panel": {
+            "type": "shadow",
+            "value": "0 16px 32px -8px rgba(0,0,0,0.12)"
+          },
+          "card-lift": {
+            "type": "shadow",
+            "value": "0 12px 24px -16px rgba(0,0,0,0.10)"
+          },
+          "gold-inset": {
+            "type": "shadow",
+            "value": "inset 0 0 10px 0 {color.accent}",
+            "description": "Selection glow — still uses accent (resolves to blue on unreals)"
+          }
+        },
+        "fx": {
+          "$description": "Light-theme effect overrides. button-highlight (inset top white-50) is invisible/lazy on light; gone. SolidButton ships its own inset+micro-shadow recipe.",
+          "button-highlight": {
+            "type": "string",
+            "value": "none"
+          }
+        }
+      }
+    }
+  }
+}

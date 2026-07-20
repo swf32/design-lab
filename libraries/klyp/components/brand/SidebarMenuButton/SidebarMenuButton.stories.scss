@@ -1,0 +1,35 @@
+/* =====================================================================*/
+/* SidebarMenuButton.stories.scss — layout helpers for story previews.   */
+/* Not consumed by production. Mirrors the production sidebar rail's     */
+/* local context so the menu button reads in the same surface where it   */
+/* lives in the app.                                                     */
+
+.klyp-SidebarMenuButton-stories__rail {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+
+  /* Stories-only layout literal — visually representative of the expanded
+     rail (the real track is 248px, owned by AppLayout). */
+  width: 240px;
+  padding: var(--space-8);
+  /* Concentric radii: rows are --r-chip (10) behind the 8px gutter →
+     --r-section (16), not --r-panel (20) which over-rounds vs the rows. */
+  border-radius: var(--r-section);
+  background: var(--color-bg-shell);
+  border: var(--bw-default) solid var(--color-border-subtle);
+}
+
+/* 52px collapsed = 36px icon slot + 8+8 padding. Matches the production
+   AppSidebar collapsed rail exactly so the fixed-slot icon centres the same. */
+.klyp-SidebarMenuButton-stories__rail--collapsed {
+  width: 52px;
+}
+
+/* Hairline divider between rail sections (chrome / active group / disabled
+   group) — mirrors the `nth-child` group break in production Sidebar.scss. */
+.klyp-SidebarMenuButton-stories__sep {
+  height: var(--bw-default);
+  margin: var(--space-4) var(--space-16) var(--space-4);
+  background: var(--color-border-subtle);
+}

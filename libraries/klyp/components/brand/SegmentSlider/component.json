@@ -1,0 +1,12 @@
+{
+  "id": "segment-slider",
+  "name": "SegmentSlider",
+  "status": "in-progress",
+  "schemaVersion": 1,
+  "tags": [
+    "brand"
+  ],
+  "entry": "SegmentSlider.tsx",
+  "stories": "SegmentSlider.stories.tsx",
+  "changelog": "CHANGELOG.md"
+}

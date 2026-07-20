@@ -1,0 +1,13 @@
+{
+  "id": "data-table",
+  "name": "DataTable",
+  "status": "in-progress",
+  "schemaVersion": 1,
+  "description": "Generic sortable table — column priority, animated row reorder, empty slot.",
+  "tags": [
+    "ui"
+  ],
+  "entry": "DataTable.tsx",
+  "stories": "DataTable.stories.tsx",
+  "changelog": "CHANGELOG.md"
+}

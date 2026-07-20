@@ -1,0 +1,76 @@
+/* =====================================================================
+ * MediaGrid.scss — Magnific-style absolute-position masonry
+ * =====================================================================
+ * Klyp Tier 4 brand molecule. Tokens-only, no Tailwind.
+ *
+ * Layout strategy: JS calculates `transform: translate3d(x, y, 0)` per
+ * item via `useMasonryLayout`. Container height is set inline by
+ * `MediaGrid.tsx`. Each item carries `contain: size layout` so the
+ * browser skips offscreen layout work — that's the secret to smooth
+ * scrolling for hundreds of items without explicit virtualization.
+ *
+ * Why translate3d instead of left/top: GPU layer promotion. Resize and
+ * filter changes animate via a transform-only transition, which the
+ * compositor handles without layout / paint.
+ */
+
+.klyp-MediaGrid {
+  position: relative;
+  width: 100%;
+
+  /* ─────── MASONRY mode (default) — JS-driven absolute positioning. */
+  &[data-view='masonry'] {
+    /* --klyp-grid-h set inline via JS — sum of tallest column. */
+    height: var(--klyp-grid-h, auto);
+
+    & > .klyp-MediaGrid__item {
+      position: absolute;
+      left: 0;
+      top: 0;
+      /* --klyp-item-{x,y,w,h} set inline via JS per item, computed by useMasonryLayout. */
+      width: var(--klyp-item-w);
+      height: var(--klyp-item-h);
+      transform: translate3d(var(--klyp-item-x, 0), var(--klyp-item-y, 0), 0);
+      contain: size layout;
+      /* `transform` only — width/height intentionally NOT transitioned. The
+       * Magnific reference also transitions transform only; layout-changing
+       * properties (width/height) trigger 200 layout passes per frame when
+       * the user toggles the size-pill. Snap width/height instantly, animate
+       * the position delta — visually the whole grid still reflows smoothly
+       * because every item is also moving via translate3d.
+       *
+       * `will-change: transform` is intentionally NOT set: at N=200 items it
+       * would promote 200 composited layers (~100MB GPU memory). The browser
+       * auto-promotes on transition start. */
+      transition: transform 180ms cubic-bezier(0.22, 1, 0.36, 1);
+
+      @media (prefers-reduced-motion: reduce) {
+        transition: none;
+      }
+    }
+  }
+
+  /* ─────── GRID mode — CSS Grid auto-fill, forced 1:1 aspect on items. */
+  &[data-view='grid'] {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(var(--klyp-grid-min-w, 280px), 1fr));
+    gap: var(--klyp-grid-gap, 8px);
+
+    & > .klyp-MediaGrid__item {
+      position: relative;
+      width: 100%;
+      aspect-ratio: 1 / 1;
+      contain: layout;
+    }
+  }
+
+  &__item {
+    /* Positioning shell — mode-specific rules above set width/height/transform.
+     * The card visual (radius, hover/selected ring, media, checkbox, duration
+     * badge) lives on `<MediaCard>` (.klyp-MediaCard) inside this shell. */
+  }
+
+  &__sentinel {
+    pointer-events: none;
+  }
+}

@@ -1,0 +1,67 @@
+.klyp-StatusDot {
+  display: inline-block;
+  flex-shrink: 0;
+  border-radius: var(--radius-full);
+
+  // Sizes — explicit pixel dimensions are the documented exception
+  // for this primitive (6 / 8 / 10px dot diameters).
+  &[data-size='xs'] {
+    width: 6px;
+    height: 6px;
+  }
+
+  &[data-size='sm'] {
+    width: 8px;
+    height: 8px;
+  }
+
+  &[data-size='md'] {
+    width: 10px;
+    height: 10px;
+  }
+
+  // Tones — semantic status tokens + neutral + accent.
+  &[data-tone='neutral'] {
+    background: var(--color-fg-muted);
+  }
+
+  &[data-tone='success'] {
+    background: var(--color-status-success);
+  }
+
+  &[data-tone='warning'] {
+    background: var(--color-status-warning);
+  }
+
+  &[data-tone='danger'] {
+    background: var(--color-status-danger);
+  }
+
+  &[data-tone='info'] {
+    background: var(--color-status-info);
+  }
+
+  &[data-tone='accent'] {
+    background: var(--color-accent);
+  }
+
+  &[data-pulse] {
+    animation: klyp-statusdot-pulse 1.6s ease-in-out infinite;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    &[data-pulse] {
+      animation: none;
+    }
+  }
+}
+
+@keyframes klyp-statusdot-pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.4;
+  }
+}

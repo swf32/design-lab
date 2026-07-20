@@ -1,0 +1,133 @@
+/* =====================================================================*/
+/* Accordion.scss — Klyp canonical primitive (Phase 2 of React Aria migration)*/
+/* =====================================================================*/
+/* All values via Klyp DTCG tokens — no magic numbers.*/
+/* Architecture: ../../../../MIGRATION-REACT-ARIA-2026-04-30.md §6/§16*/
+/**/
+/* RAC DisclosureGroup/Disclosure/Button(slot=trigger)/DisclosurePanel emit:*/
+/*   [data-expanded], [data-disabled], [data-hovered], [data-pressed],*/
+/*   [data-focus-visible].*/
+
+.klyp-Accordion {
+  /* === Root ============================================================*/
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+
+  /* === Item ============================================================*/
+  &__item {
+    &:not(:last-child) {
+      border-bottom: var(--bw-default) solid var(--color-border-subtle);
+    }
+  }
+
+  /* === Heading wrapper (RAC Heading is required between Disclosure and Button) ===*/
+  &__heading {
+    margin: 0;
+    display: flex;
+  }
+
+  /* === Trigger =========================================================*/
+  &__trigger {
+    position: relative;
+    display: flex;
+    flex: 1 1 auto;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-6);
+    width: 100%;
+    padding: var(--space-10) 0;
+    border: var(--bw-default) solid transparent;
+    border-radius: var(--radius-sm);
+    background: transparent;
+    cursor: pointer;
+    text-align: left;
+    -webkit-tap-highlight-color: transparent;
+
+    font: var(--type-body); /* 14 → 18 box */
+    font-weight: var(--font-weight-medium);
+    color: var(--color-fg-primary);
+
+    transition:
+      color var(--duration-fast) var(--easing-standard),
+      background var(--duration-fast) var(--easing-standard);
+
+    &[data-hovered]:not([data-disabled]) {
+      text-decoration: underline;
+      text-underline-offset: 4px;
+    }
+
+    &[data-focus-visible] {
+      outline: var(--bw-default) solid var(--color-ring);
+      outline-offset: var(--bw-emphasis);
+    }
+
+    &[data-disabled] {
+      opacity: var(--opacity-50);
+      cursor: not-allowed;
+    }
+  }
+
+  &__triggerLabel {
+    flex: 1 1 auto;
+    min-width: 0;
+  }
+
+  /* === Chevron (single icon, rotates on expand) ========================*/
+  &__chevron {
+    flex-shrink: 0;
+    width: var(--icon-size-sm, 16px);
+    height: var(--icon-size-sm, 16px);
+    color: var(--color-fg-muted);
+    pointer-events: none;
+    transition: transform var(--duration-normal) var(--easing-standard);
+  }
+
+  /* RAC v1.17 sets `data-expanded` on the Disclosure (`__item`) and only
+     `aria-expanded` on the Button slot — match the button via the ARIA
+     attribute so the chevron flips together with the panel. */
+  &__trigger[aria-expanded='true'] &__chevron {
+    transform: rotate(180deg);
+  }
+
+  /* === Content =========================================================*/
+  /* */
+  /* RAC v1.17 `<DisclosurePanel>` exposes its open/closed dimensions as*/
+  /* inline CSS custom properties on the panel itself:*/
+  /*   • `--disclosure-panel-height`  →  `0px` (collapsed) / `auto` (open)*/
+  /*   • `--disclosure-panel-width`   →  `0px` (collapsed) / `auto` (open)*/
+  /* */
+  /* IMPORTANT — `data-expanded` is set on the `__item` (Disclosure root),*/
+  /* NOT on `__content` (DisclosurePanel). Our previous rule*/
+  /*   `&__content[data-expanded] { height: auto }`*/
+  /* therefore never matched in RAC v1.17+, leaving every Accordion stuck*/
+  /* at `height: 0`. Consume the panel's own CSS var directly — that's the*/
+  /* RAC-native pattern and animates cleanly via `interpolate-size`.*/
+  /* */
+  /* `hidden="until-found"` (RAC's default) also brings `content-visibility:*/
+  /* hidden` from the UA stylesheet — harmless because the panel collapses*/
+  /* via `height: 0` anyway, but `display: block` keeps boolean `hidden`*/
+  /* renders behaving the same way. (Pricing-FAQ debug — the design lead 2026-05-20.)*/
+  &__content {
+    overflow: hidden;
+    font: var(--type-body); /* 14 → 18 box */
+    color: inherit;
+
+    interpolate-size: allow-keywords;
+    height: var(--disclosure-panel-height, 0);
+    transition: height var(--duration-normal) var(--easing-standard);
+
+    &[hidden] {
+      display: block;
+    }
+
+    &[data-focus-visible] {
+      outline: var(--bw-default) solid var(--color-ring);
+      outline-offset: var(--bw-emphasis);
+    }
+  }
+
+  &__contentInner {
+    padding: 0 0 var(--space-6) 0;
+  }
+}

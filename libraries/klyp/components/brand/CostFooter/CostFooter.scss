@@ -1,0 +1,29 @@
+// =====================================================================
+// CostFooter.scss — Klyp brand atom (Phase 3 Tailwind → SCSS migration)
+// =====================================================================
+// Tiny "~{duration}s · {cost}" line that lives under every Generate
+// transaction. Numbers use tabular-nums (NOT font-mono — per styles.md).
+// All values via Klyp DTCG tokens.
+
+.klyp-CostFooter {
+  margin: 0;
+  font-family: var(--font-sans);
+  font-size: var(--font-size-12);
+  font-weight: var(--font-weight-medium);
+  color: var(--color-fg-muted);
+
+  // Numbers align in columns; cost line is dense numeric content.
+  font-variant-numeric: tabular-nums;
+
+  &[data-align='left'] {
+    text-align: left;
+  }
+
+  &[data-align='center'] {
+    text-align: center;
+  }
+
+  &[data-align='right'] {
+    text-align: right;
+  }
+}

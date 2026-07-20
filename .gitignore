@@ -9,5 +9,7 @@ dist/
 !/libraries/design-lab-system/**
 !/libraries/northstar-travel-system/
 !/libraries/northstar-travel-system/**
+!/libraries/klyp/
+!/libraries/klyp/**
 .DS_Store
 *.log

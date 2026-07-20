@@ -1,0 +1,12 @@
+{
+  "id": "app-header",
+  "name": "AppHeader",
+  "status": "in-progress",
+  "schemaVersion": 1,
+  "tags": [
+    "brand"
+  ],
+  "entry": "AppHeader.tsx",
+  "stories": "AppHeader.stories.tsx",
+  "changelog": "CHANGELOG.md"
+}

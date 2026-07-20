@@ -1,0 +1,270 @@
+/* =====================================================================
+ * AllowanceSlider — discrete-stop slider + tick row (2026-05-20)
+ * =====================================================================
+ *
+ * Wraps `@klyp/ui/Slider` (React Aria). Big visual sweep 2026-05-20 —
+ * driven by senior FE + ui-ux + emil-design-eng reviews + the design lead direct
+ * visual feedback. Architectural rules:
+ *
+ *   • Rectangular HORIZONTAL pill thumb 28w × 20h (`--space-28` ×
+ *     `--space-20`), `--radius-sm` (6px). Sits "ON" the track like a
+ *     pill stamp — visually anchored to the line.
+ *   • Track 4px (`--space-4`). Rail / fill / thumb are brand-aware via
+ *     `--color-slider-*` semantic tokens — klyp keeps the white-30 rail
+ *     + alpha-white-90 fill + white pill (the design lead 2026-05-20 original);
+ *     unreals (light theme) inverts to black-15 rail + accent-blue fill
+ *     + accent-blue pill with inverse-white chevron so the chrome reads
+ *     on white panels. The rail-vs-fill contrast step is what makes the
+ *     drag-position read clearly on both themes.
+ *   • Visual transforms (hover scale 1.08, drag scale 1.12) live on
+ *     the `__thumbInner` wrapper — RAC's inline `transform: translate
+ *     (-50%, -50%)` on the root would otherwise conflict with CSS scale
+ *     and break centering.
+ *   • Smooth `left` transition on click-jump + drag release (UI Slider
+ *     base — `--duration-slow` / `--easing-emphasis`). Killed during
+ *     pointer drag via `:has(.thumb[data-dragging])` so drag stays 1:1.
+ *   • Tick active = soft `--alpha-white-10` glass pill + color shift
+ *     (NO bold — styles.md "bold only on price + name").
+ *
+ * NESTING NOTE (2026-05-20 bug fix, the design lead: «почему слайдер заполненный
+ * золотой а не белый?»): all .klyp-Slider__* overrides MUST live INSIDE
+ * `&__slider[data-orientation='horizontal']` so the compiled selector
+ * is `.klyp-AllowanceSlider__slider[data-orientation='horizontal']
+ * .klyp-Slider__rail` — `data-orientation` lives ON the slider element
+ * (same node as `klyp-AllowanceSlider__slider`), NOT as ancestor. An
+ * earlier `[data-orientation='horizontal'] &` pattern compiled to
+ * `[data-orientation='horizontal'] .klyp-AllowanceSlider ...` which
+ * never matched (parent has no orientation attr), so base UI Slider
+ * styles (gold fill, dark rail) were silently winning the cascade.
+ *
+ * Tokens only.
+ */
+
+.klyp-AllowanceSlider {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-10);
+  width: 100%;
+  min-width: 0;
+  align-self: stretch;
+
+  /* ---- Slider chrome override -------------------------------------- *
+   * All `.klyp-Slider__*` overrides must be DESCENDANTS of the slider
+   * element carrying `[data-orientation='horizontal']` — nesting any
+   * sub-rules ABOVE this selector means the orientation guard ends up
+   * as ancestor combinator on `.klyp-AllowanceSlider` (the parent),
+   * which never matches the DOM (orientation attr is on the slider
+   * itself, not on a parent). */
+  &__slider[data-orientation='horizontal'] {
+    /* Full allowance-panel slot width — `border-box` so horizontal
+     * padding does not add to the 100% width (was overflowing the panel
+     * and mis-positioning the thumb on Studio). */
+    width: 100%;
+    max-width: 100%;
+    box-sizing: border-box;
+    overflow: visible;
+
+    /* Full-width track (the design lead 2026-05-22): rail/fill span the allowance panel.
+     * Thumb edge-align at extremes via `margin-left` + RAC `--thumb-pct`
+     * (see `&__thumb` below) — keeps `translate(-50%)` on the root, shifts
+     * the pill so its left/right edge meets the track end, not its centre. */
+    padding: var(--space-4) 0;
+
+    /* Track 4px — visible "line" under the pill thumb. */
+    .klyp-Slider__track {
+      height: var(--space-4);
+    }
+
+    /* Rail = unfilled track. Brand-aware via --color-slider-rail —
+     * klyp dark: white 30% (the design lead: «белого цвета 30%»). unreals light:
+     * black 18% (white-30 would be invisible on white panel). */
+    .klyp-Slider__rail {
+      height: var(--space-4);
+      background: var(--color-slider-rail);
+      border-radius: var(--radius-full);
+    }
+
+    /* Fill = filled track (progress, left of thumb). Brand-aware via
+     * --color-slider-fill — klyp dark: alpha-white-90 (the design lead 2026-05-20
+     * «при заполнении пусть будет 100%»). unreals light: brand accent
+     * blue.700 — accent reads as progress on white where white-90
+     * would resolve to black-90 (heavy, off-brand for a progress fill).
+     *
+     * Easing reverted 2026-06-19 (Val): the `--easing-spring` back-out
+     * (~12% overshoot, added 2026-05-25) read as an unwanted BOUNCE — the
+     * thumb/fill crossed the target stop and sprang back. Back to
+     * `--easing-standard` (monotonic ease-out, no overshoot) so the fill
+     * glides to the stop and settles without bouncing. Duration stays
+     * `--duration-base` (220ms) — smooth, not snappy. `:has([data-dragging])`
+     * in base Slider.scss still kills transition during pointer drag (1:1
+     * chase), so this only eases tick-click + drag-release. */
+    .klyp-Slider__fill {
+      height: var(--space-4);
+      background: var(--color-slider-fill);
+      border-radius: var(--radius-full);
+      transition:
+        left var(--duration-base) var(--easing-standard),
+        width var(--duration-base) var(--easing-standard);
+    }
+
+    /* Thumb root — edge-anchored at pct 0/1 (Slider sets `--thumb-pct` 0..1).
+     * RAC keeps `transform: translate(-50%, -50%)` on the root; this
+     * margin shifts the pill so:
+     *   pct=0 → left edge on track start (margin +half thumb width)
+     *   pct=1 → right edge on track end (margin −half thumb width)
+     *   pct=0.5 → centred on snap (margin 0) */
+    .klyp-Slider__thumb {
+      width: var(--space-28);
+      height: var(--space-20);
+      margin-left: calc((0.5 - var(--thumb-pct, 0)) * var(--space-28));
+      /* Easing reverted 2026-06-19 (Val): `--easing-standard` (no overshoot) —
+       * matches `__fill` so thumb + fill move as one, no bounce. See the
+       * `__fill` comment above for the spring→standard revert rationale. */
+      transition:
+        left var(--duration-base) var(--easing-standard),
+        top var(--duration-base) var(--easing-standard),
+        margin-left var(--duration-base) var(--easing-standard);
+    }
+
+    /* Visual layer — bg, radius, shadow, scale on hover/drag. Lives on
+     * the inner wrapper so CSS transform doesn't fight RAC's translate.
+     * Brand-aware bg + inset border via --color-slider-thumb-bg/-border:
+     *   • klyp dark — white pill (neutral-0) with subtle black-12 inset
+     *   • unreals light — solid accent blue pill (chevron flips inverse
+     *     white), transparent border (accent already contrasts white) */
+    .klyp-Slider__thumbInner {
+      width: 100%;
+      height: 100%;
+      background: var(--color-slider-thumb-bg);
+      /* 6px radius — wide rectangle reads as a "stamp" on the track. */
+      border-radius: var(--radius-sm);
+      border: 0;
+      box-shadow:
+        0 1px 3px var(--alpha-black-25),
+        inset 0 0 0 1px var(--color-slider-thumb-border);
+      will-change: transform;
+      transition:
+        transform var(--duration-fast) var(--easing-standard),
+        box-shadow var(--duration-fast) var(--easing-standard);
+    }
+
+    /* Hover lift — only on real pointer devices. Touch :hover sticks
+     * after tap, which looks stuck on a draggable control. */
+    @media (hover: hover) and (pointer: fine) {
+      .klyp-Slider__thumb[data-hovered] .klyp-Slider__thumbInner {
+        transform: scale(1.08);
+      }
+    }
+
+    /* Active drag — bigger scale + larger halo. Cursor flips to
+     * grabbing. `:has()` in base Slider.scss kills the `left`
+     * transition during drag so the thumb chases pointer 1:1. */
+    .klyp-Slider__thumb[data-dragging] {
+      cursor: grabbing;
+    }
+    .klyp-Slider__thumb[data-dragging] .klyp-Slider__thumbInner {
+      transform: scale(1.12);
+      box-shadow:
+        0 2px 6px var(--alpha-black-40),
+        0 0 0 var(--space-4) var(--color-slider-thumb-halo-drag),
+        inset 0 0 0 1px var(--color-slider-thumb-border);
+    }
+
+    .klyp-Slider__thumb[data-focus-visible] {
+      outline: var(--border-width-2) solid var(--color-border-focus);
+      outline-offset: var(--space-2);
+      border-radius: var(--radius-sm);
+    }
+  }
+
+  /* ---- Thumb icon -------------------------------------------------- *
+   * The `<svg>` injected via `Slider.thumbContent`. 12px size, centered
+   * inside the 28×20 pill — sized so chevrons read as glyph, not dust.
+   * Brand-aware via --color-slider-thumb-icon:
+   *   • klyp dark — dark glyph (--color-bg-canvas = neutral-925) on
+   *     the white pill
+   *   • unreals light — inverse white glyph on accent-blue pill.
+   *     Was previously `--color-bg-canvas` which resolved to neutral-0
+   *     (PURE WHITE) on unreals → invisible glyph on white pill.
+   *     P0 fix 2026-05-27. */
+  &__thumbIcon {
+    width: var(--space-12);
+    height: var(--space-12);
+    color: var(--color-slider-thumb-icon);
+    pointer-events: none;
+  }
+
+  /* ---- Tick row --------------------------------------------------- *
+   * Container flush with the parent allowance panel's INNER edge (no
+   * negative margin). Tick buttons have only VERTICAL padding so the
+   * visible text + active pill bg both sit fully within the panel —
+   * never overflow the border. Text x-offset matches the headline
+   * `__allowanceAmount` above (the design lead 2026-05-20: «была выровнена и имела
+   * ровные отступы от краев как количество токенов а то ща выходит при
+   * подсветке фона фон за границу»). */
+  &__ticks {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0;
+  }
+
+  &__tick {
+    /* Per the design lead 2026-05-20: «убрал бы этот фон просто 30% неактивная цифра
+     * а 100% прозрачность активная». No pill bg, no border-radius —
+     * just a color shift inactive → active. Brand-aware via
+     * --color-slider-tick-inactive:
+     *   • klyp dark — white 30% (the design lead original)
+     *   • unreals light — black 40% (white-30 was invisible on white)
+     * Active state hops to --color-fg-primary either way (full contrast).
+     * WCAG 2.5.5 hit area still provided via `::before` overlay so the
+     * pointer target clears 44×44 even without visible button chrome. */
+    position: relative;
+    background: transparent;
+    border: 0;
+    padding: var(--space-4) 0;
+    cursor: pointer;
+    font-family: var(--font-sans);
+    font-size: var(--font-size-12);
+    color: var(--color-slider-tick-inactive);
+    font-variant-numeric: tabular-nums;
+    transition: color var(--duration-fast) var(--easing-standard);
+
+    &::before {
+      content: '';
+      position: absolute;
+      inset: calc(var(--space-12) * -1) calc(var(--space-8) * -1);
+      pointer-events: auto;
+    }
+
+    &:hover,
+    &[data-active='true'] {
+      color: var(--color-fg-primary);
+    }
+
+    &:focus-visible {
+      outline: var(--border-width-2) solid var(--color-border-focus);
+      outline-offset: var(--space-2);
+    }
+  }
+
+  /* ---- Reduced motion --------------------------------------------- */
+  @media (prefers-reduced-motion: reduce) {
+    &__slider[data-orientation='horizontal'] {
+      .klyp-Slider__thumb,
+      .klyp-Slider__fill,
+      .klyp-Slider__thumbInner {
+        transition-duration: 0ms;
+      }
+
+      .klyp-Slider__thumb {
+        transition-property: left, top, margin-left;
+      }
+
+      .klyp-Slider__thumb[data-hovered] .klyp-Slider__thumbInner,
+      .klyp-Slider__thumb[data-dragging] .klyp-Slider__thumbInner {
+        transform: none;
+      }
+    }
+  }
+}

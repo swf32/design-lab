@@ -1,0 +1,11 @@
+{
+  "id": "mesh-slider",
+  "name": "MeshSlider",
+  "status": "in-progress",
+  "schemaVersion": 1,
+  "tags": [
+    "brand"
+  ],
+  "entry": "MeshSlider.tsx",
+  "changelog": "CHANGELOG.md"
+}

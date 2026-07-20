@@ -1,0 +1,171 @@
+/* =====================================================================
+ * BoardCard.scss — canvas board library tile
+ * =====================================================================
+ * Klyp Tier 4 brand molecule. Tokens-only, no Tailwind, no magic numbers.
+ *
+ * Anatomy: thumbnail (16:10) → body (title + meta).
+ * Outline lives on the thumbnail `::after` so it sits above the
+ * thumbnail content without affecting layout.
+ *
+ * `actions` slot lives top-right inside the thumbnail; revealed on
+ * hover / focus-within so the card stays visually quiet at rest. On
+ * touch-only / coarse-pointer surfaces the slot stays visible always so
+ * actions remain reachable.
+ */
+
+.klyp-BoardCard {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  gap: var(--space-12);
+  padding: 0;
+  border: none;
+  background: transparent;
+  text-align: left;
+  appearance: none;
+  color: var(--color-fg-primary);
+  font-family: var(--font-sans);
+
+  &[data-interactive='true'] {
+    cursor: pointer;
+  }
+
+  &__thumbnail {
+    position: relative;
+    display: block;
+    width: 100%;
+    aspect-ratio: 16 / 10;
+    overflow: clip;
+    border-radius: var(--r-card);
+    background: var(--color-bg-surface);
+    isolation: isolate;
+    transition: filter 180ms ease, background-color 180ms ease;
+  }
+
+  &__thumbnailInner {
+    position: absolute;
+    inset: 0;
+    display: block;
+  }
+
+  &__thumbnail::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    pointer-events: none;
+    box-shadow: inset 0 0 0 1px transparent;
+    transition: box-shadow 180ms ease;
+    z-index: 1;
+  }
+
+  &__placeholder {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    /* Solid-ish color + wrapper opacity — outline strokes overlap at
+     * joints; alpha-per-stroke would double up on overlaps. Wrapper
+     * `opacity` composites the SVG layer first, then fades uniformly. */
+    color: var(--color-fg-primary);
+    opacity: 0.35;
+  }
+
+  &__actions {
+    position: absolute;
+    top: var(--space-8);
+    right: var(--space-8);
+    display: flex;
+    gap: var(--space-4);
+    z-index: 2;
+    opacity: 0;
+    transform: translateY(-2px);
+    transition: opacity 160ms ease, transform 160ms ease;
+    pointer-events: none;
+  }
+
+  /* Reveal on hover / focus-within. `:focus-within` keeps the slot
+   * accessible via keyboard once the menu is open. */
+  &:hover .klyp-BoardCard__actions,
+  &:focus-within .klyp-BoardCard__actions,
+  & .klyp-BoardCard__actions:has([data-pressed]),
+  & .klyp-BoardCard__actions:has([aria-expanded='true']) {
+    opacity: 1;
+    transform: translateY(0);
+    pointer-events: auto;
+  }
+
+  /* Touch / coarse-pointer surfaces — always-visible actions
+   * (no hover to reveal them on). */
+  @media (hover: none) {
+    .klyp-BoardCard__actions {
+      opacity: 1;
+      transform: none;
+      pointer-events: auto;
+    }
+  }
+
+  &__body {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-2);
+    padding-inline: var(--space-4);
+    min-width: 0;
+  }
+
+  &__title {
+    font-size: var(--font-size-14);
+    font-weight: var(--font-weight-medium);
+    color: var(--color-fg-primary);
+    line-height: 1.3;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    min-width: 0;
+  }
+
+  &__meta {
+    font-size: var(--font-size-12);
+    font-weight: var(--font-weight-medium);
+    color: var(--color-fg-muted);
+    line-height: 1.3;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  /* Hover / focus / pressed states. */
+  &:hover .klyp-BoardCard__thumbnail {
+    background: var(--color-bg-surface-hover);
+  }
+
+  &:hover .klyp-BoardCard__thumbnail::after {
+    box-shadow: inset 0 0 0 1px var(--color-border-strong);
+  }
+
+  &:active .klyp-BoardCard__thumbnail {
+    filter: brightness(0.96);
+  }
+
+  &:focus-visible {
+    outline: none;
+  }
+
+  &:focus-visible .klyp-BoardCard__thumbnail::after {
+    box-shadow: 0 0 0 2px var(--color-border-focus);
+  }
+
+  &[data-active] .klyp-BoardCard__thumbnail::after {
+    box-shadow: inset 0 0 0 1px var(--color-border-strong);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    &__thumbnail,
+    &__thumbnail::after,
+    &__actions {
+      transition: none;
+    }
+  }
+}

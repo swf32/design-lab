@@ -1,0 +1,13 @@
+{
+  "id": "checkbox",
+  "name": "Checkbox",
+  "status": "in-progress",
+  "schemaVersion": 1,
+  "description": "Single checkbox — RAC primitive with indeterminate, description, sm/md sizes, invalid state.",
+  "tags": [
+    "ui"
+  ],
+  "entry": "Checkbox.tsx",
+  "stories": "Checkbox.stories.tsx",
+  "changelog": "CHANGELOG.md"
+}

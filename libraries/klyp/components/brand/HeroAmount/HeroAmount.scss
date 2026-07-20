@@ -1,0 +1,153 @@
+/* HeroAmount — typography composite for fintech amount display.
+ *
+ * Four size tiers map to the three existing callsites in
+ * `features/referrals/*` plus a compact summary-row tier:
+ *
+ *   hero-xl → review-screen __amountValue   (display, "You'll receive")
+ *   hero-lg → balance-triad __amount         (card hero, primary balance)
+ *   hero-md → main-screen   __balanceValue   (drawer eyebrow value)
+ *   hero-sm → compact inline summary rows    (new, no prior consumer)
+ *
+ * All sizes use `--font-size-N` primitive tokens — every required step
+ * (56/32/24/20/16/12) already lives in `apps/web/src/styles/tokens/primitives.css`.
+ *
+ * `currency` and `cents` are intentionally muted (`--color-fg-muted`) so the
+ * integer digit cluster carries the visual weight.
+ */
+.klyp-HeroAmount {
+  display: inline-flex;
+  align-items: baseline;
+  gap: var(--space-2);
+  font-family: var(--font-sans);
+  font-variant-numeric: tabular-nums;
+  color: var(--color-fg-primary);
+  letter-spacing: -0.02em;
+  line-height: 1.1;
+
+  &[data-align='center'] {
+    justify-content: center;
+  }
+
+  &[data-align='end'] {
+    justify-content: flex-end;
+  }
+
+  /* Visually-hidden full spoken value — the only AT-visible content of
+     the status region (all visual spans are aria-hidden). */
+  &__srLabel {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    margin: -1px;
+    padding: 0;
+    border: 0;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+
+  &__sign,
+  &__currency {
+    color: var(--color-fg-muted);
+    font-weight: var(--font-weight-regular);
+  }
+
+  &__integer {
+    font-weight: var(--font-weight-medium);
+  }
+
+  &__cents {
+    color: var(--color-fg-muted);
+    font-weight: var(--font-weight-regular);
+  }
+
+  &__ticker {
+    color: var(--color-fg-muted);
+    font-weight: var(--font-weight-medium);
+    margin-left: var(--space-4);
+  }
+
+  /* === Size: hero-xl ===================================================
+   * Display tier — matches review-screen `__amountValue`
+   * (reference: clamp(40px, 8cqi, 56px)). Currency / cents scale ~half
+   * the integer per fintech display convention (Stripe / Wise pattern). */
+  &[data-size='hero-xl'] {
+    .klyp-HeroAmount__integer {
+      font-size: var(--font-size-56);
+    }
+    .klyp-HeroAmount__sign,
+    .klyp-HeroAmount__currency {
+      font-size: var(--font-size-24);
+    }
+    .klyp-HeroAmount__cents {
+      font-size: var(--font-size-24);
+    }
+    .klyp-HeroAmount__ticker {
+      font-size: var(--font-size-16);
+    }
+  }
+
+  /* === Size: hero-lg ===================================================
+   * Card-hero tier — matches balance-triad `__amount` (reference: 32px
+   * integer). The original markup used em-relative children
+   * (currency 0.55em ≈ 17.6px, cents 0.7em ≈ 22.4px); we round to the
+   * nearest token (16 / 20) to stay on the primitive scale. */
+  &[data-size='hero-lg'] {
+    .klyp-HeroAmount__integer {
+      font-size: var(--font-size-32);
+    }
+    .klyp-HeroAmount__sign,
+    .klyp-HeroAmount__currency {
+      font-size: var(--font-size-16);
+    }
+    .klyp-HeroAmount__cents {
+      font-size: var(--font-size-20);
+    }
+    .klyp-HeroAmount__ticker {
+      font-size: var(--font-size-13);
+    }
+  }
+
+  /* === Size: hero-md ===================================================
+   * Drawer / eyebrow tier — spec target ~20px integer for the
+   * main-screen `__balanceValue` callsite. The existing reference uses
+   * clamp(28px, 4cqi, 32px) — we step down to 20px per the worker brief
+   * (smaller, since the live drawer composes this with its own eyebrow
+   * label and surrounding controls). Note the deviation in the return
+   * report. */
+  &[data-size='hero-md'] {
+    .klyp-HeroAmount__integer {
+      font-size: var(--font-size-20);
+    }
+    .klyp-HeroAmount__sign,
+    .klyp-HeroAmount__currency {
+      font-size: var(--font-size-13);
+    }
+    .klyp-HeroAmount__cents {
+      font-size: var(--font-size-16);
+    }
+    .klyp-HeroAmount__ticker {
+      font-size: var(--font-size-12);
+    }
+  }
+
+  /* === Size: hero-sm ===================================================
+   * Compact inline tier — summary-row use case. No prior consumer; sized
+   * to read at body-text scale while still distinguishing integer
+   * (medium) from cents / currency (muted regular). */
+  &[data-size='hero-sm'] {
+    .klyp-HeroAmount__integer {
+      font-size: var(--font-size-16);
+    }
+    .klyp-HeroAmount__sign,
+    .klyp-HeroAmount__currency {
+      font-size: var(--font-size-12);
+    }
+    .klyp-HeroAmount__cents {
+      font-size: var(--font-size-13);
+    }
+    .klyp-HeroAmount__ticker {
+      font-size: var(--font-size-12);
+    }
+  }
+}

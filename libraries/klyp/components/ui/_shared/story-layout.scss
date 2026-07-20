@@ -1,0 +1,79 @@
+/* =====================================================================
+ * Story-layout — token-driven showcase scaffolding for *.stories.tsx.
+ * Catalog/dev-only. Tokens only (no inline-style literals in stories).
+ * BEM: klyp-story-*
+ * ===================================================================== */
+
+@mixin story-gap-scale {
+  &[data-gap='xs'] {
+    gap: var(--space-6);
+  }
+  &[data-gap='sm'] {
+    gap: var(--space-12);
+  }
+  &[data-gap='md'] {
+    gap: var(--space-16);
+  }
+  &[data-gap='lg'] {
+    gap: var(--space-24);
+  }
+  &[data-gap='xl'] {
+    gap: var(--space-32);
+  }
+  &[data-gap='2xl'] {
+    gap: var(--space-48);
+  }
+}
+
+.klyp-story-stack {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  min-width: 0;
+
+  @include story-gap-scale;
+
+  /* Full-width mode — span the stage + stretch cells so a `container-type`
+   * child (Prose) has a definite width to resolve against. */
+  &[data-fill] {
+    inline-size: 100%;
+    align-items: stretch;
+  }
+}
+
+.klyp-story-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  min-width: 0;
+
+  @include story-gap-scale;
+}
+
+.klyp-story-cell {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-6);
+  align-items: flex-start;
+  min-width: 0;
+
+  &__label {
+    font-size: var(--font-size-12);
+    color: var(--color-fg-muted);
+    letter-spacing: var(--letter-spacing-tight);
+  }
+
+  /* Stretch content to the cell width — pair with `<StoryStack fill>`. */
+  &[data-fill] {
+    align-items: stretch;
+  }
+}
+
+.klyp-story-frame {
+  /* Exact width — adaptive demos (280 / 600 / 1200) must hold their size even
+   * if it overflows the stage (the catalog stage scrolls). No max-inline cap. */
+  inline-size: var(--klyp-story-frame-w);
+  padding: var(--space-16);
+  border: var(--bw-default) dashed var(--color-border-subtle);
+  border-radius: var(--r-card);
+}
