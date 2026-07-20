@@ -129,7 +129,8 @@ purple dashed `WorkbenchAction` trigger. Component roots and named slots retain 
 pink identities; raw exploratory blocks expose authored CSS. Active Inspector mode gives every
 explicit Component root a quiet purple dashed outline and every named slot a quiet pink dashed
 outline. Selecting a target consumes the product activation and pins the copyable handoff popover;
-it must never navigate, submit, or mutate the reviewed screen.
+it must never navigate, submit, or mutate the reviewed screen. Once pinned, the next surface click
+only dismisses the popover; selecting another target requires a subsequent click.
 
 ## Verification
 

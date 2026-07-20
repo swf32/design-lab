@@ -382,9 +382,7 @@ export function renderPlaygroundVariant({ variant, values }: { variant: string; 
               <StarIcon size={16} aria-hidden="true" />
             </span>
           )}
-          <span className="button-wireframe__label" {...slotAttributes('label')}>
-            {values.label || 'Button'}
-          </span>
+          <span className="button-wireframe__label">{values.label || 'Button'}</span>
         </button>
       </div>
     </>

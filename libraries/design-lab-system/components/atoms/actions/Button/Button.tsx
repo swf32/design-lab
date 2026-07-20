@@ -42,7 +42,7 @@ export function Button({
       ) : (
         leading != null && <span {...slotAttributes('leading')}>{leading}</span>
       )}
-      <span {...slotAttributes('label')}>{children}</span>
+      <span>{children}</span>
       {!loading && trailing != null && <span {...slotAttributes('trailing')}>{trailing}</span>}
     </button>
   )

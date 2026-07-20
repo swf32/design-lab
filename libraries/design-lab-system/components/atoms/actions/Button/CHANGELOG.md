@@ -6,7 +6,7 @@
 - Added: square, soft, and maximum pill corner controls plus size, width, disabled, and motion controls.
 - Added: optional Library icon composition through the wireframe Button's named `leading` slot.
 - Compatibility: mesh clipping includes standard and Safari-prefixed mask declarations.
-- Accessibility: Button roots and label/leading/trailing slots are now available to Workbench Inspector.
+- Accessibility: Button roots and leading/trailing composition slots are available to Workbench Inspector; plain label text remains regular content.
 
 - Changed: Added authored semantic retrieval metadata for MCP and CLI search.
 

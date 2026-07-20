@@ -16,6 +16,8 @@ type Inspection = {
   language: 'tsx' | 'html' | 'scss'
 }
 
+type InspectableElement = HTMLElement | SVGElement
+
 function displayValue(value: unknown) {
   if (typeof value === 'string') return `"${value.replaceAll('"', '\\"')}"`
   if (value == null) return '{null}'
@@ -34,6 +36,15 @@ function componentCode(name: string, props: Record<string, unknown>) {
   return `${opening}\n  ${String(children)}\n</${name}>`
 }
 
+function handoffHtml(element: InspectableElement) {
+  const clone = element.cloneNode(true) as InspectableElement
+  const nodes = [clone, ...Array.from(clone.querySelectorAll('*'))]
+  for (const node of nodes)
+    for (const attribute of Array.from(node.attributes))
+      if (attribute.name.startsWith('data-dl-')) node.removeAttribute(attribute.name)
+  return clone.outerHTML
+}
+
 function authoredDeclarations(cssText: string) {
   const openBrace = cssText.indexOf('{')
   const closeBrace = cssText.lastIndexOf('}')
@@ -47,7 +58,7 @@ function authoredDeclarations(cssText: string) {
     .join('\n')
 }
 
-function authoredCss(element: HTMLElement) {
+function authoredCss(element: InspectableElement) {
   const fragments: string[] = []
   if (element.style.length)
     fragments.push(
@@ -96,14 +107,14 @@ function authoredCss(element: HTMLElement) {
     : `${element.tagName.toLowerCase()} {\n  /* No authored rule directly targets this element. */\n}`
 }
 
-function inspectElement(element: HTMLElement): Inspection {
+function inspectElement(element: InspectableElement): Inspection {
   const slotName = element.dataset.dlSlot
   if (slotName)
     return {
       rect: element.getBoundingClientRect(),
       kind: 'slot',
       name: slotName,
-      code: element.outerHTML,
+      code: handoffHtml(element),
       language: 'html',
     }
 
@@ -143,6 +154,7 @@ export function WorkbenchInspector({ surfaceRef }: WorkbenchInspectorProps) {
   const [pinned, setPinned] = useState(false)
   const frameRef = useRef<number | null>(null)
   const pinnedRef = useRef(false)
+  const pointerClickRef = useRef(false)
 
   useEffect(() => {
     const surface = surfaceRef.current
@@ -151,9 +163,15 @@ export function WorkbenchInspector({ surfaceRef }: WorkbenchInspectorProps) {
     surface.setAttribute('data-workbench-inspecting', '')
 
     const select = (target: EventTarget | null) => {
-      if (!(target instanceof HTMLElement)) return
+      if (!(target instanceof HTMLElement || target instanceof SVGElement)) return
       if (target.closest('[data-workbench-inspector-ui]')) return
-      setInspection(inspectElement(target))
+      const slotTarget = target.closest<InspectableElement>('[data-dl-slot]')
+      setInspection(inspectElement(slotTarget ?? target))
+    }
+    const clearSelection = () => {
+      pinnedRef.current = false
+      setPinned(false)
+      setInspection(null)
     }
     const move = (event: PointerEvent) => {
       if (event.pointerType === 'touch' || pinnedRef.current) return
@@ -161,27 +179,34 @@ export function WorkbenchInspector({ surfaceRef }: WorkbenchInspectorProps) {
       frameRef.current = requestAnimationFrame(() => select(event.target))
     }
     const choose = (event: PointerEvent) => {
-      if (
-        event.target instanceof HTMLElement &&
-        event.target.closest('[data-workbench-inspector-ui]')
-      )
+      if (event.target instanceof Element && event.target.closest('[data-workbench-inspector-ui]'))
         return
       event.preventDefault()
       event.stopPropagation()
       event.stopImmediatePropagation()
+      pointerClickRef.current = true
+      if (pinnedRef.current) {
+        clearSelection()
+        return
+      }
       select(event.target)
       pinnedRef.current = true
       setPinned(true)
     }
     const blockProductClick = (event: MouseEvent) => {
-      if (
-        event.target instanceof HTMLElement &&
-        event.target.closest('[data-workbench-inspector-ui]')
-      )
+      if (event.target instanceof Element && event.target.closest('[data-workbench-inspector-ui]'))
         return
       event.preventDefault()
       event.stopPropagation()
       event.stopImmediatePropagation()
+      if (pointerClickRef.current) {
+        pointerClickRef.current = false
+        return
+      }
+      if (pinnedRef.current) {
+        clearSelection()
+        return
+      }
       select(event.target)
       pinnedRef.current = true
       setPinned(true)
@@ -189,9 +214,7 @@ export function WorkbenchInspector({ surfaceRef }: WorkbenchInspectorProps) {
     const escape = (event: KeyboardEvent) => {
       if (event.key !== 'Escape') return
       if (pinnedRef.current) {
-        pinnedRef.current = false
-        setPinned(false)
-        setInspection(null)
+        clearSelection()
         return
       }
       setActive(false)
@@ -214,6 +237,7 @@ export function WorkbenchInspector({ surfaceRef }: WorkbenchInspectorProps) {
   useEffect(() => {
     if (!active) {
       pinnedRef.current = false
+      pointerClickRef.current = false
       setPinned(false)
       setInspection(null)
     }

@@ -11,7 +11,9 @@ Primary action primitive. Use one primary Button per local decision area; use se
 
 ## States and composition
 
-Button supports small, medium and large sizes, disabled and loading states, full-width layout, and optional leading/trailing slots. While loading it becomes disabled and exposes `aria-busy`.
+Button supports small, medium and large sizes, disabled and loading states, full-width layout, and
+optional `leading`/`trailing` composition slots. Plain text children remain Button content rather
+than being exposed as a slot. While loading it becomes disabled and exposes `aria-busy`.
 
 The illustrative catalog preview is deliberately separate from this implementation. Interactive validation happens in the Workbench Canvas.
 
