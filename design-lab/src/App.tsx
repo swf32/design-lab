@@ -119,8 +119,14 @@ export default function App() {
   const maxNavigationWidth = Math.max(MIN_NAVIGATION_WIDTH, window.innerWidth - MIN_WORKSPACE_WIDTH)
   const activeProject = projects.find((project) => project.id === activeProjectId) ?? null
   const playgroundOpen = active === 'components' && routePath.endsWith('/playground')
-  const wireframeOpen = active === 'wireframes' && Boolean(routePath)
-  const requestedWireframeSourceId = wireframeOpen
+  const wireframeRouteRequested = active === 'wireframes' && Boolean(routePath)
+  const wireframeTreeItem = wireframeRouteRequested ? findRouteTreeItem(tree, routePath) : undefined
+  const wireframeOpen =
+    wireframeRouteRequested &&
+    (wireframeTreeItem?.kind === 'wireframe' ||
+      (moduleData?.kind === 'wireframes' &&
+        moduleData.wireframes.some((wireframe) => wireframe.directory === routePath)))
+  const requestedWireframeSourceId = wireframeRouteRequested
     ? new URLSearchParams(window.location.search).get('source')
     : null
   const entityRoutePath = playgroundOpen ? routePath.replace(/\/playground$/, '') : routePath
@@ -390,11 +396,13 @@ export default function App() {
       moduleData?.kind === 'wireframes'
         ? moduleData.wireframes.find((item) => item.directory === entityRoutePath)
         : null
-    if (wireframe)
+    if (wireframe && moduleData?.kind === 'wireframes')
       return (
         <WireframeView
           wireframe={wireframe}
           sourceId={activeProjectId}
+          modes={moduleData.modes}
+          themeVariables={moduleData.themeVariables}
           onClose={() => navigate('wireframes')}
         />
       )

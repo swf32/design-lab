@@ -59,6 +59,7 @@ import {
 import { TokensIcon } from '@design-lab/system/icons'
 import type { ModuleData } from '../../api/projects'
 import { wireframeRendererFor } from '../../wireframes/registry'
+import { designSystemModeStyle } from '../../designSystemMode'
 
 type ComponentEntity = Extract<ModuleData, { kind: 'components' }>['components'][number]
 
@@ -1837,6 +1838,8 @@ export function ModuleView({
               <WireframeCatalogCard
                 key={wireframe.id}
                 wireframe={wireframe}
+                mode={data.modes[0] ?? 'default'}
+                themeVariables={data.themeVariables}
                 onClick={() => onSelectEntity(wireframe.id)}
               />
             ))}
@@ -1883,20 +1886,27 @@ export function ModuleView({
 
 function WireframeCatalogCard({
   wireframe,
+  mode,
+  themeVariables,
   onClick,
 }: {
   wireframe: Extract<ModuleData, { kind: 'wireframes' }>['wireframes'][number]
+  mode: string
+  themeVariables: Extract<ModuleData, { kind: 'wireframes' }>['themeVariables']
   onClick: () => void
 }) {
   const renderer = wireframeRendererFor(wireframe)
   const state =
     wireframe.states.find((item) => item.id === wireframe.defaultState) ?? wireframe.states[0]
-  const preview = renderer?.renderWireframe({
+  const rendered = renderer?.renderWireframe({
     layout: wireframe.defaultLayout,
     state: state?.id ?? null,
     values: { ...(state?.values ?? {}) },
     onAction: () => undefined,
   })
+  const preview = rendered ? (
+    <div style={designSystemModeStyle(themeVariables, mode)}>{rendered}</div>
+  ) : null
   return (
     <WireframeCard
       name={wireframe.name}

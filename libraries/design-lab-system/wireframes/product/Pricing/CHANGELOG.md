@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.2.0 — 2026-07-20
+
+- Changed: responsive layout rules now follow the Wireframe viewport container, enabling real portrait previews inside User Flow nodes.
+- Added: fullscreen, catalog, and flow renderings inherit the selected product mode from the active Library token source.
+
 ## 0.1.0 — 2026-07-20
 
 - Added: comparison, recommendation, and guided-upgrade layout directions.

@@ -66,6 +66,7 @@ States are stable product snapshots with human-readable names and complete value
 Dev mode is a floating, dismissible production surface outside the Wireframe content. It provides:
 
 - back navigation, Screen/User flow switching, and share-link copying;
+- the active Project or Library product mode when that source declares multiple modes;
 - saved state selection;
 - layout selection;
 - typed controls;
@@ -73,6 +74,8 @@ Dev mode is a floating, dismissible production surface outside the Wireframe con
 - the current derived/custom state label.
 
 Dev mode never consumes permanent Page layout space. All touch targets are at least `44px`, it has a keyboard path, and it cannot rely on hover or drag.
+
+Product modes come only from the active Wireframe source token files and remain independent of the Design Lab interface theme. One mode creates no redundant control; two or three modes use `TabSwitcher`; four or more use a visible `RadioButton` group. The selected mode is part of the shareable URL and scopes the fullscreen screen, catalog preview, desktop/mobile flow previews, and established Library Components without recoloring the Dev mode shell.
 
 The closed Wireframe route has no permanent toolbar, title bar, Tab Switcher, status pill, or back button over the product screen. The quiet translucent Dev mode trigger is the only review-shell action outside the screen or flow content. Clipboard writing must include a manual selectable-link fallback because an IP-hosted HTTP deployment may not expose the secure Clipboard API.
 
@@ -88,13 +91,15 @@ Control semantics:
 The user-flow Canvas visualizes causality, not merely screen order.
 
 - Nodes reference saved states.
-- Every node renders the real adjacent Wireframe screen in an inert 16:9 viewport; do not author a separate node thumbnail.
+- Every state node pairs the real adjacent Wireframe screen in an inert desktop 16:9 viewport with a portrait mobile viewport from the same renderer; do not author separate node thumbnails.
 - Directed edges name the exact user action that moves between nodes.
 - Selecting a node updates the current state.
 - Activating Preview opens that state in the current layout.
 - Screen actions dispatch stable action ids and update state through authored flow semantics.
+- Authored coordinates preserve graph topology. The Canvas enforces a minimum gap between expanded node columns and within-column rows so responsive screen pairs cannot overlap.
 - Pan and zoom are enhancements; visible buttons and keyboard navigation provide equivalent access.
-- The grid belongs to the transformed graph world and moves and scales with its nodes and edges.
+- Two-finger and trackpad pinch zoom around the gesture midpoint inside the Canvas and must not scale the browser page.
+- The low-contrast grid is visually infinite. Its viewport background position and size derive from the same pan/zoom transform as nodes and edges, so it has no finite boundary.
 
 The graph must remain legible without relying on color alone. Edges use arrowheads and labels, selected nodes expose `aria-pressed`, and the Canvas respects reduced motion. Mobile may simplify node density but must not hide transitions or require horizontal document scrolling.
 
@@ -102,7 +107,9 @@ The graph must remain legible without relying on color alone. Edges use arrowhea
 
 The Wireframe route is derived from its canonical directory: `/wireframes/<wireframe-path>`. It renders as a fullscreen review surface outside the normal Design Lab shell.
 
-Selected layout, state, view (`screen` or `flow`), and serializable control values live in the query string. Copying the URL restores the same review context.
+Selected layout, state, view (`screen` or `flow`), product mode, and serializable control values live in the query string. Copying the URL restores the same review context.
+
+Only a discovered Wireframe entity directory opens fullscreen. Category folders such as `product` remain semantic Directory Panel destinations and open a filtered Wireframes catalog; they must never fall through to a missing-renderer screen.
 
 The Wireframes catalog uses the same adjacent renderer in an inert 16:9 `WireframeScreenPreview`. A `WireframeCard` follows the Component Card hierarchy: the real screen is primary, while the page name and lifecycle sit in a bottom gradient. Catalog and flow previews must never be separately drawn interpretations of the page.
 
@@ -126,6 +133,6 @@ Before marking a Wireframe ready for review:
 2. Exercise every control, conditional control, screen action, node, and edge.
 3. Copy and reopen a deep link.
 4. Check desktop, `375px` mobile, and mobile landscape without document overflow.
-5. Verify keyboard selection, visible focus, reduced motion, light mode, and dark mode.
+5. Verify keyboard selection, visible focus, reduced motion, every source product mode, and independence from the Design Lab interface theme.
 6. Confirm automatic API/navigation discovery and zero manifest diagnostics.
 7. Run formatting, tests, and the production build.

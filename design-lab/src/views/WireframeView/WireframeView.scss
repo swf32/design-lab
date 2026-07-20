@@ -25,7 +25,12 @@
   border-radius: 0;
 }
 .wireframe-view__screen {
-  min-height: 100%;
+  min-height: 100dvh;
+  background: var(--color-surface-secondary);
+  container-type: inline-size;
+}
+.wireframe-view__screen > * {
+  min-height: 100dvh;
 }
 .wireframe-view__missing {
   min-height: 100%;

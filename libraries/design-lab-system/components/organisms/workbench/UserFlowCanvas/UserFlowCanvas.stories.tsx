@@ -38,7 +38,7 @@ export const stories: StoryDefinition[] = [
     kind: 'behavior',
     name: 'Select, pan, and zoom',
     description:
-      'Verifies labeled transitions, node selection, pointer panning, and visible zoom controls.',
+      'Verifies desktop/mobile screen pairs, labeled transitions, collision-safe placement, pointer panning, pinch zoom, and visible zoom controls.',
     interactive: true,
     examples: [{ label: 'Pricing flow', props: {} }],
   },

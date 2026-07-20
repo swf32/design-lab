@@ -2,7 +2,7 @@
   "id": "user-flow-canvas",
   "name": "User Flow Canvas",
   "status": "ready",
-  "description": "Pannable, zoomable state-transition graph whose nodes show real inert Wireframe screens and open states through an explicit Preview action.",
+  "description": "Infinite pannable and pinch-zoomable state-transition graph whose collision-safe nodes pair real desktop and mobile Wireframe screens.",
   "aliases": ["flow graph", "state graph", "journey canvas"],
   "useWhen": [
     "A Wireframe or Page review needs to explain which user action causes each state transition."

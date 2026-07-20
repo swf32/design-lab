@@ -13,6 +13,7 @@ import {
 import { ArrowLeftIcon, LinkIcon } from '@design-lab/system/icons'
 import type { WireframeAction, WireframeValues } from '@design-lab/system/wireframes'
 import type { ModuleData } from '../../api/projects'
+import { designSystemModeStyle } from '../../designSystemMode'
 import { wireframeRendererFor } from '../../wireframes/registry'
 
 type WireframeEntity = Extract<ModuleData, { kind: 'wireframes' }>['wireframes'][number]
@@ -43,7 +44,7 @@ function valuesMatch(candidate: WireframeValues, state: WireframeEntity['states'
   return Object.entries(state.values).every(([id, value]) => candidate[id] === value)
 }
 
-function initialContext(wireframe: WireframeEntity) {
+function initialContext(wireframe: WireframeEntity, modes: string[]) {
   const search = new URLSearchParams(window.location.search)
   const layout = wireframe.layouts.some((item) => item.id === search.get('layout'))
     ? search.get('layout')!
@@ -64,6 +65,9 @@ function initialContext(wireframe: WireframeEntity) {
   }
   const matchedState = wireframe.states.find((item) => valuesMatch(values, item))
   const view: WireframeViewMode = search.get('view') === 'flow' ? 'flow' : 'screen'
+  const requestedMode = search.get('mode')
+  const mode =
+    requestedMode && modes.includes(requestedMode) ? requestedMode : (modes[0] ?? 'default')
   const node =
     wireframe.flow.nodes.find((item) => item.state === matchedState?.id) ??
     wireframe.flow.nodes[0] ??
@@ -73,6 +77,7 @@ function initialContext(wireframe: WireframeEntity) {
     stateId: matchedState?.id ?? null,
     values,
     view,
+    mode,
     selectedNodeId: node?.id ?? null,
   }
 }
@@ -80,34 +85,52 @@ function initialContext(wireframe: WireframeEntity) {
 export function WireframeView({
   wireframe,
   sourceId,
+  modes,
+  themeVariables,
   onClose,
 }: {
   wireframe: WireframeEntity
   sourceId: string
+  modes: string[]
+  themeVariables: Extract<ModuleData, { kind: 'wireframes' }>['themeVariables']
   onClose: () => void
 }) {
-  const initial = useMemo(() => initialContext(wireframe), [wireframe])
+  const availableModes = useMemo(() => (modes.length ? modes : ['default']), [modes])
+  const initial = useMemo(
+    () => initialContext(wireframe, availableModes),
+    [wireframe, availableModes],
+  )
   const [layout, setLayout] = useState(initial.layout)
   const [stateId, setStateId] = useState<string | null>(initial.stateId)
   const [values, setValues] = useState<WireframeValues>(initial.values)
   const [view, setView] = useState<WireframeViewMode>(initial.view)
+  const [mode, setMode] = useState(initial.mode)
   const [selectedNodeId, setSelectedNodeId] = useState<string | null>(initial.selectedNodeId)
   const [devModeOpen, setDevModeOpen] = useState(false)
   const [copyState, setCopyState] = useState<'idle' | 'copied' | 'failed'>('idle')
   const renderer = wireframeRendererFor(wireframe)
   const currentState = wireframe.states.find((state) => state.id === stateId) ?? null
+  const modeStyle = useMemo(
+    () => designSystemModeStyle(themeVariables, mode),
+    [mode, themeVariables],
+  )
+
+  useEffect(() => {
+    if (!availableModes.includes(mode)) setMode(availableModes[0])
+  }, [availableModes, mode])
 
   useEffect(() => {
     const search = new URLSearchParams()
     search.set('source', sourceId)
     search.set('layout', layout)
     search.set('view', view)
+    search.set('mode', mode)
     search.set('state', stateId ?? 'custom')
     for (const [id, value] of Object.entries(values)) search.set(`value.${id}`, String(value))
     const next = `${window.location.pathname}?${search.toString()}`
     if (`${window.location.pathname}${window.location.search}` !== next)
       window.history.replaceState(window.history.state, '', next)
-  }, [layout, sourceId, stateId, values, view, wireframe.controls])
+  }, [layout, mode, sourceId, stateId, values, view])
 
   const selectState = (nextStateId: string) => {
     const state = wireframe.states.find((item) => item.id === nextStateId)
@@ -196,6 +219,16 @@ export function WireframeView({
               onAction: () => undefined,
             })
           : null,
+      mobilePreview:
+        renderer && state
+          ? renderer.renderWireframe({
+              layout,
+              state: state.id,
+              values: { ...state.values },
+              onAction: () => undefined,
+            })
+          : null,
+      screenStyle: modeStyle,
       eyebrow:
         wireframe.flow.edges.some((edge) => edge.to === node.id) &&
         wireframe.flow.edges.some((edge) => edge.from === node.id)
@@ -225,7 +258,12 @@ export function WireframeView({
         ) : renderer ? (
           <div
             className="wireframe-view__screen"
-            style={{ '--wireframe-layout': layout } as CSSProperties}
+            style={
+              {
+                ...modeStyle,
+                '--wireframe-layout': layout,
+              } as CSSProperties
+            }
           >
             {renderer.renderWireframe({
               layout,
@@ -315,6 +353,41 @@ export function WireframeView({
               )}
             </div>
           </section>
+          {availableModes.length > 1 && (
+            <section>
+              <header>
+                <span>Product theme</span>
+                <Chip size="small" variant="soft">
+                  {mode}
+                </Chip>
+              </header>
+              {availableModes.length <= 3 ? (
+                <TabSwitcher
+                  ariaLabel="Product theme"
+                  value={mode}
+                  onChange={setMode}
+                  options={availableModes.map((item) => ({
+                    value: item,
+                    label: item,
+                  }))}
+                  size="small"
+                />
+              ) : (
+                <div role="radiogroup" aria-label="Product theme">
+                  {availableModes.map((item) => (
+                    <RadioButton
+                      key={item}
+                      name="wireframe-product-theme"
+                      value={item}
+                      label={item}
+                      checked={mode === item}
+                      onChange={() => setMode(item)}
+                    />
+                  ))}
+                </div>
+              )}
+            </section>
+          )}
           <section>
             <header>
               <span>Layout direction</span>

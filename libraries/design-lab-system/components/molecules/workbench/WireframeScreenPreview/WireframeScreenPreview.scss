@@ -6,6 +6,7 @@
   position: relative;
 }
 .dl-wireframe-screen-preview__viewport {
+  container-type: inline-size;
   pointer-events: none;
   position: absolute;
   inset: 0 auto auto 0;

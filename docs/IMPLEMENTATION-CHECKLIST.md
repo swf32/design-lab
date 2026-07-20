@@ -106,6 +106,8 @@
 - [ ] Add Rules, Decisions, and Prompts modules so indexed knowledge is authorable in UI.
 - [x] Implement the first Wireframes vertical: hybrid filesystem contract, semantic discovery/navigation, fullscreen multi-layout review, typed saved/custom states, and user-flow Canvas.
 - [x] Keep Wireframe review navigation inside one translucent Dev mode action and render the real screen in 16:9 catalog and flow previews.
+- [x] Scope Wireframes to active-source product modes and adapt theme controls between Tab Switcher and Radio Buttons by option count.
+- [x] Pair desktop/mobile screens in collision-safe flow nodes and support infinite transformed grid, pan, pinch zoom, and semantic folder routes.
 - [ ] Implement Pages and bring Inspector/handoff parity from Playground to Wireframes and Pages.
 - [ ] Add guarded AI write proposals only after diff, validation, and confirmation contracts exist.
 
@@ -520,7 +522,7 @@ Components использует Tokens, Palette и Fonts и становится
 - [x] Внутренний context gateway и MCP-ready schema.
 - [x] Local read-only MCP stdio adapter и CLI fallback.
 - [x] Wireframes: hybrid JSON+TSX contract, pricing reference entity, Dev mode, shareable state, and user-flow graph.
-- [x] Wireframes: no permanent review toolbar, real renderer-backed 16:9 previews, world-bound Canvas grid, and target actions kept inside the product screen.
+- [x] Wireframes: no permanent review toolbar, real renderer-backed desktop/mobile previews, source product modes, infinite Canvas grid, pinch zoom, semantic folder routes, and target actions kept inside the product screen.
 - [ ] Pages.
 - [ ] Page inspector и handoff.
 - [ ] Storybook read-only ingestion.

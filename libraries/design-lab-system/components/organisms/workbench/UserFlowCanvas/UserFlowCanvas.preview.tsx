@@ -36,7 +36,16 @@ const previewStyles = String.raw`
   right: 3%;
   border-color: var(--color-accent-primary);
 }
+.user-flow-canvas-preview__screens {
+  padding: 6px;
+  background: var(--color-surface-secondary);
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 25%;
+  gap: 5px;
+}
 .user-flow-canvas-preview__screen {
+  border: 1px solid var(--color-border-subtle);
+  border-radius: 2px;
   background:
     linear-gradient(
         90deg,
@@ -54,6 +63,25 @@ const previewStyles = String.raw`
         transparent 14px
       )
       8px 10px / 68% 24px no-repeat,
+    var(--color-canvas);
+}
+.user-flow-canvas-preview__screen--mobile {
+  background:
+    linear-gradient(
+        var(--color-text-disabled) 4px,
+        transparent 4px 9px,
+        var(--color-border-default) 9px 12px,
+        transparent 12px
+      )
+      4px 6px / calc(100% - 8px) 20px no-repeat,
+    linear-gradient(
+        var(--color-accent-primary) 0 31%,
+        transparent 31% 35%,
+        var(--color-surface-raised) 35% 66%,
+        transparent 66% 70%,
+        var(--color-surface-raised) 70% 100%
+      )
+      4px 34px / calc(100% - 8px) calc(100% - 40px) no-repeat,
     var(--color-canvas);
 }
 .user-flow-canvas-preview__meta {
@@ -83,7 +111,10 @@ export function UserFlowCanvasPreview() {
       <style>{previewStyles}</style>
       {[false, true].map((selected) => (
         <div className="user-flow-canvas-preview__node" key={String(selected)}>
-          <div className="user-flow-canvas-preview__screen" />
+          <div className="user-flow-canvas-preview__screens">
+            <div className="user-flow-canvas-preview__screen" />
+            <div className="user-flow-canvas-preview__screen user-flow-canvas-preview__screen--mobile" />
+          </div>
           <div className="user-flow-canvas-preview__meta">
             <i />
             <b />

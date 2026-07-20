@@ -52,26 +52,32 @@
   width: 100%;
   height: 100%;
   min-height: 520px;
+  background-color: var(--color-canvas);
+  background-image:
+    linear-gradient(
+      color-mix(in srgb, var(--color-border-subtle) 30%, transparent) 1px,
+      transparent 1px
+    ),
+    linear-gradient(
+      90deg,
+      color-mix(in srgb, var(--color-border-subtle) 30%, transparent) 1px,
+      transparent 1px
+    );
+  background-position:
+    var(--dl-flow-grid-x) var(--dl-flow-grid-y),
+    var(--dl-flow-grid-x) var(--dl-flow-grid-y);
+  background-size: var(--dl-flow-grid-size) var(--dl-flow-grid-size);
   overflow: hidden;
   cursor: grab;
   touch-action: none;
+  overscroll-behavior: none;
+  user-select: none;
+  -webkit-user-select: none;
 }
 .dl-user-flow-canvas__viewport:active {
   cursor: grabbing;
 }
 .dl-user-flow-canvas__world {
-  background-color: var(--color-canvas);
-  background-image:
-    linear-gradient(
-      color-mix(in srgb, var(--color-border-subtle) 58%, transparent) 1px,
-      transparent 1px
-    ),
-    linear-gradient(
-      90deg,
-      color-mix(in srgb, var(--color-border-subtle) 58%, transparent) 1px,
-      transparent 1px
-    );
-  background-size: 24px 24px;
   position: relative;
   transform-origin: 0 0;
   will-change: transform;
@@ -100,8 +106,8 @@
   font-weight: 600;
 }
 .dl-user-flow-canvas__node {
-  width: 420px;
-  height: 366px;
+  width: 520px;
+  height: 390px;
   border: 1px solid var(--color-border-default);
   border-radius: var(--radius-card);
   background: var(--color-surface-primary);
@@ -110,10 +116,40 @@
   overflow: hidden;
   position: absolute;
   display: grid;
-  grid-template-rows: auto minmax(0, 1fr);
+  grid-template-rows: 260px minmax(0, 1fr);
   transition:
     border-color var(--transition-fast),
     box-shadow var(--transition-fast);
+}
+.dl-user-flow-canvas__screens {
+  min-width: 0;
+  min-height: 0;
+  padding: var(--spacing-3);
+  background: var(--color-surface-secondary);
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 106px;
+  align-items: start;
+  gap: var(--spacing-3);
+}
+.dl-user-flow-canvas__screen {
+  min-width: 0;
+  display: grid;
+  gap: var(--spacing-1);
+}
+.dl-user-flow-canvas__screen > span {
+  color: var(--color-text-muted);
+  font-size: 8px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+.dl-user-flow-canvas__screen .dl-wireframe-screen-preview {
+  border: 1px solid var(--color-border-subtle);
+  border-radius: var(--radius-small);
+  background: var(--color-surface-primary);
+}
+.dl-user-flow-canvas__screen--mobile .dl-wireframe-screen-preview {
+  width: 106px;
 }
 .dl-user-flow-canvas__node--selected {
   border-color: var(--color-accent-primary);

@@ -97,10 +97,16 @@ test('wireframe-only components and product modes are discovered without product
 
 test('page Wireframes expose hybrid renderer, layouts, states, and user-flow diagnostics', async () => {
   const result = await getModuleEntities('design-lab-system', 'wireframes')
+  const northstar = await getModuleEntities('northstar-travel-system', 'wireframes')
   const pricing = result.wireframes.find((wireframe) => wireframe.id === 'pricing')
 
   assert.equal(result.kind, 'wireframes')
   assert.deepEqual(result.folders, ['product'])
+  assert.deepEqual(result.modes, ['dark', 'light'])
+  assert.equal(result.themeVariables.light['--ds-color-surface-primary'], '#f7f7f3')
+  assert.deepEqual(northstar.modes, ['day', 'night', 'sunset'])
+  assert.equal(northstar.themeVariables.sunset['--ds-color-surface-primary'], '#fffaf5')
+  assert.deepEqual(northstar.wireframes, [])
   assert.equal(pricing.entry, 'Pricing.wireframe.tsx')
   assert.deepEqual(
     pricing.layouts.map((layout) => layout.id),

@@ -284,9 +284,10 @@ function wireframeDiagnostics(wireframe) {
 
 async function wireframesFor(source, sourceId) {
   const root = join(source.path, 'wireframes')
-  const [manifests, discoveredFolders] = await Promise.all([
+  const [manifests, discoveredFolders, tokenData] = await Promise.all([
     filesUnder(root, (name) => name === 'wireframe.json'),
     directoriesUnder(root),
+    tokensFor(source),
   ])
   const entityDirectories = manifests.map((filePath) => relative(root, dirname(filePath)))
   const folders = discoveredFolders.filter(
@@ -342,6 +343,8 @@ async function wireframesFor(source, sourceId) {
   return {
     kind: 'wireframes',
     folders,
+    modes: tokenData.modes,
+    themeVariables: tokenVariablesByMode(tokenData),
     wireframes: wireframes.sort((a, b) => a.name.localeCompare(b.name)),
   }
 }

@@ -69,7 +69,7 @@ Manifest-declared `*.stories.ts(x)` хранит и story metadata, и `renderSt
             ├── README.md
             └── CHANGELOG.md
 
-`wireframe.json` хранит структуру и graph semantics, а typed TSX — render. Layout directions меняют information architecture, grouping, disclosure, density или action placement, но не дублируют state data. Saved state содержит полный набор control values и может хранить дополнительные product values; user-flow nodes ссылаются на states, а edges называют actions. Runtime загружает adjacent renderer по manifest без центрального реестра и переиспользует его для fullscreen screen, 16:9 catalog preview и 16:9 flow nodes. Target actions остаются внутри TSX screen; Dev mode управляет review conditions, а не подменяет продуктовый интерфейс.
+`wireframe.json` хранит структуру и graph semantics, а typed TSX — render. Layout directions меняют information architecture, grouping, disclosure, density или action placement, но не дублируют state data. Saved state содержит полный набор control values и может хранить дополнительные product values; user-flow nodes ссылаются на states, а edges называют actions. Runtime загружает adjacent renderer по manifest без центрального реестра и переиспользует его для fullscreen screen, 16:9 catalog preview и парных desktop/mobile flow previews. Source token scanner передаёт Wireframes modes и scoped variables; выбранный product mode независим от interface theme и сохраняется в URL. Infinite Canvas сохраняет authored topology, раздвигает близкие node columns/rows, поддерживает pan/pinch zoom и рисует ослабленную transform-synchronized grid без конечной границы. Target actions остаются внутри TSX screen; Dev mode управляет review conditions, а не подменяет продуктовый интерфейс.
 
 ## Pages
 

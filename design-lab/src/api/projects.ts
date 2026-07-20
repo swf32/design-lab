@@ -143,6 +143,8 @@ export type ModuleData =
   | {
       kind: 'wireframes'
       folders: string[]
+      modes: string[]
+      themeVariables: Record<string, Record<string, string | number>>
       wireframes: Array<{
         schemaVersion: number
         id: string

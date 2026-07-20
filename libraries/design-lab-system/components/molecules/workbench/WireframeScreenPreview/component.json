@@ -2,7 +2,7 @@
   "id": "wireframe-screen-preview",
   "name": "Wireframe Screen Preview",
   "status": "ready",
-  "description": "Inert 16:9 viewport that scales an actual Wireframe renderer into catalog cards and user-flow nodes.",
+  "description": "Inert virtual viewport that scales an actual responsive Wireframe renderer into desktop or mobile catalog and user-flow surfaces.",
   "aliases": ["screen thumbnail", "wireframe viewport", "page state preview"],
   "useWhen": [
     "A real Wireframe screen must be shown at reduced size without duplicating or activating its UI."
@@ -15,7 +15,7 @@
   "stories": "WireframeScreenPreview.stories.tsx",
   "docs": "README.md",
   "changelog": "CHANGELOG.md",
-  "variants": ["16:9 viewport"],
+  "variants": ["desktop 16:9 viewport", "mobile portrait viewport"],
   "states": ["loading measurement", "rendered"],
   "props": {
     "children": { "type": "ReactNode", "required": true, "slot": "screen" },

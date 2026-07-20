@@ -1,21 +1,27 @@
-import type { StoryDefinition } from '../../../storyContract'
+import type { StoryDefinition, StoryExample } from '../../../storyContract'
 import { WireframeScreenPreview } from './WireframeScreenPreview'
 
 export const stories: StoryDefinition[] = [
   {
     id: 'scaled-screen',
     kind: 'behavior',
-    name: 'Scaled screen',
+    name: 'Responsive virtual viewport',
     description:
-      'Preserves a 1440 × 810 page viewport while fitting the available catalog or graph width.',
-    examples: [{ label: 'Pricing page', props: {} }],
+      'Preserves desktop or portrait dimensions while activating the matching container-query composition.',
+    examples: [
+      { label: 'Desktop · 1440 × 810', props: { viewportWidth: 1440, viewportHeight: 810 } },
+      { label: 'Mobile · 390 × 844', props: { viewportWidth: 390, viewportHeight: 844 } },
+    ],
   },
 ]
 
-export function renderStoryExample() {
+export function renderStoryExample(example: StoryExample) {
+  const viewportWidth = Number(example.props.viewportWidth ?? 1440)
+  const viewportHeight = Number(example.props.viewportHeight ?? 810)
   return (
-    <WireframeScreenPreview>
+    <WireframeScreenPreview viewportWidth={viewportWidth} viewportHeight={viewportHeight}>
       <div
+        className="wireframe-screen-preview-story"
         style={{
           minHeight: '100%',
           padding: 72,
@@ -23,6 +29,13 @@ export function renderStoryExample() {
           color: 'var(--color-text-primary)',
         }}
       >
+        <style>{`
+          @container (max-width: 600px) {
+            .wireframe-screen-preview-story > div {
+              grid-template-columns: 1fr !important;
+            }
+          }
+        `}</style>
         <h1 style={{ margin: 0, fontSize: 72 }}>Choose a plan that fits.</h1>
         <div
           style={{ marginTop: 64, display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 24 }}
