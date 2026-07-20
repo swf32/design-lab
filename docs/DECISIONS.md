@@ -538,7 +538,9 @@ diagnostic-кодом `manifest-parse-error` на этой конкретной 
 
 ## D-049 — Принят канонический контракт Pages
 
-**Статус:** принято, 2026-07-20. Реализация модуля Pages ещё не начата (см. `IMPLEMENTATION-CHECKLIST.md`).
+**Статус:** принято, 2026-07-20. Частично дополнено/заменено D-050–D-055 (2026-07-21) — в частности,
+отдельное поле `links[]` из этого решения заменено единым `flow.nodes[]`/`flow.edges[]` graph (D-052).
+Реализация модуля Pages ещё не начата (см. `IMPLEMENTATION-CHECKLIST.md`).
 
 `PAGE_RULES.md` фиксирует Page как финализированный, production-composed экран — точку выпуска
 Wireframe → Page. Ключевые решения контракта:
@@ -556,3 +558,104 @@ Wireframe → Page. Ключевые решения контракта:
 - те же diagnostic-гарантии, что D-047/D-048: `manifest-parse-error`, `schema-version-unsupported`,
   плюс Page-специфичные коды (`page-entry-missing`, `page-link-invalid`,
   `page-derived-from-wireframe-invalid` и т.д.), перечисленные в `PAGE_RULES.md`.
+
+## D-050 — Page получает авторский production `route` как hand-off metadata, а не литеральный маршрут Design Lab
+
+**Статус:** принято, 2026-07-21.
+
+`page.json` получает поле `route` (плюс опциональные `routeParams[]` для динамических сегментов) —
+путь, который автор предполагает для страницы в реальном продукте (`/billing`, `/`). Это чистая
+hand-off metadata для фронтендеров, а не путь, который Design Lab обязан буквально обслуживать как
+свой собственный роут.
+
+Fullscreen review внутри Design Lab **зеркалирует** этот `route`, когда он не пересекается с
+зарезервированными top-level сегментами модулей Design Lab (`components`, `wireframes`, `pages`,
+`tokens`, `palette`, `assets`, `fonts`, `rules`, `decisions` и другие reserved module id). Цель —
+дать ощущение «браузинга настоящего сайта» внутри review, а не только каталога дизайн-инструмента.
+
+Canonical filesystem-путь Page (`/pages/<category-path>/<PageName>`) остаётся отдельным и всегда
+резолвится в Page card (см. D-053) независимо от `route` — это стабильный discovery-адрес, который
+не может сломаться из-за пользовательского выбора `route`.
+
+## D-051 — При конфликте `route` с зарезервированным модулем Design Lab всегда выигрывает Design Lab
+
+**Статус:** принято, 2026-07-21.
+
+Если авторский `route` совпадает с зарезервированным top-level сегментом модуля Design Lab (например,
+Page с `route: "/components"`), Design Lab никогда не позволяет этому route перекрыть собственную
+навигацию. Вместо жёсткой ошибки сохранения — тихий откат: fullscreen review для этой Page использует
+filesystem-путь, а на самой Page появляется diagnostic `page-route-conflicts-reserved-module`.
+
+Это решение сознательно выбрано вместо блокировки сохранения манифеста (чтобы не мешать автору
+работать) и вместо полного игнорирования конфликта (чтобы автор узнал о нём и мог переименовать
+route, если это важно для реального хендоффа).
+
+## D-052 — Единый flow graph вместо отдельных `states[]`+`links[]`; controls как у Wireframe
+
+**Статус:** принято, 2026-07-21. Заменяет модель `links[]` из D-049.
+
+Page получает `controls[]` — тот же typed control registry, что у Wireframe (`radio`/`boolean`/`range`
+с `visibleWhen`), но описывающий domain/data-условия (авторизация, тариф, права), а не layout-варианты.
+`states[]` — именованные снапшоты полных комбинаций значений `controls[]`, с той же snapshot-identity
+логикой, что у Wireframe.
+
+Один `flow.nodes[]`/`flow.edges[]` graph заменяет отдельное поле `links[]`: nodes ссылаются на states
+этой же Page с authored координатами, а edges бывают двух видов — `{ kind: "state", stateId }` для
+внутреннего перехода и `{ kind: "page", pageId, condition? }` для cross-Page навигации. `condition` —
+необязательная пара `{ controlId, value }`, которая делает переход зависимым от текущего значения
+control. Это напрямую покрывает пример из обсуждения: кнопка «Профиль» ведёт на Auth Page, когда
+`authenticated = false`, и на Profile Page, когда `authenticated = true` — два edges с
+взаимоисключающими `condition` от одного action-node.
+
+## D-053 — Page открывается через промежуточную Page card, а не сразу fullscreen
+
+**Статус:** принято, 2026-07-21.
+
+В отличие от Wireframe (который открывается прямо в fullscreen), клик по Page в каталоге сначала
+открывает inline **Page card**: описание, список действий/переходов (производных от `flow.edges[]`)
+и diagnostics. Явное действие на карточке уже открывает fullscreen review (маршрут — см. D-050/D-051).
+
+Diagnostics на карточке группируются по коду и могут быть индивидуально acknowledged только через
+явное действие с обязательным текстовым `reason`; результат пишется в новое поле манифеста
+`diagnosticsAcknowledged[]` (`{ code, entityRef?, reason, acknowledgedAt }`) и диагностика остаётся
+видимой в приглушённом виде, а не исчезает — история решения аудируема через git diff.
+
+Это решение вводит жёсткое агентское правило (зафиксировано в `PAGE_RULES.md`): Codex, Claude и любые
+другие агенты никогда не заполняют `diagnosticsAcknowledged[]` от имени пользователя. Если diagnostic
+неустраним, агент обязан явно объяснить причину и получить подтверждение пользователя перед тем, как
+предложить (не выполнить самостоятельно) acknowledge. Мотивация — сценарий, прямо описанный в
+обсуждении: агент чинит 95 из 100 diagnostics, а по оставшимся 5 должен спросить пользователя, а не
+тихо их скрыть.
+
+## D-054 — Pages остаются mock-first; реальная связь с API — неформализованный escape hatch
+
+**Статус:** принято, 2026-07-21.
+
+`page.json` не получает схему для API/backend-интеграции. По умолчанию все data-условия страницы
+выражаются через `controls[]`/`states[]` с моковыми значениями, которые задаёт автор — это остаётся
+предсказуемым и безопасным для review сценарием.
+
+Если автору Page всё же нужна настоящая связь с API, он реализует её как обычный код в
+`*.page.tsx` — Design Lab не строит для этого отдельный adapter/hook-контракт и не пытается
+визуализировать live request/response данные. Design Lab не запрещает это, но и не берёт на себя
+моделирование этой связи: решение сознательно оставляет эту дверь открытой, но неформализованной, а
+не строит третий data-layer поверх `controls[]`/`states[]`.
+
+## D-055 — Sitemap между Pages: authored per-Page Canvas + derived агрегированный граф
+
+**Статус:** принято, 2026-07-21.
+
+Связи между Pages индексируются на двух уровнях одновременно:
+
+- **Per-Page Canvas** — переиспользует контракт Wireframe user-flow Canvas (authored координаты,
+  pan/pinch zoom, arrow+label edges, keyboard/reduced-motion) и рисует `flow.nodes[]`/`flow.edges[]`
+  именно этой Page, включая cross-Page edges как выходные узлы;
+- **Агрегированный sitemap** — derived (не authored) view на уровне каталога Pages, который сервер
+  собирает из `flow.edges[]` с `kind: "page"` всех обнаруженных Pages одного source, по аналогии с
+  тем, как уже вычисляются `usedBy`/`usedInExamplesBy` для Components. Это исключает рассинхронизацию
+  между общим site-graph и отдельными per-Page графами. Из-за произвольного числа страниц
+  агрегированный граф использует auto-layout, а не authored координаты.
+
+Per-Page Canvas идёт в одном контракте с остальной частью Page (переиспользует существующую
+Wireframe Canvas-инфраструктуру); агрегированный sitemap — первый пункт Next-уровня в
+`IMPLEMENTATION-CHECKLIST.md`, так как это отдельная новая UI-поверхность.

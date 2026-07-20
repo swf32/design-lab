@@ -65,7 +65,11 @@ type ComponentEntity = Extract<ModuleData, { kind: 'components' }>['components']
 
 type PreviewModule = Record<string, ComponentType>
 const previewModules = import.meta.glob<PreviewModule>(
-  '../../../../libraries/*/components/**/*.preview.tsx',
+  [
+    '../../../../libraries/*/components/**/*.preview.tsx',
+    // Runtime-incomplete libraries stay discoverable via scanners, but must not enter the Vite graph.
+    '!../../../../libraries/klyp/components/**',
+  ],
   { eager: true },
 )
 
@@ -86,7 +90,10 @@ type StoryModule = {
   renderStoryExample?: (example: StoryExample, story: StoryDefinition) => ReactNode
 }
 const storyModules = import.meta.glob<StoryModule>(
-  '../../../../libraries/*/components/**/*.stories.{ts,tsx}',
+  [
+    '../../../../libraries/*/components/**/*.stories.{ts,tsx}',
+    '!../../../../libraries/klyp/components/**',
+  ],
   { eager: true },
 )
 

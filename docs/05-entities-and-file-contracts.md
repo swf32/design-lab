@@ -75,19 +75,24 @@ Manifest-declared `*.stories.ts(x)` хранит и story metadata, и `renderSt
 
 | Поле | Рекомендация |
 |----|----|
-| Purpose | Хранить выбранный и более финализированный экран |
-| Minimal data model | `id`, `name`, `layoutTree`, `componentRefs[]`, `tokenRefs[]`, `status`, `derivedFromWireframe`, `changelogRef`, `reviewState` |
-| File examples | `Checkout.page.json`, `README.md`, `CHANGELOG.md` |
-| UX flow | Создать page из wireframe или с нуля → собрать из components + local blocks → проверить rules → открыть inspector/handoff |
-| Features | **MVP**: canvas, changelog, inspector. **Next**: review tools, richer exports. **Future**: impact trace and deeper handoff |
+| Purpose | Хранить один финализированный, production-composed экран — точку выпуска Wireframe → Page |
+| Minimal data model | `id`, `name`, `status`, `route`, `routeParams[]`, `derivedFromWireframe`, `controls[]`, `states[]`, `flow.nodes[]`, `flow.edges[]`, `diagnosticsAcknowledged[]` |
+| File examples | `page.json`, `Checkout.page.tsx`, optional `Checkout.page.scss`, `README.md`, `CHANGELOG.md` |
+| UX flow | Создать Page из Wireframe (`derivedFromWireframe`) или с нуля → собрать только из реальных Components → задать controls/states и flow (включая cross-Page переходы) → открыть Page card → проверить diagnostics → открыть fullscreen review/inspector |
+| Features | **MVP**: hybrid JSON+TSX source, automatic discovery, controls+states, per-Page flow Canvas, route mirroring, Page card с diagnostics acknowledgement. **Next**: агрегированный cross-Page sitemap, review approval. **Future**: impact trace и глубокий handoff |
 
 Пример дерева:
 
     pages/
-    └── Checkout/
-        ├── Checkout.page.json
-        ├── README.md
-        └── CHANGELOG.md
+    └── checkout/
+        └── Checkout/
+            ├── page.json
+            ├── Checkout.page.tsx
+            ├── Checkout.page.scss
+            ├── README.md
+            └── CHANGELOG.md
+
+В отличие от Wireframe, Page не содержит exploratory local blocks и не имеет `layouts[]`: это ровно одна committed композиция из реальных Library Components. `page.json` хранит `route` — авторский предполагаемый production-путь, который используется как hand-off metadata и, при отсутствии конфликта с зарезервированными top-level модулями Design Lab (`components`, `wireframes`, `pages`, `tokens`, ...), зеркалируется в URL fullscreen review; при конфликте Design Lab тихо откатывается на filesystem-путь и поднимает diagnostic. `controls[]`/`states[]` описывают domain/data-условия (авторизация, тариф, права), а не layout-варианты. Единый `flow.nodes[]`/`flow.edges[]` graph объединяет внутренние переходы между states этой же Page и cross-Page переходы (`kind: "page"`), включая необязательное `condition` для ветвления по значению control — например, кнопка «Профиль» ведёт на Auth Page для неавторизованного и на Profile Page для авторизованного пользователя. Per-Page Canvas переиспользует контракт Wireframe user-flow Canvas; отдельный derived (не authored) агрегированный sitemap на уровне каталога Pages собирает cross-Page edges всех обнаруженных Pages одного source. Открытие Page из каталога сначала показывает inline Page card (описание, действия, diagnostics) и только явным действием переводит в fullscreen review; diagnostic можно acknowledge только через явное действие с обязательным `reason`, что пишется в `diagnosticsAcknowledged[]` и остаётся видимым в git diff — агенты никогда не заполняют это поле от имени пользователя без явного подтверждения. `page.json` не описывает связь с реальным API: mock-first через `controls[]`/`states[]` — дефолт, а настоящий network-вызов, если он нужен автору, живёт как обычный код в `*.page.tsx` без отдельного Design Lab-контракта.
 
 ## Tokens
 
@@ -258,10 +263,11 @@ Diagnostics не блокируют discovery: сущность остаётся
 | `wireframe-state-value-missing`, `wireframe-state-radio-value-invalid`, `wireframe-state-boolean-value-invalid`, `wireframe-state-range-value-invalid` | `wireframe.json` | Значение state не соответствует объявленному control. |
 | `wireframe-control-kind-invalid`, `wireframe-control-range-invalid`, `wireframe-control-condition-invalid` | `wireframe.json` | Некорректное объявление самого control. |
 | `wireframe-flow-state-invalid`, `wireframe-flow-edge-invalid` | `wireframe.json` | Node/edge ссылается на несуществующий state/node. |
-| `manifest-parse-error` | `component.json` / `wireframe.json` | Файл манифеста не прошёл `JSON.parse` (синтаксическая ошибка). Сущность всё равно попадает в каталог: `id`/`name` подставляются из пути директории, остальные поля пустые, а само сообщение об ошибке становится diagnostic на этой сущности. Соседние сущности того же модуля не затрагиваются. |
-| `schema-version-unsupported` | `component.json` / `wireframe.json` | Манифест объявляет `schemaVersion` больше, чем понимает текущий сервер (см. `SUPPORTED_SCHEMA_VERSION` в `server/services/moduleEntities.mjs`). Поля читаются как есть (без миграции), сущность остаётся видимой с предупреждением, а не падает. |
+| `manifest-parse-error` | `component.json` / `wireframe.json` / `page.json` | Файл манифеста не прошёл `JSON.parse` (синтаксическая ошибка). Сущность всё равно попадает в каталог: `id`/`name` подставляются из пути директории, остальные поля пустые, а само сообщение об ошибке становится diagnostic на этой сущности. Соседние сущности того же модуля не затрагиваются. |
+| `schema-version-unsupported` | `component.json` / `wireframe.json` / `page.json` | Манифест объявляет `schemaVersion` больше, чем понимает текущий сервер (см. `SUPPORTED_SCHEMA_VERSION` в `server/services/moduleEntities.mjs`). Поля читаются как есть (без миграции), сущность остаётся видимой с предупреждением, а не падает. |
+| `page-route-conflicts-reserved-module`, `page-flow-edge-invalid`, `page-flow-condition-invalid`, `page-derived-from-wireframe-invalid`, и другие `page-*` коды | `page.json` | Page-специфичные diagnostics (route mirroring, controls/states/flow validation, provenance). Полный каталог и семантика — в `PAGE_RULES.md`. |
 
-Невалидный `component.json`/`wireframe.json`, который не проходит сам `JSON.parse`, изолируется до одной сущности (`manifest-parse-error`) и не приводит к ошибке всего `/modules/:moduleId` запроса — соседние сущности того же модуля продолжают отображаться.
+Невалидный `component.json`/`wireframe.json`/`page.json`, который не проходит сам `JSON.parse`, изолируется до одной сущности (`manifest-parse-error`) и не приводит к ошибке всего `/modules/:moduleId` запроса — соседние сущности того же модуля продолжают отображаться.
 
 ## Варианты changelog-контракта
 

@@ -132,8 +132,16 @@
 - [x] Scope Wireframes to active-source product modes and adapt theme controls between Tab Switcher and Radio Buttons by option count.
 - [x] Pair desktop/mobile screens in collision-safe flow nodes and support infinite transformed grid, pan, pinch zoom, and semantic folder routes.
 - [x] Bring the shared Inspector/handoff contract from Component Playground to fullscreen Wireframes.
-- [x] Define the canonical Page contract in `PAGE_RULES.md` (hybrid `page.json` + `*.page.tsx`, states, `derivedFromWireframe` provenance, inter-Page `links[]`, diagnostic codes).
-- [ ] Implement Pages module discovery/server support and bring the same Inspector/handoff contract to Pages, per `PAGE_RULES.md`.
+- [x] Define the canonical Page contract in `PAGE_RULES.md` (hybrid `page.json` + `*.page.tsx`, authored production `route` with reserved-module conflict fallback, `controls[]`/`states[]`, unified `flow.nodes[]`/`flow.edges[]` with conditional cross-Page edges, `derivedFromWireframe` provenance, Page card with `diagnosticsAcknowledged[]`, diagnostic codes).
+- [ ] Implement the Pages module MVP per `PAGE_RULES.md`:
+  - [ ] `page.json`/`*.page.tsx` discovery via `moduleEntities.mjs`, reusing `readManifest()` isolation and `SUPPORTED_SCHEMA_VERSION` guard.
+  - [ ] Route mirroring: fullscreen review URL uses authored `route` when it does not collide with a reserved module segment; otherwise falls back to the filesystem path and raises `page-route-conflicts-reserved-module`.
+  - [ ] `controls[]`/`states[]` discovery and validation, reusing the Wireframe typed control registry.
+  - [ ] Unified `flow.nodes[]`/`flow.edges[]` discovery/validation, including `kind: "page"` edges with optional `condition`, and the per-Page flow Canvas (reusing the Wireframe user-flow Canvas contract).
+  - [ ] Page card route: inline overview (description, actions derived from `flow.edges[]`, diagnostics) opened before fullscreen review, with the explicit per-diagnostic acknowledge action that writes `diagnosticsAcknowledged[]`.
+  - [ ] Bring the shared `WorkbenchInspector`/handoff contract to Pages.
+- [ ] Next: derived, auto-layout aggregated sitemap across all Pages in a source, computed from every Page's `kind: "page"` flow edges (analogous to how `usedBy`/`usedInExamplesBy` are derived for Components).
+- [ ] Next: review approval workflow and richer Page exports.
 - [ ] Add guarded AI write proposals only after diff, validation, and confirmation contracts exist.
 
 ---
@@ -552,8 +560,9 @@ Components использует Tokens, Palette и Fonts и становится
 - [x] Wireframes: hybrid JSON+TSX contract, pricing reference entity, Dev mode, shareable state, and user-flow graph.
 - [x] Wireframes: no permanent review toolbar, real renderer-backed desktop/mobile previews, source product modes, infinite Canvas grid, pinch zoom, semantic folder routes, and target actions kept inside the product screen.
 - [x] Wireframes: shared bottom-end Inspector provides purple Component, pink slot, and authored element handoff.
-- [ ] Pages.
-- [ ] Page inspector и handoff.
+- [ ] Pages: discovery, route mirroring with reserved-module fallback, controls/states, unified flow graph with conditional cross-Page edges, Page card with diagnostics acknowledgement (контракт зафиксирован в `PAGE_RULES.md`, см. детализацию выше в разделе P0/MVP).
+- [ ] Page inspector и handoff (переиспользует `WorkbenchInspector`).
+- [ ] Aggregated cross-Page sitemap (derived, auto-layout, Next-уровень).
 - [ ] Storybook read-only ingestion.
 - [ ] Figma as context workflows.
 - [ ] Design analytics.

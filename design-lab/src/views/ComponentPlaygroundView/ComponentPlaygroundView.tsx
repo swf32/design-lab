@@ -31,7 +31,10 @@ type ComponentsData = Extract<ModuleData, { kind: 'components' }>
 type ComponentEntity = ComponentsData['components'][number]
 
 const playgroundModules = import.meta.glob<ComponentPlaygroundModule>(
-  '../../../../libraries/*/components/**/*.playground.{ts,tsx}',
+  [
+    '../../../../libraries/*/components/**/*.playground.{ts,tsx}',
+    '!../../../../libraries/klyp/components/**',
+  ],
   { eager: true },
 )
 
