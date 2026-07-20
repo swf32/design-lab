@@ -1,3 +1,13 @@
+[data-workbench-inspecting] [data-dl-component] {
+  outline: 1px dashed color-mix(in srgb, var(--color-inspection-component) 42%, transparent);
+  outline-offset: 1px;
+}
+
+[data-workbench-inspecting] [data-dl-slot] {
+  outline: 1px dashed color-mix(in srgb, var(--color-inspection-slot) 46%, transparent);
+  outline-offset: 1px;
+}
+
 .dl-workbench-inspector__outline {
   box-sizing: border-box;
   position: fixed;

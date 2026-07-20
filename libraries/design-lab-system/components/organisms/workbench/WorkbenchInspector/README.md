@@ -8,6 +8,12 @@ Component roots produce copyable JSX from public inspection props. Named slots p
 Ordinary elements produce declarations from matching same-origin authored style rules, preserving
 expressions such as `width: 100%` and `var(--token)` instead of reporting computed pixels or RGB.
 
-Pointer hover previews targets on desktop. Pointer activation selects on desktop and touch. Escape
-turns Inspector off. Component, slot, and raw-element identities use purple, pink, and neutral dashed
-boundaries respectively.
+Pointer hover previews targets on desktop. Pointer activation selects and pins the code popover on
+desktop and touch while consuming the product click, so inspected links and controls never navigate
+or mutate the screen. The pinned popover remains copyable while the pointer moves; activate another
+target to replace it. Escape first clears a pinned selection and then turns Inspector off.
+
+While Inspector is active, every explicitly marked Component root receives a quiet purple dashed
+outline and every named slot receives a quiet pink dashed outline. This gives an immediate map of
+Component composition before a specific target is selected. The selected Component, slot, and
+raw-element identities use stronger purple, pink, and neutral dashed boundaries respectively.

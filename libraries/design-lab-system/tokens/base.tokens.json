@@ -111,6 +111,32 @@
           "avoidWhen": ["style a theme accent", "outline a Component root"]
         }
       },
+      "workbench": {
+        "action-surface": {
+          "type": "color",
+          "value": "rgba(127, 127, 127, 0.1)",
+          "description": "Theme-independent translucent glass surface for floating workbench actions.",
+          "aliases": ["workbench glass", "floating action surface"],
+          "useWhen": ["paint a compact floating review action over arbitrary product content"],
+          "avoidWhen": ["paint a solid product button", "paint a modal or persistent panel"]
+        },
+        "action-neutral": {
+          "type": "color",
+          "value": "#767676",
+          "description": "Stable neutral identity for low-emphasis workbench actions across light and dark content.",
+          "aliases": ["workbench neutral", "settings action"],
+          "useWhen": ["label a neutral floating workbench utility"],
+          "avoidWhen": ["communicate inspection or developer mode identity"]
+        },
+        "action-dev": {
+          "type": "color",
+          "value": "#b66a16",
+          "description": "Stable orange identity for developer-mode workbench actions across light and dark content.",
+          "aliases": ["developer orange", "dev mode action"],
+          "useWhen": ["identify a floating developer or review-mode action"],
+          "avoidWhen": ["communicate warning status", "style a product action"]
+        }
+      },
       "canvas-grid": {
         "dark-a": {
           "type": "color",
@@ -259,6 +285,11 @@
         "type": "radius",
         "value": "12px",
         "description": "Large stable corner radius reserved for catalog and content cards."
+      },
+      "pill": {
+        "type": "radius",
+        "value": "999px",
+        "description": "Maximum corner radius for pill-shaped controls whose silhouette must stay fully rounded."
       }
     },
     "transition": {

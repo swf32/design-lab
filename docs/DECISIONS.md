@@ -380,7 +380,7 @@ Playground route намеренно выходит из обычного shell D
 
 **Статус:** принято, 2026-07-19.
 
-Playground получает общий Inspector в нижнем правом углу. На desktop активный режим следует за pointer hover, на touch выбирает element по tap. Identity не зависит от interface accent: Component root получает стабильный фиолетовый пунктир `color.inspection.component`, named slot — розовый пунктир `color.inspection.slot`, обычный element — нейтральный пунктир. Текстовый kind label дублирует цветовую семантику.
+Playground получает общий Inspector в нижнем правом углу. На desktop активный режим показывает hover-preview, а click/tap закрепляет выбранный element и copyable popover. Selection перехватывает pointer/click до product action: inspected button, link или control не меняет state и не выполняет navigation. Движение pointer не сбрасывает закреплённый popover; следующий выбор заменяет его, Escape сначала снимает selection. При включённом Inspector все явно размеченные Component roots сразу получают тихий фиолетовый пунктир, а named slots — тихий розовый пунктир, чтобы composition была видна до выбора цели. Identity не зависит от interface accent: выбранный Component root получает усиленный стабильный фиолетовый пунктир `color.inspection.component`, named slot — розовый пунктир `color.inspection.slot`, обычный element — нейтральный пунктир. Текстовый kind label дублирует цветовую семантику.
 
 Определение Component не читает приватные поля React Fiber и не пытается считать любой вложенный element частью ближайшего Component. Production root явно распространяет `inspectionAttributes(ComponentName, publicProps)`, а named slot — `slotAttributes(slotName)` из `@design-lab/system/inspection`. Автор передаёт только безопасный сериализуемый публичный subset без callbacks, credentials и application state; helpers создают общий `data-dl-component` / `data-dl-props` / `data-dl-slot` contract. Поэтому механизм остаётся переносимым на будущие Wireframes и Pages и не зависит от React runtime internals.
 
@@ -427,10 +427,11 @@ Canvas не имеет конечной сеточной подложки. Grid 
 **Статус:** принято, 2026-07-20.
 
 Settings, Inspect и Dev mode не поддерживают отдельные application-local button implementations.
-Production atom `WorkbenchAction` задаёт общую компактную геометрию: `44px` minimum target,
-`radius.small`, translucent raised surface, dashed boundary, visible focus и icon/label slots.
-Viewport positioning остаётся обязанностью shell consumer. Neutral tone принадлежит Settings,
-stable inspection purple — Inspector, semantic warning orange — Dev mode.
+Production atom `WorkbenchAction` задаёт общую компактную геометрию: визуальный `24px` pill,
+невидимо расширенный `44px` minimum target, theme-independent translucent glass с backdrop blur,
+dashed boundary, visible focus и icon/label slots. Viewport positioning остаётся обязанностью shell
+consumer. Stable neutral tone принадлежит Settings, stable inspection purple — Inspector, stable
+developer orange — Dev mode.
 
 Production organism `WorkbenchInspector` получает явный `surfaceRef` и используется одинаково в
 Component Playground и fullscreen Wireframe. Он не инспектирует shell actions за пределами surface,

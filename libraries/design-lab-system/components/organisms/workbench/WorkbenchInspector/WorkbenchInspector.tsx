@@ -140,11 +140,15 @@ export type WorkbenchInspectorProps = {
 export function WorkbenchInspector({ surfaceRef }: WorkbenchInspectorProps) {
   const [active, setActive] = useState(false)
   const [inspection, setInspection] = useState<Inspection | null>(null)
+  const [pinned, setPinned] = useState(false)
   const frameRef = useRef<number | null>(null)
+  const pinnedRef = useRef(false)
 
   useEffect(() => {
     const surface = surfaceRef.current
     if (!surface || !active) return
+
+    surface.setAttribute('data-workbench-inspecting', '')
 
     const select = (target: EventTarget | null) => {
       if (!(target instanceof HTMLElement)) return
@@ -152,7 +156,7 @@ export function WorkbenchInspector({ surfaceRef }: WorkbenchInspectorProps) {
       setInspection(inspectElement(target))
     }
     const move = (event: PointerEvent) => {
-      if (event.pointerType === 'touch') return
+      if (event.pointerType === 'touch' || pinnedRef.current) return
       if (frameRef.current != null) cancelAnimationFrame(frameRef.current)
       frameRef.current = requestAnimationFrame(() => select(event.target))
     }
@@ -164,25 +168,55 @@ export function WorkbenchInspector({ surfaceRef }: WorkbenchInspectorProps) {
         return
       event.preventDefault()
       event.stopPropagation()
+      event.stopImmediatePropagation()
       select(event.target)
+      pinnedRef.current = true
+      setPinned(true)
+    }
+    const blockProductClick = (event: MouseEvent) => {
+      if (
+        event.target instanceof HTMLElement &&
+        event.target.closest('[data-workbench-inspector-ui]')
+      )
+        return
+      event.preventDefault()
+      event.stopPropagation()
+      event.stopImmediatePropagation()
+      select(event.target)
+      pinnedRef.current = true
+      setPinned(true)
     }
     const escape = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') setActive(false)
+      if (event.key !== 'Escape') return
+      if (pinnedRef.current) {
+        pinnedRef.current = false
+        setPinned(false)
+        setInspection(null)
+        return
+      }
+      setActive(false)
     }
 
     surface.addEventListener('pointermove', move)
     surface.addEventListener('pointerdown', choose, true)
+    surface.addEventListener('click', blockProductClick, true)
     window.addEventListener('keydown', escape)
     return () => {
+      surface.removeAttribute('data-workbench-inspecting')
       surface.removeEventListener('pointermove', move)
       surface.removeEventListener('pointerdown', choose, true)
+      surface.removeEventListener('click', blockProductClick, true)
       window.removeEventListener('keydown', escape)
       if (frameRef.current != null) cancelAnimationFrame(frameRef.current)
     }
   }, [active, surfaceRef])
 
   useEffect(() => {
-    if (!active) setInspection(null)
+    if (!active) {
+      pinnedRef.current = false
+      setPinned(false)
+      setInspection(null)
+    }
   }, [active])
 
   const rect = inspection?.rect
@@ -201,7 +235,9 @@ export function WorkbenchInspector({ surfaceRef }: WorkbenchInspectorProps) {
 
   return (
     <div
-      className={`dl-workbench-inspector${active ? ' dl-workbench-inspector--active' : ''}`}
+      className={`dl-workbench-inspector${active ? ' dl-workbench-inspector--active' : ''}${
+        pinned ? ' dl-workbench-inspector--pinned' : ''
+      }`}
       data-workbench-inspector-ui
       style={cardStyle}
       {...inspectionAttributes('WorkbenchInspector', { active })}

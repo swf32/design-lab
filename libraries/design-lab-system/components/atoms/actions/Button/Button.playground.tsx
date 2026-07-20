@@ -1,5 +1,6 @@
 import { control, definePlayground, type PlaygroundValues } from '@design-lab/system/playground'
 import { inspectionAttributes, slotAttributes } from '@design-lab/system/inspection'
+import { StarIcon } from '@design-lab/system/icons'
 
 export const playground = definePlayground({
   name: 'Button wireframes',
@@ -64,6 +65,11 @@ export const playground = definePlayground({
       defaultValue: false,
       description: 'Fill the available specimen width.',
     }),
+    leadingIcon: control.boolean({
+      label: 'Leading icon',
+      defaultValue: true,
+      description: 'Compose a named leading slot with a Library icon.',
+    }),
     animated: control.boolean({
       label: 'Animate mesh',
       defaultValue: true,
@@ -114,8 +120,10 @@ const buttonWireframeStyles = String.raw`
   font-size: calc(var(--typography-body-size) + 2px);
   font-weight: 700;
   letter-spacing: -0.01em;
-  display: inline-grid;
-  place-items: center;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--spacing-2);
   isolation: isolate;
   overflow: hidden;
   cursor: pointer;
@@ -267,6 +275,16 @@ const buttonWireframeStyles = String.raw`
   z-index: 1;
 }
 
+.button-wireframe__leading {
+  width: 16px;
+  height: 16px;
+  position: relative;
+  z-index: 1;
+  display: grid;
+  flex: 0 0 auto;
+  place-items: center;
+}
+
 @keyframes button-mesh-a {
   to {
     transform: translate3d(48%, 36%, 0) scale(1.12);
@@ -346,6 +364,7 @@ export function renderPlaygroundVariant({ variant, values }: { variant: string; 
             radius: values.radius,
             size: values.size,
             fullWidth: values.fullWidth,
+            leadingIcon: values.leadingIcon,
             animated: isMesh && values.animated,
             disabled: values.disabled,
             children: values.label,
@@ -356,6 +375,11 @@ export function renderPlaygroundVariant({ variant, values }: { variant: string; 
               <span className="button-wireframe__blob button-wireframe__blob--a" />
               <span className="button-wireframe__blob button-wireframe__blob--b" />
               <span className="button-wireframe__blob button-wireframe__blob--c" />
+            </span>
+          )}
+          {values.leadingIcon && (
+            <span className="button-wireframe__leading" {...slotAttributes('leading')}>
+              <StarIcon size={16} aria-hidden="true" />
             </span>
           )}
           <span className="button-wireframe__label" {...slotAttributes('label')}>

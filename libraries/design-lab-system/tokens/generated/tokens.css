@@ -17,6 +17,9 @@
   --color-code: #83c5b4;
   --color-inspection-component: #9747ff;
   --color-inspection-slot: #f24eaa;
+  --color-workbench-action-surface: rgba(127, 127, 127, 0.1);
+  --color-workbench-action-neutral: #767676;
+  --color-workbench-action-dev: #b66a16;
   --color-canvas-grid-dark-a: #111111;
   --color-canvas-grid-dark-b: #1c1c1c;
   --color-canvas-grid-light-a: #e8e8e3;
@@ -43,6 +46,7 @@
   --radius-small: 6px;
   --radius-medium: 8px;
   --radius-card: 12px;
+  --radius-pill: 999px;
   --transition-fast: 140ms;
   --transition-preview: 420ms;
   --easing-preview: cubic-bezier(0.22, 1, 0.36, 1);

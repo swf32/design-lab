@@ -10,11 +10,11 @@ const previewStyles = String.raw`
 }
 
 .preview-workbench-action {
-  min-height: 32px;
-  padding: 0 var(--spacing-2);
+  min-height: 22px;
+  padding: 0 7px;
   border: 1px dashed currentColor;
-  border-radius: var(--radius-small);
-  background: color-mix(in srgb, currentColor 10%, var(--color-surface-raised));
+  border-radius: var(--radius-pill);
+  background: var(--color-workbench-action-surface);
   display: inline-flex;
   align-items: center;
   gap: var(--spacing-1);
@@ -23,7 +23,7 @@ const previewStyles = String.raw`
 }
 
 .preview-workbench-action--neutral {
-  color: var(--color-text-secondary);
+  color: var(--color-workbench-action-neutral);
 }
 
 .preview-workbench-action--inspect {
@@ -31,7 +31,7 @@ const previewStyles = String.raw`
 }
 
 .preview-workbench-action--dev {
-  color: var(--color-status-warning);
+  color: var(--color-workbench-action-dev);
 }
 `
 

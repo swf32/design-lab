@@ -19,7 +19,8 @@ The illustrative catalog preview is deliberately separate from this implementati
 
 The adjacent typed Playground compares three pre-production visual directions: animated mesh,
 semantic solid, and transparent outline. Shared controls switch between square, soft, and maximum
-pill corners, three sizes, intrinsic/full-width layout, disabled state, and optional mesh motion.
+pill corners, three sizes, intrinsic/full-width layout, disabled state, optional mesh motion, and a
+Library icon composed through the named `leading` slot.
 
 The mesh clips its moving blobs with both standard `mask-*` and Safari `-webkit-mask-*` declarations.
 It also stops ambient motion when `prefers-reduced-motion` is enabled.

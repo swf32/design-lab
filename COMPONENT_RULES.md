@@ -47,7 +47,7 @@ The route is derived from the Component path: `/components/<component-path>/play
 
 ### Playground inspection
 
-Playground provides one shared Inspector mode for developer handoff. Its bottom-end inspect action activates pointer hover on fine-pointer devices and tap selection on touch devices. Identity colors are stable semantic inspection roles rather than interface accents: Component roots use a purple dashed outline and named slots use a pink dashed outline. Ordinary elements use a neutral dashed outline. Color is reinforced by the explicit `component`, `slot`, or `element` label.
+Playground provides one shared Inspector mode for developer handoff. Its bottom-end inspect action activates pointer hover-preview on fine-pointer devices and pinned selection by click or tap. Selection consumes the product activation before a reviewed link, button, or control can navigate or mutate state. While active, all explicitly marked Component roots receive quiet purple dashed outlines and named slots receive quiet pink dashed outlines; the selected target receives the stronger identity outline. Ordinary elements use a neutral dashed outline. Color is reinforced by the explicit `component`, `slot`, or `element` label.
 
 Production Components opt into stable detection by spreading `inspectionAttributes(ComponentName, publicProps)` from `@design-lab/system/inspection` onto their semantic root. Named composition slots spread `slotAttributes(slotName)`. Pass only public, serializable, non-sensitive presentational props; never serialize callbacks, credentials, application state, arbitrary spread props, or React internals. The helpers write the common `data-dl-component` / `data-dl-props` / `data-dl-slot` contract. Inspector must not depend on private React Fiber fields. Nested raw elements remain independently inspectable instead of inheriting the nearest ancestor Component identity.
 
@@ -58,8 +58,10 @@ Reusable Playground shell patterns are production Components. `PlaygroundControl
 Fullscreen review utilities use the production `WorkbenchAction` atom instead of styling parallel
 floating buttons in route views. Settings uses the neutral tone, Inspector uses the stable purple
 dashed inspection tone, and Dev mode uses the orange dashed developer tone. Consumers own viewport
-positioning; the atom owns the shared compact radius, translucent surface, 44px minimum target,
-focus, disabled, and active behavior.
+positioning; the atom owns the shared pill silhouette, translucent surface, focus, disabled, and
+active behavior. Its visible pill is 24px high; an invisible expanded hit area preserves the 44px
+interaction target. Workbench glass, neutral, inspection purple, and developer orange identities
+remain stable across light and dark interface themes.
 
 `WorkbenchInspector` is the shared production organism for Component Playgrounds and page
 Wireframes. It receives an explicit surface ref, never inspects outside that boundary, and composes

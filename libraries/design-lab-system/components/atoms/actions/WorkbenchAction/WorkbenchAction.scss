@@ -1,26 +1,27 @@
 .dl-workbench-action {
-  --workbench-action-color: var(--color-text-secondary);
+  --workbench-action-color: var(--color-workbench-action-neutral);
 
-  min-width: 44px;
-  min-height: 44px;
-  padding: 0 var(--spacing-3);
-  border: 1px dashed color-mix(in srgb, var(--workbench-action-color) 58%, transparent);
-  border-radius: var(--radius-small);
-  background: color-mix(in srgb, var(--color-surface-raised) 66%, transparent);
-  box-shadow: 0 8px 24px color-mix(in srgb, var(--color-overlay-scrim) 22%, transparent);
-  -webkit-backdrop-filter: blur(14px) saturate(1.08);
-  backdrop-filter: blur(14px) saturate(1.08);
+  min-width: 24px;
+  min-height: 24px;
+  padding: 0 10px;
+  position: relative;
+  border: 1px dashed color-mix(in srgb, var(--workbench-action-color) 72%, transparent);
+  border-radius: var(--radius-pill);
+  background: var(--color-workbench-action-surface);
+  box-shadow: 0 4px 14px color-mix(in srgb, var(--workbench-action-color) 10%, transparent);
+  -webkit-backdrop-filter: blur(18px) saturate(1.06);
+  backdrop-filter: blur(18px) saturate(1.06);
   color: var(--workbench-action-color);
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: var(--spacing-2);
+  gap: var(--spacing-1);
   font: inherit;
-  font-size: 11px;
+  font-size: 10px;
   font-weight: 650;
   line-height: 1;
   cursor: pointer;
-  opacity: 0.7;
+  opacity: 0.78;
   touch-action: manipulation;
   transition:
     opacity var(--transition-fast) ease-out,
@@ -29,19 +30,30 @@
     color var(--transition-fast) ease-out;
 }
 
+.dl-workbench-action::before {
+  position: absolute;
+  inset: -10px -4px;
+  border-radius: inherit;
+  content: '';
+}
+
 .dl-workbench-action--inspect {
   --workbench-action-color: var(--color-inspection-component);
 }
 
 .dl-workbench-action--dev {
-  --workbench-action-color: var(--color-status-warning);
+  --workbench-action-color: var(--color-workbench-action-dev);
 }
 
 .dl-workbench-action:hover,
 .dl-workbench-action:focus-visible,
 .dl-workbench-action--active {
   border-color: var(--workbench-action-color);
-  background: color-mix(in srgb, var(--workbench-action-color) 12%, var(--color-surface-raised));
+  background: color-mix(
+    in srgb,
+    var(--workbench-action-color) 12%,
+    var(--color-workbench-action-surface)
+  );
   color: var(--workbench-action-color);
   opacity: 1;
 }
@@ -52,22 +64,22 @@
 }
 
 .dl-workbench-action:disabled {
-  color: var(--color-text-disabled);
+  color: var(--color-workbench-action-neutral);
   cursor: not-allowed;
   opacity: 0.45;
 }
 
 .dl-workbench-action__icon {
-  width: 18px;
-  height: 18px;
+  width: 14px;
+  height: 14px;
   display: grid;
   flex: 0 0 auto;
   place-items: center;
 }
 
 .dl-workbench-action__icon > svg {
-  width: 18px;
-  height: 18px;
+  width: 14px;
+  height: 14px;
 }
 
 .dl-workbench-action__label {

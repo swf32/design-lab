@@ -17,7 +17,7 @@
   "docs": "README.md",
   "changelog": "CHANGELOG.md",
   "status": "ready",
-  "states": ["inactive", "active", "selection"],
+  "states": ["inactive", "active", "hover-preview", "pinned-selection"],
   "variants": ["component", "slot", "element"],
   "props": {
     "surfaceRef": {
