@@ -2,6 +2,7 @@ import './WireframeDevPanel.scss'
 import { useEffect, useId, useRef, type HTMLAttributes, type ReactNode } from 'react'
 import { inspectionAttributes, slotAttributes } from '@design-lab/system/inspection'
 import { CodeIcon } from '@design-lab/system/icons'
+import { WorkbenchAction } from '../../../atoms/actions/WorkbenchAction/WorkbenchAction'
 
 export type WireframeDevPanelProps = Omit<HTMLAttributes<HTMLDivElement>, 'children'> & {
   open: boolean
@@ -60,17 +61,18 @@ export function WireframeDevPanel({
       {...inspectionAttributes('WireframeDevPanel', { open, triggerLabel })}
       {...props}
     >
-      <button
+      <WorkbenchAction
         ref={triggerRef}
-        type="button"
         className="dl-wireframe-dev-panel__trigger"
+        tone="dev"
+        active={open}
         aria-controls={panelId}
         aria-expanded={open}
         onClick={() => onOpenChange(!open)}
+        icon={<CodeIcon size={18} aria-hidden="true" />}
       >
-        <CodeIcon size={16} aria-hidden="true" />
-        <strong>{triggerLabel}</strong>
-      </button>
+        {triggerLabel}
+      </WorkbenchAction>
       {open && (
         <section
           id={panelId}

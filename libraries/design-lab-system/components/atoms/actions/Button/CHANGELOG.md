@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+- Added: typed Button Wireframe Playground with living mesh, solid, and outline directions.
+- Added: square, soft, and maximum pill corner controls plus size, width, disabled, and motion controls.
+- Compatibility: mesh clipping includes standard and Safari-prefixed mask declarations.
+- Accessibility: Button roots and label/leading/trailing slots are now available to Workbench Inspector.
+
 - Changed: Added authored semantic retrieval metadata for MCP and CLI search.
 
 - Changed: Workbench stories now render automatically from the adjacent story module.

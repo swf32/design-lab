@@ -1,0 +1,28 @@
+{
+  "id": "workbench-inspector",
+  "name": "Workbench Inspector",
+  "description": "Inspects Component roots, named slots, and authored DOM styles on any referenced workbench surface.",
+  "aliases": ["developer inspector", "component picker", "handoff inspector"],
+  "useWhen": [
+    "provide code handoff on a fullscreen Playground or Wireframe",
+    "distinguish Component, slot, and raw element boundaries"
+  ],
+  "avoidWhen": [
+    "edit application source",
+    "inspect content outside an explicitly referenced review surface"
+  ],
+  "entry": "WorkbenchInspector.tsx",
+  "preview": "WorkbenchInspector.preview.tsx",
+  "stories": "WorkbenchInspector.stories.tsx",
+  "docs": "README.md",
+  "changelog": "CHANGELOG.md",
+  "status": "ready",
+  "states": ["inactive", "active", "selection"],
+  "variants": ["component", "slot", "element"],
+  "props": {
+    "surfaceRef": {
+      "type": "RefObject<HTMLElement | null>",
+      "required": true
+    }
+  }
+}

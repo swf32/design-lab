@@ -108,7 +108,8 @@
 - [x] Keep Wireframe review navigation inside one translucent Dev mode action and render the real screen in 16:9 catalog and flow previews.
 - [x] Scope Wireframes to active-source product modes and adapt theme controls between Tab Switcher and Radio Buttons by option count.
 - [x] Pair desktop/mobile screens in collision-safe flow nodes and support infinite transformed grid, pan, pinch zoom, and semantic folder routes.
-- [ ] Implement Pages and bring Inspector/handoff parity from Playground to Wireframes and Pages.
+- [x] Bring the shared Inspector/handoff contract from Component Playground to fullscreen Wireframes.
+- [ ] Implement Pages and bring the same Inspector/handoff contract to Pages.
 - [ ] Add guarded AI write proposals only after diff, validation, and confirmation contracts exist.
 
 ---
@@ -426,6 +427,8 @@ Components использует Tokens, Palette и Fonts и становится
 - [x] Playground Inspector различает Components, named slots и обычные DOM elements, показывает copyable JSX/HTML/authored CSS и работает через hover/tap.
 - [x] Component outline использует стабильный inspection purple, slot outline — inspection pink; оба не зависят от interface accent.
 - [x] Fullscreen Playground использует production `PlaygroundControlsRail` и `InspectorCodePopover`; Canvas Background Control плавает сверху справа над Canvas.
+- [x] Shared `WorkbenchInspector` и `WorkbenchAction` заменяют application-local Inspector и разрозненные Settings/Inspect/Dev mode buttons.
+- [x] Button получил typed Wireframe Playground с mesh/solid/outline directions, управляемым radius и Safari-prefixed mask clipping.
 - [x] Playground popovers портальны и viewport-aware: открытие не увеличивает scroll area controls rail.
 - [x] Wireframe-only Component обнаруживается без production entry и не попадает в generated package barrel.
 - [ ] Completeness badge/action помимо lifecycle status.
@@ -523,6 +526,7 @@ Components использует Tokens, Palette и Fonts и становится
 - [x] Local read-only MCP stdio adapter и CLI fallback.
 - [x] Wireframes: hybrid JSON+TSX contract, pricing reference entity, Dev mode, shareable state, and user-flow graph.
 - [x] Wireframes: no permanent review toolbar, real renderer-backed desktop/mobile previews, source product modes, infinite Canvas grid, pinch zoom, semantic folder routes, and target actions kept inside the product screen.
+- [x] Wireframes: shared bottom-end Inspector provides purple Component, pink slot, and authored element handoff.
 - [ ] Pages.
 - [ ] Page inspector и handoff.
 - [ ] Storybook read-only ingestion.

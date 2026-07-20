@@ -410,7 +410,7 @@ User flow является причинно-следственным directed gr
 
 Wireframe открывается fullscreen вне Application Sidebar, Directory Panel и workspace header. Production `WireframeDevPanel` остаётся плавающим слева на desktop и safe-area bottom action на mobile; production `UserFlowCanvas` владеет node/edge presentation, pan и zoom. Эталонная entity `design-lab-system/wireframes/product/Pricing` проверяет три layout-гипотезы, шесть entitlement states и переходы от отсутствующей подписки до полностью купленного token allowance.
 
-У fullscreen Wireframe нет постоянного review toolbar: back, Screen/User flow и копирование share-link находятся внутри полупрозрачного Dev mode, который остаётся единственным внешним shell-action. Каталог и user-flow nodes обязаны показывать один и тот же реальный adjacent renderer через inert `WireframeScreenPreview`; отдельные нарисованные thumbnails запрещены. Каталог использует desktop 16:9, а расширенный responsive и Canvas contract зафиксирован в D-042. Product target actions не дублируются в Dev mode: например, Team seats выбираются на pricing screen, а Dev range моделирует расход включённых токенов.
+У fullscreen Wireframe нет постоянного review toolbar: back, Screen/User flow и копирование share-link находятся внутри полупрозрачного Dev mode, который остаётся единственным внешним navigation/control action. Отдельный Inspector отвечает только за developer handoff и не дублирует review navigation. Каталог и user-flow nodes обязаны показывать один и тот же реальный adjacent renderer через inert `WireframeScreenPreview`; отдельные нарисованные thumbnails запрещены. Каталог использует desktop 16:9, а расширенный responsive и Canvas contract зафиксирован в D-042. Product target actions не дублируются в Dev mode: например, Team seats выбираются на pricing screen, а Dev range моделирует расход включённых токенов.
 
 ## D-042 — Wireframe наследует product modes источника и использует бесконечный responsive User Flow
 
@@ -421,3 +421,23 @@ Product theme Wireframe не является interface preference Design Lab и
 State node User Flow является одной graph entity, но показывает рядом две реальные responsive композиции одного renderer: desktop 16:9 и portrait mobile. Virtual preview viewport устанавливает CSS inline-size container, поэтому mobile layout определяется представленным viewport, а не шириной внешнего браузера. Authored coordinates сохраняют topology; `UserFlowCanvas` группирует близкие x-координаты в columns и гарантирует minimum spacing между enlarged nodes и rows, не записывая derived geometry обратно в manifest.
 
 Canvas не имеет конечной сеточной подложки. Grid рисуется в viewport и вычисляет position/size из текущих pan и zoom, поэтому движется вместе с graph world без видимого края. Pointer pan, two-finger pinch и trackpad pinch принадлежат Canvas; `touch-action: none` и non-passive gesture guards не позволяют жесту масштабировать страницу. Видимые Zoom out, Reset и Zoom in остаются обязательной keyboard/touch альтернативой. Folder route открывает filtered catalog только если Directory item является folder; fullscreen включается исключительно для обнаруженной Wireframe entity.
+
+## D-043 — Fullscreen workbench actions и Inspector являются общими Library Components
+
+**Статус:** принято, 2026-07-20.
+
+Settings, Inspect и Dev mode не поддерживают отдельные application-local button implementations.
+Production atom `WorkbenchAction` задаёт общую компактную геометрию: `44px` minimum target,
+`radius.small`, translucent raised surface, dashed boundary, visible focus и icon/label slots.
+Viewport positioning остаётся обязанностью shell consumer. Neutral tone принадлежит Settings,
+stable inspection purple — Inspector, semantic warning orange — Dev mode.
+
+Production organism `WorkbenchInspector` получает явный `surfaceRef` и используется одинаково в
+Component Playground и fullscreen Wireframe. Он не инспектирует shell actions за пределами surface,
+различает Component/slot/raw element через существующий handoff contract и компонует
+`InspectorCodePopover` с `WorkbenchAction`. Application-local `PlaygroundInspector` удалён.
+
+Эталонный Button получает соседний typed Wireframe Playground с тремя направлениями: living mesh,
+solid primary и outline. Общие controls меняют square/soft/maximum radius, size, width, disabled и
+motion. Mesh использует три движущихся token-driven blob слоя, standard mask declarations и
+Safari-prefixed `-webkit-mask-*`; `prefers-reduced-motion` отключает ambient animation.

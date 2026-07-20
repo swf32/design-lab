@@ -24,6 +24,10 @@
   border: 0;
   border-radius: 0;
 }
+.wireframe-view:has(.dl-workbench-inspector--active) .wireframe-view__stage,
+.wireframe-view:has(.dl-workbench-inspector--active) .wireframe-view__stage * {
+  cursor: crosshair;
+}
 .wireframe-view__screen {
   min-height: 100dvh;
   background: var(--color-surface-secondary);

@@ -77,7 +77,7 @@ Dev mode never consumes permanent Page layout space. All touch targets are at le
 
 Product modes come only from the active Wireframe source token files and remain independent of the Design Lab interface theme. One mode creates no redundant control; two or three modes use `TabSwitcher`; four or more use a visible `RadioButton` group. The selected mode is part of the shareable URL and scopes the fullscreen screen, catalog preview, desktop/mobile flow previews, and established Library Components without recoloring the Dev mode shell.
 
-The closed Wireframe route has no permanent toolbar, title bar, Tab Switcher, status pill, or back button over the product screen. The quiet translucent Dev mode trigger is the only review-shell action outside the screen or flow content. Clipboard writing must include a manual selectable-link fallback because an IP-hosted HTTP deployment may not expose the secure Clipboard API.
+The closed Wireframe route has no permanent toolbar, title bar, Tab Switcher, status pill, or back button over the product screen. The quiet translucent Dev mode trigger is the only review navigation/control action outside the screen or flow content. A separate compact Inspector action may sit at the bottom end for developer handoff; it must not contain review navigation or state controls. Clipboard writing must include a manual selectable-link fallback because an IP-hosted HTTP deployment may not expose the secure Clipboard API.
 
 Control semantics:
 
@@ -123,7 +123,10 @@ Exploratory local blocks are allowed when they are the subject of layout evaluat
 
 Dev mode controls describe test conditions and entitlements, not actions the product user should perform. A target action such as choosing team seats, quantity, sorting, or checkout options belongs in the rendered screen. Its value may remain in saved-state snapshots and deep links without being exposed as a Dev mode control.
 
-The shared Playground/Page Inspector contract should be reusable on Wireframes. Component roots and named slots retain their purple and pink identities; raw exploratory blocks expose authored CSS.
+Wireframes use the same production `WorkbenchInspector` as Component Playgrounds. It is anchored at
+the viewport bottom end, scopes pointer/touch selection to the screen or flow stage, and uses the
+purple dashed `WorkbenchAction` trigger. Component roots and named slots retain their purple and
+pink identities; raw exploratory blocks expose authored CSS.
 
 ## Verification
 

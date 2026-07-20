@@ -1,5 +1,6 @@
 import './Button.scss'
 import type { ButtonHTMLAttributes, ReactNode } from 'react'
+import { inspectionAttributes, slotAttributes } from '@design-lab/system/inspection'
 export type ButtonProps = ButtonHTMLAttributes<HTMLButtonElement> & {
   variant?: 'primary' | 'secondary' | 'ghost' | 'danger'
   size?: 'small' | 'medium' | 'large'
@@ -27,10 +28,22 @@ export function Button({
       disabled={disabled || loading}
       aria-busy={loading || undefined}
       {...props}
+      {...inspectionAttributes('Button', {
+        variant,
+        size,
+        loading,
+        fullWidth,
+        disabled: Boolean(disabled),
+        children: typeof children === 'string' ? children : undefined,
+      })}
     >
-      {loading ? <span className="dl-button__spinner" /> : leading}
-      <span>{children}</span>
-      {!loading && trailing}
+      {loading ? (
+        <span className="dl-button__spinner" />
+      ) : (
+        leading != null && <span {...slotAttributes('leading')}>{leading}</span>
+      )}
+      <span {...slotAttributes('label')}>{children}</span>
+      {!loading && trailing != null && <span {...slotAttributes('trailing')}>{trailing}</span>}
     </button>
   )
 }

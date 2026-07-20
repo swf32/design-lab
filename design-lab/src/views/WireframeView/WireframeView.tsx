@@ -1,5 +1,5 @@
 import './WireframeView.scss'
-import { useEffect, useMemo, useState, type CSSProperties } from 'react'
+import { useEffect, useMemo, useRef, useState, type CSSProperties } from 'react'
 import {
   Button,
   Checkbox,
@@ -9,6 +9,7 @@ import {
   TabSwitcher,
   UserFlowCanvas,
   WireframeDevPanel,
+  WorkbenchInspector,
 } from '@design-lab/system/components'
 import { ArrowLeftIcon, LinkIcon } from '@design-lab/system/icons'
 import type { WireframeAction, WireframeValues } from '@design-lab/system/wireframes'
@@ -108,6 +109,7 @@ export function WireframeView({
   const [selectedNodeId, setSelectedNodeId] = useState<string | null>(initial.selectedNodeId)
   const [devModeOpen, setDevModeOpen] = useState(false)
   const [copyState, setCopyState] = useState<'idle' | 'copied' | 'failed'>('idle')
+  const stageRef = useRef<HTMLElement>(null)
   const renderer = wireframeRendererFor(wireframe)
   const currentState = wireframe.states.find((state) => state.id === stateId) ?? null
   const modeStyle = useMemo(
@@ -243,7 +245,7 @@ export function WireframeView({
 
   return (
     <main className="wireframe-view">
-      <section className={`wireframe-view__stage wireframe-view__stage--${view}`}>
+      <section ref={stageRef} className={`wireframe-view__stage wireframe-view__stage--${view}`}>
         {view === 'flow' ? (
           <UserFlowCanvas
             nodes={nodes}
@@ -491,6 +493,7 @@ export function WireframeView({
           </section>
         </div>
       </WireframeDevPanel>
+      <WorkbenchInspector surfaceRef={stageRef} />
       <span className="wireframe-view__copy-status" aria-live="polite">
         {copyState === 'copied'
           ? 'Review link copied'

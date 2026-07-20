@@ -1,6 +1,7 @@
 // Generated from component.json manifests. Do not edit by hand.
 export * from './atoms/actions/Button/Button'
 export * from './atoms/actions/IconButton/IconButton'
+export * from './atoms/actions/WorkbenchAction/WorkbenchAction'
 export * from './atoms/data-display/Chip/Chip'
 export * from './atoms/data-display/ColorCard/ColorCard'
 export * from './atoms/inputs/Checkbox/Checkbox'
@@ -31,4 +32,5 @@ export * from './organisms/shell/DirectoryPanel/DirectoryPanel'
 export * from './organisms/workbench/PlaygroundControlsRail/PlaygroundControlsRail'
 export * from './organisms/workbench/UserFlowCanvas/UserFlowCanvas'
 export * from './organisms/workbench/WireframeDevPanel/WireframeDevPanel'
+export * from './organisms/workbench/WorkbenchInspector/WorkbenchInspector'
 export * from './organisms/workbench/WorkbenchPlayground/WorkbenchPlayground'

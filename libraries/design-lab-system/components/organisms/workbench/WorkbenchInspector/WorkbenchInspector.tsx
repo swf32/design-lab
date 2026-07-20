@@ -1,6 +1,12 @@
+import './WorkbenchInspector.scss'
 import { useEffect, useRef, useState, type CSSProperties, type RefObject } from 'react'
-import { InspectorCodePopover, type InspectorKind } from '@design-lab/system/components'
 import { InspectIcon } from '@design-lab/system/icons'
+import { inspectionAttributes } from '@design-lab/system/inspection'
+import {
+  InspectorCodePopover,
+  type InspectorKind,
+} from '../../../molecules/workbench/InspectorCodePopover/InspectorCodePopover'
+import { WorkbenchAction } from '../../../atoms/actions/WorkbenchAction/WorkbenchAction'
 
 type Inspection = {
   rect: DOMRect
@@ -22,9 +28,8 @@ function componentCode(name: string, props: Record<string, unknown>) {
   const attributes = Object.entries(props)
     .filter(([key]) => key !== 'children')
     .map(([key, value]) => `  ${key}=${displayValue(value)}`)
-  if (children == null) {
+  if (children == null)
     return attributes.length ? `<${name}\n${attributes.join('\n')}\n/>` : `<${name} />`
-  }
   const opening = attributes.length ? `<${name}\n${attributes.join('\n')}\n>` : `<${name}>`
   return `${opening}\n  ${String(children)}\n</${name}>`
 }
@@ -44,31 +49,29 @@ function authoredDeclarations(cssText: string) {
 
 function authoredCss(element: HTMLElement) {
   const fragments: string[] = []
-  if (element.style.length) {
+  if (element.style.length)
     fragments.push(
       `${element.tagName.toLowerCase()}[style] {\n${authoredDeclarations(element.getAttribute('style') ?? '')}\n}`,
     )
-  }
 
   const visitRules = (rules: CSSRuleList) => {
     for (const rule of Array.from(rules)) {
       const conditionalRule = rule as CSSConditionRule
-      if ('conditionText' in conditionalRule && typeof conditionalRule.conditionText === 'string') {
+      if ('conditionText' in conditionalRule && typeof conditionalRule.conditionText === 'string')
         if (!window.matchMedia(conditionalRule.conditionText).matches) continue
-      }
-      if ('cssRules' in rule) {
+      if ('cssRules' in rule)
         try {
           visitRules((rule as CSSGroupingRule).cssRules)
         } catch {
           continue
         }
-      }
       const styleRule = rule as CSSStyleRule
       if (typeof styleRule.selectorText !== 'string' || !styleRule.style) continue
       if (
         styleRule.selectorText === '*' ||
-        styleRule.selectorText.includes('.playground-inspector') ||
-        styleRule.selectorText.includes('.component-playground-page')
+        styleRule.selectorText.includes('.dl-workbench-inspector') ||
+        styleRule.selectorText.includes('.component-playground-page') ||
+        styleRule.selectorText.includes('.wireframe-view')
       )
         continue
       try {
@@ -81,13 +84,12 @@ function authoredCss(element: HTMLElement) {
     }
   }
 
-  for (const sheet of Array.from(document.styleSheets)) {
+  for (const sheet of Array.from(document.styleSheets))
     try {
       visitRules(sheet.cssRules)
     } catch {
       continue
     }
-  }
 
   return fragments.length
     ? fragments.join('\n\n')
@@ -96,7 +98,7 @@ function authoredCss(element: HTMLElement) {
 
 function inspectElement(element: HTMLElement): Inspection {
   const slotName = element.dataset.dlSlot
-  if (slotName) {
+  if (slotName)
     return {
       rect: element.getBoundingClientRect(),
       kind: 'slot',
@@ -104,7 +106,6 @@ function inspectElement(element: HTMLElement): Inspection {
       code: element.outerHTML,
       language: 'html',
     }
-  }
 
   const componentName = element.dataset.dlComponent
   if (componentName) {
@@ -132,18 +133,22 @@ function inspectElement(element: HTMLElement): Inspection {
   }
 }
 
-export function PlaygroundInspector({ canvasRef }: { canvasRef: RefObject<HTMLElement | null> }) {
+export type WorkbenchInspectorProps = {
+  surfaceRef: RefObject<HTMLElement | null>
+}
+
+export function WorkbenchInspector({ surfaceRef }: WorkbenchInspectorProps) {
   const [active, setActive] = useState(false)
   const [inspection, setInspection] = useState<Inspection | null>(null)
   const frameRef = useRef<number | null>(null)
 
   useEffect(() => {
-    const canvas = canvasRef.current
-    if (!canvas || !active) return
+    const surface = surfaceRef.current
+    if (!surface || !active) return
 
     const select = (target: EventTarget | null) => {
       if (!(target instanceof HTMLElement)) return
-      if (target.closest('[data-playground-inspector-ui]')) return
+      if (target.closest('[data-workbench-inspector-ui]')) return
       setInspection(inspectElement(target))
     }
     const move = (event: PointerEvent) => {
@@ -154,7 +159,7 @@ export function PlaygroundInspector({ canvasRef }: { canvasRef: RefObject<HTMLEl
     const choose = (event: PointerEvent) => {
       if (
         event.target instanceof HTMLElement &&
-        event.target.closest('[data-playground-inspector-ui]')
+        event.target.closest('[data-workbench-inspector-ui]')
       )
         return
       event.preventDefault()
@@ -165,16 +170,16 @@ export function PlaygroundInspector({ canvasRef }: { canvasRef: RefObject<HTMLEl
       if (event.key === 'Escape') setActive(false)
     }
 
-    canvas.addEventListener('pointermove', move)
-    canvas.addEventListener('pointerdown', choose, true)
+    surface.addEventListener('pointermove', move)
+    surface.addEventListener('pointerdown', choose, true)
     window.addEventListener('keydown', escape)
     return () => {
-      canvas.removeEventListener('pointermove', move)
-      canvas.removeEventListener('pointerdown', choose, true)
+      surface.removeEventListener('pointermove', move)
+      surface.removeEventListener('pointerdown', choose, true)
       window.removeEventListener('keydown', escape)
       if (frameRef.current != null) cancelAnimationFrame(frameRef.current)
     }
-  }, [active, canvasRef])
+  }, [active, surfaceRef])
 
   useEffect(() => {
     if (!active) setInspection(null)
@@ -196,18 +201,19 @@ export function PlaygroundInspector({ canvasRef }: { canvasRef: RefObject<HTMLEl
 
   return (
     <div
-      className={`playground-inspector${active ? ' is-active' : ''}`}
-      data-playground-inspector-ui
+      className={`dl-workbench-inspector${active ? ' dl-workbench-inspector--active' : ''}`}
+      data-workbench-inspector-ui
       style={cardStyle}
+      {...inspectionAttributes('WorkbenchInspector', { active })}
     >
       {inspection && (
         <>
           <div
-            className={`playground-inspector__outline playground-inspector__outline--${inspection.kind}`}
+            className={`dl-workbench-inspector__outline dl-workbench-inspector__outline--${inspection.kind}`}
             aria-hidden="true"
           />
           <InspectorCodePopover
-            className="playground-inspector__card"
+            className="dl-workbench-inspector__card"
             kind={inspection.kind}
             name={inspection.name}
             code={inspection.code}
@@ -215,16 +221,17 @@ export function PlaygroundInspector({ canvasRef }: { canvasRef: RefObject<HTMLEl
           />
         </>
       )}
-      <button
-        type="button"
-        className="playground-inspector__trigger"
+      <WorkbenchAction
+        className="dl-workbench-inspector__trigger"
+        tone="inspect"
+        active={active}
         aria-label={active ? 'Turn off element inspector' : 'Inspect components and elements'}
         aria-pressed={active}
         onClick={() => setActive((current) => !current)}
+        icon={<InspectIcon size={18} aria-hidden="true" />}
       >
-        <InspectIcon size={20} aria-hidden="true" />
-        <span>{active ? 'Inspecting' : 'Inspect'}</span>
-      </button>
+        {active ? 'Inspecting' : 'Inspect'}
+      </WorkbenchAction>
     </div>
   )
 }

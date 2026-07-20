@@ -229,85 +229,9 @@
   display: none;
 }
 
-.component-playground-page:has(.playground-inspector.is-active) .component-playground-canvas,
-.component-playground-page:has(.playground-inspector.is-active) .component-playground-canvas * {
+.component-playground-page:has(.dl-workbench-inspector--active) .component-playground-canvas,
+.component-playground-page:has(.dl-workbench-inspector--active) .component-playground-canvas * {
   cursor: crosshair;
-}
-
-.playground-inspector__outline {
-  box-sizing: border-box;
-  position: fixed;
-  z-index: 30;
-  top: var(--inspector-target-top);
-  left: var(--inspector-target-left);
-  width: var(--inspector-target-width);
-  height: var(--inspector-target-height);
-  border: 2px dashed var(--color-border-strong);
-  border-radius: 3px;
-  background: color-mix(in srgb, var(--color-border-strong) 8%, transparent);
-  box-shadow: 0 0 0 1px color-mix(in srgb, var(--color-canvas) 65%, transparent);
-  pointer-events: none;
-}
-
-.playground-inspector__outline--component {
-  border-color: var(--color-inspection-component);
-  background: color-mix(in srgb, var(--color-inspection-component) 10%, transparent);
-}
-
-.playground-inspector__outline--slot {
-  border-color: var(--color-inspection-slot);
-  background: color-mix(in srgb, var(--color-inspection-slot) 10%, transparent);
-}
-
-.playground-inspector__card {
-  position: fixed;
-  z-index: 31;
-  top: clamp(12px, var(--inspector-target-top), calc(100dvh - 472px));
-  right: clamp(
-    12px,
-    calc(var(--inspector-target-right) + var(--inspector-target-width) + 12px),
-    calc(100vw - 352px)
-  );
-}
-
-.playground-inspector__trigger {
-  min-width: 52px;
-  min-height: 52px;
-  padding: 0 16px;
-  position: fixed;
-  z-index: 32;
-  right: max(16px, env(safe-area-inset-right));
-  bottom: max(16px, env(safe-area-inset-bottom));
-  border: 1px solid color-mix(in srgb, var(--color-text-primary) 18%, transparent);
-  border-radius: 999px;
-  background: color-mix(in srgb, var(--color-surface-primary) 74%, transparent);
-  color: var(--color-text-primary);
-  box-shadow: 0 12px 36px color-mix(in srgb, var(--color-overlay-scrim) 56%, transparent);
-  backdrop-filter: blur(16px) saturate(1.2);
-  display: inline-flex;
-  align-items: center;
-  gap: var(--spacing-2);
-  font: inherit;
-  font-size: 13px;
-  font-weight: 650;
-  cursor: pointer;
-  touch-action: manipulation;
-  transition:
-    background 180ms ease-out,
-    border-color 180ms ease-out,
-    color 180ms ease-out;
-}
-
-.playground-inspector__trigger:hover,
-.playground-inspector__trigger:focus-visible {
-  border-color: var(--color-accent-primary);
-  background: color-mix(in srgb, var(--color-surface-primary) 94%, transparent);
-}
-
-.playground-inspector__trigger[aria-pressed='true'] {
-  border-color: var(--color-accent-primary);
-  background: var(--color-accent-primary);
-  color: var(--color-canvas);
 }
 
 .component-playground-missing {
@@ -447,37 +371,11 @@
   }
 
   .component-playground-page__settings {
-    min-width: 52px;
-    min-height: 52px;
-    padding: 0 16px;
     position: fixed;
     z-index: 8;
     left: max(16px, env(safe-area-inset-left));
     bottom: max(16px, env(safe-area-inset-bottom));
-    border: 1px solid color-mix(in srgb, var(--color-text-primary) 18%, transparent);
-    border-radius: 999px;
-    background: color-mix(in srgb, var(--color-surface-primary) 74%, transparent);
-    color: var(--color-text-primary);
-    box-shadow: 0 12px 36px color-mix(in srgb, var(--color-overlay-scrim) 56%, transparent);
-    backdrop-filter: blur(16px) saturate(1.2);
     display: inline-flex;
-    align-items: center;
-    gap: var(--spacing-2);
-    font: inherit;
-    font-size: 13px;
-    font-weight: 650;
-    cursor: pointer;
-    touch-action: manipulation;
-    transition:
-      background 180ms ease-out,
-      border-color 180ms ease-out,
-      opacity 180ms ease-out;
-  }
-
-  .component-playground-page__settings:hover,
-  .component-playground-page__settings:focus-visible {
-    border-color: var(--color-accent-primary);
-    background: color-mix(in srgb, var(--color-surface-primary) 92%, transparent);
   }
 
   .component-playground-page.is-controls-open .component-playground-page__settings {
@@ -485,34 +383,15 @@
     pointer-events: none;
   }
 
-  .component-playground-page.is-controls-open .playground-inspector {
+  .component-playground-page.is-controls-open .dl-workbench-inspector {
     opacity: 0;
     pointer-events: none;
-  }
-
-  .playground-inspector__card {
-    width: calc(100vw - 32px);
-    max-height: min(48dvh, 360px);
-    top: auto;
-    right: 16px;
-    bottom: calc(84px + env(safe-area-inset-bottom));
-  }
-
-  .playground-inspector__card .dl-code-block pre {
-    max-height: min(30dvh, 220px);
-  }
-
-  .playground-inspector__trigger {
-    min-width: 52px;
-    padding-inline: 14px;
   }
 }
 
 @media (prefers-reduced-motion: reduce) {
   .component-playground-panel,
-  .component-playground-page__scrim,
-  .component-playground-page__settings,
-  .playground-inspector__trigger {
+  .component-playground-page__scrim {
     transition: none;
   }
 }

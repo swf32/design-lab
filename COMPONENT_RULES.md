@@ -55,6 +55,17 @@ Inspector output is a copyable code fragment, not a table of rendered geometry. 
 
 Reusable Playground shell patterns are production Components. `PlaygroundControlsRail` owns header, scrollable content, and footer slots; `InspectorCodePopover` owns inspection identity and copyable source presentation through `CodeBlock`. Application views compose these contracts and positioning behavior instead of recreating parallel sidebar or popover markup.
 
+Fullscreen review utilities use the production `WorkbenchAction` atom instead of styling parallel
+floating buttons in route views. Settings uses the neutral tone, Inspector uses the stable purple
+dashed inspection tone, and Dev mode uses the orange dashed developer tone. Consumers own viewport
+positioning; the atom owns the shared compact radius, translucent surface, 44px minimum target,
+focus, disabled, and active behavior.
+
+`WorkbenchInspector` is the shared production organism for Component Playgrounds and page
+Wireframes. It receives an explicit surface ref, never inspects outside that boundary, and composes
+`WorkbenchAction` with `InspectorCodePopover`. Do not fork its CSSOM inspection logic in an
+application view.
+
 Floating palettes, menus, and similar controls inside Playground rails render in a viewport-aware overlay layer. They choose an available side, clamp to the visual viewport, remain usable at mobile touch sizes, and never expand the rail's scrollable content merely by opening.
 
 ## Automatic discovery, imports, and agent context

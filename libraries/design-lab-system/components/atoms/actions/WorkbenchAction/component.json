@@ -1,0 +1,47 @@
+{
+  "id": "workbench-action",
+  "name": "Workbench Action",
+  "description": "Triggers a compact floating workbench utility with a shared shape and semantic neutral, inspection, or developer tone.",
+  "aliases": ["floating tool button", "inspect trigger", "dev mode trigger", "settings trigger"],
+  "useWhen": [
+    "open a secondary workbench tool without consuming permanent layout space",
+    "activate Inspector or Dev mode on a fullscreen review surface"
+  ],
+  "avoidWhen": [
+    "trigger the primary product action",
+    "place an ordinary action inside page content",
+    "represent an icon-only toolbar control"
+  ],
+  "entry": "WorkbenchAction.tsx",
+  "preview": "WorkbenchAction.preview.tsx",
+  "stories": "WorkbenchAction.stories.tsx",
+  "docs": "README.md",
+  "changelog": "CHANGELOG.md",
+  "status": "ready",
+  "states": ["default", "hover", "focus", "active", "disabled"],
+  "variants": ["neutral", "inspect", "dev"],
+  "props": {
+    "children": {
+      "type": "ReactNode",
+      "required": true,
+      "slot": "label"
+    },
+    "icon": {
+      "type": "ReactNode",
+      "slot": "icon"
+    },
+    "tone": {
+      "type": "WorkbenchActionTone",
+      "values": ["neutral", "inspect", "dev"],
+      "default": "neutral"
+    },
+    "active": {
+      "type": "boolean",
+      "default": false
+    },
+    "disabled": {
+      "type": "boolean",
+      "default": false
+    }
+  }
+}

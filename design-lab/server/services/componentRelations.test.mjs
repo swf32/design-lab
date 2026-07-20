@@ -17,9 +17,18 @@ test('component references are derived from the canonical filesystem contract', 
   assert.equal(button.import.statement, "import { Button } from '@design-lab/system/components'")
   assert.deepEqual(
     button.files.map((file) => file.role),
-    ['implementation', 'styles', 'manifest', 'preview', 'stories', 'documentation', 'changelog'],
+    [
+      'implementation',
+      'styles',
+      'manifest',
+      'playground',
+      'preview',
+      'stories',
+      'documentation',
+      'changelog',
+    ],
   )
-  assert.equal(button.files.length, 7)
+  assert.equal(button.files.length, 8)
 })
 
 test('production and example relationships stay separate and direct', async () => {

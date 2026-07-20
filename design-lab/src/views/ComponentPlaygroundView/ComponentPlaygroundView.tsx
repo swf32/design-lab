@@ -13,6 +13,8 @@ import {
   Select,
   Slider,
   TabSwitcher,
+  WorkbenchAction,
+  WorkbenchInspector,
   type CanvasMode,
   type ChipColor,
 } from '@design-lab/system/components'
@@ -23,7 +25,7 @@ import type {
   PlaygroundValues,
 } from '@design-lab/system/playground'
 import type { ModuleData } from '../../api/projects'
-import { PlaygroundInspector } from './PlaygroundInspector'
+import { designSystemModeStyle } from '../../designSystemMode'
 
 type ComponentsData = Extract<ModuleData, { kind: 'components' }>
 type ComponentEntity = ComponentsData['components'][number]
@@ -261,10 +263,10 @@ function LoadedComponentPlayground({
   const selectedVariant =
     module.playground.variants.find((item) => item.id === variant) ?? module.playground.variants[0]
   const status = statusPresentation(component.status)
-  const themeStyle = {
-    ...(data.themeVariables[mode] ?? {}),
+  const shellStyle = {
     '--canvas-solid': canvasColor,
   } as CSSProperties
+  const specimenStyle = designSystemModeStyle(data.themeVariables, mode)
 
   useEffect(() => {
     const media = window.matchMedia(compactQuery)
@@ -314,7 +316,7 @@ function LoadedComponentPlayground({
   return (
     <main
       className={`component-playground-page${controlsOpen ? ' is-controls-open' : ''}`}
-      style={themeStyle}
+      style={shellStyle}
     >
       <button
         type="button"
@@ -412,7 +414,7 @@ function LoadedComponentPlayground({
         aria-hidden={isCompact && controlsOpen}
         inert={isCompact && controlsOpen ? true : undefined}
       >
-        <div className="component-playground-canvas__tools" data-playground-inspector-ui>
+        <div className="component-playground-canvas__tools" data-workbench-inspector-ui>
           <CanvasBackgroundControl
             mode={canvasMode}
             color={canvasColor}
@@ -421,25 +423,24 @@ function LoadedComponentPlayground({
           />
         </div>
         <div className="component-playground-canvas__stage">
-          <div className="component-playground-page__specimen">
+          <div className="component-playground-page__specimen" style={specimenStyle}>
             {module.renderPlaygroundVariant({ variant, values, mode })}
           </div>
         </div>
       </section>
 
-      <button
-        type="button"
+      <WorkbenchAction
         className="component-playground-page__settings"
         ref={openControlsRef}
         aria-label="Open Playground settings"
         aria-controls="component-playground-settings"
         aria-expanded={controlsOpen}
         onClick={() => setControlsOpen(true)}
+        icon={<SettingsIcon size={18} aria-hidden="true" />}
       >
-        <SettingsIcon size={20} aria-hidden="true" />
-        <span>Settings</span>
-      </button>
-      <PlaygroundInspector canvasRef={canvasRef} />
+        Settings
+      </WorkbenchAction>
+      <WorkbenchInspector surfaceRef={canvasRef} />
     </main>
   )
 }
