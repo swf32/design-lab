@@ -4,10 +4,12 @@ Shared developer-handoff inspector for fullscreen Component Playgrounds and page
 listens only inside the supplied `surfaceRef`, so review-shell actions remain usable and never become
 accidental inspection targets.
 
-Component roots produce copyable JSX from public inspection props. Named composition slots produce
-HTML with internal `data-dl-*` inspection attributes removed. Ordinary elements produce declarations
-from matching same-origin authored style rules, preserving expressions such as `width: 100%` and
-`var(--token)` instead of reporting computed pixels or RGB.
+Component roots produce copyable JSX from public inspection props. Named composition slots prefer
+authored TSX or HTML supplied by `inspectionSourceAttributes`; this is how a rendered SVG icon hands
+off its Library import and `<StarIcon />` usage rather than a generated `<path>`. Slots without
+source metadata fall back to rendered HTML with internal `data-dl-*` inspection attributes removed.
+Ordinary elements produce declarations from matching same-origin authored style rules, preserving
+expressions such as `width: 100%` and `var(--token)` instead of reporting computed pixels or RGB.
 
 A slot owns the caller-supplied subtree inside its marked wrapper, so hovering or selecting an SVG
 path inside a `leading` icon resolves to the `leading` slot. Component identity does not spread this

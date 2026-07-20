@@ -9,6 +9,7 @@
 - Fixed: nested SVG and DOM content inside a named slot resolves to that slot instead of a raw element.
 - Changed: the first surface click after a pinned selection only dismisses its popover; a later click creates the next selection.
 - Visual: doubled active-mode Component overview outlines from 1px to 2px.
+- Added: named slots can hand off authored TSX/HTML source metadata instead of rendered DOM output.
 
 ## 0.1.0 — 2026-07-20
 

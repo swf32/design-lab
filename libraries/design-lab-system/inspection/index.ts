@@ -44,3 +44,18 @@ export function slotAttributes(slot: string): {
     'data-dl-slot': slot,
   }
 }
+
+export type InspectionSourceLanguage = 'tsx' | 'html'
+
+export function inspectionSourceAttributes(
+  code: string,
+  language: InspectionSourceLanguage = 'tsx',
+): {
+  'data-dl-source-code': string
+  'data-dl-source-language': InspectionSourceLanguage
+} {
+  return {
+    'data-dl-source-code': code,
+    'data-dl-source-language': language,
+  }
+}

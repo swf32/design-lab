@@ -1,6 +1,7 @@
 import './Pricing.wireframe.scss'
 import { Button, Checkbox, Chip, Slider } from '@design-lab/system/components'
 import { StarIcon } from '@design-lab/system/icons'
+import { inspectionSourceAttributes } from '@design-lab/system/inspection'
 import type {
   WireframeAction,
   WireframeRenderContext,
@@ -8,6 +9,10 @@ import type {
 } from '@design-lab/system/wireframes'
 
 type PlanId = 'none' | 'starter' | 'team' | 'top'
+
+const starIconSource = `import { StarIcon } from '@design-lab/system/icons'
+
+<StarIcon size={16} aria-hidden="true" />`
 
 type Plan = {
   id: Exclude<PlanId, 'none'>
@@ -146,7 +151,9 @@ function PlanCard({
         variant={prominent || plan.id === 'team' ? 'primary' : 'secondary'}
         size="large"
         fullWidth
-        leading={<StarIcon size={16} aria-hidden="true" />}
+        leading={
+          <StarIcon size={16} aria-hidden="true" {...inspectionSourceAttributes(starIconSource)} />
+        }
         disabled={selected}
         onClick={() => onAction(actionForPlan(plan.id, values))}
       >

@@ -3,6 +3,7 @@
 ## Unreleased
 
 - Added: plan actions compose the Library `StarIcon` through Button's named `leading` slot for Inspector handoff.
+- Changed: the icon slot hands off its canonical Library import and authored `<StarIcon />` TSX.
 
 ## 0.2.0 — 2026-07-20
 

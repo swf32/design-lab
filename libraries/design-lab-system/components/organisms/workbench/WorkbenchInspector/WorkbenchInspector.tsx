@@ -109,14 +109,19 @@ function authoredCss(element: InspectableElement) {
 
 function inspectElement(element: InspectableElement): Inspection {
   const slotName = element.dataset.dlSlot
-  if (slotName)
+  if (slotName) {
+    const sourceElement = element.querySelector<InspectableElement>('[data-dl-source-code]')
+    const sourceCode = sourceElement?.dataset.dlSourceCode
+    const sourceLanguage =
+      sourceElement?.dataset.dlSourceLanguage === 'html' ? ('html' as const) : ('tsx' as const)
     return {
       rect: element.getBoundingClientRect(),
       kind: 'slot',
       name: slotName,
-      code: handoffHtml(element),
-      language: 'html',
+      code: sourceCode ?? handoffHtml(element),
+      language: sourceCode ? sourceLanguage : 'html',
     }
+  }
 
   const componentName = element.dataset.dlComponent
   if (componentName) {

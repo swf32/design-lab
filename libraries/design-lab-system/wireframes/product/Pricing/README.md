@@ -9,6 +9,8 @@ This Wireframe tests three different UX hypotheses against the same subscription
 Use Dev mode to switch saved states or create a custom entitlement condition with radio, Checkbox, and Slider controls. Team seat count is a target action inside the Team plan rather than a Dev mode value. User flow renders the real 16:9 screen for every node; Preview state opens that saved screen.
 
 Plan actions include a Library `StarIcon` through Button's named `leading` composition slot. This is
-the reference Inspector example for a real slot; the adjacent button label remains ordinary content.
+the reference Inspector example for a real slot: its handoff shows the canonical import and authored
+`<StarIcon />` TSX rather than the rendered SVG path. The adjacent button label remains ordinary
+content.
 
 The review question is not which card style looks best. It is which information architecture helps a buyer understand the next valid action with the least ambiguity.

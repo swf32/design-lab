@@ -1,8 +1,16 @@
 import { createElement, useRef, useState } from 'react'
 import type { StoryExample } from '../../../storyContract'
 import { StarIcon } from '@design-lab/system/icons'
-import { inspectionAttributes, slotAttributes } from '@design-lab/system/inspection'
+import {
+  inspectionAttributes,
+  inspectionSourceAttributes,
+  slotAttributes,
+} from '@design-lab/system/inspection'
 import { WorkbenchInspector } from './WorkbenchInspector'
+
+const fixtureIconSource = `import { StarIcon } from '@design-lab/system/icons'
+
+<StarIcon size={16} aria-hidden="true" />`
 
 function InspectorFixture() {
   const surfaceRef = useRef<HTMLDivElement>(null)
@@ -18,7 +26,11 @@ function InspectorFixture() {
         })}
       >
         <span {...slotAttributes('leading')}>
-          <StarIcon size={16} aria-hidden="true" />
+          <StarIcon
+            size={16}
+            aria-hidden="true"
+            {...inspectionSourceAttributes(fixtureIconSource)}
+          />
         </span>
         Inspect me · actions {activations}
       </button>
