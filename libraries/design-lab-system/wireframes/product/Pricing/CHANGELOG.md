@@ -2,8 +2,8 @@
 
 ## Unreleased
 
-- Added: plan actions compose the Library `StarIcon` through Button's named `leading` slot for Inspector handoff.
-- Changed: the icon slot hands off its canonical Library import and authored `<StarIcon />` TSX.
+- Added: plan actions compose the Library `StarIcon` through Button's named `leading` slot.
+- Changed: Inspector now derives the canonical `StarIcon` import and authored `<StarIcon />` call from TSX automatically; the Wireframe contains no inspection metadata or duplicated source string.
 
 ## 0.2.0 — 2026-07-20
 

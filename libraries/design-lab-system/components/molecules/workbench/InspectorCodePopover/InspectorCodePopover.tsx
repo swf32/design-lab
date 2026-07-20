@@ -1,6 +1,5 @@
 import './InspectorCodePopover.scss'
 import type { CSSProperties } from 'react'
-import { inspectionAttributes } from '@design-lab/system/inspection'
 import { CodeBlock } from '../../data-display/CodeBlock/CodeBlock'
 
 export type InspectorKind = 'component' | 'slot' | 'element'
@@ -24,11 +23,6 @@ export function InspectorCodePopover({
 }: InspectorCodePopoverProps) {
   return (
     <section
-      {...inspectionAttributes('InspectorCodePopover', {
-        kind,
-        name,
-        language,
-      })}
       className={`dl-inspector-code-popover dl-inspector-code-popover--${kind}${className ? ` ${className}` : ''}`}
       style={style}
       aria-live="polite"

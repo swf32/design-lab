@@ -378,7 +378,7 @@ Playground route намеренно выходит из обычного shell D
 
 ## D-039 — Playground Inspector использует явный DOM handoff contract
 
-**Статус:** принято, 2026-07-19.
+**Статус:** заменено D-044, 2026-07-20.
 
 Playground получает общий Inspector в нижнем правом углу. На desktop активный режим показывает hover-preview, а click/tap закрепляет выбранный element и copyable popover. Selection перехватывает pointer/click до product action: inspected button, link или control не меняет state и не выполняет navigation. Движение pointer не сбрасывает закреплённый popover. Когда selection закреплён, следующий click по surface только закрывает popover и не выбирает новую цель; ещё один click создаёт следующий selection. Escape также сначала снимает selection. При включённом Inspector все явно размеченные Component roots сразу получают тихий фиолетовый пунктир толщиной 2px, а named slots — тихий розовый пунктир, чтобы composition была видна до выбора цели. Identity не зависит от interface accent: выбранный Component root получает усиленный стабильный фиолетовый пунктир `color.inspection.component`, named slot — розовый пунктир `color.inspection.slot`, обычный element — нейтральный пунктир. Текстовый kind label дублирует цветовую семантику.
 
@@ -442,3 +442,117 @@ Component Playground и fullscreen Wireframe. Он не инспектирует
 solid primary и outline. Общие controls меняют square/soft/maximum radius, size, width, disabled и
 motion. Mesh использует три движущихся token-driven blob слоя, standard mask declarations и
 Safari-prefixed `-webkit-mask-*`; `prefers-reduced-motion` отключает ambient animation.
+
+## D-044 — Inspector строит handoff автоматически из TSX и исходного SCSS
+
+**Статус:** принято, 2026-07-20.
+
+Wireframe и Component authoring не включает Inspector-разметку. Review-build AST transform
+разрешает обычные static TSX imports через рекурсивно обнаруженные `component.json`, оборачивает
+реальные Component callsites только в React context boundaries и получает named slots из manifest
+props с `type: "slot"` или `slot: true`. Каждый native JSX host автоматически регистрирует
+source id, file и line в памяти. Production DOM не получает постоянных `data-dl-component`,
+`data-dl-props`, `data-dl-slot` или source-string attributes; временные outline attributes создаёт
+сам Inspector только в активном review mode. React Fiber не читается.
+
+Component и slot handoff берётся из точного authored callsite вместе с реально используемыми static
+imports. Поэтому `leading={<StarIcon />}` автоматически показывает canonical icon import и JSX, а
+не rendered `<svg><path>` и не строку, продублированную автором Wireframe.
+
+Raw element использует DOM только как адрес выбранного host. Источником styles является Node:
+source location ведёт к импортированному `.scss` / `.css`, SCSS parser сопоставляет authored
+selectors и возвращает source fragment с file/line. `$variables`, `@use` / `@import`, mixin calls,
+nesting, shorthands, percentages и `var(...)` сохраняются. CSSOM, computed pixels и resolved colors
+не выдаются за исходный код.
+
+## D-045 — Source является частью URL identity, а не только сохранённым session state
+
+**Статус:** принято, 2026-07-20. Заменяет утверждение из `D-023` о том, что source не кодируется в URL.
+
+Маршрут получил вид `/<module>/<sourceId>/<path>` вместо `/<module>/<path>`. Причина: как только в
+workspace существует больше одной Library/Project с одинаковым filesystem path (например,
+`atoms/actions/Button` в двух дизайн-системах, построенных по одной Atomic Design конвенции),
+активный source, хранимый только в `localStorage`/React state, делает скопированную ссылку
+недетерминированной — она резолвится против того, что выбрано в браузере открывающего, а не против
+того, что имел в виду автор ссылки.
+
+`navigate()` теперь всегда пишет текущий (или явно переданный при переключении source) `sourceId` в
+URL. Прямая замена `activeProjectId` в обход `navigate()` — первичная загрузка списка sources,
+создание нового Project, восстановление истории через `popstate` — канонизирует URL отдельным
+эффектом-реконсилиатором, так же как уже канонизируется filesystem path сущности. `popstate`
+восстанавливает активный source, а не только module и path. Locally-scoped костыль `?source=` у
+Wireframes удалён — он был обходным решением ровно этой проблемы для одного module и больше не
+нужен.
+
+Старые ссылки без `sourceId` в пути продолжают открываться текущим активным/сохранённым source, как
+раньше — они не ломаются, а канонизируются к полному пути при первом клиентском переходе. Полный
+разбор мотивации и связанных архитектурных пробелов — `docs/12-collaboration-and-deployment.md`.
+
+## D-046 — Deployment — это спектр, сервер не является обязательным условием
+
+**Статус:** принято, 2026-07-20.
+
+Design Lab не проектируется как единственно «local-first single-user tool» или единственно
+«hosted multi-user product» — обе формулировки описывают одну и ту же систему в разных точках
+одного спектра, без переключения формата данных между ними: чистый локальный режим (один дизайнер,
+ничего не хостится, передача разработчику — обычные файлы репозитория), гибридный режим (хостед-копия
+обновляется от `git push`, локальная машина продолжает работать с тем же репозиторием и может
+частично обращаться к хостед-серверу за данными реального времени) и командный режим без сервера
+(несколько человек независимо запускают Design Lab локально против одного git-репозитория; базой
+данных становится сам GitHub — коммитящиеся файлы, увиденные после `git pull`).
+
+Следствие: любая будущая capability, требующая координации между несколькими людьми (комментарии,
+статусные сообщения, будущие уведомления), обязана иметь работающий file-backed fallback без
+сервера — тот же контракт данных, что и в хостед-режиме, просто без push-доставки в реальном
+времени. Сервер не становится вторым источником истины и не хранит данные, недостижимые из обычного
+git checkout.
+
+## D-047 — Обновление Design Lab не должно инвалидировать уже существующие Project/Library
+
+**Статус:** принято, 2026-07-20.
+
+Поскольку продукт активно развивается и рассчитан на использование месяцами и годами, выпущенное
+обновление Design Lab не должно превращать валидный `component.json`/`wireframe.json`/`library.json`/
+`project.json` с текущим `schemaVersion` в невалидный без явного, обратимого миграционного шага.
+Новое обязательное поле в будущей версии схемы не добавляется без сопутствующей миграции; схема
+версионируется явным бампом `schemaVersion`, а перевод существующих файлов на новую версию — это
+видимый в git diff шаг, а не тихая runtime-нормализация. Попытка открыть файл с `schemaVersion` выше
+поддерживаемого текущим сканером версии — явная диагностика, а не порча данных.
+
+Реализовано 2026-07-20: `readManifest()` в `server/services/moduleEntities.mjs` сравнивает
+`manifest.schemaVersion` с общей константой `SUPPORTED_SCHEMA_VERSION` для `component.json` и
+`wireframe.json` и добавляет `schema-version-unsupported` вместо того, чтобы читать поля будущей
+версии как есть. Открытый пробел: сама миграция (перевод файла со старого `schemaVersion` на новый)
+ещё не реализована, потому что пока существует только одна поддерживаемая версия.
+
+## D-048 — Невалидный manifest изолируется до одной сущности, а не роняет весь модуль
+
+**Статус:** принято и реализовано, 2026-07-20.
+
+`component.json`/`wireframe.json`, не проходящий `JSON.parse`, раньше приводил к необработанной
+ошибке всего `/modules/:moduleId` ответа (см. пробел, зафиксированный в `05-entities-and-file-contracts.md`
+до этой даты). `readManifest()` теперь оборачивает разбор в try/catch: при ошибке сущность всё равно
+попадает в каталог с `id`/`name`, подставленными из пути директории, пустыми остальными полями и
+diagnostic-кодом `manifest-parse-error` на этой конкретной сущности. Соседние сущности того же модуля
+не затрагиваются. Покрыто тестами в `componentRelations.test.mjs`.
+
+## D-049 — Принят канонический контракт Pages
+
+**Статус:** принято, 2026-07-20. Реализация модуля Pages ещё не начата (см. `IMPLEMENTATION-CHECKLIST.md`).
+
+`PAGE_RULES.md` фиксирует Page как финализированный, production-composed экран — точку выпуска
+Wireframe → Page. Ключевые решения контракта:
+
+- тот же гибридный паттерн, что у Wireframe: `page.json` — источник истины для identity, states,
+  provenance и inter-Page graph; соседний `*.page.tsx` — источник истины для рендера;
+- Page не содержит exploratory blocks — только реальные Library Components; layout-сравнение
+  остаётся исключительно задачей Wireframe;
+- states на Page — это data-снапшоты одного committed layout (empty/loading/error/populated и т.д.),
+  а не layout directions;
+- `derivedFromWireframe` — необязательная ссылка на исходный Wireframe/layout/state; создание Page
+  из Wireframe — явное действие автора, Design Lab не мутирует файлы Wireframe при графации;
+- `links[]` — облегчённый sitemap-graph между Pages (реальная product-навигация), отдельный от
+  user-flow Canvas Wireframe: без authored координат, без layout branching;
+- те же diagnostic-гарантии, что D-047/D-048: `manifest-parse-error`, `schema-version-unsupported`,
+  плюс Page-специфичные коды (`page-entry-missing`, `page-link-invalid`,
+  `page-derived-from-wireframe-invalid` и т.д.), перечисленные в `PAGE_RULES.md`.

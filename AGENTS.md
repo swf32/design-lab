@@ -4,6 +4,8 @@ For every component creation or modification, read and follow `COMPONENT_RULES.m
 
 For every Wireframe creation or modification, read and follow `WIREFRAME_RULES.md`. It defines the canonical hybrid source contract, layout directions, states, controls, and user-flow graph.
 
+For every Page creation or modification, read and follow `PAGE_RULES.md`. It defines the canonical hybrid source contract for finalized, production-composed screens, their states, provenance from Wireframes, and inter-Page navigation graph.
+
 For every token, asset, or font creation or modification, read and follow `TOKEN_RULES.md`, `ASSET_RULES.md`, or `FONT_RULES.md` respectively. When a change crosses entity kinds, apply every relevant contract.
 
 ## Product questions

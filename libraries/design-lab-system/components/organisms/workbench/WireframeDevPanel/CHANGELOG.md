@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- Changed: component and manifest-declared slot inspection is injected automatically from source.
 - Changed: Dev mode now uses the shared compact orange dashed Workbench Action.
 
 ## 0.1.0 — 2026-07-20

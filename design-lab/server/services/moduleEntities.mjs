@@ -3,6 +3,38 @@ import { basename, dirname, extname, join, relative, resolve, sep } from 'node:p
 import { parse } from '@babel/parser'
 import { getSource } from './projectRegistry.mjs'
 
+// Bump when a manifest field is added/changed in a way older readers cannot safely ignore, and
+// pair the bump with a migration for existing files (D-047). One shared constant keeps every
+// manifest kind (component.json, wireframe.json, ...) on the same explicit contract.
+const SUPPORTED_SCHEMA_VERSION = 1
+
+// A malformed or too-new manifest must stay a scoped diagnostic on one entity, never an unhandled
+// error that fails the whole module response (component.json/wireframe.json are hand-authored
+// JSON; a typo in one entity must not hide every other entity in the same Library/Project).
+async function readManifest(filePath, { maxSchemaVersion = SUPPORTED_SCHEMA_VERSION } = {}) {
+  const diagnostics = []
+  let manifest
+  try {
+    manifest = JSON.parse(await readFile(filePath, 'utf8'))
+  } catch (error) {
+    return {
+      manifest: {},
+      diagnostics: [
+        {
+          code: 'manifest-parse-error',
+          message: `${basename(filePath)} could not be parsed as JSON: ${error instanceof Error ? error.message : String(error)}`,
+        },
+      ],
+    }
+  }
+  if (typeof manifest.schemaVersion === 'number' && manifest.schemaVersion > maxSchemaVersion)
+    diagnostics.push({
+      code: 'schema-version-unsupported',
+      message: `${basename(filePath)} declares schemaVersion ${manifest.schemaVersion}, newer than the ${maxSchemaVersion} this build understands. Update Design Lab before editing this file, or its fields may be read incorrectly.`,
+    })
+  return { manifest, diagnostics }
+}
+
 async function filesUnder(root, predicate, current = root, result = []) {
   let entries = []
   try {
@@ -298,7 +330,7 @@ async function wireframesFor(source, sourceId) {
   )
   const wireframes = []
   for (const filePath of manifests) {
-    const manifest = JSON.parse(await readFile(filePath, 'utf8'))
+    const { manifest, diagnostics: manifestDiagnostics } = await readManifest(filePath)
     const directory = relative(root, dirname(filePath))
     const readAdjacent = async (filename) => {
       if (!filename) return null
@@ -322,6 +354,8 @@ async function wireframesFor(source, sourceId) {
     }
     const wireframe = {
       ...manifest,
+      id: manifest.id ?? directory,
+      name: manifest.name ?? basename(directory),
       entry,
       sourceId,
       directory,
@@ -331,7 +365,7 @@ async function wireframesFor(source, sourceId) {
     }
     wireframes.push({
       ...wireframe,
-      diagnostics: wireframeDiagnostics(wireframe),
+      diagnostics: [...manifestDiagnostics, ...wireframeDiagnostics(wireframe)],
       files: [
         { role: 'manifest', path: basename(filePath) },
         { role: 'renderer', path: entry },
@@ -721,7 +755,7 @@ export async function getModuleEntities(sourceId, moduleId) {
     const components = []
     for (const filePath of manifests) {
       const file = relative(root, filePath)
-      const manifest = JSON.parse(await readFile(filePath, 'utf8'))
+      const { manifest, diagnostics: manifestDiagnostics } = await readManifest(filePath)
       let documentation = null
       if (manifest.docs) {
         try {
@@ -745,6 +779,8 @@ export async function getModuleEntities(sourceId, moduleId) {
       ])
       const component = {
         ...manifest,
+        id: manifest.id ?? directory,
+        name: manifest.name ?? basename(directory),
         variants: manifest.variants ?? [],
         states: manifest.states ?? [],
         category,
@@ -756,7 +792,10 @@ export async function getModuleEntities(sourceId, moduleId) {
         file,
         directory,
       }
-      component.completenessDiagnostics = componentCompletenessDiagnostics(component)
+      component.completenessDiagnostics = [
+        ...manifestDiagnostics,
+        ...componentCompletenessDiagnostics(component),
+      ]
       components.push({
         ...component,
         import: componentImport(source, sourceManifest, component),

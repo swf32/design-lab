@@ -5,6 +5,7 @@ import { getProjectTree } from './services/projectTree.mjs'
 import { getModuleEntities } from './services/moduleEntities.mjs'
 import { getAssetFile, getAssetPreview } from './services/assetFiles.mjs'
 import { getIntegrationInfo } from './services/integrationInfo.mjs'
+import { getAuthoredStyles } from './services/authoredStyles.mjs'
 
 let revision = 0
 
@@ -60,6 +61,21 @@ createServer(async (request, response) => {
           decodeURIComponent(sourceModuleMatch[1]),
           decodeURIComponent(sourceModuleMatch[2]),
         ),
+      )
+    }
+    const sourceInspectionStylesMatch = url.pathname.match(
+      /^\/api\/sources\/([^/]+)\/inspection\/styles$/,
+    )
+    if (request.method === 'GET' && sourceInspectionStylesMatch) {
+      const sourceFile = url.searchParams.get('file')
+      if (!sourceFile)
+        return sendJson(response, 400, {
+          error: { code: 'INSPECTION_FILE_REQUIRED', message: 'file is required' },
+        })
+      return sendJson(
+        response,
+        200,
+        await getAuthoredStyles(decodeURIComponent(sourceInspectionStylesMatch[1]), sourceFile),
       )
     }
     const sourceAssetMatch = url.pathname.match(/^\/api\/sources\/([^/]+)\/assets\/(.+)$/)

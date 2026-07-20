@@ -1,6 +1,5 @@
 import './WorkbenchAction.scss'
 import { forwardRef, type ButtonHTMLAttributes, type ReactNode } from 'react'
-import { inspectionAttributes, slotAttributes } from '@design-lab/system/inspection'
 
 export type WorkbenchActionTone = 'neutral' | 'inspect' | 'dev'
 
@@ -32,22 +31,10 @@ export const WorkbenchAction = forwardRef<HTMLButtonElement, WorkbenchActionProp
         className={`dl-workbench-action dl-workbench-action--${tone}${active ? ' dl-workbench-action--active' : ''}${className ? ` ${className}` : ''}`}
         disabled={disabled}
         aria-pressed={active || undefined}
-        {...inspectionAttributes('WorkbenchAction', {
-          tone,
-          active,
-          disabled: Boolean(disabled),
-          children: typeof children === 'string' ? children : undefined,
-        })}
         {...props}
       >
-        {icon != null && (
-          <span className="dl-workbench-action__icon" {...slotAttributes('icon')}>
-            {icon}
-          </span>
-        )}
-        <span className="dl-workbench-action__label" {...slotAttributes('label')}>
-          {children}
-        </span>
+        {icon != null && <span className="dl-workbench-action__icon">{icon}</span>}
+        <span className="dl-workbench-action__label">{children}</span>
       </button>
     )
   },

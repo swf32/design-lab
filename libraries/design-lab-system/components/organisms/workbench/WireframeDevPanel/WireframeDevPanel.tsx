@@ -1,6 +1,5 @@
 import './WireframeDevPanel.scss'
 import { useEffect, useId, useRef, type HTMLAttributes, type ReactNode } from 'react'
-import { inspectionAttributes, slotAttributes } from '@design-lab/system/inspection'
 import { CodeIcon } from '@design-lab/system/icons'
 import { WorkbenchAction } from '../../../atoms/actions/WorkbenchAction/WorkbenchAction'
 
@@ -58,7 +57,6 @@ export function WireframeDevPanel({
     <div
       ref={rootRef}
       className={`dl-wireframe-dev-panel${open ? ' dl-wireframe-dev-panel--open' : ''}${className ? ` ${className}` : ''}`}
-      {...inspectionAttributes('WireframeDevPanel', { open, triggerLabel })}
       {...props}
     >
       <WorkbenchAction
@@ -79,7 +77,7 @@ export function WireframeDevPanel({
           className="dl-wireframe-dev-panel__surface"
           aria-label="Wireframe developer controls"
         >
-          <header {...slotAttributes('header')}>
+          <header>
             <div>
               <h2 ref={headingRef} tabIndex={-1}>
                 {title}
@@ -90,10 +88,8 @@ export function WireframeDevPanel({
               Done
             </button>
           </header>
-          <div className="dl-wireframe-dev-panel__body" {...slotAttributes('content')}>
-            {children}
-          </div>
-          {footer && <footer {...slotAttributes('footer')}>{footer}</footer>}
+          <div className="dl-wireframe-dev-panel__body">{children}</div>
+          {footer && <footer>{footer}</footer>}
         </section>
       )}
     </div>

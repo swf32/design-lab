@@ -1,6 +1,5 @@
 import './PlaygroundControlsRail.scss'
 import type { HTMLAttributes, ReactNode } from 'react'
-import { inspectionAttributes, slotAttributes } from '@design-lab/system/inspection'
 
 export type PlaygroundControlsRailProps = HTMLAttributes<HTMLElement> & {
   label?: string
@@ -19,25 +18,13 @@ export function PlaygroundControlsRail({
 }: PlaygroundControlsRailProps) {
   return (
     <aside
-      {...inspectionAttributes('PlaygroundControlsRail', {
-        label,
-        hasFooter: Boolean(footer),
-      })}
       {...props}
       className={`dl-playground-controls-rail${className ? ` ${className}` : ''}`}
       aria-label={label}
     >
-      <header className="dl-playground-controls-rail__header" {...slotAttributes('header')}>
-        {header}
-      </header>
-      <div className="dl-playground-controls-rail__body" {...slotAttributes('content')}>
-        {children}
-      </div>
-      {footer && (
-        <footer className="dl-playground-controls-rail__footer" {...slotAttributes('footer')}>
-          {footer}
-        </footer>
-      )}
+      <header className="dl-playground-controls-rail__header">{header}</header>
+      <div className="dl-playground-controls-rail__body">{children}</div>
+      {footer && <footer className="dl-playground-controls-rail__footer">{footer}</footer>}
     </aside>
   )
 }

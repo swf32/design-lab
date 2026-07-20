@@ -1,5 +1,9 @@
 # Changelog
 
+## Unreleased
+
+- Changed: removed authored Inspector attributes; source analysis now discovers the Component automatically.
+
 ## 0.1.1 — 2026-07-19
 
 - Replaced the local action markup with the reusable inspectable Northstar Button.

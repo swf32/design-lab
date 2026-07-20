@@ -1,9 +1,9 @@
-[data-workbench-inspecting] [data-dl-component] {
+[data-workbench-inspecting] [data-dl-inspection-component] {
   outline: 2px dashed color-mix(in srgb, var(--color-inspection-component) 42%, transparent);
   outline-offset: 1px;
 }
 
-[data-workbench-inspecting] [data-dl-slot] {
+[data-workbench-inspecting] [data-dl-inspection-slot] {
   outline: 1px dashed color-mix(in srgb, var(--color-inspection-slot) 46%, transparent);
   outline-offset: 1px;
 }

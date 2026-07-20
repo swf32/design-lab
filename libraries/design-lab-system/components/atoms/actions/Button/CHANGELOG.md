@@ -2,11 +2,12 @@
 
 ## Unreleased
 
+- Changed: removed authored Inspector attributes; build-time source analysis now discovers Button calls and manifest-declared slots automatically.
 - Added: typed Button Wireframe Playground with living mesh, solid, and outline directions.
 - Added: square, soft, and maximum pill corner controls plus size, width, disabled, and motion controls.
 - Added: optional Library icon composition through the wireframe Button's named `leading` slot.
 - Compatibility: mesh clipping includes standard and Safari-prefixed mask declarations.
-- Accessibility: Button roots and leading/trailing composition slots are available to Workbench Inspector; plain label text remains regular content.
+- Accessibility: Button calls and leading/trailing composition slots are available to Workbench Inspector; plain label text remains regular content.
 
 - Changed: Added authored semantic retrieval metadata for MCP and CLI search.
 

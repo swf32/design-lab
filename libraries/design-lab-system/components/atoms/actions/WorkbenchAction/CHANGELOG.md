@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- Changed: removed authored Inspector attributes in favor of automatic source instrumentation.
 - Visual: reduced the visible action height to 24px and changed the silhouette to a maximum-radius pill.
 - Visual: replaced theme surfaces with stable translucent workbench glass and stronger backdrop blur.
 - Changed: neutral and developer identities now use theme-independent workbench tokens.

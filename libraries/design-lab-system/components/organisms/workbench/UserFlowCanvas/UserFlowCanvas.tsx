@@ -9,7 +9,6 @@ import {
   type PointerEvent as ReactPointerEvent,
   type ReactNode,
 } from 'react'
-import { inspectionAttributes } from '@design-lab/system/inspection'
 import { WireframeScreenPreview } from '../../../molecules/workbench/WireframeScreenPreview/WireframeScreenPreview'
 
 export type UserFlowCanvasNode = {
@@ -266,14 +265,7 @@ export function UserFlowCanvas({
   }
 
   return (
-    <div
-      className={`dl-user-flow-canvas${className ? ` ${className}` : ''}`}
-      {...inspectionAttributes('UserFlowCanvas', {
-        nodeCount: nodes.length,
-        edgeCount: edges.length,
-      })}
-      {...props}
-    >
+    <div className={`dl-user-flow-canvas${className ? ` ${className}` : ''}`} {...props}>
       <div className="dl-user-flow-canvas__tools" aria-label="User flow Canvas controls">
         <button type="button" onClick={() => changeZoom(zoom - 0.1)}>
           Zoom out

@@ -7,7 +7,6 @@ import {
   type HTMLAttributes,
   type ReactNode,
 } from 'react'
-import { inspectionAttributes, slotAttributes } from '@design-lab/system/inspection'
 
 export type WireframeScreenPreviewProps = HTMLAttributes<HTMLDivElement> & {
   children: ReactNode
@@ -48,10 +47,6 @@ export function WireframeScreenPreview({
           ...style,
         } as CSSProperties
       }
-      {...inspectionAttributes('WireframeScreenPreview', {
-        viewportWidth,
-        viewportHeight,
-      })}
       {...props}
     >
       <div
@@ -64,7 +59,6 @@ export function WireframeScreenPreview({
           transform: `scale(${scale})`,
           visibility: scale ? 'visible' : 'hidden',
         }}
-        {...slotAttributes('screen')}
       >
         {children}
       </div>

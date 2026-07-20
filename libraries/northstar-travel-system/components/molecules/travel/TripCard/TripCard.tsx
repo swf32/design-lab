@@ -1,5 +1,4 @@
 import './TripCard.scss'
-import { inspectionAttributes } from '@design-lab/system/inspection'
 import { Button } from '../../../atoms/actions/Button/Button'
 
 export type TripCardProps = {
@@ -24,19 +23,7 @@ export function TripCard({
   selected = false,
 }: TripCardProps) {
   return (
-    <article
-      className={`northstar-trip-card${selected ? ' is-selected' : ''}`}
-      {...inspectionAttributes('TripCard', {
-        origin,
-        destination,
-        departure,
-        arrival,
-        duration,
-        carrier,
-        price,
-        selected,
-      })}
-    >
+    <article className={`northstar-trip-card${selected ? ' is-selected' : ''}`}>
       <header>
         <span>{carrier}</span>
         <strong>{price}</strong>

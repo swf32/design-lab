@@ -126,8 +126,11 @@ Dev mode controls describe test conditions and entitlements, not actions the pro
 Wireframes use the same production `WorkbenchInspector` as Component Playgrounds. It is anchored at
 the viewport bottom end, scopes pointer/touch selection to the screen or flow stage, and uses the
 purple dashed `WorkbenchAction` trigger. Component roots and named slots retain their purple and
-pink identities; raw exploratory blocks expose authored CSS. Active Inspector mode gives every
-explicit Component root a quiet purple dashed outline and every named slot a quiet pink dashed
+pink identities; raw exploratory blocks expose authored source SCSS/CSS. The review build derives
+Component calls from normal imports, slots from Component manifests, and raw host locations from
+the Wireframe TSX automatically. A Wireframe author must not add inspection attributes or duplicate
+source fragments. Active Inspector mode gives every discovered Component root a quiet purple dashed
+outline and every manifest-declared slot a quiet pink dashed
 outline. Selecting a target consumes the product activation and pins the copyable handoff popover;
 it must never navigate, submit, or mutate the reviewed screen. Once pinned, the next surface click
 only dismisses the popover; selecting another target requires a subsequent click.

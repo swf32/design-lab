@@ -15,6 +15,7 @@ const MODULE_ID_SET = new Set<string>(MODULE_IDS)
 
 export type AppRoute = {
   module: ModuleId
+  sourceId: string
   path: string
 }
 
@@ -26,15 +27,19 @@ function decodeSegment(segment: string) {
   }
 }
 
+// Route shape is /<module>/<sourceId>/<path...>. sourceId identifies the active Project or
+// Library so a copied link always reopens the same source, instead of whichever source happens
+// to be active in the opening browser's local state.
 export function readAppRoute(pathname = window.location.pathname): AppRoute {
   const segments = pathname.split('/').filter(Boolean).map(decodeSegment)
   const module = MODULE_ID_SET.has(segments[0]) ? (segments[0] as ModuleId) : 'components'
-  return { module, path: segments.slice(1).join('/') }
+  return { module, sourceId: segments[1] ?? '', path: segments.slice(2).join('/') }
 }
 
-export function appRouteHref(module: ModuleId, path = '') {
+export function appRouteHref(module: ModuleId, sourceId: string, path = '') {
   const suffix = path.split('/').filter(Boolean).map(encodeURIComponent).join('/')
-  return suffix ? `/${module}/${suffix}` : `/${module}`
+  const base = sourceId ? `/${module}/${encodeURIComponent(sourceId)}` : `/${module}`
+  return suffix ? `${base}/${suffix}` : base
 }
 
 export function treeItemRoutePath(item: ProjectTreeItem) {

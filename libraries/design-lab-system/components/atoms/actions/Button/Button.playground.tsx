@@ -1,5 +1,4 @@
 import { control, definePlayground, type PlaygroundValues } from '@design-lab/system/playground'
-import { inspectionAttributes, slotAttributes } from '@design-lab/system/inspection'
 import { StarIcon } from '@design-lab/system/icons'
 
 export const playground = definePlayground({
@@ -355,21 +354,7 @@ export function renderPlaygroundVariant({ variant, values }: { variant: string; 
     <>
       <style>{buttonWireframeStyles}</style>
       <div className="button-wireframe-stage">
-        <button
-          type="button"
-          className={className}
-          disabled={values.disabled}
-          {...inspectionAttributes('Button', {
-            direction: variant,
-            radius: values.radius,
-            size: values.size,
-            fullWidth: values.fullWidth,
-            leadingIcon: values.leadingIcon,
-            animated: isMesh && values.animated,
-            disabled: values.disabled,
-            children: values.label,
-          })}
-        >
+        <button type="button" className={className} disabled={values.disabled}>
           {isMesh && (
             <span className="button-wireframe__mesh" aria-hidden="true">
               <span className="button-wireframe__blob button-wireframe__blob--a" />
@@ -378,7 +363,7 @@ export function renderPlaygroundVariant({ variant, values }: { variant: string; 
             </span>
           )}
           {values.leadingIcon && (
-            <span className="button-wireframe__leading" {...slotAttributes('leading')}>
+            <span className="button-wireframe__leading">
               <StarIcon size={16} aria-hidden="true" />
             </span>
           )}

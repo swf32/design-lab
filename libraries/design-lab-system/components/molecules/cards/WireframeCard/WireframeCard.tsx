@@ -2,7 +2,6 @@ import './WireframeCard.scss'
 import type { ReactNode } from 'react'
 import { Chip, type ChipColor } from '../../../atoms/data-display/Chip/Chip'
 import { WireframeScreenPreview } from '../../workbench/WireframeScreenPreview/WireframeScreenPreview'
-import { inspectionAttributes } from '@design-lab/system/inspection'
 
 export type WireframeCardProps = {
   name: string
@@ -34,17 +33,7 @@ export function WireframeCard({
   onClick,
 }: WireframeCardProps) {
   return (
-    <article
-      className={`dl-wireframe-card${selected ? ' dl-wireframe-card--selected' : ''}`}
-      {...inspectionAttributes('WireframeCard', {
-        name,
-        status,
-        layoutCount,
-        stateCount,
-        transitionCount,
-        selected,
-      })}
-    >
+    <article className={`dl-wireframe-card${selected ? ' dl-wireframe-card--selected' : ''}`}>
       <WireframeScreenPreview>{preview}</WireframeScreenPreview>
       <button
         type="button"

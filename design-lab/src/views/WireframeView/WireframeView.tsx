@@ -85,13 +85,11 @@ function initialContext(wireframe: WireframeEntity, modes: string[]) {
 
 export function WireframeView({
   wireframe,
-  sourceId,
   modes,
   themeVariables,
   onClose,
 }: {
   wireframe: WireframeEntity
-  sourceId: string
   modes: string[]
   themeVariables: Extract<ModuleData, { kind: 'wireframes' }>['themeVariables']
   onClose: () => void
@@ -122,8 +120,9 @@ export function WireframeView({
   }, [availableModes, mode])
 
   useEffect(() => {
+    // The pathname already carries the active source (see navigation.ts); this effect only owns
+    // the Wireframe-local review state (layout/view/mode/state/values) inside the query string.
     const search = new URLSearchParams()
-    search.set('source', sourceId)
     search.set('layout', layout)
     search.set('view', view)
     search.set('mode', mode)
@@ -132,7 +131,7 @@ export function WireframeView({
     const next = `${window.location.pathname}?${search.toString()}`
     if (`${window.location.pathname}${window.location.search}` !== next)
       window.history.replaceState(window.history.state, '', next)
-  }, [layout, mode, sourceId, stateId, values, view])
+  }, [layout, mode, stateId, values, view])
 
   const selectState = (nextStateId: string) => {
     const state = wireframe.states.find((item) => item.id === nextStateId)

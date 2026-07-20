@@ -17,5 +17,8 @@
 - [Сущности и файловые контракты](05-entities-and-file-contracts.md)
 - [AI-процессы и интеграции](06-ai-workflows-and-integrations.md)
 - [AI context gateway, поиск, MCP и CLI](09-ai-context-and-mcp.md)
+- [Inspection architecture: AST pipeline и style analyzer](10-inspection-architecture.md)
+- [Local HTTP API reference](11-server-api.md)
+- [Collaboration и deployment: видение и архитектурные дыры](12-collaboration-and-deployment.md)
 - [Конкурентный обзор](07-market-review.md)
 - [Roadmap, риски и пакетные AI-задачи](08-roadmap-risks-and-tasks.md)

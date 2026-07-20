@@ -79,7 +79,7 @@
 - [ ] Add `updatedAt`, diagnostics, source locations, and stable relation fields to the entity schema.
 - [ ] Add a filesystem watcher with scoped invalidation and SSE/WebSocket updates; UI and context search currently rescan only on request or navigation.
 - [ ] Apply one explicit path-containment helper to every read/write route and scanner.
-- [ ] Add invalid-entity isolation so one broken manifest or token file becomes a diagnostic instead of failing the whole module/search request.
+- [x] Add invalid-entity isolation so one broken manifest becomes a diagnostic instead of failing the whole module/search request (`manifest-parse-error`, `server/services/moduleEntities.mjs`). Still open: token files and other non-`component.json`/`wireframe.json` scanners.
 
 ### P1 — AI retrieval quality
 
@@ -101,6 +101,29 @@
 - [x] Add static import AST analysis, dependency/usages view, and copy import/source actions.
 - [ ] Add export/prop AST extraction, sandbox/error boundary, and create/update scaffold.
 
+### Collaboration & deployment vision — 2026-07-20
+
+Записано в `docs/12-collaboration-and-deployment.md`; решения — `D-045`, `D-046`, `D-047` в `DECISIONS.md`.
+
+- [x] Fix: URL route now encodes `sourceId` (`/<module>/<sourceId>/<path>`), so a copied component/wireframe link is stable across multiple Libraries/Projects instead of resolving against the opener's local session state.
+- [ ] Design a server-side model for multiple concurrent viewers (auth-less today; one loopback-only process rescans the filesystem per request).
+- [ ] Design push-driven invalidation from a git remote (webhook → pull → invalidate → broadcast) for the hosted deployment mode.
+- [ ] Design an identity/roles layer (designer / developer / analyst-reviewer) — currently there is no user concept at all.
+- [ ] Design multi-tenancy for one Design Lab server instance hosting multiple company repositories (`getWorkspaceDirectory()` is single-root today).
+- [ ] Design the filesystem-first comment/short-message contract (per-node/per-state/per-component annotations) with a working no-server fallback (git as the database).
+- [ ] Design an export contract from `wireframe.json` `flow.nodes[]/edges[]` toward Figma (or an intermediate portable graph format), as a foundation for a future Figma plugin.
+- [ ] Add an aggregated completeness/health view across a whole Library, rolling up the existing per-entity diagnostics instead of leaving them only on individual cards.
+- [x] Add an explicit `schemaVersion`-too-new diagnostic (`schema-version-unsupported`, `SUPPORTED_SCHEMA_VERSION` in `server/services/moduleEntities.mjs`) so a manifest from a newer Design Lab build degrades to a warning instead of misreading fields. Still open: an actual migration mechanism for when `SUPPORTED_SCHEMA_VERSION` is bumped — today there is one supported version and no upgrade path for older manifests yet.
+
+### Documentation debt — 2026-07-20
+
+- [x] Document the Babel AST inspection transform, the PostCSS/SCSS authored-style analyzer, their edge cases, and their security boundary (`10-inspection-architecture.md`).
+- [x] Document the full local HTTP API surface: every route, status code, and error shape (`11-server-api.md`).
+- [x] Document the concrete field-level schema of `library.json`/`component.json`/`wireframe.json` and the catalog of diagnostic codes the server actually returns (`05-entities-and-file-contracts.md`).
+- [ ] Turn the documented `component.json`/`wireframe.json`/`library.json` field tables into machine-checkable JSON Schema files; today the contract is prose plus runtime diagnostics, not a schema a manifest author can validate against before saving.
+- [ ] Add automated test coverage for the AST edge cases now documented in `10-inspection-architecture.md` §1.4 (identifier shadowing, barrel re-exports, `createElement`-based rendering, HOC-wrapped exports).
+- [ ] Add a watcher-driven invalidation for the inspection transform's `readContracts()` map, not only for the entity/context-gateway scanners; today adding or editing a `component.json` during a dev session requires restarting `npm run dev`.
+
 ### P2 — product breadth
 
 - [ ] Add Rules, Decisions, and Prompts modules so indexed knowledge is authorable in UI.
@@ -109,7 +132,8 @@
 - [x] Scope Wireframes to active-source product modes and adapt theme controls between Tab Switcher and Radio Buttons by option count.
 - [x] Pair desktop/mobile screens in collision-safe flow nodes and support infinite transformed grid, pan, pinch zoom, and semantic folder routes.
 - [x] Bring the shared Inspector/handoff contract from Component Playground to fullscreen Wireframes.
-- [ ] Implement Pages and bring the same Inspector/handoff contract to Pages.
+- [x] Define the canonical Page contract in `PAGE_RULES.md` (hybrid `page.json` + `*.page.tsx`, states, `derivedFromWireframe` provenance, inter-Page `links[]`, diagnostic codes).
+- [ ] Implement Pages module discovery/server support and bring the same Inspector/handoff contract to Pages, per `PAGE_RULES.md`.
 - [ ] Add guarded AI write proposals only after diff, validation, and confirmation contracts exist.
 
 ---
@@ -424,7 +448,8 @@ Components использует Tokens, Palette и Fonts и становится
 - [x] Карточка показывает name и lifecycle status; отсутствие или неизвестное значение не блокирует discovery.
 - [x] Typed `*.playground.tsx` автоматически создаёт multi-variant route без application registry.
 - [x] Playground route является отдельным fullscreen review mode: desktop controls rail + Canvas, mobile Canvas + dismissible Settings rail.
-- [x] Playground Inspector различает Components, named slots и обычные DOM elements, показывает copyable JSX/HTML/authored CSS, обводит Component roots 2px и slots, закрепляет selection без запуска product action и dismisses его первым повторным surface click.
+- [x] Playground Inspector автоматически различает imported Components, manifest-declared slots и обычные DOM elements, показывает точный authored TSX или Node-resolved source SCSS/CSS, обводит Component roots 2px и slots, закрепляет selection без запуска product action и dismisses его первым повторным surface click.
+- [x] Review-build source instrumentation не требует authored `data-dl-*` markers или JSX strings; SCSS handoff сохраняет `$variables`, `@use`, mixins, nesting, percentages и CSS variables без CSSOM.
 - [x] Component outline использует стабильный inspection purple, slot outline — inspection pink; оба не зависят от interface accent.
 - [x] Fullscreen Playground использует production `PlaygroundControlsRail` и `InspectorCodePopover`; Canvas Background Control плавает сверху справа над Canvas.
 - [x] Shared `WorkbenchInspector` и `WorkbenchAction` заменяют application-local Inspector и разрозненные Settings/Inspect/Dev mode buttons.

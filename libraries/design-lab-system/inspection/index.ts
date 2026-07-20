@@ -1,61 +1,107 @@
-type InspectableValue =
-  | string
-  | number
-  | boolean
-  | null
-  | readonly InspectableValue[]
-  | { readonly [key: string]: InspectableValue }
+import {
+  createContext,
+  createElement,
+  Children,
+  forwardRef,
+  useContext,
+  useRef,
+  type ElementType,
+  type HTMLAttributes,
+  type ReactNode,
+  type Ref,
+} from 'react'
 
-function sanitizeInspectableValue(value: unknown, depth = 0): InspectableValue | undefined {
-  if (value == null || typeof value === 'string' || typeof value === 'number') return value
-  if (typeof value === 'boolean') return value
-  if (depth >= 3) return undefined
-  if (Array.isArray(value)) {
-    return value
-      .map((item) => sanitizeInspectableValue(item, depth + 1))
-      .filter((item): item is InspectableValue => item !== undefined)
-  }
-  if (typeof value === 'object') {
-    const sanitized = Object.entries(value as Record<string, unknown>)
-      .map(([key, item]) => [key, sanitizeInspectableValue(item, depth + 1)] as const)
-      .filter((entry): entry is readonly [string, InspectableValue] => entry[1] !== undefined)
-    return Object.fromEntries(sanitized)
-  }
-  return undefined
+export type InspectionDescriptor = {
+  kind: 'component' | 'slot'
+  name: string
+  code: string
+  sourceId: string
+  file: string
+  line: number
 }
 
-export function inspectionAttributes(
-  component: string,
-  publicProps: Record<string, unknown>,
-): {
-  'data-dl-component': string
-  'data-dl-props': string
-} {
-  return {
-    'data-dl-component': component,
-    'data-dl-props': JSON.stringify(sanitizeInspectableValue(publicProps) ?? {}),
-  }
+export type InspectionSourceLocation = {
+  sourceId: string
+  file: string
+  line: number
 }
 
-export function slotAttributes(slot: string): {
-  'data-dl-slot': string
-} {
-  return {
-    'data-dl-slot': slot,
-  }
+export type InspectionMetadata = {
+  components: InspectionDescriptor[]
+  slots: InspectionDescriptor[]
+  source: InspectionSourceLocation
 }
 
-export type InspectionSourceLanguage = 'tsx' | 'html'
+const InspectionContext = createContext<InspectionDescriptor[]>([])
+const inspectionRegistry = new Map<Element, InspectionMetadata>()
+const voidElements = new Set([
+  'area',
+  'base',
+  'br',
+  'col',
+  'embed',
+  'hr',
+  'img',
+  'input',
+  'link',
+  'meta',
+  'param',
+  'source',
+  'track',
+  'wbr',
+])
 
-export function inspectionSourceAttributes(
-  code: string,
-  language: InspectionSourceLanguage = 'tsx',
-): {
-  'data-dl-source-code': string
-  'data-dl-source-language': InspectionSourceLanguage
-} {
-  return {
-    'data-dl-source-code': code,
-    'data-dl-source-language': language,
+export function InspectionBoundary({
+  descriptor,
+  children,
+}: {
+  descriptor: InspectionDescriptor
+  children: ReactNode
+}) {
+  const parent = useContext(InspectionContext)
+  return createElement(InspectionContext.Provider, { value: [...parent, descriptor] }, children)
+}
+
+function assignRef<T>(ref: Ref<T> | undefined, value: T | null) {
+  if (typeof ref === 'function') ref(value)
+  else if (ref) ref.current = value
+}
+
+type InspectionHostProps = HTMLAttributes<HTMLElement> & {
+  as: ElementType
+  source: InspectionSourceLocation
+}
+
+export const InspectionHost = forwardRef<HTMLElement, InspectionHostProps>(function InspectionHost(
+  { as, source, children, ...props },
+  forwardedRef,
+) {
+  const descriptors = useContext(InspectionContext)
+  const elementRef = useRef<HTMLElement | null>(null)
+  const ref = (element: HTMLElement | null) => {
+    if (elementRef.current) inspectionRegistry.delete(elementRef.current)
+    elementRef.current = element
+    if (element)
+      inspectionRegistry.set(element, {
+        components: descriptors.filter((descriptor) => descriptor.kind === 'component'),
+        slots: descriptors.filter((descriptor) => descriptor.kind === 'slot'),
+        source,
+      })
+    assignRef(forwardedRef, element)
   }
+  if (typeof as === 'string' && voidElements.has(as)) return createElement(as, { ...props, ref })
+  const childList = Children.toArray(children)
+  return createElement(
+    as,
+    { ...props, ref },
+    createElement(InspectionContext, { value: [] }, ...childList),
+  )
+})
+
+export function inspectionMetadataFor(element: Element) {
+  return inspectionRegistry.get(element) ?? null
+}
+
+export function inspectionEntriesWithin(surface: Element) {
+  return [...inspectionRegistry.entries()].filter(([element]) => surface.contains(element))
 }

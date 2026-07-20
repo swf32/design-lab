@@ -94,6 +94,7 @@ export default function App() {
   )
   const [active, setActive] = useState<ModuleId>(initialRoute.module)
   const [routePath, setRoutePath] = useState(initialRoute.path)
+  const [routeSourceId, setRouteSourceId] = useState(initialRoute.sourceId)
   const [navigationWidth, setNavigationWidth] = useState(getInitialNavigationWidth)
   const [isResizing, setIsResizing] = useState(false)
   const [sidebarHovered, setSidebarHovered] = useState(false)
@@ -126,9 +127,7 @@ export default function App() {
     (wireframeTreeItem?.kind === 'wireframe' ||
       (moduleData?.kind === 'wireframes' &&
         moduleData.wireframes.some((wireframe) => wireframe.directory === routePath)))
-  const requestedWireframeSourceId = wireframeRouteRequested
-    ? new URLSearchParams(window.location.search).get('source')
-    : null
+  const waitingForRouteSource = Boolean(routeSourceId) && activeProjectId !== routeSourceId
   const entityRoutePath = playgroundOpen ? routePath.replace(/\/playground$/, '') : routePath
   const directoryTree: ProjectTreeItem[] = [
     'components',
@@ -154,19 +153,28 @@ export default function App() {
     localStorage.setItem(CANVAS_COLOR_KEY, canvasColor)
   }, [canvasMode, canvasColor])
 
-  const navigate = (module: ModuleId, path = '', replace = false) => {
-    const href = appRouteHref(module, path)
+  // sourceId defaults to the currently active source so most call sites stay untouched; an
+  // explicit override is only needed when the source itself is changing in the same navigation
+  // (e.g. switching Project/Library), since activeProjectId state has not re-rendered yet there.
+  const navigate = (
+    module: ModuleId,
+    path = '',
+    options: { replace?: boolean; sourceId?: string } = {},
+  ) => {
+    const effectiveSourceId = options.sourceId ?? activeProjectId
+    const href = appRouteHref(module, effectiveSourceId, path)
     if (`${window.location.pathname}${window.location.search}${window.location.hash}` !== href) {
       const currentState = window.history.state as DesignLabHistoryState | null
-      const state: DesignLabHistoryState = replace
+      const state: DesignLabHistoryState = options.replace
         ? currentState?.designLab
           ? currentState
           : { designLab: true, canGoBack: false }
         : { designLab: true, canGoBack: true }
-      window.history[replace ? 'replaceState' : 'pushState'](state, '', href)
+      window.history[options.replace ? 'replaceState' : 'pushState'](state, '', href)
     }
     setActive(module)
     setRoutePath(path)
+    setRouteSourceId(effectiveSourceId)
   }
 
   useEffect(() => {
@@ -183,17 +191,22 @@ export default function App() {
       const route = readAppRoute()
       setActive(route.module)
       setRoutePath(route.path)
+      setRouteSourceId(route.sourceId)
+      const target = projects.find(
+        (project) => project.id === route.sourceId && project.available,
+      )
+      if (target && target.id !== activeProjectId) setActiveProjectId(target.id)
     }
     window.addEventListener('popstate', restoreRoute)
     return () => window.removeEventListener('popstate', restoreRoute)
-  }, [])
+  }, [projects, activeProjectId])
 
   useEffect(() => {
     listProjects()
       .then((result) => {
         setProjects(result.projects)
         const requested = result.projects.find(
-          (project) => project.id === requestedWireframeSourceId && project.available,
+          (project) => project.id === routeSourceId && project.available,
         )
         const saved = result.projects.find(
           (project) => project.id === activeProjectId && project.available,
@@ -204,7 +217,20 @@ export default function App() {
         else setProjectDialogOpen(true)
       })
       .catch((error: Error) => setProjectError(error.message))
-  }, [requestedWireframeSourceId])
+    // Intentionally runs once on mount: routeSourceId/activeProjectId are only read here to pick
+    // the initial active source, not to re-trigger a project list refetch on every route change.
+  }, [])
+
+  // Any direct setActiveProjectId that did not go through navigate() (initial resolution above,
+  // project creation, popstate restoring a different source) still needs the URL to end up
+  // carrying the resolved source id, so a freshly opened deep link becomes canonical and shareable.
+  useEffect(() => {
+    if (!activeProjectId || activeProjectId === routeSourceId) return
+    setRouteSourceId(activeProjectId)
+    const href = appRouteHref(active, activeProjectId, routePath)
+    if (`${window.location.pathname}${window.location.search}${window.location.hash}` !== href)
+      window.history.replaceState(window.history.state, '', href)
+  }, [active, activeProjectId, routePath, routeSourceId])
 
   useEffect(() => {
     if (!activeProjectId) {
@@ -248,7 +274,9 @@ export default function App() {
       setSelectedFolderPath(parentPath || ALL_FOLDER_PATH)
     }
     if (canonicalPath !== entityRoutePath)
-      navigate(active, playgroundOpen ? `${canonicalPath}/playground` : canonicalPath, true)
+      navigate(active, playgroundOpen ? `${canonicalPath}/playground` : canonicalPath, {
+        replace: true,
+      })
   }, [active, entityRoutePath, playgroundOpen, tree, treeLoading])
 
   useEffect(() => {
@@ -381,8 +409,12 @@ export default function App() {
       )
     return (
       <main className="component-playground-missing">
-        <span>{moduleLoading ? t('status.loading') : 'Playground could not be loaded.'}</span>
-        {!moduleLoading && (
+        <span>
+          {moduleLoading || waitingForRouteSource
+            ? t('status.loading')
+            : 'Playground could not be loaded.'}
+        </span>
+        {!moduleLoading && !waitingForRouteSource && (
           <Button variant="secondary" onClick={() => navigate('components')}>
             Back to Components
           </Button>
@@ -400,22 +432,19 @@ export default function App() {
       return (
         <WireframeView
           wireframe={wireframe}
-          sourceId={activeProjectId}
           modes={moduleData.modes}
           themeVariables={moduleData.themeVariables}
           onClose={() => navigate('wireframes')}
         />
       )
-    const waitingForSource =
-      requestedWireframeSourceId && activeProjectId !== requestedWireframeSourceId
     return (
       <main className="component-playground-missing">
         <span>
-          {moduleLoading || waitingForSource
+          {moduleLoading || waitingForRouteSource
             ? t('status.loading')
             : 'Wireframe could not be loaded.'}
         </span>
-        {!moduleLoading && !waitingForSource && (
+        {!moduleLoading && !waitingForRouteSource && (
           <Button variant="secondary" onClick={() => navigate('wireframes')}>
             Back to Wireframes
           </Button>
@@ -475,7 +504,7 @@ export default function App() {
             onProjectChange={(projectId) => {
               setActiveProjectId(projectId)
               setMobileNavigationOpen(false)
-              navigate(active)
+              navigate(active, '', { sourceId: projectId })
             }}
             onCreateProject={() => {
               setProjectError(null)

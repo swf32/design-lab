@@ -1,5 +1,9 @@
 # Changelog
 
+## Unreleased
+
+- Changed: removed authored Inspector attributes in favor of automatic source instrumentation.
+
 ## 0.2.0 — 2026-07-20
 
 - Added: every state node now pairs real desktop and portrait mobile Wireframe renderings.

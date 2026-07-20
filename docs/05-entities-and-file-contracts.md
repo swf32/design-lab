@@ -46,7 +46,7 @@
 
 Manifest-declared `*.stories.ts(x)` хранит и story metadata, и `renderStoryExample`. Workbench загружает его по обнаруженному component directory без центрального application registry. Scanner статически разбирает TypeScript/TSX imports и возвращает четыре прямых набора связей: production `uses` / `usedBy` и example-only `examplesUse` / `usedInExamplesBy`. Type-only imports игнорируются; production dependencies вычитаются из example graph, чтобы одна и та же связь не дублировалась. Preview imports production Components становятся diagnostics, потому что preview обязан оставаться самостоятельной illustrative composition.
 
-Соседний `ComponentName.playground.tsx` обнаруживается по соглашению об имени и использует общий typed control registry. Он может существовать до production entry, поэтому wireframe-only Component не попадает в generated package barrel, но остаётся полноценной filesystem entity. Его route является отдельной fullscreen review surface: desktop rail + Canvas, mobile Canvas + вызываемый поверх него controls rail; background control закреплён сверху справа над Canvas. Inspector строит copyable JSX/HTML/authored CSS handoff из явных Component/slot markers и matching same-origin style rules. Поддерживаемый lifecycle: `wireframe → in-progress → ready`; отсутствующий status не блокирует discovery и превращается в diagnostic.
+Соседний `ComponentName.playground.tsx` обнаруживается по соглашению об имени и использует общий typed control registry. Он может существовать до production entry, поэтому wireframe-only Component не попадает в generated package barrel, но остаётся полноценной filesystem entity. Его route является отдельной fullscreen review surface: desktop rail + Canvas, mobile Canvas + вызываемый поверх него controls rail; background control закреплён сверху справа над Canvas. Inspector автоматически строит copyable authored TSX/SCSS handoff: Component imports и manifest slots инструментируются во время review build, а raw elements связываются с исходными styles через Node analyzer. Ручные DOM markers и CSSOM matching не являются частью filesystem contract. Поддерживаемый lifecycle: `wireframe → in-progress → ready`; отсутствующий status не блокирует discovery и превращается в diagnostic.
 
 ## Wireframes
 
@@ -197,6 +197,71 @@ Font registry отвечает на вопрос, какие families и styles 
 | Features | **MVP**: local read-only stdio bridge и CLI fallback. **Next**: multilingual embeddings, resources и guarded write proposals. **Future**: remote/hosted server with auth |
 
 zeroheight уже делает MCP-сервер, structured access и советы по оптимизации styleguides для AI, а Bit продвигает AI-native workflow и MCP-направление. Design Lab начинает с локального read-only adapter, не превращая первый срез в remote integration platform. [\[6\]](https://help.zeroheight.com/hc/en-us/articles/43780251357979-Using-the-remote-zeroheight-MCP-server?utm_source=chatgpt.com)
+
+## Формальные схемы manifest-файлов
+
+Ниже — поля, которые фактически читает сервер (`design-lab/server/services/moduleEntities.mjs`), а не только рекомендуемая модель из таблиц выше. Полный технический пайплайн, который эти файлы приводит в действие (Babel AST transform, PostCSS analyzer, HTTP-контракт), описан в `10-inspection-architecture.md` и `11-server-api.md`.
+
+### `library.json`
+
+| Поле | Тип | Обязательность | Назначение |
+|----|----|----|----|
+| `id` | `string` | обязательно | Совпадает с именем директории под `libraries/`; используется как `sourceId` во всех API и в `ref`. |
+| `kind` | `"library"` | обязательно | Отличает Library от Project (`project.json` не имеет этого поля). |
+| `name`, `schemaVersion`, `version` | `string` / `number` | опционально | Отображаемые метаданные; не участвуют в discovery. |
+| `packageName` | `string` | опционально | Если задан и `componentImport` не указан явно, canonical import вычисляется как `${packageName}/components`. |
+| `componentImport` | `string` | опционально, рекомендуется | Явный импортируемый specifier (`@design-lab/system/components`); имеет приоритет над `packageName`. Именно эта строка используется Babel-трансформом (`byImport`) для сопоставления JSX callsite с component-контрактом. |
+| `iconImport` | `string` | опционально | Аналогичный specifier для code-native icon barrel (`assets/icons/index.ts`). |
+
+### `component.json`
+
+| Поле | Тип | Обязательность | Назначение |
+|----|----|----|----|
+| `id`, `name` | `string` | обязательно | `id` — стабильный идентификатор в `ref`/relations; `name` должно совпадать с экспортируемым React-символом, который ищет AST-сканер. |
+| `entry` | `string` | опционально | Относительный путь к production-реализации. Отсутствие `entry` — легитимный `status: "wireframe"` (Component существует только как Playground). |
+| `style`, `preview`, `stories`, `playground`, `docs`, `changelog` | `string` | опционально, обычно auto-discovered | Явное значение переопределяет convention-based discovery (`<Stem>.scss`, `<Stem>.playground.tsx` и т.д.); задавать вручную нужно только при нестандартном имени файла. |
+| `status` | `"wireframe" \| "in-progress" \| "ready"` | опционально | Отсутствующее или неизвестное значение не блокирует discovery, но создаёт diagnostic (см. ниже). |
+| `variants[]`, `states[]` | `string[]` | опционально | Только отображаемые списки; фактические controls строятся Playground registry, а не этим полем. |
+| `description`, `aliases[]`, `useWhen[]`, `avoidWhen[]`, `tags[]` | `string` / `string[]` | опционально | AI-retrieval сигналы для context gateway (`09-ai-context-and-mcp.md`); `avoidWhen` — активный negative-ranking сигнал, а не документация. |
+| `importFrom` | `string` | опционально | Переопределяет вычисленный canonical import для одного конкретного Component (редкий случай нестандартного re-export). |
+| `props.<name>` | `object` | опционально | `type` принимает `"string" \| "enum" \| "boolean" \| "number" \| "slot"`; `enum` дополнительно требует `values[]`; `default` — опционально. `type: "slot"` (или `slot: true`) — единственный способ объявить named slot; необязательный `slot: "<exposedName>"` переопределяет имя, под которым slot виден Inspector'у, отдельно от имени prop. |
+
+### `wireframe.json`
+
+| Поле | Тип | Обязательность | Назначение |
+|----|----|----|----|
+| `schemaVersion`, `id`, `name`, `status`, `description` | — | обязательно кроме `description` | `status` принимает только `draft \| review \| approved`; иное значение — diagnostic `wireframe-status-invalid`. |
+| `entry` | `string` | обязательно | Отсутствие — diagnostic `wireframe-entry-missing`. |
+| `docs`, `changelog` | `string` | опционально | Соседние Markdown-файлы; отсутствие файла по указанному пути не является ошибкой (сервер тихо возвращает `null` для содержимого). |
+| `layouts[].{id,name,description,hypothesis}` | — | `id` обязателен и уникален | Каждый layout обязан формулировать гипотезу (см. `WIREFRAME_RULES.md`). |
+| `controls[].{id,kind,label,description,...}` | — | `id`, `kind` обязательны | `kind: "radio"` требует `options[]` c `{ value, label }`; `kind: "boolean"` не требует доп. полей; `kind: "range"` требует `min`, `max`, положительный `step` (`max >= min`); любой control может иметь `visibleWhen: { control: <id>, equals: <value> }`, где `control` должен существовать. |
+| `states[].{id,name,description,values}` | — | `id` обязателен и уникален | `values` обязан содержать значение для **каждого** объявленного control id и удовлетворять его типу/диапазону — иначе diagnostic (`wireframe-state-value-missing`, `wireframe-state-radio-value-invalid`, `wireframe-state-boolean-value-invalid`, `wireframe-state-range-value-invalid`). `values` может содержать дополнительные product-only поля вне controls (например `teamSeats` в Pricing) — они не проверяются схемой controls. |
+| `defaultLayout`, `defaultState` | `string` | обязательно | Должны ссылаться на существующие `layouts[].id`/`states[].id` (`wireframe-default-layout-invalid`, `wireframe-default-state-invalid`). |
+| `flow.nodes[].{id,state,x,y}` | — | `id`, `state` обязательны | `state` должен существовать (`wireframe-flow-state-invalid`); `x`/`y` — authored Canvas-координаты, не пересчитываются сервером. |
+| `flow.edges[].{id,from,to,action,label}` | — | все обязательны | `from`/`to` должны ссылаться на существующие node id (`wireframe-flow-edge-invalid`). |
+
+### Каталог diagnostic-кодов
+
+Diagnostics не блокируют discovery: сущность остаётся видимой, а сообщение появляется рядом с ней. Текущие коды, которые реально возвращает сервер:
+
+| Код | Источник | Значение |
+|----|----|----|
+| `component-status-missing` / `component-status-unknown` | `component.json` | Отсутствует или неподдерживаемый `status`. |
+| `wireframe-playground-missing` | `component.json` | `status: "wireframe"` без соседнего `*.playground.tsx`. |
+| `in-progress-entry-missing` | `component.json` | `status: "in-progress"` без `entry`. |
+| `ready-component-incomplete` | `component.json` | `status: "ready"`, но отсутствует `entry`/`style`/`preview`/`stories`/`docs`/`changelog`. |
+| `preview-imports-component` | scanner | `*.preview.tsx` статически импортирует production Component — нарушение illustrative-preview контракта. |
+| `source-parse-error` | scanner | Babel/`@babel/parser` не смог разобрать файл; ошибка локализуется к конкретному файлу, а не ко всему модулю. |
+| `wireframe-status-invalid`, `wireframe-entry-missing` | `wireframe.json` | См. таблицу выше. |
+| `wireframe-*-id-invalid` (`layout`/`state`/`control`/`flow-node`/`flow-edge`) | `wireframe.json` | Отсутствующий или дублирующийся id. |
+| `wireframe-default-layout-invalid`, `wireframe-default-state-invalid` | `wireframe.json` | `defaultLayout`/`defaultState` ссылаются на несуществующий id. |
+| `wireframe-state-value-missing`, `wireframe-state-radio-value-invalid`, `wireframe-state-boolean-value-invalid`, `wireframe-state-range-value-invalid` | `wireframe.json` | Значение state не соответствует объявленному control. |
+| `wireframe-control-kind-invalid`, `wireframe-control-range-invalid`, `wireframe-control-condition-invalid` | `wireframe.json` | Некорректное объявление самого control. |
+| `wireframe-flow-state-invalid`, `wireframe-flow-edge-invalid` | `wireframe.json` | Node/edge ссылается на несуществующий state/node. |
+| `manifest-parse-error` | `component.json` / `wireframe.json` | Файл манифеста не прошёл `JSON.parse` (синтаксическая ошибка). Сущность всё равно попадает в каталог: `id`/`name` подставляются из пути директории, остальные поля пустые, а само сообщение об ошибке становится diagnostic на этой сущности. Соседние сущности того же модуля не затрагиваются. |
+| `schema-version-unsupported` | `component.json` / `wireframe.json` | Манифест объявляет `schemaVersion` больше, чем понимает текущий сервер (см. `SUPPORTED_SCHEMA_VERSION` в `server/services/moduleEntities.mjs`). Поля читаются как есть (без миграции), сущность остаётся видимой с предупреждением, а не падает. |
+
+Невалидный `component.json`/`wireframe.json`, который не проходит сам `JSON.parse`, изолируется до одной сущности (`manifest-parse-error`) и не приводит к ошибке всего `/modules/:moduleId` запроса — соседние сущности того же модуля продолжают отображаться.
 
 ## Варианты changelog-контракта
 

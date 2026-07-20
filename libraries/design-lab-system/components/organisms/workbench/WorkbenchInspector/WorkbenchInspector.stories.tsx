@@ -1,39 +1,21 @@
 import { createElement, useRef, useState } from 'react'
 import type { StoryExample } from '../../../storyContract'
 import { StarIcon } from '@design-lab/system/icons'
-import {
-  inspectionAttributes,
-  inspectionSourceAttributes,
-  slotAttributes,
-} from '@design-lab/system/inspection'
+import { Button } from '../../../atoms/actions/Button/Button'
 import { WorkbenchInspector } from './WorkbenchInspector'
-
-const fixtureIconSource = `import { StarIcon } from '@design-lab/system/icons'
-
-<StarIcon size={16} aria-hidden="true" />`
 
 function InspectorFixture() {
   const surfaceRef = useRef<HTMLDivElement>(null)
   const [activations, setActivations] = useState(0)
   return (
     <div ref={surfaceRef} style={{ minWidth: 280, minHeight: 160, padding: 24 }}>
-      <button
-        type="button"
+      <Button
+        variant="primary"
+        leading={<StarIcon size={16} aria-hidden="true" />}
         onClick={() => setActivations((current) => current + 1)}
-        {...inspectionAttributes('FixtureButton', {
-          variant: 'primary',
-          children: 'Inspect me',
-        })}
       >
-        <span {...slotAttributes('leading')}>
-          <StarIcon
-            size={16}
-            aria-hidden="true"
-            {...inspectionSourceAttributes(fixtureIconSource)}
-          />
-        </span>
         Inspect me · actions {activations}
-      </button>
+      </Button>
       <WorkbenchInspector surfaceRef={surfaceRef} />
     </div>
   )

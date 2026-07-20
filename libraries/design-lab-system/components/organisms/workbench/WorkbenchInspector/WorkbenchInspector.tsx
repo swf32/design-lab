@@ -1,7 +1,12 @@
 import './WorkbenchInspector.scss'
 import { useEffect, useRef, useState, type CSSProperties, type RefObject } from 'react'
 import { InspectIcon } from '@design-lab/system/icons'
-import { inspectionAttributes } from '@design-lab/system/inspection'
+import {
+  inspectionEntriesWithin,
+  inspectionMetadataFor,
+  type InspectionDescriptor,
+  type InspectionSourceLocation,
+} from '@design-lab/system/inspection'
 import {
   InspectorCodePopover,
   type InspectorKind,
@@ -18,133 +23,91 @@ type Inspection = {
 
 type InspectableElement = HTMLElement | SVGElement
 
-function displayValue(value: unknown) {
-  if (typeof value === 'string') return `"${value.replaceAll('"', '\\"')}"`
-  if (value == null) return '{null}'
-  if (typeof value === 'number' || typeof value === 'boolean') return `{${String(value)}}`
-  return `{${JSON.stringify(value)}}`
+type AuthoredStyleRule = {
+  selectors: string[]
+  conditions: { kind: 'media' | 'supports'; value: string }[]
+  code: string
+  line: number
 }
 
-function componentCode(name: string, props: Record<string, unknown>) {
-  const children = props.children
-  const attributes = Object.entries(props)
-    .filter(([key]) => key !== 'children')
-    .map(([key, value]) => `  ${key}=${displayValue(value)}`)
-  if (children == null)
-    return attributes.length ? `<${name}\n${attributes.join('\n')}\n/>` : `<${name} />`
-  const opening = attributes.length ? `<${name}\n${attributes.join('\n')}\n>` : `<${name}>`
-  return `${opening}\n  ${String(children)}\n</${name}>`
+type AuthoredStyles = {
+  styles: { file: string; rules: AuthoredStyleRule[] }[]
 }
 
-function handoffHtml(element: InspectableElement) {
-  const clone = element.cloneNode(true) as InspectableElement
-  const nodes = [clone, ...Array.from(clone.querySelectorAll('*'))]
-  for (const node of nodes)
-    for (const attribute of Array.from(node.attributes))
-      if (attribute.name.startsWith('data-dl-')) node.removeAttribute(attribute.name)
-  return clone.outerHTML
+const authoredStylesCache = new Map<string, Promise<AuthoredStyles>>()
+
+function descriptorInspection(
+  element: InspectableElement,
+  kind: 'component' | 'slot',
+  descriptor: InspectionDescriptor,
+): Inspection {
+  return {
+    rect: element.getBoundingClientRect(),
+    kind,
+    name: descriptor.name,
+    code: descriptor.code,
+    language: 'tsx',
+  }
 }
 
-function authoredDeclarations(cssText: string) {
-  const openBrace = cssText.indexOf('{')
-  const closeBrace = cssText.lastIndexOf('}')
-  const body =
-    openBrace >= 0 && closeBrace > openBrace ? cssText.slice(openBrace + 1, closeBrace) : cssText
-  return body
-    .split(';')
-    .map((declaration) => declaration.trim())
-    .filter(Boolean)
-    .map((declaration) => `  ${declaration};`)
-    .join('\n')
+function conditionMatches(condition: AuthoredStyleRule['conditions'][number]) {
+  if (condition.kind === 'media') return window.matchMedia(condition.value).matches
+  if (condition.kind === 'supports' && typeof CSS.supports === 'function')
+    try {
+      return CSS.supports(condition.value)
+    } catch {
+      return true
+    }
+  return true
 }
 
-function authoredCss(element: InspectableElement) {
-  const fragments: string[] = []
-  if (element.style.length)
-    fragments.push(
-      `${element.tagName.toLowerCase()}[style] {\n${authoredDeclarations(element.getAttribute('style') ?? '')}\n}`,
+async function authoredCss(element: InspectableElement, source: InspectionSourceLocation) {
+  const cacheKey = `${source.sourceId}:${source.file}`
+  let request = authoredStylesCache.get(cacheKey)
+  if (!request) {
+    request = fetch(
+      `/api/sources/${encodeURIComponent(source.sourceId)}/inspection/styles?file=${encodeURIComponent(source.file)}`,
+    ).then(async (response) => {
+      if (!response.ok) throw new Error(`Could not load authored styles (${response.status})`)
+      return (await response.json()) as AuthoredStyles
+    })
+    authoredStylesCache.set(cacheKey, request)
+  }
+  try {
+    const result = await request
+    const fragments = result.styles.flatMap((style) =>
+      style.rules
+        .filter(
+          (rule) =>
+            rule.conditions.every(conditionMatches) &&
+            rule.selectors.some((selector) => {
+              try {
+                return element.matches(selector)
+              } catch {
+                return false
+              }
+            }),
+        )
+        .map((rule) => `/* ${style.file}:${rule.line} */\n${rule.code}`),
     )
-
-  const visitRules = (rules: CSSRuleList) => {
-    for (const rule of Array.from(rules)) {
-      const conditionalRule = rule as CSSConditionRule
-      if ('conditionText' in conditionalRule && typeof conditionalRule.conditionText === 'string')
-        if (!window.matchMedia(conditionalRule.conditionText).matches) continue
-      if ('cssRules' in rule)
-        try {
-          visitRules((rule as CSSGroupingRule).cssRules)
-        } catch {
-          continue
-        }
-      const styleRule = rule as CSSStyleRule
-      if (typeof styleRule.selectorText !== 'string' || !styleRule.style) continue
-      if (
-        styleRule.selectorText === '*' ||
-        styleRule.selectorText.includes('.dl-workbench-inspector') ||
-        styleRule.selectorText.includes('.component-playground-page') ||
-        styleRule.selectorText.includes('.wireframe-view')
-      )
-        continue
-      try {
-        if (!element.matches(styleRule.selectorText)) continue
-      } catch {
-        continue
-      }
-      const declarations = authoredDeclarations(styleRule.cssText)
-      if (declarations) fragments.push(`${styleRule.selectorText} {\n${declarations}\n}`)
-    }
+    if (fragments.length) return fragments.join('\n\n')
+  } catch {
+    authoredStylesCache.delete(cacheKey)
   }
-
-  for (const sheet of Array.from(document.styleSheets))
-    try {
-      visitRules(sheet.cssRules)
-    } catch {
-      continue
-    }
-
-  return fragments.length
-    ? fragments.join('\n\n')
-    : `${element.tagName.toLowerCase()} {\n  /* No authored rule directly targets this element. */\n}`
+  return `/* No authored SCSS/CSS rule imported by ${source.file}:${source.line} directly matches this element. */`
 }
 
-function inspectElement(element: InspectableElement): Inspection {
-  const slotName = element.dataset.dlSlot
-  if (slotName) {
-    const sourceElement = element.querySelector<InspectableElement>('[data-dl-source-code]')
-    const sourceCode = sourceElement?.dataset.dlSourceCode
-    const sourceLanguage =
-      sourceElement?.dataset.dlSourceLanguage === 'html' ? ('html' as const) : ('tsx' as const)
-    return {
-      rect: element.getBoundingClientRect(),
-      kind: 'slot',
-      name: slotName,
-      code: sourceCode ?? handoffHtml(element),
-      language: sourceCode ? sourceLanguage : 'html',
-    }
-  }
-
-  const componentName = element.dataset.dlComponent
-  if (componentName) {
-    let props: Record<string, unknown> = {}
-    try {
-      props = JSON.parse(element.dataset.dlProps ?? '{}') as Record<string, unknown>
-    } catch {
-      props = {}
-    }
-    return {
-      rect: element.getBoundingClientRect(),
-      kind: 'component',
-      name: componentName,
-      code: componentCode(componentName, props),
-      language: 'tsx',
-    }
-  }
-
+async function inspectElement(element: InspectableElement): Promise<Inspection> {
+  const metadata = inspectionMetadataFor(element)
+  const slot = metadata?.slots.at(-1)
+  if (slot) return descriptorInspection(element, 'slot', slot)
+  const component = metadata?.components.at(-1)
+  if (component) return descriptorInspection(element, 'component', component)
   return {
     rect: element.getBoundingClientRect(),
     kind: 'element',
     name: element.tagName.toLowerCase(),
-    code: authoredCss(element),
+    code: metadata ? await authoredCss(element, metadata.source) : '/* Source unavailable. */',
     language: 'scss',
   }
 }
@@ -160,18 +123,29 @@ export function WorkbenchInspector({ surfaceRef }: WorkbenchInspectorProps) {
   const frameRef = useRef<number | null>(null)
   const pinnedRef = useRef(false)
   const pointerClickRef = useRef(false)
+  const selectionVersionRef = useRef(0)
 
   useEffect(() => {
     const surface = surfaceRef.current
     if (!surface || !active) return
 
     surface.setAttribute('data-workbench-inspecting', '')
+    const markedElements = inspectionEntriesWithin(surface).map(([element, metadata]) => {
+      if (metadata.components.length) element.setAttribute('data-dl-inspection-component', '')
+      if (metadata.slots.length) element.setAttribute('data-dl-inspection-slot', '')
+      return element
+    })
 
-    const select = (target: EventTarget | null) => {
+    const select = async (target: EventTarget | null) => {
       if (!(target instanceof HTMLElement || target instanceof SVGElement)) return
       if (target.closest('[data-workbench-inspector-ui]')) return
-      const slotTarget = target.closest<InspectableElement>('[data-dl-slot]')
-      setInspection(inspectElement(slotTarget ?? target))
+      let inspectionTarget: InspectableElement | null = target
+      while (inspectionTarget && !inspectionMetadataFor(inspectionTarget))
+        inspectionTarget = inspectionTarget.parentElement
+      if (!inspectionTarget || !surface.contains(inspectionTarget)) return
+      const version = ++selectionVersionRef.current
+      const nextInspection = await inspectElement(inspectionTarget)
+      if (version === selectionVersionRef.current) setInspection(nextInspection)
     }
     const clearSelection = () => {
       pinnedRef.current = false
@@ -231,6 +205,10 @@ export function WorkbenchInspector({ surfaceRef }: WorkbenchInspectorProps) {
     window.addEventListener('keydown', escape)
     return () => {
       surface.removeAttribute('data-workbench-inspecting')
+      for (const element of markedElements) {
+        element.removeAttribute('data-dl-inspection-component')
+        element.removeAttribute('data-dl-inspection-slot')
+      }
       surface.removeEventListener('pointermove', move)
       surface.removeEventListener('pointerdown', choose, true)
       surface.removeEventListener('click', blockProductClick, true)
@@ -269,7 +247,6 @@ export function WorkbenchInspector({ surfaceRef }: WorkbenchInspectorProps) {
       }`}
       data-workbench-inspector-ui
       style={cardStyle}
-      {...inspectionAttributes('WorkbenchInspector', { active })}
     >
       {inspection && (
         <>

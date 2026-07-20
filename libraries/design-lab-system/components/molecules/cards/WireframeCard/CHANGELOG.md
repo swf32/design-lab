@@ -1,5 +1,9 @@
 # Changelog
 
+## Unreleased
+
+- Changed: removed authored Inspector attributes in favor of automatic source instrumentation.
+
 ## 0.1.0 — 2026-07-20
 
 - Added: Wireframe catalog identity with lifecycle and graph metadata.

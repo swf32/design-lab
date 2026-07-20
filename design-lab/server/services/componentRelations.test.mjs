@@ -1,9 +1,22 @@
 import assert from 'node:assert/strict'
-import { mkdtemp, rm, writeFile } from 'node:fs/promises'
+import { mkdir, mkdtemp, rm, writeFile } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import test from 'node:test'
 import { getModuleEntities, parseComponentSourceImports } from './moduleEntities.mjs'
+
+async function withTemporaryLibrariesDirectory(run) {
+  const directory = await mkdtemp(join(tmpdir(), 'design-lab-libraries-'))
+  const previous = process.env.DESIGN_LAB_LIBRARIES_DIR
+  process.env.DESIGN_LAB_LIBRARIES_DIR = directory
+  try {
+    await run(directory)
+  } finally {
+    if (previous === undefined) delete process.env.DESIGN_LAB_LIBRARIES_DIR
+    else process.env.DESIGN_LAB_LIBRARIES_DIR = previous
+    await rm(directory, { recursive: true, force: true })
+  }
+}
 
 async function componentInventory() {
   const result = await getModuleEntities('design-lab-system', 'components')
@@ -161,4 +174,66 @@ test('source import parsing ignores type-only edges and localizes invalid TSX', 
   } finally {
     await rm(directory, { recursive: true, force: true })
   }
+})
+
+test('a component.json that fails JSON.parse becomes a diagnostic on that entity, not a crash', async () => {
+  await withTemporaryLibrariesDirectory(async (librariesDirectory) => {
+    const libraryDirectory = join(librariesDirectory, 'broken-system')
+    await mkdir(libraryDirectory, { recursive: true })
+    await writeFile(
+      join(libraryDirectory, 'library.json'),
+      JSON.stringify({ id: 'broken-system', kind: 'library', name: 'Broken System', schemaVersion: 1 }),
+    )
+    const okDirectory = join(libraryDirectory, 'components', 'ok')
+    const brokenDirectory = join(libraryDirectory, 'components', 'broken')
+    await mkdir(okDirectory, { recursive: true })
+    await mkdir(brokenDirectory, { recursive: true })
+    await writeFile(
+      join(okDirectory, 'component.json'),
+      JSON.stringify({ id: 'ok', name: 'Ok', schemaVersion: 1, status: 'draft' }),
+    )
+    await writeFile(join(brokenDirectory, 'component.json'), '{ not valid json')
+
+    const result = await getModuleEntities('broken-system', 'components')
+    const components = new Map(result.components.map((component) => [component.id, component]))
+
+    assert.equal(
+      components.get('ok').completenessDiagnostics.some((diagnostic) => diagnostic.code === 'manifest-parse-error'),
+      false,
+    )
+    const broken = components.get('broken')
+    assert.ok(broken, 'a broken manifest still produces a visible entity')
+    assert.equal(broken.name, 'broken')
+    assert.equal(broken.import, null)
+    assert.equal(
+      broken.completenessDiagnostics.some((diagnostic) => diagnostic.code === 'manifest-parse-error'),
+      true,
+    )
+  })
+})
+
+test('a schemaVersion newer than the server understands degrades to a diagnostic', async () => {
+  await withTemporaryLibrariesDirectory(async (librariesDirectory) => {
+    const libraryDirectory = join(librariesDirectory, 'future-system')
+    await mkdir(libraryDirectory, { recursive: true })
+    await writeFile(
+      join(libraryDirectory, 'library.json'),
+      JSON.stringify({ id: 'future-system', kind: 'library', name: 'Future System', schemaVersion: 1 }),
+    )
+    const futureDirectory = join(libraryDirectory, 'wireframes', 'future')
+    await mkdir(futureDirectory, { recursive: true })
+    await writeFile(
+      join(futureDirectory, 'wireframe.json'),
+      JSON.stringify({ id: 'future', name: 'Future', schemaVersion: 99, status: 'draft' }),
+    )
+
+    const result = await getModuleEntities('future-system', 'wireframes')
+    const future = result.wireframes.find((wireframe) => wireframe.id === 'future')
+
+    assert.ok(future)
+    assert.equal(
+      future.diagnostics.some((diagnostic) => diagnostic.code === 'schema-version-unsupported'),
+      true,
+    )
+  })
 })
