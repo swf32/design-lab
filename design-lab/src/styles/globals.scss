@@ -43,3 +43,8 @@ button:focus-visible {
     transition-duration: 0.01ms !important;
   }
 }
+
+.dl-flow-action-origin {
+  outline: 2px solid var(--color-accent-primary);
+  outline-offset: 2px;
+}

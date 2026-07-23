@@ -1,0 +1,44 @@
+.component-capture-state {
+  min-height: 100dvh;
+  padding: 24px;
+  display: grid;
+  place-items: center;
+  background: var(--color-canvas);
+  color: var(--color-text-primary);
+  font-size: 13px;
+}
+
+.component-capture {
+  width: max-content;
+}
+
+.component-capture--preview {
+  width: 260px;
+}
+
+.component-capture--preview .dl-component-card {
+  width: 260px;
+  overflow: visible;
+  border: 0;
+  border-radius: 0;
+}
+
+.component-capture--preview .dl-component-card__footer {
+  display: none;
+}
+
+.component-capture__source-scope {
+  display: contents;
+}
+
+.component-capture--story .dl-story-canvas {
+  width: 602px;
+}
+
+.component-capture--story .dl-story-canvas__stage {
+  width: 600px;
+  height: 180px;
+  min-height: 180px;
+  max-height: 180px;
+  overflow: hidden;
+}

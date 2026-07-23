@@ -6,6 +6,7 @@ import { getModuleEntities } from './services/moduleEntities.mjs'
 import { getAssetFile, getAssetPreview } from './services/assetFiles.mjs'
 import { getIntegrationInfo } from './services/integrationInfo.mjs'
 import { getAuthoredStyles } from './services/authoredStyles.mjs'
+import { patchEntityManifest } from './services/manifestWrite.mjs'
 
 let revision = 0
 
@@ -63,6 +64,30 @@ createServer(async (request, response) => {
         ),
       )
     }
+    const pageManifestMatch = url.pathname.match(/^\/api\/sources\/([^/]+)\/pages\/(.+)\/manifest$/)
+    if (request.method === 'PATCH' && pageManifestMatch) {
+      const result = await patchEntityManifest(
+        decodeURIComponent(pageManifestMatch[1]),
+        'pages',
+        pageManifestMatch[2].split('/').map(decodeURIComponent).join('/'),
+        await readJson(request),
+      )
+      revision += 1
+      return sendJson(response, 200, result)
+    }
+    const wireframeManifestMatch = url.pathname.match(
+      /^\/api\/sources\/([^/]+)\/wireframes\/(.+)\/manifest$/,
+    )
+    if (request.method === 'PATCH' && wireframeManifestMatch) {
+      const result = await patchEntityManifest(
+        decodeURIComponent(wireframeManifestMatch[1]),
+        'wireframes',
+        wireframeManifestMatch[2].split('/').map(decodeURIComponent).join('/'),
+        await readJson(request),
+      )
+      revision += 1
+      return sendJson(response, 200, result)
+    }
     const sourceInspectionStylesMatch = url.pathname.match(
       /^\/api\/sources\/([^/]+)\/inspection\/styles$/,
     )
@@ -108,7 +133,7 @@ createServer(async (request, response) => {
       return sendJson(response, 200, { revision, entities: result.tree })
     }
 
-    if (!['GET', 'POST'].includes(request.method ?? ''))
+    if (!['GET', 'POST', 'PATCH'].includes(request.method ?? ''))
       return sendJson(response, 405, {
         error: { code: 'METHOD_NOT_ALLOWED', message: 'Method not allowed' },
       })

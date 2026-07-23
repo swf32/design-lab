@@ -1,5 +1,5 @@
 import './PageView.scss'
-import { useEffect, useMemo, useRef, useState, type CSSProperties } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState, type CSSProperties } from 'react'
 import {
   Button,
   Checkbox,
@@ -8,15 +8,25 @@ import {
   Slider,
   TabSwitcher,
   UserFlowCanvas,
+  USER_FLOW_NODE_GAP,
+  USER_FLOW_NODE_WIDTH,
   WireframeDevPanel,
   WorkbenchInspector,
   type UserFlowCanvasEdge,
   type UserFlowCanvasNode,
+  type UserFlowCanvasViewState,
 } from '@design-lab/system/components'
 import { ArrowLeftIcon, LinkIcon } from '@design-lab/system/icons'
 import type { PageAction, WireframeValues } from '@design-lab/system/pages'
 import type { ModuleData } from '../../api/projects'
 import { designSystemModeStyle } from '../../designSystemMode'
+import {
+  clearFlowActionHighlight,
+  highlightFlowActionTarget,
+  resolveFlowActionTarget,
+  useFlowActionCapture,
+} from '../../hooks/useFlowActionCapture'
+import { useFlowLayoutAutosave } from '../../hooks/useFlowLayoutAutosave'
 import { pageRendererFor } from '../../pages/registry'
 
 type PageEntity = Extract<ModuleData, { kind: 'pages' }>['pages'][number]
@@ -89,6 +99,7 @@ function exitNodeId(pageId: string) {
 export function PageView({
   page,
   pages,
+  sourceId,
   modes,
   themeVariables,
   onClose,
@@ -96,6 +107,7 @@ export function PageView({
 }: {
   page: PageEntity
   pages: PageEntity[]
+  sourceId: string
   modes: string[]
   themeVariables: Extract<ModuleData, { kind: 'pages' }>['themeVariables']
   onClose: () => void
@@ -108,9 +120,15 @@ export function PageView({
   const [view, setView] = useState<PageViewMode>(initial.view)
   const [mode, setMode] = useState(initial.mode)
   const [selectedNodeId, setSelectedNodeId] = useState<string | null>(initial.selectedNodeId)
+  const [flowViewState, setFlowViewState] = useState<UserFlowCanvasViewState | undefined>(undefined)
   const [devModeOpen, setDevModeOpen] = useState(false)
   const [copyState, setCopyState] = useState<'idle' | 'copied' | 'failed'>('idle')
+  const [activeFlowActionId, setActiveFlowActionId] = useState<string | null>(null)
+  const [normalizedLayout, setNormalizedLayout] = useState<
+    Array<{ id: string; x: number; y: number }>
+  >([])
   const stageRef = useRef<HTMLElement>(null)
+  const clickTargetRef = useFlowActionCapture(stageRef)
   const renderer = pageRendererFor(page)
   const currentState = page.states.find((state) => state.id === stateId) ?? null
   const modeStyle = useMemo(
@@ -152,7 +170,41 @@ export function PageView({
     }
   }
 
+  useEffect(() => {
+    if (view !== 'screen') clearFlowActionHighlight()
+  }, [view])
+
+  const handleLayoutNormalized = useCallback(
+    (nodes: Array<{ id: string; x: number; y: number }>) => {
+      setNormalizedLayout((current) => {
+        if (
+          current.length === nodes.length &&
+          current.every(
+            (node, index) =>
+              node.id === nodes[index]?.id &&
+              node.x === nodes[index]?.x &&
+              node.y === nodes[index]?.y,
+          )
+        )
+          return current
+        return nodes
+      })
+    },
+    [],
+  )
+
+  useFlowLayoutAutosave({
+    sourceId,
+    moduleId: 'pages',
+    directory: page.directory,
+    authoredNodes: page.flow.nodes,
+    normalizedNodes: normalizedLayout,
+    enabled: view === 'flow',
+  })
+
   const dispatchAction = (action: PageAction) => {
+    highlightFlowActionTarget(resolveFlowActionTarget(clickTargetRef.current))
+    setActiveFlowActionId(action.id)
     const currentNode =
       page.flow.nodes.find((node) => node.state === stateId) ??
       page.flow.nodes.find((node) => node.id === selectedNodeId)
@@ -220,92 +272,121 @@ export function PageView({
     if (copied) window.setTimeout(() => setCopyState('idle'), 1800)
   }
 
-  const stateNodes: UserFlowCanvasNode[] = page.flow.nodes.map((node) => {
-    const state = page.states.find((item) => item.id === node.state)
-    const rendered =
-      renderer && state
-        ? renderer.renderPage({
-            state: state.id,
-            values: { ...state.values },
-            onAction: () => undefined,
-          })
-        : null
-    return {
-      id: node.id,
-      title: state?.name ?? node.state,
-      description: state?.description ?? 'State definition unavailable.',
-      preview: rendered,
-      mobilePreview: rendered,
-      screenStyle: modeStyle,
-      eyebrow:
-        page.flow.edges.some(
-          (edge) => edge.to.kind === 'state' && edge.to.stateId === node.state,
-        ) && page.flow.edges.some((edge) => edge.from === node.id)
-          ? 'Transition state'
-          : page.flow.edges.some((edge) => edge.from === node.id)
-            ? 'Entry state'
-            : 'Terminal state',
-      x: node.x,
-      y: node.y,
-    }
-  })
+  const stateNodes: UserFlowCanvasNode[] = useMemo(
+    () =>
+      page.flow.nodes.map((node) => {
+        const state = page.states.find((item) => item.id === node.state)
+        const rendered =
+          renderer && state
+            ? renderer.renderPage({
+                state: state.id,
+                values: { ...state.values },
+                onAction: () => undefined,
+              })
+            : null
+        return {
+          id: node.id,
+          title: state?.name ?? node.state,
+          description: state?.description ?? 'State definition unavailable.',
+          preview: rendered,
+          mobilePreview: rendered,
+          screenStyle: modeStyle,
+          eyebrow:
+            page.flow.edges.some(
+              (edge) => edge.to.kind === 'state' && edge.to.stateId === node.state,
+            ) && page.flow.edges.some((edge) => edge.from === node.id)
+              ? 'Transition state'
+              : page.flow.edges.some((edge) => edge.from === node.id)
+                ? 'Entry state'
+                : 'Terminal state',
+          x: node.x,
+          y: node.y,
+        }
+      }),
+    [modeStyle, page.flow.edges, page.flow.nodes, page.states, renderer],
+  )
 
-  const exitTargetIds = [
-    ...new Set(
-      page.flow.edges
-        .filter((edge) => edge.to.kind === 'page')
-        .map((edge) => (edge.to as { pageId: string }).pageId),
-    ),
-  ]
-  const exitNodes: UserFlowCanvasNode[] = exitTargetIds.map((pageId) => {
-    const target = pages.find((item) => item.id === pageId)
-    const sourceEdge = page.flow.edges.find(
-      (edge) => edge.to.kind === 'page' && (edge.to as { pageId: string }).pageId === pageId,
-    )
-    const sourceNode = page.flow.nodes.find((node) => node.id === sourceEdge?.from)
-    const targetState =
-      target?.states.find((state) => state.id === target.defaultState) ?? target?.states[0]
-    const targetRenderer = target ? pageRendererFor(target) : null
-    const rendered =
-      targetRenderer && targetState
-        ? targetRenderer.renderPage({
-            state: targetState.id,
-            values: { ...targetState.values },
-            onAction: () => undefined,
-          })
-        : null
-    return {
-      id: exitNodeId(pageId),
-      title: target?.name ?? pageId,
-      description: target ? `Exits to the ${target.name} Page.` : 'This Page could not be found.',
-      preview: rendered ?? (
-        <div className="page-view__exit-badge">
-          <strong>{target?.name ?? pageId}</strong>
-          <span>Select to open</span>
-        </div>
+  const exitTargetIds = useMemo(
+    () => [
+      ...new Set(
+        page.flow.edges
+          .filter((edge) => edge.to.kind === 'page')
+          .map((edge) => (edge.to as { pageId: string }).pageId),
       ),
-      mobilePreview: rendered,
-      screenStyle: modeStyle,
-      eyebrow: 'Exits to another Page',
-      x: (sourceNode?.x ?? 0) + 560,
-      y: sourceNode?.y ?? 0,
-    }
-  })
+    ],
+    [page.flow.edges],
+  )
 
-  const edges: UserFlowCanvasEdge[] = page.flow.edges.map((edge) => {
-    const to = edge.to
-    return {
-      id: edge.id,
-      from: edge.from,
-      to:
-        to.kind === 'state'
-          ? (page.flow.nodes.find((node) => node.state === to.stateId)?.id ?? edge.id)
-          : exitNodeId(to.pageId),
-      label: to.condition
-        ? `${edge.label} · if ${to.condition.controlId}=${String(to.condition.value)}`
-        : edge.label,
-    }
-  })
+  const exitNodes: UserFlowCanvasNode[] = useMemo(
+    () =>
+      exitTargetIds.map((pageId) => {
+        const target = pages.find((item) => item.id === pageId)
+        const sourceEdge = page.flow.edges.find(
+          (edge) => edge.to.kind === 'page' && (edge.to as { pageId: string }).pageId === pageId,
+        )
+        const sourceNode = page.flow.nodes.find((node) => node.id === sourceEdge?.from)
+        const targetState =
+          target?.states.find((state) => state.id === target.defaultState) ?? target?.states[0]
+        const targetRenderer = target ? pageRendererFor(target) : null
+        const rendered =
+          targetRenderer && targetState
+            ? targetRenderer.renderPage({
+                state: targetState.id,
+                values: { ...targetState.values },
+                onAction: () => undefined,
+              })
+            : null
+        return {
+          id: exitNodeId(pageId),
+          title: target?.name ?? pageId,
+          description: target
+            ? `Exits to the ${target.name} Page.`
+            : 'This Page could not be found.',
+          preview: rendered ?? (
+            <div className="page-view__exit-badge">
+              <strong>{target?.name ?? pageId}</strong>
+              <span>Select to open</span>
+            </div>
+          ),
+          mobilePreview: rendered,
+          screenStyle: modeStyle,
+          eyebrow: 'Exits to another Page',
+          x: (sourceNode?.x ?? 0) + USER_FLOW_NODE_WIDTH + USER_FLOW_NODE_GAP,
+          y: sourceNode?.y ?? 0,
+        }
+      }),
+    [exitTargetIds, modeStyle, page.flow.edges, page.flow.nodes, pages],
+  )
+
+  const edges: UserFlowCanvasEdge[] = useMemo(
+    () =>
+      page.flow.edges.map((edge) => {
+        const to = edge.to
+        return {
+          id: edge.id,
+          from: edge.from,
+          to:
+            to.kind === 'state'
+              ? (page.flow.nodes.find((node) => node.state === to.stateId)?.id ?? edge.id)
+              : exitNodeId(to.pageId),
+          label: to.condition
+            ? `${edge.label} · if ${to.condition.controlId}=${String(to.condition.value)}`
+            : edge.label,
+          action: edge.action,
+        }
+      }),
+    [page.flow.edges, page.flow.nodes],
+  )
+
+  const highlightedEdgeIds = useMemo(() => {
+    if (!activeFlowActionId) return []
+    return edges.filter((edge) => edge.action === activeFlowActionId).map((edge) => edge.id)
+  }, [activeFlowActionId, edges])
+
+  const activeFlowEdge = useMemo(() => {
+    if (!activeFlowActionId) return null
+    return page.flow.edges.find((edge) => edge.action === activeFlowActionId) ?? null
+  }, [activeFlowActionId, page.flow.edges])
 
   return (
     <main className="page-view">
@@ -316,6 +397,10 @@ export function PageView({
             edges={edges}
             selectedId={selectedNodeId}
             onSelect={selectNode}
+            viewState={flowViewState}
+            onViewStateChange={setFlowViewState}
+            highlightedEdgeIds={highlightedEdgeIds}
+            onLayoutNormalized={handleLayoutNormalized}
             onPreview={(nodeId) => {
               if (nodeId.startsWith('page-exit:')) {
                 onNavigateToPage(nodeId.slice('page-exit:'.length))
@@ -336,6 +421,33 @@ export function PageView({
           </div>
         )}
       </section>
+
+      {activeFlowEdge && (
+        <div className="page-view__flow-hint" role="status">
+          <span>
+            Flow action <strong>{activeFlowEdge.action}</strong>
+            {activeFlowEdge.label ? ` · ${activeFlowEdge.label}` : ''}
+            {view === 'flow' ? ' — matching edge highlighted' : ''}
+          </span>
+          {view === 'screen' ? (
+            <Button type="button" variant="secondary" size="small" onClick={() => setView('flow')}>
+              Show on graph
+            </Button>
+          ) : (
+            <Button
+              type="button"
+              variant="ghost"
+              size="small"
+              onClick={() => {
+                setActiveFlowActionId(null)
+                clearFlowActionHighlight()
+              }}
+            >
+              Clear
+            </Button>
+          )}
+        </div>
+      )}
 
       <WireframeDevPanel
         open={devModeOpen}
@@ -524,7 +636,7 @@ export function PageView({
           </section>
         </div>
       </WireframeDevPanel>
-      <WorkbenchInspector surfaceRef={stageRef} />
+      {view === 'screen' && <WorkbenchInspector surfaceRef={stageRef} />}
       <span className="page-view__copy-status" aria-live="polite">
         {copyState === 'copied'
           ? 'Review link copied'

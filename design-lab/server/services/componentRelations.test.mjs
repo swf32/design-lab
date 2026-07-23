@@ -4,6 +4,7 @@ import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import test from 'node:test'
 import { getModuleEntities, parseComponentSourceImports } from './moduleEntities.mjs'
+import { componentDisplayName, componentSymbol } from '../../shared/componentIdentity.mjs'
 
 async function withTemporaryLibrariesDirectory(run) {
   const directory = await mkdtemp(join(tmpdir(), 'design-lab-libraries-'))
@@ -22,6 +23,24 @@ async function componentInventory() {
   const result = await getModuleEntities('design-lab-system', 'components')
   return new Map(result.components.map((component) => [component.id, component]))
 }
+
+test('Component identity derives code symbols from entry and makes manifest name optional', () => {
+  assert.equal(
+    componentSymbol({ entry: 'ComponentCard.tsx', name: 'Component Card' }, 'cards/ComponentCard'),
+    'ComponentCard',
+  )
+  assert.equal(
+    componentDisplayName({ entry: 'ComponentCard.tsx' }, 'cards/ComponentCard'),
+    'Component Card',
+  )
+  assert.equal(
+    componentDisplayName(
+      { entry: 'ComponentCard.tsx', name: 'ComponentCard' },
+      'cards/ComponentCard',
+    ),
+    'ComponentCard',
+  )
+})
 
 test('component references are derived from the canonical filesystem contract', async () => {
   const components = await componentInventory()
@@ -80,7 +99,11 @@ test('production and example relationships stay separate and direct', async () =
   assert.deepEqual(
     button.relations.usedInExamplesBy.map((relation) => relation.id),
     [
+      'marketing-hero',
+      'marketing-nav',
+      'marketing-story',
       'story-canvas',
+      'workspace-header',
       'playground-controls-rail',
       'wireframe-dev-panel',
       'workbench-inspector',

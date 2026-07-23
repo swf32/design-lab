@@ -22,19 +22,33 @@
       "id": "guest",
       "name": "Guest",
       "description": "A visitor without a session.",
-      "values": { "authenticated": false }
+      "values": {
+        "authenticated": false
+      }
     },
     {
       "id": "member",
       "name": "Member",
       "description": "A signed-in visitor.",
-      "values": { "authenticated": true }
+      "values": {
+        "authenticated": true
+      }
     }
   ],
   "flow": {
     "nodes": [
-      { "id": "guest-node", "state": "guest", "x": 80, "y": 160 },
-      { "id": "member-node", "state": "member", "x": 80, "y": 480 }
+      {
+        "id": "guest-node",
+        "state": "guest",
+        "x": 80,
+        "y": 160
+      },
+      {
+        "id": "member-node",
+        "state": "member",
+        "x": 80,
+        "y": 718
+      }
     ],
     "edges": [
       {
@@ -42,7 +56,10 @@
         "from": "guest-node",
         "action": "sign-in",
         "label": "Sign in (dev mode)",
-        "to": { "kind": "state", "stateId": "member" }
+        "to": {
+          "kind": "state",
+          "stateId": "member"
+        }
       },
       {
         "id": "guest-open-profile",
@@ -52,7 +69,10 @@
         "to": {
           "kind": "page",
           "pageId": "auth",
-          "condition": { "controlId": "authenticated", "value": false }
+          "condition": {
+            "controlId": "authenticated",
+            "value": false
+          }
         }
       },
       {
@@ -63,7 +83,10 @@
         "to": {
           "kind": "page",
           "pageId": "account",
-          "condition": { "controlId": "authenticated", "value": true }
+          "condition": {
+            "controlId": "authenticated",
+            "value": true
+          }
         }
       }
     ]

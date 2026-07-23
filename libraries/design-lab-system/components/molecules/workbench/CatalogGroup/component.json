@@ -1,0 +1,24 @@
+{
+  "id": "catalog-group",
+  "name": "Catalog Group",
+  "description": "Groups one semantic catalog category under a consistently inset title, count, and divider.",
+  "aliases": ["component group", "asset group", "catalog section header"],
+  "useWhen": [
+    "group catalog cards by filesystem category",
+    "show a category label and entity count"
+  ],
+  "avoidWhen": ["title an entire module", "group unrelated form controls"],
+  "entry": "CatalogGroup.tsx",
+  "preview": "CatalogGroup.preview.tsx",
+  "stories": "CatalogGroup.stories.tsx",
+  "docs": "README.md",
+  "changelog": "CHANGELOG.md",
+  "status": "ready",
+  "states": ["with-header", "headerless"],
+  "variants": ["default"],
+  "props": {
+    "title": { "type": "string" },
+    "count": { "type": "number" },
+    "children": { "type": "ReactNode", "required": true, "slot": true }
+  }
+}

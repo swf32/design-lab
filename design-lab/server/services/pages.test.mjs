@@ -149,6 +149,91 @@ test('a flow edge that targets an unknown Page or unknown state becomes a diagno
   })
 })
 
+test('a state-target edge without a matching flow node becomes page-flow-edge-target-unreachable', async () => {
+  await withTemporaryLibrariesDirectory(async (librariesDirectory) => {
+    await writeLibrary(librariesDirectory, 'missing-node-system', {
+      checkout: {
+        id: 'checkout',
+        name: 'Checkout',
+        schemaVersion: 1,
+        status: 'draft',
+        entry: 'Checkout.page.tsx',
+        defaultState: 'default',
+        controls: [],
+        states: [
+          { id: 'default', name: 'Default', description: '', values: {} },
+          { id: 'done', name: 'Done', description: '', values: {} },
+        ],
+        flow: {
+          nodes: [{ id: 'default-node', state: 'default', x: 0, y: 0 }],
+          edges: [
+            {
+              id: 'to-done',
+              from: 'default-node',
+              action: 'finish',
+              label: 'Finish',
+              to: { kind: 'state', stateId: 'done' },
+            },
+          ],
+        },
+      },
+    })
+
+    const result = await getModuleEntities('missing-node-system', 'pages')
+    const checkout = result.pages.find((page) => page.id === 'checkout')
+
+    assert.equal(
+      checkout.diagnostics.some(
+        (diagnostic) => diagnostic.code === 'page-flow-edge-target-unreachable',
+      ),
+      true,
+    )
+  })
+})
+
+test('flow edges missing action or label become diagnostics', async () => {
+  await withTemporaryLibrariesDirectory(async (librariesDirectory) => {
+    await writeLibrary(librariesDirectory, 'incomplete-edge-system', {
+      incomplete: {
+        id: 'incomplete',
+        name: 'Incomplete',
+        schemaVersion: 1,
+        status: 'draft',
+        entry: 'Incomplete.page.tsx',
+        defaultState: 'default',
+        controls: [],
+        states: [{ id: 'default', name: 'Default', description: '', values: {} }],
+        flow: {
+          nodes: [{ id: 'default-node', state: 'default', x: 0, y: 0 }],
+          edges: [
+            {
+              id: 'missing-label',
+              from: 'default-node',
+              action: 'go',
+              label: '',
+              to: { kind: 'state', stateId: 'default' },
+            },
+            {
+              id: 'missing-action',
+              from: 'default-node',
+              action: '',
+              label: 'Go',
+              to: { kind: 'state', stateId: 'default' },
+            },
+          ],
+        },
+      },
+    })
+
+    const result = await getModuleEntities('incomplete-edge-system', 'pages')
+    const incomplete = result.pages.find((page) => page.id === 'incomplete')
+    const codes = incomplete.diagnostics.map((diagnostic) => diagnostic.code)
+
+    assert.equal(codes.includes('page-flow-edge-label-missing'), true)
+    assert.equal(codes.includes('page-flow-edge-action-missing'), true)
+  })
+})
+
 test('a flow condition referencing an unknown control becomes a diagnostic', async () => {
   await withTemporaryLibrariesDirectory(async (librariesDirectory) => {
     await writeLibrary(librariesDirectory, 'broken-condition-system', {
@@ -273,4 +358,18 @@ test('a page.json that fails JSON.parse becomes a diagnostic on that entity, not
       true,
     )
   })
+})
+
+test('pages module exposes a derived cross-Page sitemap', async () => {
+  const result = await getModuleEntities('design-lab-system', 'pages')
+  assert.ok(result.sitemap, 'pages module includes derived sitemap')
+  assert.ok(result.sitemap.nodes.length >= 3, 'sitemap includes every discovered Page')
+  assert.ok(
+    result.sitemap.edges.some((edge) => edge.from === 'home' && edge.to === 'auth'),
+    'sitemap includes cross-Page edges from per-Page flow graphs',
+  )
+  assert.ok(
+    result.sitemap.nodes.every((node) => typeof node.x === 'number' && typeof node.y === 'number'),
+    'sitemap nodes receive auto-layout coordinates',
+  )
 })

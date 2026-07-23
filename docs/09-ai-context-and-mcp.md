@@ -19,7 +19,7 @@ MCP and CLI never maintain separate component registries. Both call the same sca
 
 The gateway changes context collection from open-ended repository exploration into bounded retrieval:
 
-- the agent searches intent across normalized Components, Tokens, Assets, Fonts, and Markdown knowledge instead of guessing a filename or component name;
+- the agent searches intent across normalized Components, Tokens, Assets, Fonts, Wireframes, Pages, and Markdown knowledge instead of guessing a filename or component name;
 - the compact search response contains only descriptions, stable refs, relevance, and matched fields;
 - `get` returns one verified entity with its canonical import, public contract, documentation, discovered files, and direct production/example relations;
 - the agent does not need to read unrelated previews, stories, changelogs, styles, generated files, or neighboring components just to learn whether a reusable primitive already exists;
@@ -67,7 +67,7 @@ For Components, the preferred authored semantic fields in `component.json` are:
 }
 ```
 
-All fields are optional for discovery. If `description` is absent, the gateway derives the first useful paragraph from the adjacent README. Props, variants, states, category, aliases, and use-cases become retrieval signals.
+All fields are optional for discovery. If `description` is absent, the gateway derives the first useful paragraph from the adjacent README. Props, variants, states, category, aliases, and use-cases become retrieval signals. Wireframes and Pages support the identical optional `aliases`/`useWhen`/`avoidWhen` fields on `wireframe.json`/`page.json`, so a finished composition (e.g. "split auth layout", "marketing landing page") is discoverable by intent the same way a Component is, instead of only being reachable through a Component's `usedBy` relations pointing at the Workbench.
 
 The current deterministic fallback uses weighted lexical matching, typo-tolerant token similarity, phrase bonuses, and stop-word removal. It returns an explicit relevance score and reports the matched fields. This is not presented as an embedding model.
 
@@ -79,7 +79,16 @@ The local server uses stdio and is read-only. It exposes:
 
 - `designlab_sources`;
 - `designlab_search`;
-- `designlab_get`.
+- `designlab_get` — accepts one `ref`/`index`, or a `refs[]` array to resolve several entities in a single call (unresolved refs come back as individual errors, not a failed call);
+- `designlab_browse` — walks canonical Component, Token, Asset, Wireframe, or Page groups one filesystem path segment at a time (e.g. every Token category, then everything under `color`, then everything under `color.accent`) by reusing the same navigation tree the Directory Panel renders. This is a second discovery path alongside `search`, for when an agent needs to see what exists at a path instead of guessing an id from a hidden-name ranked list.
+- `designlab_capture_component` — first returns every token-discovered source mode and executable
+  Story id for a Component, then renders either the isolated `260×150` catalog preview or one
+  `600×180` Story Canvas Stage as an opaque DPR-2 PNG. Arbitrary source modes remain independent
+  from the dark/light Design Lab interface surface. The tool returns exact geometry, overflow,
+  console diagnostics, bytes, and a content hash next to the image. `info` derives a recommended
+  interface theme for every source mode from its actual canvas/surface token luminance; rendering
+  against the opposite interface surface remains allowed for contrast testing but produces an
+  explicit warning.
 
 The Settings page generates an installation-specific config containing the actual Node.js executable and absolute MCP server path. This avoids relying on an MCP client's working directory.
 
@@ -97,10 +106,19 @@ The same operations are available without MCP:
 npm run designlab -- sources
 npm run designlab -- search "text entry with validation" --source design-lab-system --kind component
 npm run designlab -- get design-lab-system:component:input
+npm run designlab -- get design-lab-system:component:input design-lab-system:component:button
+npm run designlab -- browse --source design-lab-system --kind token --path color.accent --depth 2
+npm run designlab -- capture design-lab-system:component:button
+npm run designlab -- capture design-lab-system:component:button --capture story --story sizes --source-mode light --interface-theme dark
 npm run designlab -- index --source design-lab-system
 ```
 
-`catalog` returns compact descriptions and refs. `get` returns the complete entity. `index` atomically rebuilds `.designlab/index/context.v1.json`; deleting that file loses no user data.
+Component capture uses the Playwright Chromium runtime. A fresh environment that does not yet have
+the browser binary installs it once with `npm run capture:install-browser --workspace=design-lab`.
+The renderer starts a private local API/Vite pair only when the normal Design Lab development
+runtime is not already available, and shuts down only the processes it started.
+
+`catalog` returns compact descriptions and refs. `get` returns the complete entity, or `{ entities, errors }` when given more than one ref. A `get` miss reports up to three fuzzy-matched existing refs of the same kind (`Did you mean: ...`) instead of a bare not-found. `browse` returns folders and leaf refs under one path without reading the full flat catalog. `index` atomically rebuilds `.designlab/index/context.v1.json`; deleting that file loses no user data.
 
 `search` and `get` currently rescan canonical files on each request, so they always see the latest saved source without waiting for an index rebuild. The written `.designlab/index/context.v1.json` is presently a disposable snapshot/export, not the hot read path for search. Scoped watcher invalidation and cache-backed reads remain a performance improvement, not a correctness requirement.
 
@@ -116,6 +134,6 @@ npm run designlab -- index --source design-lab-system
 
 - Filesystem changes are rescanned on request; incremental watcher invalidation is not implemented yet.
 - Embedding-based multilingual semantic retrieval is not implemented yet.
-- Direct production `uses` / `usedBy` and example-only `examplesUse` / `usedInExamplesBy` are included for Components. Transitive impact plus token, font, and asset usage are not indexed yet.
+- Direct production `uses` / `usedBy` and example-only `examplesUse` / `usedInExamplesBy` are included for Components. Wireframes and Pages report a one-directional `compositionUses` (Components they import) derived the same way, but do not yet appear on the Component side as an inverse `usedInPages`/`usedInWireframes` relation. Transitive impact plus token, font, and asset usage are not indexed yet.
 - Rules, Decisions, Prompts, and Docs are searchable when their canonical source directories exist, but their dedicated UI modules are not implemented.
 - Remote HTTP MCP, authentication, hosted sources, and write tools are deliberately outside this slice.

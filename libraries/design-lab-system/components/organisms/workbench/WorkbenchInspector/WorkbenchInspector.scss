@@ -8,6 +8,35 @@
   outline-offset: 1px;
 }
 
+[data-workbench-inspecting] [data-dl-inspection-asset] {
+  outline: 1px dashed color-mix(in srgb, var(--color-inspection-asset) 46%, transparent);
+  outline-offset: 1px;
+}
+
+// Hard Mode is deliberately stronger than authored Component styling. It is a temporary review
+// overlay only: the source components and their design-system tokens remain untouched.
+[data-workbench-inspecting][data-workbench-hard-mode] [data-dl-inspection-component],
+[data-workbench-inspecting][data-workbench-hard-mode] [data-dl-inspection-slot],
+[data-workbench-inspecting][data-workbench-hard-mode] [data-dl-inspection-asset] {
+  background: var(--color-workbench-action-neutral) !important;
+  background-image: none !important;
+}
+
+[data-workbench-inspecting][data-workbench-hard-mode] [data-dl-inspection-component] {
+  outline-width: 4px;
+  outline-color: var(--color-inspection-component);
+}
+
+[data-workbench-inspecting][data-workbench-hard-mode] [data-dl-inspection-slot] {
+  outline-width: 2px;
+  outline-color: var(--color-inspection-slot);
+}
+
+[data-workbench-inspecting][data-workbench-hard-mode] [data-dl-inspection-asset] {
+  outline-width: 2px;
+  outline-color: var(--color-inspection-asset);
+}
+
 .dl-workbench-inspector__outline {
   box-sizing: border-box;
   position: fixed;
@@ -33,6 +62,11 @@
   background: color-mix(in srgb, var(--color-inspection-slot) 10%, transparent);
 }
 
+.dl-workbench-inspector__outline--asset {
+  border-color: var(--color-inspection-asset);
+  background: color-mix(in srgb, var(--color-inspection-asset) 10%, transparent);
+}
+
 .dl-workbench-inspector__card {
   position: fixed;
   z-index: 51;
@@ -44,11 +78,52 @@
   );
 }
 
+// Hover preview is visual-only: the popover must not steal pointer events from the canvas
+// underneath, or moving the eyedropper to the next target gets blocked by the previous card.
+.dl-workbench-inspector:not(.dl-workbench-inspector--pinned) .dl-workbench-inspector__card {
+  pointer-events: none;
+  background: color-mix(
+    in srgb,
+    var(--color-workbench-action-surface) 72%,
+    var(--color-surface-raised) 28%
+  );
+  border-color: color-mix(in srgb, var(--color-border-default) 48%, transparent);
+  box-shadow: 0 14px 44px color-mix(in srgb, var(--color-overlay-scrim) 36%, transparent);
+  backdrop-filter: blur(22px) saturate(1.24);
+}
+
+.dl-workbench-inspector--pinned .dl-workbench-inspector__card {
+  pointer-events: auto;
+}
+
+// Unpinned hover preview is visual-only: lighter glass so the inspected surface stays readable through the card.
+
+.dl-workbench-inspector:not(.dl-workbench-inspector--pinned)
+  .dl-workbench-inspector__card
+  .dl-inspector-code-popover__identity {
+  border-bottom-color: color-mix(in srgb, var(--color-border-subtle) 55%, transparent);
+}
+
 .dl-workbench-inspector__trigger {
   position: fixed;
   z-index: 52;
   right: max(var(--spacing-4), env(safe-area-inset-right));
   bottom: max(var(--spacing-4), env(safe-area-inset-bottom));
+}
+
+.dl-workbench-inspector__hard-mode {
+  position: fixed;
+  z-index: 52;
+  right: max(var(--spacing-4), env(safe-area-inset-right));
+  bottom: calc(max(var(--spacing-4), env(safe-area-inset-bottom)) + 48px);
+}
+
+.dl-workbench-inspector__hard-mode.dl-workbench-action--active {
+  --workbench-action-color: var(--color-status-danger);
+}
+
+.dl-workbench-inspector--hard .dl-workbench-inspector__outline {
+  border-width: 4px;
 }
 
 @media (max-width: 760px), (max-height: 560px) and (max-width: 960px) {

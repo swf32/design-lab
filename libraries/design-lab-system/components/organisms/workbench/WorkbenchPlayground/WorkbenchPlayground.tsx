@@ -10,7 +10,7 @@ export type WorkbenchPlaygroundControlsPosition = 'start' | 'end'
 
 export type WorkbenchPlaygroundProps = {
   children: ReactNode
-  controls: ReactNode
+  controls?: ReactNode
   mode: CanvasMode
   color: string
   onModeChange: (mode: CanvasMode) => void
@@ -35,10 +35,14 @@ export function WorkbenchPlayground({
   eventLog,
   className,
 }: WorkbenchPlaygroundProps) {
+  const hasControls = controls != null
   const style = { '--canvas-solid': color } as CSSProperties
+  const layoutClass = hasControls
+    ? `dl-workbench-playground--controls-${controlsPosition}`
+    : 'dl-workbench-playground--canvas-only'
   return (
     <section
-      className={`dl-workbench-playground dl-workbench-playground--controls-${controlsPosition}${className ? ` ${className}` : ''}`}
+      className={`dl-workbench-playground ${layoutClass}${className ? ` ${className}` : ''}`}
     >
       <div
         className={`dl-workbench-playground__canvas dl-workbench-playground__canvas--${mode} dl-workbench-playground__canvas--padding-${padding}`}
@@ -56,7 +60,7 @@ export function WorkbenchPlayground({
         <div className="dl-workbench-playground__stage">{children}</div>
         {eventLog && <output className="dl-workbench-playground__event-log">{eventLog}</output>}
       </div>
-      <div className="dl-workbench-playground__controls">{controls}</div>
+      {hasControls ? <div className="dl-workbench-playground__controls">{controls}</div> : null}
     </section>
   )
 }

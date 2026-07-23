@@ -22,19 +22,33 @@
       "id": "default",
       "name": "Sign in",
       "description": "Empty sign-in form.",
-      "values": { "formError": false }
+      "values": {
+        "formError": false
+      }
     },
     {
       "id": "error",
       "name": "Invalid credentials",
       "description": "The form shows a validation error after a rejected submit.",
-      "values": { "formError": true }
+      "values": {
+        "formError": true
+      }
     }
   ],
   "flow": {
     "nodes": [
-      { "id": "default-node", "state": "default", "x": 80, "y": 160 },
-      { "id": "error-node", "state": "error", "x": 80, "y": 480 }
+      {
+        "id": "default-node",
+        "state": "default",
+        "x": 80,
+        "y": 160
+      },
+      {
+        "id": "error-node",
+        "state": "error",
+        "x": 80,
+        "y": 718
+      }
     ],
     "edges": [
       {
@@ -42,21 +56,30 @@
         "from": "default-node",
         "action": "submit",
         "label": "Submit (invalid)",
-        "to": { "kind": "state", "stateId": "error" }
+        "to": {
+          "kind": "state",
+          "stateId": "error"
+        }
       },
       {
         "id": "submit-valid",
         "from": "default-node",
         "action": "submit-valid",
         "label": "Submit (valid, dev mode)",
-        "to": { "kind": "page", "pageId": "account" }
+        "to": {
+          "kind": "page",
+          "pageId": "account"
+        }
       },
       {
         "id": "back-home",
         "from": "default-node",
         "action": "back",
         "label": "Back",
-        "to": { "kind": "page", "pageId": "home" }
+        "to": {
+          "kind": "page",
+          "pageId": "home"
+        }
       }
     ]
   }

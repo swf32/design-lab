@@ -1,0 +1,7 @@
+{
+  "description": "Two stacked rows representing a compact list or table catalog layout.",
+  "aliases": ["list view", "rows view", "table view", "compact layout"],
+  "useWhen": ["switch a catalog to a list", "represent a dense row layout"],
+  "avoidWhen": ["represent a menu", "reorder items"],
+  "tags": ["view mode", "layout", "list", "catalog"]
+}

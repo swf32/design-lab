@@ -1,0 +1,39 @@
+{
+  "id": "marketing-story",
+  "name": "Marketing Story",
+  "description": "Two-column marketing section with a media panel and supporting copy plus an optional action.",
+  "aliases": ["story section", "image and copy", "marketing split section"],
+  "useWhen": ["add a secondary narrative section with image and copy on a marketing Page"],
+  "avoidWhen": ["place the primary headline at the top of the Page — use Marketing Hero instead"],
+  "entry": "MarketingStory.tsx",
+  "preview": "MarketingStory.preview.tsx",
+  "stories": "MarketingStory.stories.tsx",
+  "docs": "README.md",
+  "changelog": "CHANGELOG.md",
+  "status": "in-progress",
+  "states": ["default"],
+  "variants": ["default"],
+  "props": {
+    "title": {
+      "type": "string",
+      "required": true
+    },
+    "description": {
+      "type": "slot",
+      "required": true
+    },
+    "media": {
+      "type": "slot",
+      "required": true
+    },
+    "eyebrow": {
+      "type": "string"
+    },
+    "actions": {
+      "type": "slot"
+    },
+    "headingId": {
+      "type": "string"
+    }
+  }
+}

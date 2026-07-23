@@ -1,7 +1,7 @@
 {
   "id": "tab-switcher",
   "name": "Tab Switcher",
-  "description": "Select one value from a small mutually exclusive set using a segmented control or compact toggle.",
+  "description": "Select one value from a small mutually exclusive set using text, icon-and-text, or accessible icon-only segmented options and compact paired toggles.",
   "aliases": ["segmented control", "toggle switch", "theme switcher", "mode selector"],
   "useWhen": [
     "switch between themes",
@@ -29,7 +29,7 @@
   },
   "props": {
     "options": {
-      "type": "readonly TabSwitcherOption[]",
+      "type": "readonly TabSwitcherOption[] (text | icon-and-text | accessible icon-only)",
       "required": true
     },
     "value": {
@@ -53,6 +53,10 @@
       "type": "TabSwitcherSize",
       "values": ["small", "medium"],
       "default": "medium"
+    },
+    "iconSize": {
+      "type": "number",
+      "default": "14 for small, 16 for medium"
     },
     "className": {
       "type": "string",

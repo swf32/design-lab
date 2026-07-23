@@ -1,0 +1,38 @@
+{
+  "id": "marketing-nav",
+  "name": "Marketing Nav",
+  "description": "Page-level marketing navigation used as the top section in marketing Pages.",
+  "aliases": ["marketing header", "top navigation", "product navbar"],
+  "useWhen": ["build a marketing landing header for a Page"],
+  "avoidWhen": ["use as an application shell navigation"],
+  "entry": "MarketingNav.tsx",
+  "preview": "MarketingNav.preview.tsx",
+  "stories": "MarketingNav.stories.tsx",
+  "docs": "README.md",
+  "changelog": "CHANGELOG.md",
+  "status": "in-progress",
+  "states": ["default"],
+  "variants": ["default"],
+  "props": {
+    "ariaLabel": {
+      "type": "string",
+      "default": "Marketing"
+    },
+    "brandTitle": {
+      "type": "string",
+      "default": "Design Lab"
+    },
+    "brandMeta": {
+      "type": "string",
+      "default": "Filesystem-first product design"
+    },
+    "brandHref": {
+      "type": "string",
+      "default": "#"
+    },
+    "actions": {
+      "type": "slot",
+      "slot": true
+    }
+  }
+}

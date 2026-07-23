@@ -4,12 +4,24 @@ import type { CSSProperties, ReactNode } from 'react'
 export type TabSwitcherVariant = 'segmented' | 'toggle'
 export type TabSwitcherSize = 'small' | 'medium'
 
-export interface TabSwitcherOption<Value extends string = string> {
+type TabSwitcherOptionBase<Value extends string> = {
   value: Value
-  label: ReactNode
-  accessibleLabel?: string
   disabled?: boolean
 }
+
+export type TabSwitcherOption<Value extends string = string> = TabSwitcherOptionBase<Value> &
+  (
+    | {
+        label: ReactNode
+        icon?: ReactNode
+        accessibleLabel?: string
+      }
+    | {
+        label?: never
+        icon: ReactNode
+        accessibleLabel: string
+      }
+  )
 
 export interface TabSwitcherProps<Value extends string = string> {
   options: readonly TabSwitcherOption<Value>[]
@@ -18,6 +30,7 @@ export interface TabSwitcherProps<Value extends string = string> {
   ariaLabel: string
   variant?: TabSwitcherVariant
   size?: TabSwitcherSize
+  iconSize?: number
   className?: string
 }
 
@@ -28,19 +41,22 @@ export function TabSwitcher<Value extends string>({
   ariaLabel,
   variant = 'segmented',
   size = 'medium',
+  iconSize,
   className = '',
 }: TabSwitcherProps<Value>) {
   const selectedIndex = Math.max(
     0,
     options.findIndex((option) => option.value === value),
   )
-  const switcherStyle =
-    variant === 'toggle'
-      ? ({
+  const switcherStyle = {
+    '--tab-switcher-icon-size': `${iconSize ?? (size === 'small' ? 14 : 16)}px`,
+    ...(variant === 'toggle'
+      ? {
           '--tab-switcher-count': options.length,
           '--tab-switcher-index': selectedIndex,
-        } as CSSProperties)
-      : undefined
+        }
+      : {}),
+  } as CSSProperties
 
   return (
     <div
@@ -61,7 +77,16 @@ export function TabSwitcher<Value extends string>({
             disabled={option.disabled}
             onClick={() => onChange(option.value)}
           >
-            <span>{option.label}</span>
+            <span className="dl-tab-switcher__content">
+              {option.icon !== undefined && (
+                <span className="dl-tab-switcher__icon" aria-hidden="true">
+                  {option.icon}
+                </span>
+              )}
+              {option.label !== undefined && (
+                <span className="dl-tab-switcher__label">{option.label}</span>
+              )}
+            </span>
           </button>
         )
       })}

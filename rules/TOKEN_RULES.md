@@ -35,6 +35,10 @@ Typography values such as family, size, line height, weight, and letter spacing 
 
 Palette is a visual and semantic view over color tokens. It may group and explain them, but it must never duplicate their color values as a second source of truth.
 
+## CSS identity
+
+A leaf token's dotted path also names its generated CSS custom property: `radius.medium` becomes `--radius-medium`, by replacing every `.` with `-`. `build-tokens.mjs` applies this rule when generating `tokens/generated/tokens.css`, and MCP/CLI `get` derive the identical `cssVar`/`cssUsage` (`var(--radius-medium)`) from the same path so the two can never drift apart. Do not author a separate CSS variable name field; the dotted path is the only identity a token needs.
+
 ## Verification
 
 After changing tokens:

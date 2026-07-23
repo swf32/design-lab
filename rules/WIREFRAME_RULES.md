@@ -42,7 +42,11 @@ The JSON manifest is the source of truth for structure and graph semantics. TSX 
 
 Supported lifecycle values are `draft`, `review`, and `approved`. Approval means a direction can graduate into a Page; it does not turn the Wireframe itself into a Page.
 
+`renderWireframe` (the function `entry` exports) must stay a plain, Hook-free function: the catalog card, the fullscreen screen view, and the user-flow Canvas all call it directly as an ordinary function, repeatedly, to build a preview per state — not once through JSX. Calling a Hook directly in its body attaches it to whatever fiber happens to be rendering, with an unstable call count across renders, and will eventually crash the surrounding view (see [`PAGE_RULES.md`](PAGE_RULES.md), where this exact mistake in a Page renderer produced a permanently blank app). Any local interactive state belongs in a nested component mounted through JSX inside the returned tree, never inline in `renderWireframe` itself.
+
 Every referenced layout, state, node, and edge id must exist and be unique. State values must satisfy the declared control types and ranges. Every non-terminal state should participate in at least one authored transition.
+
+`wireframe.json` may also define the same optional semantic-retrieval fields `component.json` supports — `aliases`, `useWhen`, `avoidWhen` — so MCP and CLI `designlab_search`/`designlab_browse` can surface a reusable layout direction by intent (e.g. "split auth layout") without an agent guessing its directory name. These fields are never required for discovery; when absent, the gateway falls back to the first paragraph of the adjacent `README.md`. A resolved Wireframe entity also reports `compositionUses`, the list of Library Component symbols the renderer actually imports — derived from static analysis of `<WireframeName>.wireframe.tsx`, the same mechanism `uses`/`usedBy` already uses for Components, never authored by hand.
 
 ## Layout directions
 
@@ -91,7 +95,7 @@ Control semantics:
 The user-flow Canvas visualizes causality, not merely screen order.
 
 - Nodes reference saved states.
-- Every state node pairs the real adjacent Wireframe screen in an inert desktop 16:9 viewport with a portrait mobile viewport from the same renderer; do not author separate node thumbnails.
+- Every state node pairs the real adjacent Wireframe screen in an inert desktop 16:9 viewport with a portrait mobile viewport from the same renderer at full LOD zoom; at medium zoom only desktop renders; at far zoom a metadata card (title, description, eyebrow) replaces live previews. Do not author separate node thumbnails or `*.preview.tsx` stand-ins.
 - Directed edges name the exact user action that moves between nodes.
 - Selecting a node updates the current state.
 - Activating Preview opens that state in the current layout.
@@ -126,11 +130,14 @@ Dev mode controls describe test conditions and entitlements, not actions the pro
 Wireframes use the same production `WorkbenchInspector` as Component Playgrounds. It is anchored at
 the viewport bottom end, scopes pointer/touch selection to the screen or flow stage, and uses the
 purple dashed `WorkbenchAction` trigger. Component roots and named slots retain their purple and
-pink identities; raw exploratory blocks expose authored source SCSS/CSS. The review build derives
-Component calls from normal imports, slots from Component manifests, and raw host locations from
-the Wireframe TSX automatically. A Wireframe author must not add inspection attributes or duplicate
-source fragments. Active Inspector mode gives every discovered Component root a quiet purple dashed
-outline and every manifest-declared slot a quiet pink dashed
+pink identities; an `<img>`/`<video>` host whose `src`/`poster` resolves to a locally imported asset
+gets a teal identity instead, whether or not it sits inside a manifest slot; other raw exploratory
+blocks expose authored source SCSS/CSS. The review build derives Component calls from normal
+imports, slots from Component manifests, asset imports from the same static-import analysis, and
+raw host locations from the Wireframe TSX automatically. A Wireframe author must not add inspection
+attributes or duplicate source fragments. Active Inspector mode gives every discovered Component
+root a quiet purple dashed outline, every manifest-declared slot a quiet pink dashed outline, and
+every resolved asset host a quiet teal dashed
 outline. Selecting a target consumes the product activation and pins the copyable handoff popover;
 it must never navigate, submit, or mutate the reviewed screen. Once pinned, the next surface click
 only dismisses the popover; selecting another target requires a subsequent click.

@@ -23,6 +23,10 @@
   border-color: color-mix(in srgb, var(--color-inspection-slot) 70%, var(--color-border-default));
 }
 
+.dl-inspector-code-popover--asset {
+  border-color: color-mix(in srgb, var(--color-inspection-asset) 70%, var(--color-border-default));
+}
+
 .dl-inspector-code-popover__identity {
   padding: 12px 14px 10px;
   border-bottom: 1px solid var(--color-border-subtle);
@@ -44,6 +48,10 @@
 
 .dl-inspector-code-popover--slot .dl-inspector-code-popover__identity span {
   color: var(--color-inspection-slot);
+}
+
+.dl-inspector-code-popover--asset .dl-inspector-code-popover__identity span {
+  color: var(--color-inspection-asset);
 }
 
 .dl-inspector-code-popover__identity strong {

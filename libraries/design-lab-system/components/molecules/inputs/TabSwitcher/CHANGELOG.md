@@ -1,5 +1,17 @@
 # Changelog
 
+## 0.5.0 — 2026-07-23
+
+- Added: `iconSize` controls all option icons independently from button size and touch-target geometry.
+- Visual: Design Lab Cards/List and Light/Dark selectors now use compact 12px icons.
+
+## 0.4.0 — 2026-07-23
+
+- Added: explicit text-only, icon-and-text, and icon-only option content contracts.
+- Accessibility: icon-only options require an accessible label at the TypeScript API boundary.
+- Changed: Cards/List uses the segmented presentation; compact toggle remains intended for paired modes such as Light/Dark.
+- Visual: preview and stories now use canonical icon assets instead of Unicode glyphs.
+
 ## Unreleased
 
 - Accessibility: Phone layouts expand every segmented and toggle option to a minimum 44px touch target.

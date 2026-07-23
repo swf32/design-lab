@@ -70,6 +70,7 @@
 - [x] Добавить общий AI context gateway для Components, Tokens, Assets, Fonts и Markdown knowledge.
 - [x] Добавить local read-only MCP stdio server и CLI fallback над тем же context gateway.
 - [x] Добавить Settings entry внизу Application Sidebar с готовым MCP config и CLI tutorial.
+- [x] Введена semantic-категория `components/blocks/**` и Home собран из production блоков (`MarketingNav`, `MarketingHero`, `FeatureGrid`, `MarketingStory`).
 
 ## Gap audit — 2026-07-19
 
@@ -106,7 +107,7 @@
 - [ ] Finish token schema/version, aliases, type validation, diagnostics, CRUD, and deterministic generated outputs.
 - [ ] Finish Palette mappings/contrast/origin instead of only displaying resolved color tokens.
 - [ ] Add font-file discovery, metadata parsing, safe local serving, and loading diagnostics.
-- [x] Add shared `TOKEN_RULES.md`, `ASSET_RULES.md`, and `FONT_RULES.md` authoring contracts.
+- [x] Add shared `rules/TOKEN_RULES.md`, `rules/ASSET_RULES.md`, and `rules/FONT_RULES.md` authoring contracts.
 - [x] Generate the code-native icon barrel from filesystem assets during dev/build/test.
 - [x] Add static import AST analysis, dependency/usages view, and copy import/source actions.
 - [ ] Add export/prop AST extraction, sandbox/error boundary, and create/update scaffold.
@@ -142,19 +143,37 @@
 - [x] Scope Wireframes to active-source product modes and adapt theme controls between Tab Switcher and Radio Buttons by option count.
 - [x] Pair desktop/mobile screens in collision-safe flow nodes and support infinite transformed grid, pan, pinch zoom, and semantic folder routes.
 - [x] Bring the shared Inspector/handoff contract from Component Playground to fullscreen Wireframes.
-- [x] Define the canonical Page contract in `PAGE_RULES.md` (hybrid `page.json` + `*.page.tsx`, authored production `route` with reserved-module conflict fallback, `controls[]`/`states[]`, unified `flow.nodes[]`/`flow.edges[]` with conditional cross-Page edges, `derivedFromWireframe` provenance, Page card with `diagnosticsAcknowledged[]`, diagnostic codes).
-- [x] Implement the Pages module MVP per `PAGE_RULES.md`:
+- [x] Define the canonical Page contract in `rules/PAGE_RULES.md` (hybrid `page.json` + `*.page.tsx`, authored production `route` with reserved-module conflict fallback, `controls[]`/`states[]`, unified `flow.nodes[]`/`flow.edges[]` with conditional cross-Page edges, `derivedFromWireframe` provenance, Page card with `diagnosticsAcknowledged[]`, diagnostic codes).
+- [x] Implement the Pages module MVP per `rules/PAGE_RULES.md`:
   - [x] `page.json`/`*.page.tsx` discovery via `moduleEntities.mjs` (`pagesFor`), reusing `readManifest()` isolation and `SUPPORTED_SCHEMA_VERSION` guard. Control/state validation was extracted out of `wireframeDiagnostics` into shared `validateControls`/`validateStateValues`/`diagnoseDuplicateIds` helpers reused by `pageDiagnostics`.
-  - [x] Route mirroring: `pagesFor` exposes a computed `mirroredRoute` (authored `route` when it does not collide with a reserved module segment, `null` on conflict) and raises `page-route-conflicts-reserved-module`; the client mirrors it into the fullscreen review URL suffix (`/review`) and falls back to the filesystem `directory` path otherwise.
+  - [x] Route mirroring: `pagesFor` exposes a computed `mirroredRoute` (authored `route` when it does not collide with a reserved module segment, `null` on conflict) and raises `page-route-conflicts-reserved-module`. The client actually opens fullscreen review at `/pages/<sourceId><mirroredRoute>` when that route is set and is not the literal root `/` (D-057); otherwise, and always for `route: "/"`, it falls back to the filesystem `directory` path + `/review`. Known gap: collision with a sibling filesystem folder/Page path inside the same source is not diagnosed yet (only reserved-module collisions are); the mirrored route wins resolution order in that case, which is safe but undiagnosed.
   - [x] `controls[]`/`states[]` discovery and validation, reusing the Wireframe typed control registry (shared validators above).
   - [x] Unified `flow.nodes[]`/`flow.edges[]` discovery/validation, including `kind: "page"` edges with optional `condition`, and the per-Page flow Canvas in `PageView.tsx` (reuses `UserFlowCanvas`, with synthetic "exit" nodes rendering the target Page's own default-state preview for `kind: "page"` edges).
   - [x] Page card (`PageOverview` in `ModuleView.tsx`): inline overview with description, provenance, actions/transitions derived from `flow.edges[]`, and diagnostics (dimmed once listed in `diagnosticsAcknowledged[]`) opened before fullscreen review (`onOpenPageReview` → `/review` route).
-  - [ ] The Page card only *reads* `diagnosticsAcknowledged[]`; there is no write UI/endpoint yet for a user to acknowledge a diagnostic with a `reason` (needs the write/validation/confirmation contract from the "guarded AI write proposals" item below first).
+  - [ ] The Page card only _reads_ `diagnosticsAcknowledged[]`; there is no write UI/endpoint yet for a user to acknowledge a diagnostic with a `reason` (needs the write/validation/confirmation contract from the "guarded AI write proposals" item below first).
   - [x] Bring the shared `WorkbenchInspector`/handoff contract to Pages (`PageView.tsx`).
   - [x] Added a real example: three linked Pages (`Home`, `Auth`, `Account` under `libraries/design-lab-system/pages/`) exercising an internal state transition, a conditional cross-Page edge, and an unconditional cross-Page edge, plus server tests in `pages.test.mjs`.
-- [ ] Next: derived, auto-layout aggregated sitemap across all Pages in a source, computed from every Page's `kind: "page"` flow edges (analogous to how `usedBy`/`usedInExamplesBy` are derived for Components). The per-Page Canvas exists; the cross-source aggregated view does not yet.
+  - [x] Fixed a crash where clicking a cross-Page action inside fullscreen review permanently blanked the whole app: `<PageView>` had no `key`, so React reused the same fiber across different Pages (stale Hook state), and `Auth.page.tsx` additionally called `useState` directly inside `renderPage` — a function invoked as a plain call from multiple places per render, which Hooks cannot support (see the new constraint documented in `rules/PAGE_RULES.md`/`rules/WIREFRAME_RULES.md`). Fixed by keying `PageView`/`WireframeView`/`ComponentPlaygroundView` on the open entity, moving `Auth.page.tsx`'s local state into a nested `<AuthForm />` component, and wrapping each fullscreen view in a new `ErrorBoundary` (`design-lab/src/ErrorBoundary.tsx`) so a future render crash degrades to a recoverable "Go back / Try again" panel instead of unmounting the whole root and killing the popstate listener that back/forward relies on.
+  - [x] Wireframes and Pages catalogs now group entities by filesystem category the same way the Components catalog already did (`groupByCategory` helper in `ModuleView.tsx`); previously both rendered one flat grid regardless of folder depth.
+- [x] Next: derived, auto-layout aggregated sitemap across all Pages in a source (`buildPageSitemap` in `flowLayout.mjs`, exposed on pages module as `sitemap`, UI toggle Catalog/Sitemap in `ModuleView.tsx`). See D-062 §2.
+- [ ] Next: diagnose a mirrored `route` that collides with a sibling filesystem folder/Page path inside the same source (currently only reserved-module-segment collisions are diagnosed; see D-057).
 - [ ] Next: review approval workflow, `diagnosticsAcknowledged[]` write UI, and richer Page exports.
 - [ ] Add guarded AI write proposals only after diff, validation, and confirmation contracts exist.
+- [ ] **User-flow Canvas audit (D-061 / `docs/13-user-flow-canvas-exploration.md`) — autonomous, no open product decision required:**
+  - [x] `UserFlowCanvas.tsx`: fix edge anchor math so same-column edges don't render a sideways "hook" (currently always anchors `from.x + NODE_WIDTH → to.x`; reproducible today on `pages/account/Account/page.json`, both flow-nodes share `x: 80`).
+  - [x] `UserFlowCanvas.tsx`: add keyboard navigation (roving `tabIndex`/arrow-key focus across nodes) — required by `rules/WIREFRAME_RULES.md`/D-041/D-042 ("visible keyboard-accessible alternatives") and currently absent; fix the `UserFlowCanvas` `CHANGELOG.md`/`README.md` claim "nodes are keyboard buttons" (nodes are `<article>`, not buttons).
+  - [x] `UserFlowCanvas.tsx`: pan/zoom to the selected node on mount instead of always resetting to `{x:48,y:48}`/`zoom:0.72`, so a deep-linked state far on the graph isn't opened off-screen.
+  - [x] `UserFlowCanvas.tsx`/SCSS: real `prefers-reduced-motion` support (currently near-empty) and better a11y for the graph itself (edges are `aria-hidden`, selected-node state isn't announced to AT beyond `aria-pressed` on the button).
+  - [x] `UserFlowCanvas.tsx`/`WireframeView.tsx`/`PageView.tsx`: memoize per-node preview construction (`useMemo`) so panning (which updates state on every `pointermove`) doesn't re-run `renderWireframe`/`renderPage` for every node on every frame.
+  - [x] Preserve `UserFlowCanvas` pan/zoom state across Screen↔Flow view switches instead of losing it on unmount (currently a conditional render unmounts the whole Canvas).
+  - [x] `moduleEntities.mjs`: require `action`/`label` on every `flow.edges[]` entry (already documented as mandatory in `rules/WIREFRAME_RULES.md`/`rules/PAGE_RULES.md`, not currently validated).
+  - [x] `moduleEntities.mjs`: diagnose a `kind:"state"` edge target that has no matching `flow.nodes[]` entry — today such an edge silently disappears from the Canvas while `dispatchAction` still performs the state transition at runtime, a graph/behavior desync.
+  - [x] Trigger-edge resolution (`action` → DOM element) via runtime click capture + edge highlight on Canvas; no TSX/markup changes in Page/Wireframe renderers (D-062 §4).
+  - [ ] Minor: deep-link reads `control.*` but only ever writes `value.*`; pinch gesture leaves a "dead" finger after the other lifts; `COLUMN_SNAP=48` can merge intentionally-close authored columns.
+  - [x] **Needs one narrow owner decision, then autonomous** — select/preview/pan gesture split on Canvas nodes (currently one button does both `onSelect` and `onPreview`→Screen; clicking a node's body with no movement does nothing, dragging it pans the whole Canvas instead of moving the node): see D-061 §6 for the proposed contract.
+  - [x] **LOD zoom-threshold** on User Flow Canvas (full / desktop-only / metadata card by effective zoom; D-062 §1, D-041/D-042 updated).
+  - [x] **Autosave auto-layout coordinates** to `wireframe.json`/`page.json` via `PATCH /api/sources/:id/{pages|wireframes}/:directory/manifest` (D-062 §3; no manual drag editor).
+  - [x] Page `@container` responsive layout for flow mobile previews (`Auth.page.scss`, `Account.page.scss`).
 
 ---
 
@@ -569,12 +588,28 @@ Components использует Tokens, Palette и Fonts и становится
 - [ ] Embeddings и semantic retrieval.
 - [x] Внутренний context gateway и MCP-ready schema.
 - [x] Local read-only MCP stdio adapter и CLI fallback.
+- [x] Entity-level Component capture: arbitrary token-discovered source modes, independent
+      dark/light interface surface, `260×150` preview and `600×180` Story Stage, opaque DPR-2 PNG,
+      overflow/console/hash metadata through MCP and CLI (D-068).
+- [x] Context gateway: Wireframe/Page как context kinds с `compositionUses`, `designlab_browse`/`browse` по каноническому дереву путей, batch `get`, did-you-mean на dead ref, `cssVar` у токенов, production-ready package-import для raster/video assets (см. D-058).
+- [x] Inspector: четвёртая teal `asset` identity для resolved image/video import вне manifest slot; авто-derived `width`/`height`/`aspectRatio`/`orientation` для image assets из заголовка файла (см. D-059). Video duration осознанно отложена.
+- [x] Inspector: Hard Mode с принудительным neutral background и удвоенными identity outlines; тот же Inspector подключён к shell самого Design Lab для component-vs-raw self-audit без polling/второго registry (см. D-063).
+- [x] Component identity: import/export symbol derived из `entry`, а optional manifest `name` остаётся display-only и при отсутствии humanize'ится автоматически (см. D-064).
+- [x] Hard Mode self-audit: application-local `WorkspaceHeader`, `WorkspaceStage`, `ModulePage`,
+      catalog group header и Tokens table перенесены в production Components `design-lab-system`;
+      Fonts отложены (см. D-065).
+- [x] Self-audit follow-up: `TokenTable` заменён generic sortable `Table`, Components и Palette
+      поддерживают Cards/List с Cards по умолчанию, root Inspector выключен, divider у
+      `CatalogGroup` удалён (см. D-066).
+- [x] `TabSwitcher` поддерживает text, icon+text и accessible icon-only options; Cards/List
+      использует segmented, Light/Dark toggle — канонические theme icon Assets, а `iconSize`
+      управляет SVG независимо от hit area (см. D-067).
 - [x] Wireframes: hybrid JSON+TSX contract, pricing reference entity, Dev mode, shareable state, and user-flow graph.
 - [x] Wireframes: no permanent review toolbar, real renderer-backed desktop/mobile previews, source product modes, infinite Canvas grid, pinch zoom, semantic folder routes, and target actions kept inside the product screen.
 - [x] Wireframes: shared bottom-end Inspector provides purple Component, pink slot, and authored element handoff.
-- [ ] Pages: discovery, route mirroring with reserved-module fallback, controls/states, unified flow graph with conditional cross-Page edges, Page card with diagnostics acknowledgement (контракт зафиксирован в `PAGE_RULES.md`, см. детализацию выше в разделе P0/MVP).
+- [ ] Pages: discovery, route mirroring with reserved-module fallback, controls/states, unified flow graph with conditional cross-Page edges, Page card with diagnostics acknowledgement (контракт зафиксирован в `rules/PAGE_RULES.md`, см. детализацию выше в разделе P0/MVP).
 - [ ] Page inspector и handoff (переиспользует `WorkbenchInspector`).
-- [ ] Aggregated cross-Page sitemap (derived, auto-layout, Next-уровень).
+- [x] Aggregated cross-Page sitemap (derived, auto-layout, Level 0 in Pages module).
 - [ ] Storybook read-only ingestion.
 - [ ] Figma as context workflows.
 - [ ] Design analytics.

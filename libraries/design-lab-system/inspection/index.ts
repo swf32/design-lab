@@ -12,7 +12,7 @@ import {
 } from 'react'
 
 export type InspectionDescriptor = {
-  kind: 'component' | 'slot'
+  kind: 'component' | 'slot' | 'asset'
   name: string
   code: string
   sourceId: string
@@ -24,11 +24,17 @@ export type InspectionSourceLocation = {
   sourceId: string
   file: string
   line: number
+  // Present only when this host element authored an `src`/`poster`/`href` attribute that resolves
+  // to a locally imported asset (see `assetHandoffCode` in inspectionTransform.mjs) — the same
+  // import-plus-usage handoff a Component slot gets, for a raw `<img>`/`<video>` that was never
+  // declared as a manifest slot.
+  asset?: string
 }
 
 export type InspectionMetadata = {
   components: InspectionDescriptor[]
   slots: InspectionDescriptor[]
+  assets: InspectionDescriptor[]
   source: InspectionSourceLocation
 }
 
@@ -85,6 +91,7 @@ export const InspectionHost = forwardRef<HTMLElement, InspectionHostProps>(funct
       inspectionRegistry.set(element, {
         components: descriptors.filter((descriptor) => descriptor.kind === 'component'),
         slots: descriptors.filter((descriptor) => descriptor.kind === 'slot'),
+        assets: descriptors.filter((descriptor) => descriptor.kind === 'asset'),
         source,
       })
     assignRef(forwardedRef, element)

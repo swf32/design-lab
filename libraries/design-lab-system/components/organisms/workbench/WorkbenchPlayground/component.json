@@ -30,7 +30,6 @@
     },
     "controls": {
       "type": "ReactNode",
-      "required": true,
       "slot": true
     },
     "mode": {

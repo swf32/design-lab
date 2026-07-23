@@ -24,6 +24,30 @@
   border: 0;
   border-radius: 0;
 }
+.wireframe-view__flow-hint {
+  position: absolute;
+  z-index: 6;
+  inset-block-start: var(--spacing-3);
+  inset-inline-start: 50%;
+  transform: translateX(-50%);
+  max-width: min(520px, calc(100% - 48px));
+  padding: var(--spacing-2) var(--spacing-3);
+  border: 1px solid var(--color-border-default);
+  border-radius: var(--radius-medium);
+  background: color-mix(in srgb, var(--color-surface-raised) 92%, transparent);
+  box-shadow: 0 12px 32px color-mix(in srgb, var(--color-overlay-scrim) 24%, transparent);
+  backdrop-filter: blur(12px);
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-3);
+  color: var(--color-text-secondary);
+  font-size: 12px;
+}
+.wireframe-view__flow-hint strong {
+  color: var(--color-accent-primary);
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-weight: 600;
+}
 .wireframe-view:has(.dl-workbench-inspector--active) .wireframe-view__stage,
 .wireframe-view:has(.dl-workbench-inspector--active) .wireframe-view__stage * {
   cursor: crosshair;

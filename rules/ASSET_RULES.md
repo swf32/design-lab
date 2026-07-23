@@ -28,6 +28,8 @@ The sidecar may define:
 
 Sidecars improve semantics but are never required for basic discovery. Default `design-lab-system` assets should include authored semantic metadata. Do not duplicate dimensions, extension, path, preview URL, or other facts already derived from the asset file.
 
+For images specifically, `width`, `height`, `aspectRatio` (the GCD-reduced `"W:H"` label, e.g. `"16:9"`), and `orientation` (`landscape` / `portrait` / `square`) are read directly from the file's own header and always appear on the discovered entity — never author them in the `.meta.json` sidecar, the same rule as dimensions above. Video duration is deliberately not derived yet: unlike an image dimension (one header read), a reliable duration requires actually decoding the container, which is a materially heavier dependency (`ffprobe`/`ffmpeg`) that the current Library has no proven need for (it has no video assets yet). Add it when a real video asset needs it, not speculatively.
+
 ## Code-native icons
 
 Use an existing semantic icon whenever it fits. A new product icon is a reusable TSX asset in `assets/icons/`, not inline SVG inside a Component and not a CSS or Unicode substitute.
@@ -45,6 +47,14 @@ Decorative instances are hidden from assistive technology. Interactive icon-only
 Write descriptions from visible content and intended subject matter, not only from filenames. `alt` describes the meaningful visual result; it does not include “image of.” Decorative media may omit `alt` metadata when the consumer deliberately supplies empty alternative text.
 
 Do not invent license claims. Record `license` only when provenance is known.
+
+A Page, Wireframe, or Component must reference an image or video asset the same way it references a Component or icon: a real static import resolved through the Library's own package, never the Design Lab application's `/api/sources/.../asset-previews/...` preview route. That route exists only to render the Assets catalog inside Design Lab; it is not a production contract and must never appear in authored source. The Library manifest's `assetImport` field (parallel to `componentImport`/`iconImport`) supplies the canonical import root, so MCP and CLI return a ready statement such as:
+
+```ts
+import modernWorkspace from '@design-lab/system/assets/images/stock/modern-workspace.jpg'
+```
+
+The default-import symbol is a mechanical camelCase conversion of the asset's own filename, never an authored per-asset name, so it can never drift from the file it points at. A copied Page keeps working unmodified in a consumer application as long as that application also depends on the same Library package and its bundler resolves static image imports (standard behavior for Vite, webpack, and Metro).
 
 ## Verification
 

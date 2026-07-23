@@ -31,7 +31,7 @@ export const stories = [
     kind: 'behavior',
     name: 'Component handoff',
     description:
-      'Hover the leading icon as a slot, pin a selection without activating the fixture, dismiss it with one surface click, and select again with the next.',
+      'Hover the leading icon as a slot, turn on Hard Mode to force neutral Component surfaces and doubled identity outlines, then pin without activating the fixture.',
     interactive: true,
     examples: [{ label: 'Inspector surface', props: {} }],
   },

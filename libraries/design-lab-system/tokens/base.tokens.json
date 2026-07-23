@@ -109,6 +109,16 @@
           "aliases": ["slot pink", "Figma slot outline"],
           "useWhen": ["outline an inspectable Component slot"],
           "avoidWhen": ["style a theme accent", "outline a Component root"]
+        },
+        "asset": {
+          "type": "color",
+          "value": "#2fb8c6",
+          "description": "Stable teal identity for image/video asset handoff (the resolved package import) in visual inspection and developer handoff.",
+          "aliases": ["asset teal", "asset import outline"],
+          "useWhen": [
+            "outline an inspectable raster image or video element backed by a resolved asset import"
+          ],
+          "avoidWhen": ["style a theme accent", "outline a Component root or slot"]
         }
       },
       "workbench": {

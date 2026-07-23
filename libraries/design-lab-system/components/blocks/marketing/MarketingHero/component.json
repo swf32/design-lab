@@ -1,0 +1,39 @@
+{
+  "id": "marketing-hero",
+  "name": "Marketing Hero",
+  "description": "Top hero section for marketing landing Pages with copy, actions, and a media panel.",
+  "aliases": ["hero section", "marketing headline", "landing hero"],
+  "useWhen": ["compose the top marketing hero section for a Page"],
+  "avoidWhen": ["embed inside tight containers where large typography overflows"],
+  "entry": "MarketingHero.tsx",
+  "preview": "MarketingHero.preview.tsx",
+  "stories": "MarketingHero.stories.tsx",
+  "docs": "README.md",
+  "changelog": "CHANGELOG.md",
+  "status": "in-progress",
+  "states": ["default"],
+  "variants": ["default"],
+  "props": {
+    "title": {
+      "type": "string",
+      "required": true
+    },
+    "description": {
+      "type": "slot",
+      "required": true
+    },
+    "media": {
+      "type": "slot",
+      "required": true
+    },
+    "chip": {
+      "type": "slot"
+    },
+    "actions": {
+      "type": "slot"
+    },
+    "status": {
+      "type": "slot"
+    }
+  }
+}

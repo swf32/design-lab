@@ -1,0 +1,22 @@
+{
+  "id": "workspace-header",
+  "name": "Workspace Header",
+  "description": "Owns the persistent Design Lab workspace identity, mobile navigation entry, and trailing utility actions.",
+  "aliases": ["application toolbar", "workspace toolbar", "shell header"],
+  "useWhen": ["title the active Design Lab workspace module", "place global workspace utilities"],
+  "avoidWhen": ["title content inside a module", "render a product navigation bar"],
+  "entry": "WorkspaceHeader.tsx",
+  "preview": "WorkspaceHeader.preview.tsx",
+  "stories": "WorkspaceHeader.stories.tsx",
+  "docs": "README.md",
+  "changelog": "CHANGELOG.md",
+  "status": "ready",
+  "states": ["desktop", "mobile", "with-actions"],
+  "variants": ["default"],
+  "props": {
+    "productName": { "type": "string", "required": true },
+    "sectionName": { "type": "string", "required": true },
+    "navigation": { "type": "ReactNode", "slot": true },
+    "actions": { "type": "ReactNode", "slot": true }
+  }
+}

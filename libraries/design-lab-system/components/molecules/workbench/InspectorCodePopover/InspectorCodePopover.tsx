@@ -2,7 +2,7 @@ import './InspectorCodePopover.scss'
 import type { CSSProperties } from 'react'
 import { CodeBlock } from '../../data-display/CodeBlock/CodeBlock'
 
-export type InspectorKind = 'component' | 'slot' | 'element'
+export type InspectorKind = 'component' | 'slot' | 'element' | 'asset'
 
 export type InspectorCodePopoverProps = {
   kind: InspectorKind

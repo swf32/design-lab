@@ -6,6 +6,8 @@ This file is the shared source of truth for humans, Codex, Claude, and other cod
 
 Every component is a directory under `libraries/design-lab-system/components/<category-path>/<ComponentName>/`. Categories and nesting are semantic and may be changed by the library author. The default `design-lab-system` keeps Atomic Design as its top level (`atoms/`, `molecules/`, `organisms/`) and uses semantic subfolders such as `actions/`, `inputs/`, `navigation/`, `workbench/`, and `shell/`.
 
+The default library also uses `components/blocks/**` as a semantic category for large, production-ready page sections (for example Hero, Feature grids, and marketing navigation). Blocks are not a separate entity kind: they are ordinary Components that compose other Components and (optionally) slots, and they follow the same authoring contract as every other Component in this library.
+
 Every Component starts with:
 
 - `component.json` — discovery manifest;
@@ -47,7 +49,9 @@ The route is derived from the Component path: `/components/<component-path>/play
 
 ### Playground inspection
 
-Playground provides one shared Inspector mode for developer handoff. Its bottom-end inspect action activates pointer hover-preview on fine-pointer devices and pinned selection by click or tap. Selection consumes the product activation before a reviewed link, button, or control can navigate or mutate state. When a selection is pinned, the next surface click only dismisses its popover and never selects the clicked target; a subsequent click creates the next selection. While active, all automatically discovered Component roots receive quiet purple dashed 2px outlines and manifest-declared slots receive quiet pink dashed outlines; the selected target receives the stronger identity outline. Ordinary elements use a neutral dashed outline. Color is reinforced by the explicit `component`, `slot`, or `element` label.
+Playground provides one shared Inspector mode for developer handoff. Its bottom-end inspect action activates pointer hover-preview on fine-pointer devices and pinned selection by click or tap. Selection consumes the product activation before a reviewed link, button, or control can navigate or mutate state. When a selection is pinned, the next surface click only dismisses its popover and never selects the clicked target; a subsequent click creates the next selection. While active, all automatically discovered Component roots receive quiet purple dashed 2px outlines and manifest-declared slots receive quiet pink dashed outlines; the selected target receives the stronger identity outline. Ordinary elements use a neutral dashed outline. Color is reinforced by the explicit `component`, `slot`, `asset`, or `element` label.
+
+A raw host element (`<img>`, `<video>`, `<source>`) whose `src`/`poster`/`href` attribute resolves to a locally imported asset gets a fourth, teal `asset` identity instead of falling back to the neutral element/SCSS handoff — its popover shows the resolved package import plus the attribute usage, the same authored-import handoff a manifest icon slot already gets. This applies automatically to any qualifying host, declared as a slot or not; an image/video reached only through a literal string URL (no local import) keeps the neutral element/SCSS identity, since there is no import to reveal.
 
 Component and slot detection is automatic review-build instrumentation. The source transform resolves normal static TSX imports against recursively discovered `component.json` manifests, wraps real Component callsites in an in-memory inspection boundary, and derives named composition slots from manifest props whose `type` is `slot` or whose `slot` field is true. Authors must not add Inspector attributes, duplicate JSX as strings, maintain a marker registry, or expose runtime props. The rendered production DOM remains unchanged; Inspector metadata lives in a runtime registry and never depends on private React Fiber fields. A named slot owns its caller-supplied subtree, so an SVG path inside an icon prop resolves to that slot. Plain text children are content unless the Component manifest explicitly declares `children` as a composition slot.
 
@@ -173,6 +177,15 @@ Before considering a preview complete:
 5. Check visible safe-area padding, optical centering, clipping, text legibility, card balance, hover/focus motion, reduced motion, and that motion does not change geometry.
 6. Run typecheck/build and check the browser console.
 
+For agent visual review, use the Design Lab Component capture contract instead of navigating the
+application shell manually. The capture tool discovers every design-system mode from the active
+source tokens; mode names and counts are not fixed. `sourceMode` styles the rendered Component and
+remains independent from the Design Lab `interfaceTheme` (`dark | light`) that owns the surrounding
+surface. Catalog preview captures are `260×150` CSS pixels and Story captures target only the real
+`.dl-story-canvas__stage` at `600×180` CSS pixels. Both render at DPR 2 as opaque, lossless PNGs.
+The fixed Story viewport may deliberately reveal overflow; capture metadata must report clipping
+instead of silently resizing a Story to fit.
+
 Use these calibration examples:
 
 - Checkbox: a small set of real boolean states is sufficient; the checkmark must be optically centered in its box.
@@ -184,7 +197,7 @@ Fast review question: if the Component Card footer were hidden, would someone fa
 
 ## `component.json`
 
-The manifest always includes `id`, `name`, `status`, `variants`, `states`, `docs`, and `changelog`. A production Component also includes `entry`, `preview`, and `stories`; a wireframe-only Component instead requires the conventionally named typed Playground. Category is derived from the component directory and is never authored in the manifest. Describe public props when known, including type, required/default values, enum values, and slots. Paths are adjacent relative paths.
+The manifest always includes `id`, `status`, `variants`, `states`, `docs`, and `changelog`. `name` is optional display copy: when absent, Design Lab derives a human-readable label from the production `entry` filename or, for a wireframe-only Component, from its directory (`ComponentCard.tsx` → `Component Card`). The technical import/export symbol always comes from the `entry` filename and never from display copy, so `"Component Card"` and `"ComponentCard"` are both valid manifest labels for `ComponentCard.tsx`. A production Component also includes `entry`, `preview`, and `stories`; a wireframe-only Component instead requires the conventionally named typed Playground. Category is derived from the component directory and is never authored in the manifest. Describe public props when known, including type, required/default values, enum values, and slots. Paths are adjacent relative paths.
 
 `description`, `aliases`, `useWhen`, and `avoidWhen` are optional semantic retrieval fields, not registration fields. Prefer an authored `description`; without one the agent context gateway falls back to the first useful README paragraph.
 

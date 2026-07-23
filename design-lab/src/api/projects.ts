@@ -307,12 +307,48 @@ export type ModuleData =
         diagnostics: Array<{ code: string; message: string }>
         files: Array<{ role: string; path: string }>
       }>
+      sitemap?: {
+        nodes: Array<{
+          id: string
+          title: string
+          description: string
+          route: string | null
+          x: number
+          y: number
+        }>
+        edges: Array<{
+          id: string
+          from: string
+          to: string
+          label: string
+          action?: string
+        }>
+      }
     }
   | { kind: 'assets'; folders: string[]; assets: AssetEntity[] }
 
 export function getModuleData(sourceId: string, moduleId: string) {
   return request<ModuleData>(
     `/api/sources/${encodeURIComponent(sourceId)}/modules/${encodeURIComponent(moduleId)}`,
+  )
+}
+
+export async function patchEntityManifest(
+  sourceId: string,
+  moduleId: 'pages' | 'wireframes',
+  directory: string,
+  patch: { flow?: { nodes: Array<{ id: string; x: number; y: number }> } },
+) {
+  return request<{ moduleId: string; directory: string; file: string }>(
+    `/api/sources/${encodeURIComponent(sourceId)}/${moduleId}/${directory
+      .split('/')
+      .map(encodeURIComponent)
+      .join('/')}/manifest`,
+    {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(patch),
+    },
   )
 }
 

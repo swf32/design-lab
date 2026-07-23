@@ -1,12 +1,12 @@
 # Design Lab collaboration rules
 
-For every component creation or modification, read and follow `COMPONENT_RULES.md`. It is the shared component contract for Codex, Claude, humans, and other agents.
+For every component creation or modification, read and follow [`rules/COMPONENT_RULES.md`](rules/COMPONENT_RULES.md). It is the shared component contract for Codex, Claude, humans, and other agents.
 
-For every Wireframe creation or modification, read and follow `WIREFRAME_RULES.md`. It defines the canonical hybrid source contract, layout directions, states, controls, and user-flow graph.
+For every Wireframe creation or modification, read and follow [`rules/WIREFRAME_RULES.md`](rules/WIREFRAME_RULES.md). It defines the canonical hybrid source contract, layout directions, states, controls, and user-flow graph.
 
-For every Page creation or modification, read and follow `PAGE_RULES.md`. It defines the canonical hybrid source contract for finalized, production-composed screens, their states, provenance from Wireframes, and inter-Page navigation graph.
+For every Page creation or modification, read and follow [`rules/PAGE_RULES.md`](rules/PAGE_RULES.md). It defines the canonical hybrid source contract for finalized, production-composed screens, their states, provenance from Wireframes, and inter-Page navigation graph.
 
-For every token, asset, or font creation or modification, read and follow `TOKEN_RULES.md`, `ASSET_RULES.md`, or `FONT_RULES.md` respectively. When a change crosses entity kinds, apply every relevant contract.
+For every token, asset, or font creation or modification, read and follow [`rules/TOKEN_RULES.md`](rules/TOKEN_RULES.md), [`rules/ASSET_RULES.md`](rules/ASSET_RULES.md), or [`rules/FONT_RULES.md`](rules/FONT_RULES.md) respectively. When a change crosses entity kinds, apply every relevant contract.
 
 ## Product questions
 

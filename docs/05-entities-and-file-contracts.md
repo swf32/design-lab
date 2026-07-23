@@ -21,7 +21,7 @@
 | Поле | Рекомендация |
 |----|----|
 | Purpose | Хранить переиспользуемые UI-единицы с вариантами, состояниями, пропсами, preview и документацией |
-| Minimal data model | `id`, `name`, `status`, `description`, `props[]`, `variants[]`, `states[]`, `slots[]`, `tokensUsed[]`, `dependsOn[]`, `usedBy[]`, `docsRef`, `changelogRef` |
+| Minimal data model | `id`, derived `name`, `status`, `description`, `props[]`, `variants[]`, `states[]`, `slots[]`, `tokensUsed[]`, `dependsOn[]`, `usedBy[]`, `docsRef`, `changelogRef` |
 | File examples | `component.json`, optional `Button.playground.tsx`, затем `Button.tsx`, `Button.scss`, `Button.preview.tsx`, `Button.stories.tsx`, `README.md`, `CHANGELOG.md` |
 | UX flow | Создать wireframe Component → сравнить Playground variants → выбрать направление → реализовать production Component → добавить preview/stories/docs → отметить ready |
 | Features | **MVP**: lifecycle status, typed Playground variants and controls, component/element Inspector, metadata, preview, executable adjacent stories, docs, changelog, canonical import, direct production/example usage graph. **Next**: approval metadata and richer completeness actions. **Future**: cross-platform contracts |
@@ -104,7 +104,7 @@ Manifest-declared `*.stories.ts(x)` хранит и story metadata, и `renderSt
 | UX flow | Создать/изменить token → обновить превью и связи → использовать в components/pages |
 | Features | **MVP**: CRUD, usage references. **Next**: theme packs. **Future**: cross-library overrides |
 
-Token semantic metadata lives on the base token leaf inside `*.tokens.json`; mode overrides replace values and inherit the same meaning. Colors describe roles such as surface, readable text, selection, success, warning, and danger rather than restating a hue or HEX value. Typography tokens describe how registered font families, sizes, weights, and line heights are used. `TOKEN_RULES.md` is the shared authoring contract.
+Token semantic metadata lives on the base token leaf inside `*.tokens.json`; mode overrides replace values and inherit the same meaning. Colors describe roles such as surface, readable text, selection, success, warning, and danger rather than restating a hue or HEX value. Typography tokens describe how registered font families, sizes, weights, and line heights are used. `rules/TOKEN_RULES.md` is the shared authoring contract.
 
 ## Palette
 
@@ -126,7 +126,7 @@ Token semantic metadata lives on the base token leaf inside `*.tokens.json`; mod
 | UX flow | Импортировать asset → присвоить tags → использовать в components/pages |
 | Features | **MVP**: library browser, basic tagging. **Next**: dedupe, alt-text suggestions. **Future**: semantic media search |
 
-Asset file обнаруживается рекурсивно без центрального registry. Optional `<AssetStem>.meta.json` лежит рядом с ним и улучшает AI retrieval, не дублируя path, extension, dimensions или preview URL. Иконка, появляющаяся при создании или изменении Component, сначала становится переиспользуемым code-native asset в каноническом `assets/icons/` активной Library. Generated `assets/icons/index.ts` автоматически экспортирует TSX icons при dev/build/test; Component, preview и stories импортируют их оттуда. Inline SVG paths, CSS-рисование и emoji/Unicode substitutes не являются допустимым способом добавить отсутствующую продуктовую иконку. Полный контракт находится в `ASSET_RULES.md`.
+Asset file обнаруживается рекурсивно без центрального registry. Optional `<AssetStem>.meta.json` лежит рядом с ним и улучшает AI retrieval, не дублируя path, extension, dimensions или preview URL. Иконка, появляющаяся при создании или изменении Component, сначала становится переиспользуемым code-native asset в каноническом `assets/icons/` активной Library. Generated `assets/icons/index.ts` автоматически экспортирует TSX icons при dev/build/test; Component, preview и stories импортируют их оттуда. Inline SVG paths, CSS-рисование и emoji/Unicode substitutes не являются допустимым способом добавить отсутствующую продуктовую иконку. Полный контракт находится в `rules/ASSET_RULES.md`.
 
 ## Fonts
 
@@ -138,7 +138,7 @@ Asset file обнаруживается рекурсивно без центра
 | UX flow | Добавить семейство → задать mapping в typography tokens → preview |
 | Features | **MVP**: registry + mapping. **Next**: loading diagnostics. **Future**: variable font tooling |
 
-Font registry отвечает на вопрос, какие families и styles доступны; typography tokens — как дизайн-система их использует. Оба вида сущностей индексируются отдельно и соединяются семантически без AI-only registry. Правила authoring описаны в `FONT_RULES.md`.
+Font registry отвечает на вопрос, какие families и styles доступны; typography tokens — как дизайн-система их использует. Оба вида сущностей индексируются отдельно и соединяются семантически без AI-only registry. Правила authoring описаны в `rules/FONT_RULES.md`.
 
 ## Rules
 
@@ -222,7 +222,7 @@ zeroheight уже делает MCP-сервер, structured access и совет
 
 | Поле | Тип | Обязательность | Назначение |
 |----|----|----|----|
-| `id`, `name` | `string` | обязательно | `id` — стабильный идентификатор в `ref`/relations; `name` должно совпадать с экспортируемым React-символом, который ищет AST-сканер. |
+| `id`, `name` | `string` | `id` обязательно; `name` опционально | `id` — стабильный идентификатор в `ref`/relations. Технический React-символ derived из basename поля `entry` (`ComponentCard.tsx` → `ComponentCard`). `name` — только display label; если его нет, UI humanize'ит symbol/directory (`ComponentCard` → `Component Card`). Значения `"Component Card"` и `"ComponentCard"` не конфликтуют с файлом и одинаково резолвятся к symbol. |
 | `entry` | `string` | опционально | Относительный путь к production-реализации. Отсутствие `entry` — легитимный `status: "wireframe"` (Component существует только как Playground). |
 | `style`, `preview`, `stories`, `playground`, `docs`, `changelog` | `string` | опционально, обычно auto-discovered | Явное значение переопределяет convention-based discovery (`<Stem>.scss`, `<Stem>.playground.tsx` и т.д.); задавать вручную нужно только при нестандартном имени файла. |
 | `status` | `"wireframe" \| "in-progress" \| "ready"` | опционально | Отсутствующее или неизвестное значение не блокирует discovery, но создаёт diagnostic (см. ниже). |
@@ -238,7 +238,7 @@ zeroheight уже делает MCP-сервер, structured access и совет
 | `schemaVersion`, `id`, `name`, `status`, `description` | — | обязательно кроме `description` | `status` принимает только `draft \| review \| approved`; иное значение — diagnostic `wireframe-status-invalid`. |
 | `entry` | `string` | обязательно | Отсутствие — diagnostic `wireframe-entry-missing`. |
 | `docs`, `changelog` | `string` | опционально | Соседние Markdown-файлы; отсутствие файла по указанному пути не является ошибкой (сервер тихо возвращает `null` для содержимого). |
-| `layouts[].{id,name,description,hypothesis}` | — | `id` обязателен и уникален | Каждый layout обязан формулировать гипотезу (см. `WIREFRAME_RULES.md`). |
+| `layouts[].{id,name,description,hypothesis}` | — | `id` обязателен и уникален | Каждый layout обязан формулировать гипотезу (см. `rules/WIREFRAME_RULES.md`). |
 | `controls[].{id,kind,label,description,...}` | — | `id`, `kind` обязательны | `kind: "radio"` требует `options[]` c `{ value, label }`; `kind: "boolean"` не требует доп. полей; `kind: "range"` требует `min`, `max`, положительный `step` (`max >= min`); любой control может иметь `visibleWhen: { control: <id>, equals: <value> }`, где `control` должен существовать. |
 | `states[].{id,name,description,values}` | — | `id` обязателен и уникален | `values` обязан содержать значение для **каждого** объявленного control id и удовлетворять его типу/диапазону — иначе diagnostic (`wireframe-state-value-missing`, `wireframe-state-radio-value-invalid`, `wireframe-state-boolean-value-invalid`, `wireframe-state-range-value-invalid`). `values` может содержать дополнительные product-only поля вне controls (например `teamSeats` в Pricing) — они не проверяются схемой controls. |
 | `defaultLayout`, `defaultState` | `string` | обязательно | Должны ссылаться на существующие `layouts[].id`/`states[].id` (`wireframe-default-layout-invalid`, `wireframe-default-state-invalid`). |
@@ -265,7 +265,7 @@ Diagnostics не блокируют discovery: сущность остаётся
 | `wireframe-flow-state-invalid`, `wireframe-flow-edge-invalid` | `wireframe.json` | Node/edge ссылается на несуществующий state/node. |
 | `manifest-parse-error` | `component.json` / `wireframe.json` / `page.json` | Файл манифеста не прошёл `JSON.parse` (синтаксическая ошибка). Сущность всё равно попадает в каталог: `id`/`name` подставляются из пути директории, остальные поля пустые, а само сообщение об ошибке становится diagnostic на этой сущности. Соседние сущности того же модуля не затрагиваются. |
 | `schema-version-unsupported` | `component.json` / `wireframe.json` / `page.json` | Манифест объявляет `schemaVersion` больше, чем понимает текущий сервер (см. `SUPPORTED_SCHEMA_VERSION` в `server/services/moduleEntities.mjs`). Поля читаются как есть (без миграции), сущность остаётся видимой с предупреждением, а не падает. |
-| `page-route-conflicts-reserved-module`, `page-flow-edge-invalid`, `page-flow-condition-invalid`, `page-derived-from-wireframe-invalid`, и другие `page-*` коды | `page.json` | Page-специфичные diagnostics (route mirroring, controls/states/flow validation, provenance). Полный каталог и семантика — в `PAGE_RULES.md`. |
+| `page-route-conflicts-reserved-module`, `page-flow-edge-invalid`, `page-flow-condition-invalid`, `page-derived-from-wireframe-invalid`, и другие `page-*` коды | `page.json` | Page-специфичные diagnostics (route mirroring, controls/states/flow validation, provenance). Полный каталог и семантика — в `rules/PAGE_RULES.md`. |
 
 Невалидный `component.json`/`wireframe.json`/`page.json`, который не проходит сам `JSON.parse`, изолируется до одной сущности (`manifest-parse-error`) и не приводит к ошибке всего `/modules/:moduleId` запроса — соседние сущности того же модуля продолжают отображаться.
 

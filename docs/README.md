@@ -20,5 +20,6 @@
 - [Inspection architecture: AST pipeline и style analyzer](10-inspection-architecture.md)
 - [Local HTTP API reference](11-server-api.md)
 - [Collaboration и deployment: видение и архитектурные дыры](12-collaboration-and-deployment.md)
+- [User-flow Canvas: аудит, гипотезы и варианты решений (не принято)](13-user-flow-canvas-exploration.md)
 - [Конкурентный обзор](07-market-review.md)
 - [Roadmap, риски и пакетные AI-задачи](08-roadmap-risks-and-tasks.md)

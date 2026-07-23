@@ -5,7 +5,7 @@ const previewStyles = String.raw`
   height: 90px;
   overflow: hidden;
   border-radius: var(--radius-card);
-  background: var(--color-surface-secondary);
+  background: var(--color-surface-raised);
 }
 .preview-component-card i {
   position: absolute;
@@ -23,8 +23,8 @@ const previewStyles = String.raw`
   overflow: hidden;
   background: linear-gradient(
     to top,
-    var(--color-surface-secondary) 0%,
-    color-mix(in srgb, var(--color-surface-secondary) 88%, transparent) 56%,
+    var(--color-surface-raised) 0%,
+    color-mix(in srgb, var(--color-surface-raised) 88%, transparent) 56%,
     transparent 100%
   );
   color: var(--color-text-primary);

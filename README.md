@@ -36,7 +36,7 @@ npm run format
 - `libraries/design-lab-system/` — редактируемая дизайн-система самого приложения и её единственный source of truth.
 - `libraries/design-lab-system/components/index.ts` — автоматически генерируемый package barrel из найденных `component.json`, а не ручной реестр.
 - `libraries/design-lab-system/assets/icons/index.ts` — автоматически генерируемый barrel code-native иконок.
-- `COMPONENT_RULES.md`, `TOKEN_RULES.md`, `ASSET_RULES.md`, `FONT_RULES.md` — обязательные entity-authoring контракты для людей и агентов.
+- `rules/COMPONENT_RULES.md`, `rules/WIREFRAME_RULES.md`, `rules/PAGE_RULES.md`, `rules/TOKEN_RULES.md`, `rules/ASSET_RULES.md`, `rules/FONT_RULES.md` — обязательные entity-authoring контракты для людей и агентов; `AGENTS.md`/`CLAUDE.md` в корне ссылаются на них и остаются входной точкой для агентов.
 - `projects/` — дизайн-системы по каноническому файловому контракту Design Lab.
 - `docs/` — product definition проекта.
 

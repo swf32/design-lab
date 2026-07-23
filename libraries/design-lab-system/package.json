@@ -11,7 +11,8 @@
     "./playground": "./playground/index.ts",
     "./wireframes": "./wireframes/index.ts",
     "./pages": "./pages/index.ts",
-    "./tokens.css": "./tokens/generated/tokens.css"
+    "./tokens.css": "./tokens/generated/tokens.css",
+    "./assets/*": "./assets/*"
   },
   "scripts": {
     "build:components-index": "node scripts/build-component-index.mjs --write",

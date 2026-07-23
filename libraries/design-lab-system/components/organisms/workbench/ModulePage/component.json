@@ -1,0 +1,20 @@
+{
+  "id": "module-page",
+  "name": "Module Page",
+  "description": "Provides the canonical inset, scrolling, and full-height composition for Design Lab module content.",
+  "aliases": ["module content page", "catalog page layout", "module scroll surface"],
+  "useWhen": ["compose a module header with catalog content", "host a full-height module canvas"],
+  "avoidWhen": ["render a fullscreen review surface", "create product Page layout"],
+  "entry": "ModulePage.tsx",
+  "preview": "ModulePage.preview.tsx",
+  "stories": "ModulePage.stories.tsx",
+  "docs": "README.md",
+  "changelog": "CHANGELOG.md",
+  "status": "ready",
+  "states": ["scrolling", "canvas"],
+  "variants": ["scroll", "canvas"],
+  "props": {
+    "variant": { "type": "enum", "values": ["scroll", "canvas"], "default": "scroll" },
+    "children": { "type": "ReactNode", "required": true, "slot": true }
+  }
+}

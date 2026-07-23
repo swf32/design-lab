@@ -43,6 +43,21 @@
   opacity: 0.38;
   cursor: not-allowed;
 }
+.dl-tab-switcher__content {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--spacing-1);
+}
+.dl-tab-switcher__icon {
+  display: grid;
+  place-items: center;
+}
+.dl-tab-switcher__icon svg {
+  width: var(--tab-switcher-icon-size);
+  height: var(--tab-switcher-icon-size);
+  display: block;
+}
 .dl-tab-switcher--small button {
   min-width: 26px;
   height: 24px;

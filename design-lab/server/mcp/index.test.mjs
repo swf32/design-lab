@@ -14,7 +14,13 @@ test('stdio MCP exposes the Design Lab search and get workflow', async (context)
   const tools = await client.listTools()
   assert.deepEqual(
     tools.tools.map((tool) => tool.name),
-    ['designlab_sources', 'designlab_search', 'designlab_get'],
+    [
+      'designlab_sources',
+      'designlab_search',
+      'designlab_get',
+      'designlab_browse',
+      'designlab_capture_component',
+    ],
   )
 
   const search = await client.callTool({
@@ -37,4 +43,25 @@ test('stdio MCP exposes the Design Lab search and get workflow', async (context)
   const entity = JSON.parse(get.content[0].text)
   assert.equal(entity.name, 'Input')
   assert.equal(entity.details.import.from, '@design-lab/system/components')
+
+  const batchGet = await client.callTool({
+    name: 'designlab_get',
+    arguments: {
+      refs: ['design-lab-system:component:input', 'design-lab-system:component:button'],
+      kinds: ['component'],
+    },
+  })
+  const batchBody = JSON.parse(batchGet.content[0].text)
+  assert.equal(batchBody.entities.length, 2)
+  assert.deepEqual(batchBody.entities.map((candidate) => candidate.name).sort(), [
+    'Button',
+    'Input',
+  ])
+
+  const browse = await client.callTool({
+    name: 'designlab_browse',
+    arguments: { sourceId: 'design-lab-system', kind: 'token', path: 'radius' },
+  })
+  const browseBody = JSON.parse(browse.content[0].text)
+  assert.ok(browseBody.items.some((item) => item.ref === 'design-lab-system:token:radius.medium'))
 })

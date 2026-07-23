@@ -5,6 +5,10 @@
 - Added: Optional lifecycle status badge using the production Chip component.
 - Visual: Status sits with the overlaid component name without creating another interactive target.
 - Changed: Added authored semantic retrieval metadata for MCP and CLI search.
+- Visual: Component card background and bottom fade now match the Workspace stage surface (`--color-surface-raised`).
+- Changed: Component card preview area uses a fixed 150px stage with overflow clipping so authored previews cannot grow card height on mobile or desktop.
+- Changed: Component card footer layout switched to a single row (title left, chip right).
+- Visual: Added a subtle card outline and removed the dotted preview background pattern.
 
 - Changed: Workbench stories now render automatically from the adjacent story module.
 - Breaking: Canonical filesystem and URL path moved to `components/molecules/cards/ComponentCard`; no legacy redirect is retained.

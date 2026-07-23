@@ -1,8 +1,13 @@
 import { mkdir, readFile, readdir, rename, writeFile } from 'node:fs/promises'
 import { basename, dirname, extname, join, relative } from 'node:path'
 import { randomUUID } from 'node:crypto'
-import { getModuleEntities } from './moduleEntities.mjs'
+import {
+  getModuleEntities,
+  getModuleNavigation,
+  parseComponentSourceImports,
+} from './moduleEntities.mjs'
 import { getSource, listSources } from './projectRegistry.mjs'
+import { componentSymbol } from '../../shared/componentIdentity.mjs'
 
 export const CONTEXT_INDEX_VERSION = 1
 export const CONTEXT_KINDS = [
@@ -10,11 +15,25 @@ export const CONTEXT_KINDS = [
   'token',
   'asset',
   'font',
+  'wireframe',
+  'page',
   'rule',
   'decision',
   'prompt',
   'doc',
 ]
+
+// Kinds whose entities live at a discoverable filesystem path deep enough that browsing by
+// canonical path (folder-by-folder) is as valid a discovery path as `search`. Reuses the exact
+// navigation tree already computed for the Directory Panel (`getModuleNavigation`) instead of a
+// second registry; `font`/knowledge kinds stay search-only because they have no comparable tree.
+const BROWSE_MODULE_IDS = {
+  component: 'components',
+  token: 'tokens',
+  asset: 'assets',
+  wireframe: 'wireframes',
+  page: 'pages',
+}
 
 const knowledgeDirectories = {
   rule: 'rules',
@@ -108,7 +127,7 @@ function entityRef(sourceId, kind, id) {
 }
 
 function componentImport(source, sourceManifest, component) {
-  const symbol = basename(component.entry ?? component.name, extname(component.entry ?? ''))
+  const symbol = componentSymbol(component, component.directory)
   const from =
     component.importFrom ??
     sourceManifest.componentImport ??
@@ -118,13 +137,61 @@ function componentImport(source, sourceManifest, component) {
   return { symbol, from, statement: `import { ${symbol} } from '${from}'` }
 }
 
+// Derived purely from the token's own dotted path — the identical rule `build-tokens.mjs` uses
+// to name the generated CSS custom property. Kept as one function so the two never drift.
+function tokenCssVar(path) {
+  return `--${path.replaceAll('.', '-')}`
+}
+
+// A generic, non-authored variable name for a default import: no per-file naming table, just a
+// mechanical camelCase conversion of the existing filesystem name.
+function assetImportSymbol(name) {
+  const words = basename(name, extname(name))
+    .split(/[^a-zA-Z0-9]+/)
+    .filter(Boolean)
+  if (!words.length) return 'asset'
+  return words
+    .map((word, index) =>
+      index === 0
+        ? word.charAt(0).toLowerCase() + word.slice(1)
+        : word.charAt(0).toUpperCase() + word.slice(1),
+    )
+    .join('')
+}
+
 function assetImport(sourceManifest, asset) {
-  if (asset.type !== 'icon' || asset.extension !== 'tsx') return null
-  const symbol = basename(asset.name, extname(asset.name))
-  const from =
-    sourceManifest.iconImport ??
-    (sourceManifest.packageName ? `${sourceManifest.packageName}/icons` : null)
-  return from ? { symbol, from, statement: `import { ${symbol} } from '${from}'` } : null
+  if (asset.type === 'icon' && asset.extension === 'tsx') {
+    const symbol = basename(asset.name, extname(asset.name))
+    const from =
+      sourceManifest.iconImport ??
+      (sourceManifest.packageName ? `${sourceManifest.packageName}/icons` : null)
+    return from ? { symbol, from, statement: `import { ${symbol} } from '${from}'` } : null
+  }
+  if (asset.type === 'image' || asset.type === 'video') {
+    const root =
+      sourceManifest.assetImport ??
+      (sourceManifest.packageName ? `${sourceManifest.packageName}/assets` : null)
+    if (!root) return null
+    const symbol = assetImportSymbol(asset.name)
+    const from = `${root}/${asset.path}`
+    return { symbol, from, default: true, statement: `import ${symbol} from '${from}'` }
+  }
+  return null
+}
+
+// Composition evidence for Wireframe/Page entities: the same static-import scan Components use
+// for `uses`/`usedBy` (`parseComponentSourceImports`), filtered to the Library's own component
+// import specifier. Never authored — a stale value is impossible because it is re-derived from
+// the real renderer source on every call.
+async function compositionUses(source, sourceManifest, entryRelativePath) {
+  const importFrom = sourceManifest.componentImport
+  if (!entryRelativePath || !importFrom) return []
+  const { imports } = await parseComponentSourceImports(join(source.path, entryRelativePath))
+  const symbols = new Set()
+  for (const sourceImport of imports)
+    if (sourceImport.specifier === importFrom)
+      for (const symbol of sourceImport.symbols) symbols.add(symbol)
+  return [...symbols]
 }
 
 async function readSourceManifest(source) {
@@ -247,7 +314,11 @@ async function tokenEntities(source) {
       type: token.type,
       values: token.values,
     },
-    details: token,
+    details: {
+      ...token,
+      cssVar: tokenCssVar(token.path),
+      cssUsage: `var(${tokenCssVar(token.path)})`,
+    },
   }))
 }
 
@@ -261,13 +332,17 @@ async function assetEntities(source, sourceManifest) {
     name: asset.name,
     description:
       compactWhitespace(asset.description) ||
-      `${asset.type} asset stored in ${asset.directory || 'the assets root'} as ${asset.extension.toUpperCase()}.`,
+      `${asset.type} asset stored in ${asset.directory || 'the assets root'} as ${asset.extension.toUpperCase()}${
+        asset.aspectRatio ? `, ${asset.width}×${asset.height} (${asset.aspectRatio})` : ''
+      }.`,
     path: `assets/${asset.path}`,
     status: null,
     tags: [
       asset.type,
       asset.extension,
       ...asset.directory.split('/').filter(Boolean),
+      ...(asset.orientation ? [asset.orientation] : []),
+      ...(asset.aspectRatio ? [asset.aspectRatio] : []),
       ...(asset.tags ?? []),
     ],
     search: {
@@ -305,6 +380,97 @@ async function fontEntities(source) {
     },
     details: font,
   }))
+}
+
+// Shared by Wireframe and Page entities: both are discovered, described, and searched the same
+// way (optional authored `aliases`/`useWhen`/`avoidWhen` on the manifest, README fallback), only
+// the module id, ref kind, and a couple of kind-specific manifest fields differ.
+function referenceScreenEntity({ source, kind, moduleId, item, entryPath, extraDetails }) {
+  const directory = `${moduleId}/${item.directory}`
+  const description =
+    compactWhitespace(item.description) ||
+    markdownLead(item.documentation) ||
+    `${kind === 'page' ? 'Production-composed Page' : 'Exploratory Wireframe'} for ${item.name}.`
+  return {
+    ref: entityRef(source.id, kind, item.id),
+    id: item.id,
+    kind,
+    source: sourceIdentity(source),
+    name: item.name,
+    description,
+    path: directory,
+    status: item.status ?? null,
+    tags: [
+      ...new Set(
+        [
+          ...directory.split('/').filter(Boolean),
+          ...(item.aliases ?? []),
+          ...(item.useWhen ?? []),
+        ].filter(Boolean),
+      ),
+    ],
+    search: {
+      aliases: item.aliases ?? [],
+      useWhen: item.useWhen ?? [],
+      avoidWhen: item.avoidWhen ?? [],
+    },
+    details: {
+      entry: entryPath,
+      manifest: join(directory, `${moduleId === 'pages' ? 'page' : 'wireframe'}.json`),
+      docs: item.docs ? join(directory, item.docs) : null,
+      changelog: item.changelog ? join(directory, item.changelog) : null,
+      documentation: item.documentation ?? null,
+      compositionUses: [], // filled in by the caller once entryPath is resolved
+      ...extraDetails,
+    },
+  }
+}
+
+async function wireframeEntities(source, sourceManifest) {
+  const data = await getModuleEntities(source.id, 'wireframes')
+  return Promise.all(
+    data.wireframes.map(async (wireframe) => {
+      const entryPath = wireframe.entry
+        ? join('wireframes', wireframe.directory, wireframe.entry)
+        : null
+      const entity = referenceScreenEntity({
+        source,
+        kind: 'wireframe',
+        moduleId: 'wireframes',
+        item: wireframe,
+        entryPath,
+        extraDetails: {
+          layouts: (wireframe.layouts ?? []).map(({ id, name }) => ({ id, name })),
+          states: (wireframe.states ?? []).map(({ id, name }) => ({ id, name })),
+        },
+      })
+      entity.details.compositionUses = await compositionUses(source, sourceManifest, entryPath)
+      return entity
+    }),
+  )
+}
+
+async function pageEntities(source, sourceManifest) {
+  const data = await getModuleEntities(source.id, 'pages')
+  return Promise.all(
+    data.pages.map(async (page) => {
+      const entryPath = page.entry ? join('pages', page.directory, page.entry) : null
+      const entity = referenceScreenEntity({
+        source,
+        kind: 'page',
+        moduleId: 'pages',
+        item: page,
+        entryPath,
+        extraDetails: {
+          route: page.route ?? null,
+          states: (page.states ?? []).map(({ id, name }) => ({ id, name })),
+          derivedFromWireframe: page.derivedFromWireframe ?? null,
+        },
+      })
+      entity.details.compositionUses = await compositionUses(source, sourceManifest, entryPath)
+      return entity
+    }),
+  )
 }
 
 async function knowledgeEntities(source, kind) {
@@ -345,6 +511,8 @@ async function entitiesForSource(source, kinds) {
   if (kinds.has('token')) jobs.push(tokenEntities(source))
   if (kinds.has('asset')) jobs.push(assetEntities(source, sourceManifest))
   if (kinds.has('font')) jobs.push(fontEntities(source))
+  if (kinds.has('wireframe')) jobs.push(wireframeEntities(source, sourceManifest))
+  if (kinds.has('page')) jobs.push(pageEntities(source, sourceManifest))
   for (const kind of Object.keys(knowledgeDirectories)) {
     if (kinds.has(kind)) jobs.push(knowledgeEntities(source, kind))
   }
@@ -507,18 +675,115 @@ export async function searchContext({ query, sourceId, kinds = CONTEXT_KINDS, li
   }
 }
 
-export async function getContextEntity({ ref, index, sourceId, kinds = CONTEXT_KINDS } = {}) {
-  const catalog = await buildContextCatalog({ sourceId, kinds })
-  const entity = ref
+// A dead ref/index should not be a dead end: suggest the closest existing ids of the same kind
+// (when the ref names one) using the same fuzzy-match primitive `search` already relies on, so a
+// typo like "spacing.5" surfaces "spacing.4" instead of a bare 404.
+function suggestSimilar(catalog, ref) {
+  if (!ref) return []
+  const [, kind, ...idParts] = ref.split(':')
+  const requestedId = idParts.join(':')
+  if (!requestedId) return []
+  return catalog.entities
+    .filter((entity) => !kind || entity.kind === kind)
+    .map((entity) => ({ ref: entity.ref, score: dice(requestedId, entity.id) }))
+    .sort((a, b) => b.score - a.score)
+    .filter((candidate) => candidate.score >= 0.3)
+    .slice(0, 3)
+    .map((candidate) => candidate.ref)
+}
+
+function resolveEntity(catalog, { ref, index }) {
+  return ref
     ? catalog.entities.find((candidate) => candidate.ref === ref)
     : catalog.entities.find((candidate) => candidate.index === Number(index))
+}
+
+export async function getContextEntity({ ref, index, sourceId, kinds = CONTEXT_KINDS } = {}) {
+  const catalog = await buildContextCatalog({ sourceId, kinds })
+  const entity = resolveEntity(catalog, { ref, index })
   if (!entity) {
-    throw Object.assign(new Error(`Context entity not found: ${ref ?? `#${index}`}`), {
-      status: 404,
-      code: 'CONTEXT_ENTITY_NOT_FOUND',
-    })
+    const suggestions = suggestSimilar(catalog, ref)
+    throw Object.assign(
+      new Error(
+        `Context entity not found: ${ref ?? `#${index}`}.` +
+          (suggestions.length ? ` Did you mean: ${suggestions.join(', ')}?` : ''),
+      ),
+      { status: 404, code: 'CONTEXT_ENTITY_NOT_FOUND', suggestions },
+    )
   }
   return entity
+}
+
+// Batch counterpart of `getContextEntity`: one shared catalog build for every locator instead of
+// re-scanning the filesystem per ref, and a per-locator error so one typo among several refs
+// does not fail the whole call.
+export async function getContextEntities({
+  refs = [],
+  indices = [],
+  sourceId,
+  kinds = CONTEXT_KINDS,
+} = {}) {
+  const catalog = await buildContextCatalog({ sourceId, kinds })
+  const locators = [
+    ...refs.map((ref) => ({ ref })),
+    ...indices.map((index) => ({ index: Number(index) })),
+  ]
+  const entities = []
+  const errors = []
+  for (const locator of locators) {
+    const entity = resolveEntity(catalog, locator)
+    const label = locator.ref ?? `#${locator.index}`
+    if (entity) entities.push(entity)
+    else
+      errors.push({
+        locator: label,
+        message: `Context entity not found: ${label}`,
+        suggestions: suggestSimilar(catalog, locator.ref),
+      })
+  }
+  return { entities, errors }
+}
+
+// Reuses the exact tree the Directory Panel already renders (`getModuleNavigation`) so an agent
+// can walk canonical folders instead of guessing an id or reading the full flat catalog: no
+// hardcoded taxonomy, no second index — just the same filesystem groups filtered to one path.
+export async function browseSource({ sourceId, kind, path: pathPrefix, depth = 1 } = {}) {
+  if (!sourceId)
+    throw Object.assign(new Error('sourceId is required to browse'), {
+      status: 400,
+      code: 'SOURCE_REQUIRED',
+    })
+  const moduleId = BROWSE_MODULE_IDS[kind]
+  if (!moduleId)
+    throw Object.assign(
+      new Error(
+        `Unsupported browse kind: ${kind ?? 'missing'}. Use one of ${Object.keys(BROWSE_MODULE_IDS).join(', ')}.`,
+      ),
+      { status: 400, code: 'BROWSE_KIND_UNSUPPORTED' },
+    )
+  const source = await getSource(sourceId)
+  const items = (await getModuleNavigation(sourceId, moduleId)) ?? []
+  const prefixParts = pathPrefix ? pathPrefix.split(/[./]/).filter(Boolean) : []
+  const baseLevel = prefixParts.length
+  const scoped = items.filter((item) => {
+    const parts = item.path.split(/[./]/).filter(Boolean)
+    if (parts.length <= baseLevel || parts.length > baseLevel + Math.max(1, depth)) return false
+    for (let position = 0; position < baseLevel; position += 1)
+      if (parts[position] !== prefixParts[position]) return false
+    return true
+  })
+  return {
+    source: sourceIdentity(source),
+    kind,
+    path: pathPrefix ?? null,
+    items: scoped.map((item) => ({
+      name: item.name,
+      path: item.path,
+      kind: item.kind,
+      level: item.level,
+      ref: item.kind === 'folder' ? null : entityRef(sourceId, kind, item.id),
+    })),
+  }
 }
 
 export async function writeContextIndex({ sourceId } = {}) {

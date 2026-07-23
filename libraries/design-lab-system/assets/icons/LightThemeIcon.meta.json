@@ -1,0 +1,7 @@
+{
+  "description": "Sun symbol representing a light interface theme.",
+  "aliases": ["light mode", "day theme", "sun", "bright appearance"],
+  "useWhen": ["select a light interface theme", "represent light appearance"],
+  "avoidWhen": ["represent weather", "increase display brightness"],
+  "tags": ["theme", "appearance", "light mode", "interface"]
+}

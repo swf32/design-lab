@@ -1,7 +1,10 @@
 import { access, readFile, readdir } from 'node:fs/promises'
 import { basename, dirname, extname, join, relative, resolve, sep } from 'node:path'
 import { parse } from '@babel/parser'
+import { imageSize } from 'image-size'
 import { getSource } from './projectRegistry.mjs'
+import { buildPageSitemap } from './flowLayout.mjs'
+import { componentDisplayName, componentSymbol } from '../../shared/componentIdentity.mjs'
 
 // Bump when a manifest field is added/changed in a way older readers cannot safely ignore, and
 // pair the bump with a migration for existing files (D-047). One shared constant keeps every
@@ -81,6 +84,35 @@ function assetKind(file) {
   return 'other'
 }
 
+function greatestCommonDivisor(a, b) {
+  return b === 0 ? a : greatestCommonDivisor(b, a % b)
+}
+
+// Derived purely from the pixel dimensions the file itself already reports — never authored, so
+// it can never drift from the actual asset the way a hand-typed `aspectRatio` sidecar field could.
+function aspectRatioLabel(width, height) {
+  const divisor = greatestCommonDivisor(width, height) || 1
+  return `${width / divisor}:${height / divisor}`
+}
+
+// image-size only needs the file header, not the full pixel data, but its Node API takes a
+// Buffer; a corrupt or unrecognized file must stay a scoped `null` (the asset still discovers),
+// never fail the whole Assets scan the way one bad component.json diagnostic never fails the rest.
+async function imageDimensions(filePath) {
+  try {
+    const { width, height } = imageSize(await readFile(filePath))
+    if (!width || !height) return null
+    return {
+      width,
+      height,
+      aspectRatio: aspectRatioLabel(width, height),
+      orientation: width === height ? 'square' : width > height ? 'landscape' : 'portrait',
+    }
+  } catch {
+    return null
+  }
+}
+
 async function assetsFor(source, sourceId) {
   const root = join(source.path, 'assets')
   const [files, folders] = await Promise.all([
@@ -99,14 +131,19 @@ async function assetsFor(source, sourceId) {
         dirname(filePath),
         `${basename(filePath, extname(filePath))}.meta.json`,
       )
-      let metadata = {}
-      let metadataFile = null
-      try {
-        metadata = JSON.parse(await readFile(metadataPath, 'utf8'))
-        metadataFile = relative(root, metadataPath)
-      } catch (error) {
-        if (error.code !== 'ENOENT') throw error
-      }
+      const [metadataResult, dimensions] = await Promise.all([
+        readFile(metadataPath, 'utf8')
+          .then((content) => ({
+            metadata: JSON.parse(content),
+            metadataFile: relative(root, metadataPath),
+          }))
+          .catch((error) => {
+            if (error.code !== 'ENOENT') throw error
+            return { metadata: {}, metadataFile: null }
+          }),
+        kind === 'image' ? imageDimensions(filePath) : null,
+      ])
+      const { metadata, metadataFile } = metadataResult
       return {
         id: path,
         name: path.split('/').at(-1),
@@ -118,6 +155,10 @@ async function assetsFor(source, sourceId) {
           kind === 'image' || (kind === 'icon' && ['svg', 'tsx'].includes(extension))
             ? `/api/sources/${encodeURIComponent(sourceId)}/asset-previews/${path.split('/').map(encodeURIComponent).join('/')}`
             : null,
+        width: dimensions?.width ?? null,
+        height: dimensions?.height ?? null,
+        aspectRatio: dimensions?.aspectRatio ?? null,
+        orientation: dimensions?.orientation ?? null,
         metadataFile,
         description: metadata.description ?? null,
         aliases: metadata.aliases ?? [],
@@ -324,12 +365,23 @@ function wireframeDiagnostics(wireframe) {
         code: 'wireframe-flow-state-invalid',
         message: `Flow node "${node.id}" references unknown state "${node.state}".`,
       })
-  for (const edge of edges)
+  for (const edge of edges) {
+    if (!edge.action)
+      diagnostics.push({
+        code: 'wireframe-flow-edge-action-missing',
+        message: `Flow edge "${edge.id}" must declare an action id.`,
+      })
+    if (!edge.label)
+      diagnostics.push({
+        code: 'wireframe-flow-edge-label-missing',
+        message: `Flow edge "${edge.id}" must declare a label.`,
+      })
     if (!nodeIds.has(edge.from) || !nodeIds.has(edge.to))
       diagnostics.push({
         code: 'wireframe-flow-edge-invalid',
         message: `Flow edge "${edge.id}" references an unknown node.`,
       })
+  }
   return diagnostics
 }
 
@@ -479,6 +531,16 @@ function pageDiagnostics(page, { pageIdsInSource, derivedWireframe }) {
       })
 
   for (const edge of edges) {
+    if (!edge.action)
+      diagnostics.push({
+        code: 'page-flow-edge-action-missing',
+        message: `Flow edge "${edge.id}" must declare an action id.`,
+      })
+    if (!edge.label)
+      diagnostics.push({
+        code: 'page-flow-edge-label-missing',
+        message: `Flow edge "${edge.id}" must declare a label.`,
+      })
     if (!nodeIds.has(edge.from))
       diagnostics.push({
         code: 'page-flow-edge-invalid',
@@ -490,6 +552,11 @@ function pageDiagnostics(page, { pageIdsInSource, derivedWireframe }) {
         diagnostics.push({
           code: 'page-flow-edge-invalid',
           message: `Flow edge "${edge.id}" targets unknown state "${to.stateId}".`,
+        })
+      else if (!nodes.some((node) => node.state === to.stateId))
+        diagnostics.push({
+          code: 'page-flow-edge-target-unreachable',
+          message: `Flow edge "${edge.id}" targets state "${to.stateId}" which has no flow node on the Canvas.`,
         })
     } else if (to.kind === 'page') {
       if (!pageIdsInSource.has(to.pageId))
@@ -523,6 +590,19 @@ function pageDiagnostics(page, { pageIdsInSource, derivedWireframe }) {
           code: 'page-flow-condition-invalid',
           message: `Flow edge "${edge.id}" condition must use a boolean value for control "${control.id}".`,
         })
+      else if (control.kind === 'range') {
+        const value = to.condition.value
+        if (
+          typeof value !== 'number' ||
+          value < control.min ||
+          value > control.max ||
+          (control.step > 0 && (value - control.min) % control.step !== 0)
+        )
+          diagnostics.push({
+            code: 'page-flow-condition-invalid',
+            message: `Flow edge "${edge.id}" condition uses an invalid value for control "${control.id}".`,
+          })
+      }
     }
   }
 
@@ -652,6 +732,7 @@ async function pagesFor(source, sourceId) {
     modes: tokenData.modes,
     themeVariables: tokenVariablesByMode(tokenData),
     pages: pages.sort((a, b) => a.name.localeCompare(b.name)),
+    sitemap: buildPageSitemap(pages),
   }
 }
 
@@ -700,7 +781,7 @@ async function readSourceManifest(source) {
 
 function componentImport(source, sourceManifest, component) {
   if (!component.entry) return null
-  const symbol = basename(component.entry ?? component.name, extname(component.entry ?? ''))
+  const symbol = componentSymbol(component, component.directory)
   const from =
     component.importFrom ??
     sourceManifest.componentImport ??
@@ -875,10 +956,7 @@ async function componentRelations(source, sourceManifest, components) {
     path: resolve(componentRoot, component.directory),
   }))
   const bySymbol = new Map(
-    components.map((component) => [
-      basename(component.entry ?? component.name, extname(component.entry ?? '')),
-      component,
-    ]),
+    components.map((component) => [componentSymbol(component, component.directory), component]),
   )
   const importFrom =
     sourceManifest.componentImport ??
@@ -1053,7 +1131,7 @@ export async function getModuleEntities(sourceId, moduleId) {
       const component = {
         ...manifest,
         id: manifest.id ?? directory,
-        name: manifest.name ?? basename(directory),
+        name: componentDisplayName(manifest, directory),
         variants: manifest.variants ?? [],
         states: manifest.states ?? [],
         category,

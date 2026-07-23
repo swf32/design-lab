@@ -1,17 +1,11 @@
 import './ModuleView.scss'
-import {
-  isValidElement,
-  useEffect,
-  useState,
-  type ComponentType,
-  type CSSProperties,
-  type ReactNode,
-} from 'react'
+import { isValidElement, useEffect, useState, type CSSProperties, type ReactNode } from 'react'
 import ReactMarkdown, { type Components } from 'react-markdown'
 import { useDesignLabI18n } from '@design-lab/system/i18n'
 import {
   AssetCard,
   Button,
+  CatalogGroup,
   Chip,
   CodeBlock,
   ColorCard,
@@ -19,77 +13,73 @@ import {
   ComponentReferencePanel,
   ComponentThumbnail,
   ModuleHeader,
+  ModulePage,
   TabSwitcher,
+  Table,
   StoryCanvas,
+  UserFlowCanvas,
   WireframeCard,
   WireframeScreenPreview,
   WorkbenchPlayground,
   type CanvasMode,
   type ChipColor,
+  type TableColumn,
 } from '@design-lab/system/components'
+import { CardsViewIcon, ListViewIcon } from '@design-lab/system/icons'
 import type { ModuleData } from '../../api/projects'
+import {
+  firstStoryExample,
+  previewComponentFor,
+  storyModuleFor,
+  type ComponentEntity,
+} from '../../componentRuntime'
 import { wireframeRendererFor } from '../../wireframes/registry'
 import { pageRendererFor } from '../../pages/registry'
 import { designSystemModeStyle } from '../../designSystemMode'
+import { buildPageSitemap } from '../../lib/pageSitemap'
 
-type ComponentEntity = Extract<ModuleData, { kind: 'components' }>['components'][number]
 type PageEntity = Extract<ModuleData, { kind: 'pages' }>['pages'][number]
+type CatalogLayout = 'cards' | 'list'
 const pageStatusColors: Record<PageEntity['status'], ChipColor> = {
   draft: 'warning',
   review: 'accent',
   approved: 'success',
 }
 
-type PreviewModule = Record<string, ComponentType>
-const previewModules = import.meta.glob<PreviewModule>(
-  [
-    '../../../../libraries/*/components/**/*.preview.tsx',
-    // Runtime-incomplete libraries stay discoverable via scanners, but must not enter the Vite graph.
-    '!../../../../libraries/klyp/components/**',
-  ],
-  { eager: true },
-)
-
-type StoryExample = {
-  label: string
-  props: Record<string, unknown>
-}
-type StoryDefinition = {
-  id: string
-  kind?: 'variant' | 'state' | 'behavior' | 'context' | 'integration' | 'accessibility'
-  name: string
-  description?: string
-  interactive?: boolean
-  examples?: StoryExample[]
-}
-type StoryModule = {
-  stories?: StoryDefinition[]
-  renderStoryExample?: (example: StoryExample, story: StoryDefinition) => ReactNode
-}
-const storyModules = {
-  ...import.meta.glob<StoryModule>(
-    [
-      '../../../../libraries/*/components/**/*.stories.{ts,tsx}',
-      // Runtime-incomplete libraries stay discoverable via scanners, but must not enter the
-      // Vite graph. Note: a glob negation excludes matches from the whole pattern set — it
-      // cannot be selectively re-included by a later positive pattern in the SAME glob() call,
-      // which is why the klyp exception below is a second, separate glob() call instead.
-      '!../../../../libraries/klyp/components/**',
-    ],
-    { eager: true },
-  ),
-  // Scoped exception (see D-056 in docs/DECISIONS.md): Button and MeshButton are the only
-  // Klyp components whose runtime deps (motion, react-aria-components, @klyp/icons alias) are
-  // wired up, and whose Stories were rewritten to the Design Lab contract (Klyp's original
-  // files were raw Storybook CSF, which this generic renderer cannot execute).
-  ...import.meta.glob<StoryModule>(
-    [
-      '../../../../libraries/klyp/components/ui/Button/Button.stories.tsx',
-      '../../../../libraries/klyp/components/brand/MeshButton/MeshButton.stories.tsx',
-    ],
-    { eager: true },
-  ),
-}
+const componentListColumns: TableColumn<ComponentEntity>[] = [
+  {
+    id: 'name',
+    header: 'Component',
+    cell: (component) => (
+      <span className="catalog-list-identity">
+        <strong>{component.name}</strong>
+        <code>{component.entry ?? 'Playground only'}</code>
+      </span>
+    ),
+    sortValue: (component) => component.name,
+    width: '42%',
+  },
+  {
+    id: 'category',
+    header: 'Category',
+    cell: (component) => component.directory.split('/').slice(0, -1).join(' / ') || 'Root',
+    sortValue: (component) => component.directory,
+    width: '30%',
+  },
+  {
+    id: 'status',
+    header: 'Status',
+    cell: (component) => component.status ?? 'Unspecified',
+    sortValue: (component) => component.status ?? '',
+  },
+  {
+    id: 'variants',
+    header: 'Variants',
+    cell: (component) => component.variants.length,
+    sortValue: (component) => component.variants.length,
+    align: 'end',
+  },
+]
 
 function DiscoveredComponentPreview({
   component,
@@ -98,12 +88,8 @@ function DiscoveredComponentPreview({
   component: ComponentEntity
   sourceId: string
 }) {
-  if (component.preview) {
-    const suffix = `/libraries/${component.sourceId ?? sourceId}/components/${component.directory}/${component.preview}`
-    const module = Object.entries(previewModules).find(([path]) => path.endsWith(suffix))?.[1]
-    const Preview = module && Object.values(module).find((value) => typeof value === 'function')
-    if (Preview) return <Preview />
-  }
+  const Preview = previewComponentFor(component, sourceId)
+  if (Preview) return <Preview />
   return <ComponentThumbnail kind={component.id} />
 }
 
@@ -124,20 +110,6 @@ const markdownComponents: Components = {
 // components directly; it broke as soon as another Library shipped a same-named component
 // (Klyp's own `button`/`input`/`checkbox`/`slider`/... collided) because ids are unique only
 // within one Library, not across sources. See `storyModuleFor` / `firstStoryExample` below.
-function storyModuleFor(component: ComponentEntity) {
-  if (!component.stories) return null
-  const suffix = `/libraries/${component.sourceId}/components/${component.directory}/${component.stories}`
-  return Object.entries(storyModules).find(([path]) => path.endsWith(suffix))?.[1] ?? null
-}
-
-function firstStoryExample(component: ComponentEntity) {
-  const module = storyModuleFor(component)
-  const story = module?.stories?.[0]
-  const example = story?.examples?.[0]
-  if (!module?.renderStoryExample || !story || !example) return null
-  return module.renderStoryExample(example, story)
-}
-
 function Specimen({
   label,
   children,
@@ -156,9 +128,7 @@ function Specimen({
 }
 
 function DiscoveredComponentStories({ component }: { component: ComponentEntity }) {
-  if (!component.stories) return null
-  const suffix = `/libraries/${component.sourceId}/components/${component.directory}/${component.stories}`
-  const module = Object.entries(storyModules).find(([path]) => path.endsWith(suffix))?.[1]
+  const module = storyModuleFor(component)
   if (!module?.stories?.length || !module.renderStoryExample) return null
 
   return (
@@ -242,7 +212,6 @@ function ComponentWorkbench({
         onModeChange={onCanvasModeChange}
         onColorChange={onCanvasColorChange}
         label={t('workbench.playground')}
-        controls={null}
       >
         {heroSpecimen ?? (
           <span className="workbench-placeholder">
@@ -300,16 +269,73 @@ function ComponentWorkbench({
   )
 }
 
+// Shared by Wireframes, Pages, and (implicitly) Components catalogs: groups entities by every
+// directory segment above the entity's own folder, so e.g. atoms/actions/Button groups under
+// "atoms / actions" the same way Components already do — Wireframes and Pages previously had no
+// such grouping at all and rendered as one flat grid regardless of folder depth.
+function groupByCategory<T>(items: T[], directoryOf: (item: T) => string, scopedPrefix: string) {
+  const scope = scopedPrefix.split('/').filter(Boolean)
+  const groupsByPath = new Map<string, T[]>()
+  for (const item of items) {
+    const category = directoryOf(item).split('/').filter(Boolean).slice(0, -1)
+    const categoryPath = category.join('/')
+    groupsByPath.set(categoryPath, [...(groupsByPath.get(categoryPath) ?? []), item])
+  }
+  return [...groupsByPath.entries()]
+    .map(([path, groupedItems]) => {
+      const category = path.split('/').filter(Boolean)
+      const relativeCategory = category.slice(scope.length)
+      const labelParts = relativeCategory.length ? relativeCategory : category.slice(-1)
+      return { path, label: labelParts.join(' / ') || 'All', items: groupedItems }
+    })
+    .sort((left, right) => left.path.localeCompare(right.path))
+}
+
+function CatalogLayoutToggle({
+  value,
+  onChange,
+}: {
+  value: CatalogLayout
+  onChange: (value: CatalogLayout) => void
+}) {
+  return (
+    <TabSwitcher
+      ariaLabel="Catalog layout"
+      variant="segmented"
+      size="small"
+      iconSize={12}
+      options={[
+        {
+          value: 'cards',
+          icon: <CardsViewIcon />,
+          accessibleLabel: 'Cards view',
+        },
+        {
+          value: 'list',
+          icon: <ListViewIcon />,
+          accessibleLabel: 'List view',
+        },
+      ]}
+      value={value}
+      onChange={onChange}
+    />
+  )
+}
+
 function Catalog({
   data,
   sourceId,
   folderPath,
   onSelectEntity,
+  layout,
+  onLayoutChange,
 }: {
   data: Extract<ModuleData, { kind: 'components' }>
   sourceId: string
   folderPath: string
   onSelectEntity: (id: string) => void
+  layout: CatalogLayout
+  onLayoutChange: (layout: CatalogLayout) => void
 }) {
   const components =
     folderPath === '__all__'
@@ -342,37 +368,52 @@ function Catalog({
   const title =
     folderPath === '__all__' ? 'Components' : (folderPath.split('/').at(-1) ?? 'Components')
   return (
-    <div className="module-page">
-      <ModuleHeader eyebrow="Live inventory · Components" title={title} count={components.length} />
+    <ModulePage>
+      <ModuleHeader
+        eyebrow="Live inventory · Components"
+        title={title}
+        count={components.length}
+        actions={<CatalogLayoutToggle value={layout} onChange={onLayoutChange} />}
+      />
       {components.length ? (
         <div className="component-groups">
           {groups.map((group) => {
             const showHeader = groups.length > 1 || group.path !== folderPath
             return (
-              <section className="component-group" key={group.path}>
-                {showHeader && (
-                  <header>
-                    <h2>{group.label}</h2>
-                    <span>{group.components.length}</span>
-                  </header>
+              <CatalogGroup
+                key={group.path}
+                title={showHeader ? group.label : undefined}
+                count={showHeader ? group.components.length : undefined}
+              >
+                {layout === 'cards' ? (
+                  <div className="component-grid">
+                    {group.components.map((component) => (
+                      <ComponentCard
+                        key={component.id}
+                        name={component.name}
+                        entry={component.entry ?? ''}
+                        meta={`${component.variants.length} variants`}
+                        status={component.status}
+                        preview={
+                          <DiscoveredComponentPreview component={component} sourceId={sourceId} />
+                        }
+                        previewAnimated={Boolean(component.previewMotion)}
+                        onClick={() => onSelectEntity(component.id)}
+                      />
+                    ))}
+                  </div>
+                ) : (
+                  <Table<ComponentEntity>
+                    rows={group.components}
+                    columns={componentListColumns}
+                    getRowId={(component) => component.id}
+                    ariaLabel={`${group.label} components`}
+                    density="compact"
+                    defaultSort={{ columnId: 'name', direction: 'ascending' }}
+                    onRowSelect={(component) => onSelectEntity(component.id)}
+                  />
                 )}
-                <div className="component-grid">
-                  {group.components.map((component) => (
-                    <ComponentCard
-                      key={component.id}
-                      name={component.name}
-                      entry={component.entry ?? ''}
-                      meta={`${component.variants.length} variants`}
-                      status={component.status}
-                      preview={
-                        <DiscoveredComponentPreview component={component} sourceId={sourceId} />
-                      }
-                      previewAnimated={Boolean(component.previewMotion)}
-                      onClick={() => onSelectEntity(component.id)}
-                    />
-                  ))}
-                </div>
-              </section>
+              </CatalogGroup>
             )
           })}
         </div>
@@ -382,7 +423,7 @@ function Catalog({
           <span>Choose All or another folder in the Directory Panel.</span>
         </div>
       )}
-    </div>
+    </ModulePage>
   )
 }
 
@@ -465,16 +506,12 @@ function AssetsCatalog({
   }
   const title = folderPath === '__all__' ? 'Assets' : (folderPath.split('/').at(-1) ?? 'Assets')
   return (
-    <div className="module-page">
+    <ModulePage>
       <ModuleHeader eyebrow="Filesystem inventory · Assets" title={title} count={assets.length} />
       {assets.length ? (
         <div className="asset-groups">
           {[...groups.entries()].map(([name, items]) => (
-            <section className="asset-group" key={name}>
-              <header>
-                <h2>{name}</h2>
-                <span>{items.length}</span>
-              </header>
+            <CatalogGroup key={name} title={name} count={items.length}>
               <div className="asset-grid">
                 {items.map((asset) => (
                   <AssetCard
@@ -489,7 +526,7 @@ function AssetsCatalog({
                   />
                 ))}
               </div>
-            </section>
+            </CatalogGroup>
           ))}
         </div>
       ) : (
@@ -498,7 +535,7 @@ function AssetsCatalog({
           <span>Add files to this canonical directory or choose All.</span>
         </div>
       )}
-    </div>
+    </ModulePage>
   )
 }
 
@@ -517,6 +554,7 @@ export function ModuleView({
   onCanvasColorChange,
   onOpenPlayground,
   onOpenPageReview,
+  onNavigateToPage,
 }: {
   data: ModuleData | null
   loading: boolean
@@ -532,8 +570,11 @@ export function ModuleView({
   onCanvasColorChange: (color: string) => void
   onOpenPlayground: () => void
   onOpenPageReview: () => void
+  onNavigateToPage?: (pageId: string) => void
 }) {
   const { t } = useDesignLabI18n()
+  const [pagesCatalogView, setPagesCatalogView] = useState<'catalog' | 'sitemap'>('catalog')
+  const [catalogLayout, setCatalogLayout] = useState<CatalogLayout>('cards')
   const modes = data && 'modes' in data ? data.modes : []
   const [previewMode, setPreviewMode] = useState<string>(interfaceTheme)
   useEffect(() => {
@@ -556,8 +597,47 @@ export function ModuleView({
       ? data.tokens.filter((token) => token.path === prefix || token.path.startsWith(`${prefix}.`))
       : data.tokens
     const title = prefix ? (selectedFolderPath.split('/').at(-1) ?? 'Tokens') : 'Tokens'
+    const tokenRows = tokens.map((token) => ({
+      id: token.id,
+      path: token.path,
+      type: token.type,
+      value: String(token.values[previewMode] ?? token.value),
+    }))
+    const tokenColumns: TableColumn<(typeof tokenRows)[number]>[] = [
+      {
+        id: 'path',
+        header: 'Token',
+        cell: (token) => <code className="token-table-path">{token.path}</code>,
+        sortValue: (token) => token.path,
+        width: '46%',
+      },
+      {
+        id: 'type',
+        header: 'Type',
+        cell: (token) => <span className="token-table-type">{token.type}</span>,
+        sortValue: (token) => token.type,
+        width: '18%',
+      },
+      {
+        id: 'value',
+        header: `Value · ${previewMode}`,
+        cell: (token) => (
+          <span className="token-table-value">
+            {token.type === 'color' && (
+              <i
+                className="token-table-swatch"
+                style={{ background: token.value }}
+                aria-hidden="true"
+              />
+            )}
+            <strong>{token.value}</strong>
+          </span>
+        ),
+        sortValue: (token) => token.value,
+      },
+    ]
     return (
-      <div className="module-page">
+      <ModulePage>
         <ModuleHeader
           eyebrow="Token registry"
           title={title}
@@ -565,69 +645,102 @@ export function ModuleView({
           actions={modeActions}
         />
         {tokens.length ? (
-          <div className="token-table">
-            <div className="token-row token-row--head">
-              <strong>Token</strong>
-              <strong>Type</strong>
-              <strong>Value · {previewMode}</strong>
-            </div>
-            {tokens.map((token) => {
-              const value = token.values[previewMode] ?? token.value
-              return (
-                <button
-                  type="button"
-                  className={`token-row${token.id === selectedEntityId ? ' token-row--selected' : ''}`}
-                  aria-current={token.id === selectedEntityId ? 'page' : undefined}
-                  key={`${token.file}:${token.path}`}
-                  onClick={() => onSelectEntity(token.id)}
-                >
-                  <code>{token.path}</code>
-                  <span>{token.type}</span>
-                  <div className="token-value">
-                    {token.type === 'color' && (
-                      <i className="token-value__swatch" style={{ background: String(value) }} />
-                    )}
-                    <strong>{String(value)}</strong>
-                  </div>
-                </button>
-              )
-            })}
-          </div>
+          <Table
+            rows={tokenRows}
+            columns={tokenColumns}
+            getRowId={(token) => token.id}
+            ariaLabel="Design tokens"
+            defaultSort={{ columnId: 'path', direction: 'ascending' }}
+            selectedRowId={selectedEntityId}
+            onRowSelect={(token) => onSelectEntity(token.id)}
+          />
         ) : (
           <div className="module-filter-empty">
             <strong>No tokens in this group</strong>
             <span>Choose All or another token group.</span>
           </div>
         )}
-      </div>
+      </ModulePage>
     )
   }
   if (data.kind === 'palette')
     return (
-      <div className="module-page">
+      <ModulePage>
         <ModuleHeader
           eyebrow="Color tokens"
           title="Palette"
           count={data.colors.length}
-          actions={modeActions}
+          actions={
+            <>
+              {modeActions}
+              <CatalogLayoutToggle value={catalogLayout} onChange={setCatalogLayout} />
+            </>
+          }
         />
-        <div className="palette-grid">
-          {data.colors.map((color) => (
-            <ColorCard
-              key={color.path}
-              name={color.path.replace(/^color\./, '')}
-              value={String(color.values[previewMode] ?? color.value)}
-            />
-          ))}
-        </div>
-      </div>
+        {catalogLayout === 'cards' ? (
+          <div className="palette-grid">
+            {data.colors.map((color) => (
+              <ColorCard
+                key={color.path}
+                name={color.path.replace(/^color\./, '')}
+                value={String(color.values[previewMode] ?? color.value)}
+              />
+            ))}
+          </div>
+        ) : (
+          <Table
+            rows={data.colors}
+            columns={[
+              {
+                id: 'color',
+                header: 'Color',
+                cell: (color) => (
+                  <span className="palette-table-swatch-wrap">
+                    <i
+                      className="palette-table-swatch"
+                      style={{
+                        background: String(color.values[previewMode] ?? color.value),
+                      }}
+                      aria-hidden="true"
+                    />
+                    <strong>{color.path.replace(/^color\./, '')}</strong>
+                  </span>
+                ),
+                sortValue: (color) => color.path,
+                width: '52%',
+              },
+              {
+                id: 'token',
+                header: 'Token',
+                cell: (color) => <code className="token-table-path">{color.path}</code>,
+                sortValue: (color) => color.path,
+              },
+              {
+                id: 'value',
+                header: `Value · ${previewMode}`,
+                cell: (color) => (
+                  <strong className="palette-table-value">
+                    {String(color.values[previewMode] ?? color.value)}
+                  </strong>
+                ),
+                sortValue: (color) => String(color.values[previewMode] ?? color.value),
+                align: 'end',
+              },
+            ]}
+            getRowId={(color) => color.id}
+            ariaLabel="Color palette"
+            density="compact"
+            defaultSort={{ columnId: 'color', direction: 'ascending' }}
+          />
+        )}
+      </ModulePage>
     )
   if (data.kind === 'fonts') {
     const typography = Object.fromEntries(
       data.typography.map((token) => [token.path, token.values[previewMode] ?? token.value]),
     )
     return (
-      <div className="module-page">
+      <ModulePage>
         <ModuleHeader
           eyebrow="Type registry"
           title="Fonts"
@@ -675,7 +788,7 @@ export function ModuleView({
             </article>
           ))}
         </div>
-      </div>
+      </ModulePage>
     )
   }
   if (data.kind === 'assets')
@@ -695,23 +808,34 @@ export function ModuleView({
             wireframe.directory === prefix || wireframe.directory.startsWith(`${prefix}/`),
         )
       : data.wireframes
+    const groups = groupByCategory(wireframes, (wireframe) => wireframe.directory, prefix)
     return (
-      <div className="module-page">
+      <ModulePage>
         <ModuleHeader
           eyebrow="Page directions"
           title={prefix ? (prefix.split('/').at(-1) ?? 'Wireframes') : 'Wireframes'}
           count={wireframes.length}
         />
         {wireframes.length ? (
-          <div className="wireframe-catalog">
-            {wireframes.map((wireframe) => (
-              <WireframeCatalogCard
-                key={wireframe.id}
-                wireframe={wireframe}
-                mode={data.modes[0] ?? 'default'}
-                themeVariables={data.themeVariables}
-                onClick={() => onSelectEntity(wireframe.id)}
-              />
+          <div className="component-groups">
+            {groups.map((group) => (
+              <CatalogGroup
+                key={group.path}
+                title={groups.length > 1 ? group.label : undefined}
+                count={groups.length > 1 ? group.items.length : undefined}
+              >
+                <div className="wireframe-catalog">
+                  {group.items.map((wireframe) => (
+                    <WireframeCatalogCard
+                      key={wireframe.id}
+                      wireframe={wireframe}
+                      mode={data.modes[0] ?? 'default'}
+                      themeVariables={data.themeVariables}
+                      onClick={() => onSelectEntity(wireframe.id)}
+                    />
+                  ))}
+                </div>
+              </CatalogGroup>
             ))}
           </div>
         ) : (
@@ -720,7 +844,7 @@ export function ModuleView({
             <span>Choose All or add a canonical wireframe.json directory.</span>
           </div>
         )}
-      </div>
+      </ModulePage>
     )
   }
   if (data.kind === 'pages') {
@@ -740,23 +864,91 @@ export function ModuleView({
           (page) => page.directory === prefix || page.directory.startsWith(`${prefix}/`),
         )
       : data.pages
+    const groups = groupByCategory(pages, (page) => page.directory, prefix)
+    const pagesViewToggle = (
+      <TabSwitcher
+        ariaLabel="Pages catalog view"
+        options={[
+          { value: 'catalog', label: 'Catalog' },
+          { value: 'sitemap', label: 'Site map' },
+        ]}
+        value={pagesCatalogView}
+        onChange={setPagesCatalogView}
+      />
+    )
+
+    if (pagesCatalogView === 'sitemap') {
+      const sitemap = buildPageSitemap(pages)
+      const sitemapNodes = sitemap.nodes.map((node) => ({
+        id: node.id,
+        title: node.title,
+        description: node.description,
+        eyebrow: node.route ?? 'Page',
+        preview: null,
+        x: node.x,
+        y: node.y,
+      }))
+      const folderLabel = prefix ? (prefix.split('/').at(-1) ?? prefix) : 'All Pages'
+      return (
+        <ModulePage variant="canvas">
+          <ModuleHeader
+            eyebrow={prefix ? `Folder · ${folderLabel}` : 'Site-wide navigation'}
+            title={prefix ? `${folderLabel} site map` : 'Pages site map'}
+            count={sitemap.nodes.length}
+            actions={pagesViewToggle}
+          />
+          {sitemap.nodes.length ? (
+            <UserFlowCanvas
+              className="module-page__sitemap-canvas"
+              variant="sitemap"
+              nodes={sitemapNodes}
+              edges={sitemap.edges}
+              selectedId={selectedEntityId}
+              onSelect={(pageId) => onSelectEntity(pageId)}
+              onPreview={(pageId) => onNavigateToPage?.(pageId)}
+            />
+          ) : (
+            <div className="module-filter-empty">
+              <strong>No Pages in this site map</strong>
+              <span>
+                {prefix
+                  ? 'This folder has no Pages yet, or none of them declare cross-Page flow edges.'
+                  : 'Add Pages with cross-Page flow edges to see navigation here.'}
+              </span>
+            </div>
+          )}
+        </ModulePage>
+      )
+    }
+
     return (
-      <div className="module-page">
+      <ModulePage>
         <ModuleHeader
           eyebrow="Production screens"
           title={prefix ? (prefix.split('/').at(-1) ?? 'Pages') : 'Pages'}
           count={pages.length}
+          actions={pagesViewToggle}
         />
         {pages.length ? (
-          <div className="page-catalog">
-            {pages.map((page) => (
-              <PageCatalogCard
-                key={page.id}
-                page={page}
-                mode={data.modes[0] ?? 'default'}
-                themeVariables={data.themeVariables}
-                onClick={() => onSelectEntity(page.id)}
-              />
+          <div className="component-groups">
+            {groups.map((group) => (
+              <CatalogGroup
+                key={group.path}
+                title={groups.length > 1 ? group.label : undefined}
+                count={groups.length > 1 ? group.items.length : undefined}
+              >
+                <div className="page-catalog">
+                  {group.items.map((page) => (
+                    <PageCatalogCard
+                      key={page.id}
+                      page={page}
+                      mode={data.modes[0] ?? 'default'}
+                      themeVariables={data.themeVariables}
+                      onClick={() => onSelectEntity(page.id)}
+                    />
+                  ))}
+                </div>
+              </CatalogGroup>
             ))}
           </div>
         ) : (
@@ -765,7 +957,7 @@ export function ModuleView({
             <span>Choose All or add a canonical page.json directory.</span>
           </div>
         )}
-      </div>
+      </ModulePage>
     )
   }
   if (data.kind === 'components') {
@@ -793,6 +985,8 @@ export function ModuleView({
         sourceId={sourceId}
         folderPath={selectedFolderPath}
         onSelectEntity={onSelectEntity}
+        layout={catalogLayout}
+        onLayoutChange={setCatalogLayout}
       />
     )
   }

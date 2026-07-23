@@ -58,7 +58,7 @@ export const stories = [
     kind: 'context',
     name: 'Catalog row',
     description:
-      'Review borderless overlay-title cards at catalog density with different preview silhouettes and title lengths.',
+      'Review bordered overlay-title cards at catalog density with different preview silhouettes and title lengths.',
     examples: [{ label: 'Mixed entries', props: {} }],
   },
 ]

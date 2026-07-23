@@ -9,6 +9,7 @@ import {
 } from './WorkbenchPlayground'
 
 export function renderStoryExample(example: StoryExample) {
+  const hasControls = example.props.controls !== 'none'
   return createElement(WorkbenchPlayground, {
     mode: String(example.props.mode ?? 'dark-grid') as 'dark-grid' | 'light-grid' | 'solid',
     color: '#264653',
@@ -18,10 +19,12 @@ export function renderStoryExample(example: StoryExample) {
     controlsPosition: String(
       example.props.controlsPosition ?? 'end',
     ) as WorkbenchPlaygroundControlsPosition,
-    controls: createElement(Checkbox, {
-      label: 'Disabled',
-      defaultChecked: false,
-    }),
+    controls: hasControls
+      ? createElement(Checkbox, {
+          label: 'Disabled',
+          defaultChecked: false,
+        })
+      : undefined,
     children: createElement(Button, { variant: 'primary', children: 'Continue' }),
   })
 }
@@ -67,6 +70,9 @@ export const stories = [
     name: 'Controls composition',
     description:
       'Canvas and inspector remain one reusable workbench region while accepting module-owned controls.',
-    examples: [{ label: 'Boolean controls', props: { controls: 'Checkbox fields' } }],
+    examples: [
+      { label: 'Boolean controls', props: { controls: 'Checkbox fields' } },
+      { label: 'Canvas only', props: { controls: 'none' } },
+    ],
   },
 ]

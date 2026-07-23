@@ -1,0 +1,19 @@
+{
+  "id": "workspace-stage",
+  "name": "Workspace Stage",
+  "description": "Provides the bounded, token-driven stage where Design Lab modules render beneath the workspace header.",
+  "aliases": ["workspace canvas", "module stage", "application content stage"],
+  "useWhen": ["host the active Design Lab module", "clip module-owned scrolling and overlays"],
+  "avoidWhen": ["render a component Playground canvas", "provide document scrolling"],
+  "entry": "WorkspaceStage.tsx",
+  "preview": "WorkspaceStage.preview.tsx",
+  "stories": "WorkspaceStage.stories.tsx",
+  "docs": "README.md",
+  "changelog": "CHANGELOG.md",
+  "status": "ready",
+  "states": ["content", "empty"],
+  "variants": ["grid"],
+  "props": {
+    "children": { "type": "ReactNode", "required": true, "slot": true }
+  }
+}

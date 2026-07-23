@@ -1,0 +1,41 @@
+{
+  "id": "table",
+  "description": "Displays arbitrary typed row data in semantic columns with sorting, density, selection, and empty states.",
+  "aliases": ["data table", "sortable table", "registry table", "list view"],
+  "useWhen": [
+    "compare structured records",
+    "browse a sortable dense inventory",
+    "render a catalog list view"
+  ],
+  "avoidWhen": [
+    "display unstructured prose",
+    "build a visual card gallery",
+    "edit spreadsheet-like cells"
+  ],
+  "entry": "Table.tsx",
+  "preview": "Table.preview.tsx",
+  "stories": "Table.stories.tsx",
+  "docs": "README.md",
+  "changelog": "CHANGELOG.md",
+  "status": "ready",
+  "variants": ["comfortable", "compact"],
+  "states": ["default", "hover", "focus-visible", "selected", "sorted", "empty"],
+  "props": {
+    "rows": { "type": "readonly Row[]", "required": true },
+    "columns": { "type": "readonly TableColumn<Row>[]", "required": true },
+    "getRowId": { "type": "(row: Row) => string", "required": true },
+    "ariaLabel": { "type": "string", "required": true },
+    "density": {
+      "type": "TableDensity",
+      "values": ["comfortable", "compact"],
+      "default": "comfortable"
+    },
+    "selectedRowId": { "type": "string | null" },
+    "onRowSelect": { "type": "(row: Row) => void" },
+    "defaultSort": { "type": "TableSort | null", "default": "null" },
+    "sort": { "type": "TableSort | null" },
+    "onSortChange": { "type": "(sort: TableSort | null) => void" },
+    "emptyMessage": { "type": "ReactNode", "slot": true },
+    "className": { "type": "string" }
+  }
+}

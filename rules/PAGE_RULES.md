@@ -4,7 +4,7 @@ This file is the shared source of truth for humans, Codex, Claude, and other age
 
 ## Purpose
 
-A Page is the finalized, production-composed screen for one product route. It is the graduation point of the Wireframe → Page pipeline described in `WIREFRAME_RULES.md`: a Wireframe compares layout directions before commitment, while a Page is the single committed composition a developer can copy and ship.
+A Page is the finalized, production-composed screen for one product route. It is the graduation point of the Wireframe → Page pipeline described in [`WIREFRAME_RULES.md`](WIREFRAME_RULES.md): a Wireframe compares layout directions before commitment, while a Page is the single committed composition a developer can copy and ship.
 
 A Page must:
 
@@ -66,11 +66,15 @@ Supported lifecycle values are `draft`, `review`, and `approved`. `approved` mea
 
 Every referenced control, state, node, and edge id must exist and be unique. State values must satisfy the declared control types and ranges. Every `flow.edges[]` target must resolve: a `state` target must exist in this Page's own `states[]`, and a `page` target must resolve to a discovered Page in the same source; an unresolved target is a diagnostic on the linking Page, not a broken render. `derivedFromWireframe`, when present, must resolve to a real Wireframe/layout/state combination in the same source; a stale reference is a diagnostic, not a crash, exactly like the manifest-parse-error and schema-version-unsupported isolation already guaranteed for `component.json` and `wireframe.json`.
 
+`page.json` may also define the same optional semantic-retrieval fields `component.json` supports — `aliases`, `useWhen`, `avoidWhen` — so MCP and CLI `designlab_search`/`designlab_browse` can surface a finished screen by intent (e.g. "marketing landing page") before an agent starts composing one from atoms. These fields are never required for discovery; when absent, the gateway falls back to the first paragraph of the adjacent `README.md`. A resolved Page entity also reports `compositionUses`, the list of Library Component symbols the renderer actually imports — derived from static analysis of `<PageName>.page.tsx`, the same mechanism `uses`/`usedBy` already uses for Components, never authored by hand.
+
 ## Composition
 
 A Page renders only real Library Components and their composition slots. Unlike a Wireframe, it must not contain exploratory local blocks: by the time a screen becomes a Page, every visual decision should already resolve to an existing Component, or that gap is itself a signal to go add the missing Component first.
 
 Product copy, layout structure, and interaction logic live in the Page renderer exactly as they would in the shipped application; a Page is not illustrative. States capture the domain/data conditions a Page must render correctly (empty, loading, error, populated, unauthenticated, permission-limited, and so on), not alternative layouts. If two states would require materially different information architecture, that comparison belongs in a Wireframe, and the Page keeps only the direction it committed to.
+
+`renderPage` itself must stay a plain, Hook-free function. Design Lab's Page card, catalog thumbnails, and the flow Canvas all call `renderer.renderPage(...)` directly as an ordinary function — not through JSX — to build preview snapshots for every state a Page has, and it does this repeatedly within one render of the surrounding view. Calling a Hook (`useState`, `useEffect`, `useRef`, and so on) directly in `renderPage`'s own body attaches that Hook to whichever fiber happens to be rendering it, with no stable call count across renders; the first production instance of this (`Auth.page.tsx`'s email field) reliably crashed full-screen review and permanently blanked the app the moment a cross-Page navigation reused the view. Any local interactive state belongs in a real nested component that `renderPage` mounts through JSX (`<AuthForm ... />`), never inline in `renderPage` itself. The same constraint applies to `renderWireframe` in [`WIREFRAME_RULES.md`](WIREFRAME_RULES.md).
 
 ## Routing
 
@@ -116,7 +120,7 @@ Selecting a cross-Page edge in review mode previews the target Page's card witho
 
 ## Reuse and inspection
 
-Pages use the same production `WorkbenchInspector` as Component Playgrounds and Wireframes. Component roots and named slots keep their purple and pink identities; the review build derives Component calls from normal imports and slots from Component manifests automatically. A Page author must not add inspection attributes or duplicate source fragments.
+Pages use the same production `WorkbenchInspector` as Component Playgrounds and Wireframes. Component roots and named slots keep their purple and pink identities; an `<img>`/`<video>` host whose `src`/`poster` resolves to a locally imported asset gets a teal identity showing the resolved package import, whether or not it sits inside a manifest slot. The review build derives Component calls from normal imports, slots from Component manifests, and asset imports from the same static-import analysis automatically. A Page author must not add inspection attributes or duplicate source fragments.
 
 Because a Page renders no exploratory blocks, every inspected element should resolve to a Component root or a manifest-declared slot; an inspected raw host node with no owning Component is itself a signal that a needed Component is still missing from the Library.
 

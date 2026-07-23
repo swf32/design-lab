@@ -1,5 +1,5 @@
 import './WireframeView.scss'
-import { useEffect, useMemo, useRef, useState, type CSSProperties } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState, type CSSProperties } from 'react'
 import {
   Button,
   Checkbox,
@@ -8,6 +8,8 @@ import {
   Slider,
   TabSwitcher,
   UserFlowCanvas,
+  type UserFlowCanvasEdge,
+  type UserFlowCanvasViewState,
   WireframeDevPanel,
   WorkbenchInspector,
 } from '@design-lab/system/components'
@@ -15,6 +17,13 @@ import { ArrowLeftIcon, LinkIcon } from '@design-lab/system/icons'
 import type { WireframeAction, WireframeValues } from '@design-lab/system/wireframes'
 import type { ModuleData } from '../../api/projects'
 import { designSystemModeStyle } from '../../designSystemMode'
+import {
+  clearFlowActionHighlight,
+  highlightFlowActionTarget,
+  resolveFlowActionTarget,
+  useFlowActionCapture,
+} from '../../hooks/useFlowActionCapture'
+import { useFlowLayoutAutosave } from '../../hooks/useFlowLayoutAutosave'
 import { wireframeRendererFor } from '../../wireframes/registry'
 
 type WireframeEntity = Extract<ModuleData, { kind: 'wireframes' }>['wireframes'][number]
@@ -85,11 +94,13 @@ function initialContext(wireframe: WireframeEntity, modes: string[]) {
 
 export function WireframeView({
   wireframe,
+  sourceId,
   modes,
   themeVariables,
   onClose,
 }: {
   wireframe: WireframeEntity
+  sourceId: string
   modes: string[]
   themeVariables: Extract<ModuleData, { kind: 'wireframes' }>['themeVariables']
   onClose: () => void
@@ -105,9 +116,15 @@ export function WireframeView({
   const [view, setView] = useState<WireframeViewMode>(initial.view)
   const [mode, setMode] = useState(initial.mode)
   const [selectedNodeId, setSelectedNodeId] = useState<string | null>(initial.selectedNodeId)
+  const [flowViewState, setFlowViewState] = useState<UserFlowCanvasViewState | undefined>(undefined)
   const [devModeOpen, setDevModeOpen] = useState(false)
   const [copyState, setCopyState] = useState<'idle' | 'copied' | 'failed'>('idle')
+  const [activeFlowActionId, setActiveFlowActionId] = useState<string | null>(null)
+  const [normalizedLayout, setNormalizedLayout] = useState<
+    Array<{ id: string; x: number; y: number }>
+  >([])
   const stageRef = useRef<HTMLElement>(null)
+  const clickTargetRef = useFlowActionCapture(stageRef)
   const renderer = wireframeRendererFor(wireframe)
   const currentState = wireframe.states.find((state) => state.id === stateId) ?? null
   const modeStyle = useMemo(
@@ -152,7 +169,41 @@ export function WireframeView({
     }
   }
 
+  useEffect(() => {
+    if (view !== 'screen') clearFlowActionHighlight()
+  }, [view])
+
+  const handleLayoutNormalized = useCallback(
+    (nodes: Array<{ id: string; x: number; y: number }>) => {
+      setNormalizedLayout((current) => {
+        if (
+          current.length === nodes.length &&
+          current.every(
+            (node, index) =>
+              node.id === nodes[index]?.id &&
+              node.x === nodes[index]?.x &&
+              node.y === nodes[index]?.y,
+          )
+        )
+          return current
+        return nodes
+      })
+    },
+    [],
+  )
+
+  useFlowLayoutAutosave({
+    sourceId,
+    moduleId: 'wireframes',
+    directory: wireframe.directory,
+    authoredNodes: wireframe.flow.nodes,
+    normalizedNodes: normalizedLayout,
+    enabled: view === 'flow',
+  })
+
   const dispatchAction = (action: WireframeAction) => {
+    highlightFlowActionTarget(resolveFlowActionTarget(clickTargetRef.current))
+    setActiveFlowActionId(action.id)
     const currentNode =
       wireframe.flow.nodes.find((node) => node.state === stateId) ??
       wireframe.flow.nodes.find((node) => node.id === selectedNodeId)
@@ -205,52 +256,82 @@ export function WireframeView({
     if (copied) window.setTimeout(() => setCopyState('idle'), 1800)
   }
 
-  const nodes = wireframe.flow.nodes.map((node) => {
-    const state = wireframe.states.find((item) => item.id === node.state)
-    return {
-      id: node.id,
-      title: state?.name ?? node.state,
-      description: state?.description ?? 'State definition unavailable.',
-      preview:
-        renderer && state
-          ? renderer.renderWireframe({
-              layout,
-              state: state.id,
-              values: { ...state.values },
-              onAction: () => undefined,
-            })
-          : null,
-      mobilePreview:
-        renderer && state
-          ? renderer.renderWireframe({
-              layout,
-              state: state.id,
-              values: { ...state.values },
-              onAction: () => undefined,
-            })
-          : null,
-      screenStyle: modeStyle,
-      eyebrow:
-        wireframe.flow.edges.some((edge) => edge.to === node.id) &&
-        wireframe.flow.edges.some((edge) => edge.from === node.id)
-          ? 'Transition state'
-          : wireframe.flow.edges.some((edge) => edge.from === node.id)
-            ? 'Entry state'
-            : 'Terminal state',
-      x: node.x,
-      y: node.y,
-    }
-  })
+  const flowNodes = useMemo(
+    () =>
+      wireframe.flow.nodes.map((node) => {
+        const state = wireframe.states.find((item) => item.id === node.state)
+        return {
+          id: node.id,
+          title: state?.name ?? node.state,
+          description: state?.description ?? 'State definition unavailable.',
+          preview:
+            renderer && state
+              ? renderer.renderWireframe({
+                  layout,
+                  state: state.id,
+                  values: { ...state.values },
+                  onAction: () => undefined,
+                })
+              : null,
+          mobilePreview:
+            renderer && state
+              ? renderer.renderWireframe({
+                  layout,
+                  state: state.id,
+                  values: { ...state.values },
+                  onAction: () => undefined,
+                })
+              : null,
+          screenStyle: modeStyle,
+          eyebrow:
+            wireframe.flow.edges.some((edge) => edge.to === node.id) &&
+            wireframe.flow.edges.some((edge) => edge.from === node.id)
+              ? 'Transition state'
+              : wireframe.flow.edges.some((edge) => edge.from === node.id)
+                ? 'Entry state'
+                : 'Terminal state',
+          x: node.x,
+          y: node.y,
+        }
+      }),
+    [layout, modeStyle, renderer, wireframe.flow.edges, wireframe.flow.nodes, wireframe.states],
+  )
+
+  const flowEdges: UserFlowCanvasEdge[] = useMemo(
+    () =>
+      wireframe.flow.edges.map((edge) => ({
+        id: edge.id,
+        from: edge.from,
+        to: edge.to,
+        label: edge.label,
+        action: edge.action,
+      })),
+    [wireframe.flow.edges],
+  )
+
+  const highlightedEdgeIds = useMemo(() => {
+    if (!activeFlowActionId) return []
+    return flowEdges.filter((edge) => edge.action === activeFlowActionId).map((edge) => edge.id)
+  }, [activeFlowActionId, flowEdges])
+
+  const activeFlowEdge = useMemo(() => {
+    if (!activeFlowActionId) return null
+    return wireframe.flow.edges.find((edge) => edge.action === activeFlowActionId) ?? null
+  }, [activeFlowActionId, wireframe.flow.edges])
 
   return (
     <main className="wireframe-view">
       <section ref={stageRef} className={`wireframe-view__stage wireframe-view__stage--${view}`}>
         {view === 'flow' ? (
           <UserFlowCanvas
-            nodes={nodes}
-            edges={wireframe.flow.edges}
+            nodes={flowNodes}
+            edges={flowEdges}
             selectedId={selectedNodeId}
             onSelect={selectNode}
+            viewState={flowViewState}
+            onViewStateChange={setFlowViewState}
+            highlightedEdgeIds={highlightedEdgeIds}
+            onLayoutNormalized={handleLayoutNormalized}
             onPreview={(nodeId) => {
               selectNode(nodeId)
               setView('screen')
@@ -280,6 +361,33 @@ export function WireframeView({
           </div>
         )}
       </section>
+
+      {activeFlowEdge && (
+        <div className="wireframe-view__flow-hint" role="status">
+          <span>
+            Flow action <strong>{activeFlowEdge.action}</strong>
+            {activeFlowEdge.label ? ` · ${activeFlowEdge.label}` : ''}
+            {view === 'flow' ? ' — matching edge highlighted' : ''}
+          </span>
+          {view === 'screen' ? (
+            <Button type="button" variant="secondary" size="small" onClick={() => setView('flow')}>
+              Show on graph
+            </Button>
+          ) : (
+            <Button
+              type="button"
+              variant="ghost"
+              size="small"
+              onClick={() => {
+                setActiveFlowActionId(null)
+                clearFlowActionHighlight()
+              }}
+            >
+              Clear
+            </Button>
+          )}
+        </div>
+      )}
 
       <WireframeDevPanel
         open={devModeOpen}
@@ -492,7 +600,7 @@ export function WireframeView({
           </section>
         </div>
       </WireframeDevPanel>
-      <WorkbenchInspector surfaceRef={stageRef} />
+      {view === 'screen' && <WorkbenchInspector surfaceRef={stageRef} />}
       <span className="wireframe-view__copy-status" aria-live="polite">
         {copyState === 'copied'
           ? 'Review link copied'

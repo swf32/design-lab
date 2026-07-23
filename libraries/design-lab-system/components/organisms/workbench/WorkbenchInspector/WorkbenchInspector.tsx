@@ -38,7 +38,7 @@ const authoredStylesCache = new Map<string, Promise<AuthoredStyles>>()
 
 function descriptorInspection(
   element: InspectableElement,
-  kind: 'component' | 'slot',
+  kind: 'component' | 'slot' | 'asset',
   descriptor: InspectionDescriptor,
 ): Inspection {
   return {
@@ -103,6 +103,16 @@ async function inspectElement(element: InspectableElement): Promise<Inspection> 
   if (slot) return descriptorInspection(element, 'slot', slot)
   const component = metadata?.components.at(-1)
   if (component) return descriptorInspection(element, 'component', component)
+  const asset = metadata?.assets.at(-1)
+  if (asset) return descriptorInspection(element, 'asset', asset)
+  if (metadata?.source.asset)
+    return {
+      rect: element.getBoundingClientRect(),
+      kind: 'asset',
+      name: element.tagName.toLowerCase(),
+      code: metadata.source.asset,
+      language: 'tsx',
+    }
   return {
     rect: element.getBoundingClientRect(),
     kind: 'element',
@@ -118,6 +128,7 @@ export type WorkbenchInspectorProps = {
 
 export function WorkbenchInspector({ surfaceRef }: WorkbenchInspectorProps) {
   const [active, setActive] = useState(false)
+  const [hardMode, setHardMode] = useState(false)
   const [inspection, setInspection] = useState<Inspection | null>(null)
   const [pinned, setPinned] = useState(false)
   const frameRef = useRef<number | null>(null)
@@ -130,11 +141,16 @@ export function WorkbenchInspector({ surfaceRef }: WorkbenchInspectorProps) {
     if (!surface || !active) return
 
     surface.setAttribute('data-workbench-inspecting', '')
-    const markedElements = inspectionEntriesWithin(surface).map(([element, metadata]) => {
-      if (metadata.components.length) element.setAttribute('data-dl-inspection-component', '')
-      if (metadata.slots.length) element.setAttribute('data-dl-inspection-slot', '')
-      return element
-    })
+    if (hardMode) surface.setAttribute('data-workbench-hard-mode', '')
+    const markedElements = inspectionEntriesWithin(surface)
+      .filter(([element]) => !element.closest('[data-workbench-inspector-ui]'))
+      .map(([element, metadata]) => {
+        if (metadata.components.length) element.setAttribute('data-dl-inspection-component', '')
+        else if (metadata.slots.length) element.setAttribute('data-dl-inspection-slot', '')
+        else if (metadata.assets.length || metadata.source.asset)
+          element.setAttribute('data-dl-inspection-asset', '')
+        return element
+      })
 
     const select = async (target: EventTarget | null) => {
       if (!(target instanceof HTMLElement || target instanceof SVGElement)) return
@@ -205,9 +221,11 @@ export function WorkbenchInspector({ surfaceRef }: WorkbenchInspectorProps) {
     window.addEventListener('keydown', escape)
     return () => {
       surface.removeAttribute('data-workbench-inspecting')
+      surface.removeAttribute('data-workbench-hard-mode')
       for (const element of markedElements) {
         element.removeAttribute('data-dl-inspection-component')
         element.removeAttribute('data-dl-inspection-slot')
+        element.removeAttribute('data-dl-inspection-asset')
       }
       surface.removeEventListener('pointermove', move)
       surface.removeEventListener('pointerdown', choose, true)
@@ -215,7 +233,7 @@ export function WorkbenchInspector({ surfaceRef }: WorkbenchInspectorProps) {
       window.removeEventListener('keydown', escape)
       if (frameRef.current != null) cancelAnimationFrame(frameRef.current)
     }
-  }, [active, surfaceRef])
+  }, [active, hardMode, surfaceRef])
 
   useEffect(() => {
     if (!active) {
@@ -223,6 +241,7 @@ export function WorkbenchInspector({ surfaceRef }: WorkbenchInspectorProps) {
       pointerClickRef.current = false
       setPinned(false)
       setInspection(null)
+      setHardMode(false)
     }
   }, [active])
 
@@ -244,7 +263,7 @@ export function WorkbenchInspector({ surfaceRef }: WorkbenchInspectorProps) {
     <div
       className={`dl-workbench-inspector${active ? ' dl-workbench-inspector--active' : ''}${
         pinned ? ' dl-workbench-inspector--pinned' : ''
-      }`}
+      }${hardMode ? ' dl-workbench-inspector--hard' : ''}`}
       data-workbench-inspector-ui
       style={cardStyle}
     >
@@ -262,6 +281,18 @@ export function WorkbenchInspector({ surfaceRef }: WorkbenchInspectorProps) {
             language={inspection.language}
           />
         </>
+      )}
+      {active && (
+        <WorkbenchAction
+          className="dl-workbench-inspector__hard-mode"
+          tone="neutral"
+          active={hardMode}
+          aria-label={hardMode ? 'Turn off Hard Mode' : 'Turn on Hard Mode'}
+          aria-pressed={hardMode}
+          onClick={() => setHardMode((current) => !current)}
+        >
+          Hard Mode
+        </WorkbenchAction>
       )}
       <WorkbenchAction
         className="dl-workbench-inspector__trigger"

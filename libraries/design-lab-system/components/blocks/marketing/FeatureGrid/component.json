@@ -1,0 +1,36 @@
+{
+  "id": "feature-grid",
+  "name": "Feature Grid",
+  "description": "Centered marketing section with a headline and a responsive grid of icon feature cards.",
+  "aliases": ["feature cards", "benefits grid", "capabilities section"],
+  "useWhen": ["present multiple product capabilities on a marketing Page"],
+  "avoidWhen": ["show a single highlight that fits one hero or story block"],
+  "entry": "FeatureGrid.tsx",
+  "preview": "FeatureGrid.preview.tsx",
+  "stories": "FeatureGrid.stories.tsx",
+  "docs": "README.md",
+  "changelog": "CHANGELOG.md",
+  "status": "in-progress",
+  "states": ["default"],
+  "variants": ["default"],
+  "props": {
+    "title": {
+      "type": "string",
+      "required": true
+    },
+    "description": {
+      "type": "slot",
+      "required": true
+    },
+    "items": {
+      "type": "FeatureGridItem[]",
+      "required": true
+    },
+    "eyebrow": {
+      "type": "string"
+    },
+    "headingId": {
+      "type": "string"
+    }
+  }
+}

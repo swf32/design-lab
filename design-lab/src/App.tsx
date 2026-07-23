@@ -12,6 +12,8 @@ import {
   CreateProjectDialog,
   DirectoryPanel,
   TabSwitcher,
+  WorkspaceHeader,
+  WorkspaceStage,
   type CanvasMode,
   type ModuleId,
 } from '@design-lab/system/components'
@@ -22,7 +24,14 @@ import { SettingsView } from './views/SettingsView/SettingsView'
 import { WireframeView } from './views/WireframeView/WireframeView'
 import { PageView } from './views/PageView/PageView'
 import { Button, IconButton } from '@design-lab/system/components'
-import { CodeIcon, DirectoryIcon, LinkIcon, StarIcon } from '@design-lab/system/icons'
+import {
+  CodeIcon,
+  DarkThemeIcon,
+  DirectoryIcon,
+  LightThemeIcon,
+  LinkIcon,
+  StarIcon,
+} from '@design-lab/system/icons'
 import {
   createProject,
   getModuleData,
@@ -33,6 +42,7 @@ import {
   type ProjectTreeItem,
 } from './api/projects'
 import { appRouteHref, findRouteTreeItem, readAppRoute, treeItemRoutePath } from './navigation'
+import { ErrorBoundary } from './ErrorBoundary'
 
 const moduleMessageKeys: Record<ModuleId, MessageKey> = {
   home: 'module.home',
@@ -43,6 +53,28 @@ const moduleMessageKeys: Record<ModuleId, MessageKey> = {
   palette: 'module.palette',
   tokens: 'module.tokens',
   fonts: 'module.fonts',
+}
+
+function crashFallback(surface: string, reset: () => void, goBack: () => void) {
+  return (
+    <main className="component-playground-missing">
+      <span>{surface} hit an unexpected error and could not render.</span>
+      <div style={{ display: 'flex', gap: 8 }}>
+        <Button
+          variant="secondary"
+          onClick={() => {
+            goBack()
+            reset()
+          }}
+        >
+          Go back
+        </Button>
+        <Button variant="ghost" onClick={reset}>
+          Try again
+        </Button>
+      </div>
+    </main>
+  )
 }
 
 const NAVIGATION_WIDTH_KEY = 'design-lab:navigation-width'
@@ -121,7 +153,24 @@ export default function App() {
   const maxNavigationWidth = Math.max(MIN_NAVIGATION_WIDTH, window.innerWidth - MIN_WORKSPACE_WIDTH)
   const activeProject = projects.find((project) => project.id === activeProjectId) ?? null
   const playgroundOpen = active === 'components' && routePath.endsWith('/playground')
-  const pageReviewOpen = active === 'pages' && routePath.endsWith('/review')
+  // See the `mirroredReviewPage` comment above: prefer the authored production route over the
+  // filesystem path whenever it is safe to mirror. A folder at the same path always wins — e.g.
+  // `pages/account/` must open the folder catalog, not the Account Page whose mirroredRoute is
+  // `/account`.
+  const folderAtRoutePath = tree.some(
+    (item) => item.kind === 'folder' && !item.virtual && item.path === routePath,
+  )
+  const mirroredReviewPage =
+    active === 'pages' && moduleData?.kind === 'pages' && !folderAtRoutePath
+      ? moduleData.pages.find(
+          (item) =>
+            item.mirroredRoute &&
+            item.mirroredRoute !== '/' &&
+            routePath === item.mirroredRoute.replace(/^\//, ''),
+        )
+      : undefined
+  const pageReviewOpen =
+    active === 'pages' && (routePath.endsWith('/review') || Boolean(mirroredReviewPage))
   const wireframeRouteRequested = active === 'wireframes' && Boolean(routePath)
   const wireframeTreeItem = wireframeRouteRequested ? findRouteTreeItem(tree, routePath) : undefined
   const wireframeOpen =
@@ -133,7 +182,9 @@ export default function App() {
   const entityRoutePath = playgroundOpen
     ? routePath.replace(/\/playground$/, '')
     : pageReviewOpen
-      ? routePath.replace(/\/review$/, '')
+      ? mirroredReviewPage
+        ? mirroredReviewPage.directory
+        : routePath.replace(/\/review$/, '')
       : routePath
   const directoryTree: ProjectTreeItem[] = [
     'components',
@@ -183,6 +234,13 @@ export default function App() {
     setRoutePath(path)
     setRouteSourceId(effectiveSourceId)
   }
+
+  // See the `mirroredReviewPage` comment above: prefer the authored production route over the
+  // filesystem path whenever it is safe to mirror.
+  const pageReviewPath = (page: { directory: string; mirroredRoute: string | null }) =>
+    page.mirroredRoute && page.mirroredRoute !== '/'
+      ? page.mirroredRoute.replace(/^\//, '')
+      : `${page.directory}/review`
 
   useEffect(() => {
     if ((window.history.state as DesignLabHistoryState | null)?.designLab) return
@@ -284,11 +342,18 @@ export default function App() {
         playgroundOpen
           ? `${canonicalPath}/playground`
           : pageReviewOpen
-            ? `${canonicalPath}/review`
+            ? pageReviewPath({
+                directory: canonicalPath,
+                mirroredRoute:
+                  (moduleData?.kind === 'pages' &&
+                    moduleData.pages.find((page) => page.directory === canonicalPath)
+                      ?.mirroredRoute) ||
+                  null,
+              })
             : canonicalPath,
         { replace: true },
       )
-  }, [active, entityRoutePath, pageReviewOpen, playgroundOpen, tree, treeLoading])
+  }, [active, entityRoutePath, moduleData, pageReviewOpen, playgroundOpen, tree, treeLoading])
 
   useEffect(() => {
     localStorage.setItem(NAVIGATION_WIDTH_KEY, String(navigationWidth))
@@ -408,15 +473,21 @@ export default function App() {
         : null
     if (component && moduleData?.kind === 'components')
       return (
-        <ComponentPlaygroundView
-          component={component}
-          data={moduleData}
-          canvasMode={canvasMode}
-          canvasColor={canvasColor}
-          onCanvasModeChange={setCanvasMode}
-          onCanvasColorChange={setCanvasColor}
-          onClose={() => navigate('components', entityRoutePath)}
-        />
+        <ErrorBoundary
+          fallback={(_error, reset) =>
+            crashFallback('Playground', reset, () => navigate('components'))
+          }
+        >
+          <ComponentPlaygroundView
+            component={component}
+            data={moduleData}
+            canvasMode={canvasMode}
+            canvasColor={canvasColor}
+            onCanvasModeChange={setCanvasMode}
+            onCanvasColorChange={setCanvasColor}
+            onClose={() => navigate('components', entityRoutePath)}
+          />
+        </ErrorBoundary>
       )
     return (
       <main className="component-playground-missing">
@@ -436,22 +507,36 @@ export default function App() {
 
   if (pageReviewOpen) {
     const page =
-      moduleData?.kind === 'pages'
+      mirroredReviewPage ??
+      (moduleData?.kind === 'pages'
         ? moduleData.pages.find((item) => item.directory === entityRoutePath)
-        : null
+        : null)
     if (page && moduleData?.kind === 'pages')
       return (
-        <PageView
-          page={page}
-          pages={moduleData.pages}
-          modes={moduleData.modes}
-          themeVariables={moduleData.themeVariables}
-          onClose={() => navigate('pages', entityRoutePath)}
-          onNavigateToPage={(pageId) => {
-            const target = moduleData.pages.find((item) => item.id === pageId)
-            if (target) navigate('pages', `${target.directory}/review`)
-          }}
-        />
+        <ErrorBoundary
+          key={page.id}
+          fallback={(_error, reset) =>
+            crashFallback('Page review', reset, () => navigate('pages', page.directory))
+          }
+        >
+          <PageView
+            // A cross-Page action can replace `page` while this view stays mounted at the same
+            // tree position; without a key React would reuse the fiber and keep stale internal
+            // state (and stale hook counts from whatever the previous Page's renderer called),
+            // which is exactly what produced a permanently blank root after one cross-Page click.
+            key={page.id}
+            page={page}
+            pages={moduleData.pages}
+            sourceId={activeProjectId}
+            modes={moduleData.modes}
+            themeVariables={moduleData.themeVariables}
+            onClose={() => navigate('pages', page.directory)}
+            onNavigateToPage={(pageId) => {
+              const target = moduleData.pages.find((item) => item.id === pageId)
+              if (target) navigate('pages', pageReviewPath(target))
+            }}
+          />
+        </ErrorBoundary>
       )
     return (
       <main className="component-playground-missing">
@@ -476,12 +561,21 @@ export default function App() {
         : null
     if (wireframe && moduleData?.kind === 'wireframes')
       return (
-        <WireframeView
-          wireframe={wireframe}
-          modes={moduleData.modes}
-          themeVariables={moduleData.themeVariables}
-          onClose={() => navigate('wireframes')}
-        />
+        <ErrorBoundary
+          key={wireframe.id}
+          fallback={(_error, reset) =>
+            crashFallback('Wireframe', reset, () => navigate('wireframes'))
+          }
+        >
+          <WireframeView
+            key={wireframe.id}
+            wireframe={wireframe}
+            sourceId={activeProjectId}
+            modes={moduleData.modes}
+            themeVariables={moduleData.themeVariables}
+            onClose={() => navigate('wireframes')}
+          />
+        </ErrorBoundary>
       )
     return (
       <main className="component-playground-missing">
@@ -579,51 +673,60 @@ export default function App() {
         aria-hidden={isMobileLayout && mobileNavigationOpen}
         inert={isMobileLayout && mobileNavigationOpen ? true : undefined}
       >
-        <header className="workspace-header">
-          <IconButton
-            type="button"
-            id="design-lab-navigation-trigger"
-            className="workspace-header__navigation-trigger"
-            aria-label="Open navigation"
-            aria-controls="design-lab-navigation"
-            aria-expanded={mobileNavigationOpen}
-            onClick={() => setMobileNavigationOpen(true)}
-          >
-            <DirectoryIcon size={20} />
-          </IconButton>
-          <div className="workspace-header__title">
-            <span>Design Lab</span>
-            <b>/</b>
-            <strong>{settingsOpen ? 'Settings' : labels[active]}</strong>
-          </div>
-          <div className="workspace-header__actions">
-            <TabSwitcher
-              ariaLabel="Interface theme"
-              variant="toggle"
-              size="small"
-              options={
-                [
-                  { value: 'light', label: '☼', accessibleLabel: t('theme.light') },
-                  { value: 'dark', label: '◐', accessibleLabel: t('theme.dark') },
-                ] as const
-              }
-              value={theme}
-              onChange={changeTheme}
-            />
+        <WorkspaceHeader
+          productName="Design Lab"
+          sectionName={settingsOpen ? 'Settings' : labels[active]}
+          navigation={
             <IconButton
               type="button"
-              aria-label={t('action.copyLink')}
-              onClick={() => navigator.clipboard.writeText(window.location.href)}
+              id="design-lab-navigation-trigger"
+              aria-label="Open navigation"
+              aria-controls="design-lab-navigation"
+              aria-expanded={mobileNavigationOpen}
+              onClick={() => setMobileNavigationOpen(true)}
             >
-              <LinkIcon size={18} />
+              <DirectoryIcon size={20} />
             </IconButton>
-            <IconButton type="button" aria-label={t('action.openCode')}>
-              <CodeIcon size={18} />
-            </IconButton>
-          </div>
-        </header>
+          }
+          actions={
+            <>
+              <TabSwitcher
+                ariaLabel="Interface theme"
+                variant="toggle"
+                size="small"
+                iconSize={12}
+                options={
+                  [
+                    {
+                      value: 'light',
+                      icon: <LightThemeIcon />,
+                      accessibleLabel: t('theme.light'),
+                    },
+                    {
+                      value: 'dark',
+                      icon: <DarkThemeIcon />,
+                      accessibleLabel: t('theme.dark'),
+                    },
+                  ] as const
+                }
+                value={theme}
+                onChange={changeTheme}
+              />
+              <IconButton
+                type="button"
+                aria-label={t('action.copyLink')}
+                onClick={() => navigator.clipboard.writeText(window.location.href)}
+              >
+                <LinkIcon size={18} />
+              </IconButton>
+              <IconButton type="button" aria-label={t('action.openCode')}>
+                <CodeIcon size={18} />
+              </IconButton>
+            </>
+          }
+        />
 
-        <div className="workspace-stage">
+        <WorkspaceStage>
           {settingsOpen ? (
             <SettingsView onClose={() => setSettingsOpen(false)} />
           ) : activeProject &&
@@ -661,7 +764,18 @@ export default function App() {
                 if (entityRoutePath) navigate('components', `${entityRoutePath}/playground`)
               }}
               onOpenPageReview={() => {
-                if (entityRoutePath) navigate('pages', `${entityRoutePath}/review`)
+                const page =
+                  moduleData?.kind === 'pages'
+                    ? moduleData.pages.find((item) => item.directory === entityRoutePath)
+                    : null
+                if (page) navigate('pages', pageReviewPath(page))
+              }}
+              onNavigateToPage={(pageId) => {
+                const page =
+                  moduleData?.kind === 'pages'
+                    ? moduleData.pages.find((item) => item.id === pageId)
+                    : null
+                if (page) navigate('pages', pageReviewPath(page))
               }}
             />
           ) : (
@@ -681,7 +795,7 @@ export default function App() {
               )}
             </div>
           )}
-        </div>
+        </WorkspaceStage>
       </section>
       <CreateProjectDialog
         open={projectDialogOpen}

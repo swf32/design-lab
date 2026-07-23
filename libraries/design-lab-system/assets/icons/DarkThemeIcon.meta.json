@@ -1,0 +1,7 @@
+{
+  "description": "Crescent moon symbol representing a dark interface theme.",
+  "aliases": ["dark mode", "night theme", "moon", "dark appearance"],
+  "useWhen": ["select a dark interface theme", "represent dark appearance"],
+  "avoidWhen": ["represent sleep", "represent nighttime weather"],
+  "tags": ["theme", "appearance", "dark mode", "interface"]
+}

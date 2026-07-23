@@ -1,0 +1,7 @@
+{
+  "description": "Overlapping cards representing a visual card-grid catalog layout.",
+  "aliases": ["cards view", "grid view", "catalog cards", "gallery layout"],
+  "useWhen": ["switch a catalog to cards", "represent a visual grid layout"],
+  "avoidWhen": ["represent duplicate files", "create a new card"],
+  "tags": ["view mode", "layout", "cards", "catalog"]
+}

@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+- Changed: state cards now select on click and expose a separate Open screen action instead of leaving the graph immediately.
+- Added: keyboard navigation between state cards, initial pan to the selected state, and persisted pan/zoom when switching Screen ↔ User flow.
+- Fixed: vertical and reverse edges no longer draw sideways hooks inside the same column.
+- Fixed: edge labels render above cards; reduced-motion disables node selection transitions.
 - Changed: removed authored Inspector attributes in favor of automatic source instrumentation.
 
 ## 0.2.0 — 2026-07-20

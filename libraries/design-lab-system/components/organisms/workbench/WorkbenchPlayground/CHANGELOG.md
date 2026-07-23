@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- Changed: `controls` is optional; when omitted the controls rail is not rendered and the Canvas fills the width.
 - Added: Configurable start/end controls rail for full-route typed Component Playgrounds.
 - Responsive: Canvas remains first and controls move below it on phone layouts.
 - Changed: Added authored semantic retrieval metadata for MCP and CLI search.
