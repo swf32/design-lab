@@ -1,8 +1,0 @@
-.klyp-TierGlyph {
-  /* Block-level so width/height inline attrs land as the SVG's intrinsic
-   * box (avoids the default inline-vertical-baseline gap). `flex-shrink: 0`
-   * keeps the glyph from squashing when it sits inside a tight flex row
-   * like `<MeshButton __content>`. */
-  display: inline-block;
-  flex-shrink: 0;
-}
