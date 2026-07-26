@@ -2,6 +2,8 @@
 
 **Статус:** обязательный Web Definition of Done, принят 2026-07-26. Первый protocol/capture
 bridge реализован для текущего React runtime; isolated React, Vue и Svelte runtimes ещё не готовы.
+Полный source audit и точные границы уже проверенного находятся в
+`22-web-stack-coupling-audit.md`.
 
 ## Зачем нужен отдельный gate
 
@@ -15,17 +17,20 @@ React fallback, чужой thumbnail или успешный ответ с не�
 
 ## Честное текущее состояние
 
-| Возможность                                 | React сейчас               | Vue/Svelte сейчас       | Что должно стать общим                            |
-| ------------------------------------------- | -------------------------- | ----------------------- | ------------------------------------------------- |
-| Discovery, Catalog, Directory               | да                         | базовое discovery да    | source mounts и entity model уже общие            |
-| Source handoff, AI context, search, MCP get | да                         | да при найденном source | общий filesystem/context gateway                  |
-| Живой Component preview                     | eager React graph          | нет                     | isolated runtime `render`                         |
-| Stories                                     | React Story module         | нет                     | adapter читает/нормализует framework story source |
-| Props/state controls                        | React Story props          | нет                     | serializable args/state contract                  |
-| Preview/Story screenshot через CLI/MCP      | React compatibility bridge | нет                     | runtime-owned capture surface                     |
-| Wireframe/Page render, states и flow        | eager TSX registries       | нет                     | те же runtime messages, другой entity kind        |
-| Runtime errors и HMR                        | общий Vite graph           | нет                     | isolated diagnostics/HMR на runtime profile       |
-| Tokens, Palette, Fonts, ordinary Assets     | общие                      | общие                   | не дублируются по frameworks                      |
+| Возможность                             | React сейчас               | Vue/Svelte сейчас       | Что должно стать общим                            |
+| --------------------------------------- | -------------------------- | ----------------------- | ------------------------------------------------- |
+| Discovery, Directory                    | да                         | basic file discovery да | exports/metadata analyzers ещё нужны              |
+| Catalog authored preview                | да через eager React glob  | нет, generic fallback   | runtime preview + provenance                      |
+| Raw source handoff, search, MCP get     | да                         | да при найденном source | canonical usage/relations ещё adapter-specific    |
+| Живой Component preview                 | eager React graph          | нет                     | isolated runtime `render`                         |
+| Stories                                 | React Story module         | нет                     | adapter читает/нормализует framework story source |
+| Props/state controls                    | React Story props          | нет                     | serializable args/state contract                  |
+| Preview/Story screenshot через CLI/MCP  | React compatibility bridge | нет                     | runtime-owned capture surface                     |
+| Wireframe/Page render, states и flow    | eager TSX registries       | нет                     | те же runtime messages, другой entity kind        |
+| Wireframe/Page MCP capture              | нет                        | нет                     | сначала общий React baseline, затем adapters      |
+| Runtime errors и HMR                    | общий Vite graph           | нет                     | isolated diagnostics/HMR на runtime profile       |
+| Tokens, Palette, Fonts, ordinary Assets | общий source               | общий source            | runtime loading надо доказать E2E                 |
+| TSX code-native icons                   | да                         | нет                     | SVG source или framework-specific asset family    |
 
 В частности, arbitrary `previewUrl` сегодня даёт живой iframe, но не объявляет `capture`: без
 bridge Design Lab не может гарантировать readiness, выбранное состояние и точную поверхность.
@@ -60,10 +65,11 @@ MCP/CLI capture
   → возвращает PNG + adapter/profile/capabilities + diagnostics
 ```
 
-Descriptor принадлежит runtime, а не MCP: `kind`, opaque `selector`, CSS width/height и DPR. Поэтому
-capture service больше не знает React CSS-классы. Текущий React renderer уже отвечает через этот
-контракт. Vue/Svelte должны вернуть тот же descriptor; отдельные `capture_vue` и `capture_svelte`
-команды запрещены.
+Descriptor принадлежит runtime, а не MCP: entity/view, opaque `selector`, CSS width/height и DPR.
+Поэтому capture service не должен знать React CSS-классы. Текущий React Component renderer уже
+отвечает для preview/story; Wireframe/Page screen/flow vocabulary ещё требуется добавить.
+Vue/Svelte должны вернуть тот же descriptor; отдельные `capture_vue` и `capture_svelte` команды
+запрещены.
 
 Capture никогда не подменяется красивой заглушкой. Если Vue runtime не поддерживает Story capture,
 MCP возвращает capability error. Catalog всё равно может показать Component и исходники.

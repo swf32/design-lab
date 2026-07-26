@@ -2,9 +2,21 @@
 
 This file is the shared source of truth for humans, Codex, Claude, and other coding agents. `AGENTS.md` and `CLAUDE.md` must point here instead of maintaining competing component instructions.
 
+## Scope: base contract and current React adapter
+
+The semantic requirements in this file apply to every Component. File suffixes, React nodes, JSX
+serialization, named TSX exports, the current Story module shape, and Babel inspection describe the
+current `design-lab-system` React compatibility adapter only. They are not universal requirements
+for attached Vue, Svelte, Custom Element, or future framework Components.
+
+An existing attached Component remains in its owning package and follows its ecosystem's normal
+source/export contract. `component.json`, adjacent Design Lab Stories, previews, README, and
+changelog are optional enrichment there; strong ecosystem evidence is sufficient for basic
+discovery. Missing React-only enrichment must reduce capabilities, not hide or migrate the source.
+
 ## Canonical component directory
 
-Every component is a directory under `libraries/design-lab-system/components/<category-path>/<ComponentName>/`. Categories and nesting are semantic and may be changed by the library author. The default `design-lab-system` keeps Atomic Design as its top level (`atoms/`, `molecules/`, `organisms/`) and uses semantic subfolders such as `actions/`, `inputs/`, `navigation/`, `workbench/`, and `shell/`.
+Every Design Lab-authored default Component is a directory under `libraries/design-lab-system/components/<category-path>/<ComponentName>/`. Attached sources use their configured Component mounts without relocation. Categories and nesting are semantic and may be changed by the library author. The default `design-lab-system` keeps Atomic Design as its top level (`atoms/`, `molecules/`, `organisms/`) and uses semantic subfolders such as `actions/`, `inputs/`, `navigation/`, `workbench/`, and `shell/`.
 
 The default library also uses `components/blocks/**` as a semantic category for large, production-ready page sections (for example Hero, Feature grids, and marketing navigation). Blocks are not a separate entity kind: they are ordinary Components that compose other Components and (optionally) slots, and they follow the same authoring contract as every other Component in this library.
 
@@ -14,7 +26,7 @@ Every Component starts with:
 - `README.md` — usage documentation;
 - `CHANGELOG.md` — append-only component history.
 
-A `wireframe` Component may exist before production code when it also provides `ComponentName.playground.tsx`. A production-ready Component additionally requires:
+A `wireframe` React Component may exist before production code when it also provides `ComponentName.playground.tsx`. A production-ready Component in the current React adapter additionally requires:
 
 - `ComponentName.tsx` — production implementation;
 - `ComponentName.scss` — production styles imported by the implementation;

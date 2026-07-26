@@ -35,5 +35,6 @@ framework adapters.
 - [Dependencies и Libraries](19-dependencies-and-libraries.md)
 - [Embedded install и attach mode](20-embedded-install-and-attach-mode.md)
 - [Web runtime feature parity: React, Vue и Svelte](21-web-runtime-feature-parity.md)
+- [Web stack coupling audit: оставшиеся React/TSX-зависимости](22-web-stack-coupling-audit.md)
 - [Конкурентный обзор](07-market-review.md)
 - [Roadmap, риски и пакетные AI-задачи](08-roadmap-risks-and-tasks.md)

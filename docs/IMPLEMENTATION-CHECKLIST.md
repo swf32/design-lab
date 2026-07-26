@@ -682,6 +682,29 @@ Components использует Tokens, Palette и Fonts и становится
 
 Детальные подзадачи и exit criteria: `docs/16-multiplatform-implementation-plan.md`.
 Web sequencing и границы shared/native modules: `docs/17-web-first-platform-strategy.md`.
+Полный аудит оставшихся React/TSX coupling points: `docs/22-web-stack-coupling-audit.md`.
+
+### Обязательный parity audit backlog
+
+- [x] Отделить реально проверенные filesystem/profile/supervisor fixtures от browser E2E; `.vue`
+      filename больше не считается доказательством Vue runtime.
+- [ ] Добавить committed React/Vue/Svelte fixture packages с настоящими framework/compiler
+      dependencies и чистой установкой.
+- [ ] Расширить capture protocol с Component preview/story до Component playground, Wireframe
+      screen/flow и Page screen/flow.
+- [ ] Добавить единый CLI/MCP entity capture вместо Component-only React baseline.
+- [ ] Убрать eager React globs из Catalog, Stories, Playground, Wireframes и Pages после переноса
+      baseline на child runtime.
+- [ ] Нормализовать Story/args/state/events/slots/snippets без `ReactNode` в shell contract.
+- [ ] Добавить Vue/Svelte analyzers для imports/relations, canonical usage source и Inspector; depth
+      остаётся capability-gated.
+- [ ] Разделить ordinary shared Assets и framework-native code assets; TSX icon не считается
+      исполняемым Vue/Svelte asset.
+- [ ] Переписать TSX-specific authoring/completeness rules как React adapter appendix, сохранив
+      framework-neutral base contract.
+- [ ] Проверить token modes, fonts, SVG/raster assets, HMR, compile/runtime error isolation и clean
+      process shutdown в каждом настоящем browser fixture.
+- [ ] Сохранять selected implementation/profile, mode, args/state и view в URL без port/PID details.
 
 ## Активный foundation gate: embedded installation и attach-first sources
 
@@ -712,7 +735,7 @@ Web sequencing и границы shared/native modules: `docs/17-web-first-platf
 - [x] Реализован deterministic repository scan с evidence/confidence, framework/package detection
       и designer-readable summary; AI не является единственным scanner.
 - [ ] Реализован component-based onboarding `Connect existing` / `Start clean`, default `Use files
-  where they are` и confirm-gated apply plan; ещё нужны post-apply self-check, repair и optional
+where they are` и confirm-gated apply plan; ещё нужны post-apply self-check, repair и optional
       managed migration существующих файлов.
 - [x] Реализован первый package environment resolver: ближайшие реальные `package.json` и lockfile
       определяются без ручного `node_modules` path; workspace edge cases ещё покрываются adapter
@@ -722,8 +745,8 @@ Web sequencing и границы shared/native modules: `docs/17-web-first-platf
 
 ## Ближайший конкретный шаг
 
-Source resolution, versioned runtime/capture contract, package-aware runtime profiles и lifecycle
-supervisor закрыты. Теперь реализовать child process launcher и перевести на него React
-Components/Wireframes/Pages без регрессий, затем подключить Vue по полной feature-parity matrix;
-следующий adapter — Svelte. Не расширять `libraries/*` build-time globs и не открывать native
-backlog до Web DoD.
+Source resolution, base runtime messages, Component preview/story capture bridge, package-aware
+profiles и supervisor закрыты. До child launcher сначала расширить protocol на все entity/view
+surfaces и создать настоящий React parity fixture. Затем перенести React без регрессий, подключить
+настоящий Vue fixture по полной matrix и только потом Svelte. Не называть temp `.vue` discovery
+runtime test, не расширять eager globs и не открывать native backlog до Web DoD.

@@ -8,6 +8,12 @@ Assets live under the active Project or Library `assets/` directory. `icons/`, `
 
 Do not create a separate Icons module. Code-native TSX icons, SVG, raster images, and video remain Asset entities.
 
+Asset identity is shared across web frameworks, but executability is capability-specific. Raster
+images, video, and plain SVG are framework-neutral browser assets. A TSX icon is React code and
+must not be advertised as directly executable by Vue or Svelte. Cross-framework code-native icons
+need a shared SVG source or explicitly linked framework-specific implementations; they do not
+justify duplicating the whole Assets module.
+
 ## Adjacent semantic metadata
 
 An asset may have an automatically discovered sidecar named `<AssetStem>.meta.json` next to the file. For example:

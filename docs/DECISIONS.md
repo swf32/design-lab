@@ -1428,6 +1428,12 @@ thumbnail, static image или arbitrary external URL как настоящую 
 неподдержанными в live runtime и capture до прохождения matrix из
 `docs/21-web-runtime-feature-parity.md`.
 
+Уточнение после полного coupling audit: реализованный capture descriptor пока покрывает только
+React Component preview/story. Wireframe/Page screen/flow capture, настоящий Vue/Svelte compiler
+fixture, framework-aware relations/source printing/Inspector и adapter-neutral authoring rules не
+реализованы. `.vue` file fixture проверяет discovery/profile resolution, но не является runtime
+test. Полный перечень доказательств и gaps закреплён в `docs/22-web-stack-coupling-audit.md`.
+
 Runtime profile имеет stable identity из source, technology и ближайшего owning package root.
 Framework package/version разрешается из существующего package environment, lockfile может
 принадлежать workspace выше package. Supervisor лениво coalesces параллельный start, принимает
