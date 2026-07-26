@@ -616,6 +616,37 @@ Components использует Tokens, Palette и Fonts и становится
 - [ ] Hosted preview, comments и collaboration.
 - [ ] Multi-platform component contracts.
 
+## Активная вертикаль: Web framework coverage (D-081, D-082)
+
+- [x] Зафиксированы одно приложение, adapter/capability модель и Component Implementation/Family;
+      ранний native handoff superseded web-first решением D-082.
+- [x] Сохранены техническое исследование, первичные источники и полный фазный implementation plan.
+- [x] Зафиксирован web-first gate: Components, Wireframes и Pages закрывают React/Vue/Svelte/Custom
+      Elements до начала native implementation program.
+- [x] Designer flow подтверждает visual result; source diff/hash/conflicts относятся к системе или
+      Developer mode.
+- [x] Phase 0: normalized implementation schema, adapter registry, capabilities и compatibility
+      tests.
+- [ ] Phase 1: discovery без обязательного per-Component `component.json` (strong-evidence scanner
+      для React/Vue/Svelte/Custom Elements/SwiftUI/Compose готов; package exports, CEM и framework
+      metadata ещё не подключены).
+- [ ] Phase 2: isolated React/non-React browser runtimes и external preview.
+- [ ] Phase 3: framework-neutral Workbench, capture, controls и Storybook CSF ingestion
+      (capability-gated detail UI готов; shared runtime/controls/CSF ещё нет).
+- [ ] Phase 4: Component Family, platform switcher и cross-Library links (explicit family и
+      same-source switcher готовы; comparison/cross-Library links ещё нет).
+- [ ] Phase 4.5: framework-neutral Wireframe/Page runtime для React, Vue, Svelte и browser boundary.
+- [ ] Phase 5: generated SwiftUI/Compose handoff с provenance, diff, overwrite protection и detach
+      (безопасный read-only authored/generated source handoff готов; генераторы и write flow ещё
+      не готовы; фаза заморожена до полного Web Definition of Done).
+- [ ] Phase 6: Xcode/Compose validation и platform-native static captures (заморожено до Web DoD).
+- [ ] Phase 7: Native Wireframe/Page, AI и MCP integration (заморожено до Web DoD).
+
+Детальные подзадачи и exit criteria: `docs/16-multiplatform-implementation-plan.md`.
+Web sequencing и границы shared/native modules: `docs/17-web-first-platform-strategy.md`.
+
 ## Ближайший конкретный шаг
 
-Закрепить единый `DesignLabEntity` schema и watcher/invalidation, затем подключить multilingual embeddings provider к уже работающему context gateway. После этого реализовать Tokens вертикальным срезом: `*.tokens.json` → scanner/normalization/diagnostics → API → UI → watcher → tests. Palette по-прежнему строится как представление color tokens, а не отдельный источник цветов.
+Спроектировать и реализовать изолированный browser runtime protocol, затем перевести на него
+текущий React path без регрессий. После этого подключить Vue Component runtime и тем же protocol
+провести Vue Wireframes/Pages; следующий adapter — Svelte. Native backlog не открывать до Web DoD.

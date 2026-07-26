@@ -1016,3 +1016,73 @@ errors, точной геометрией, bytes и SHA-256. Renderer испол
 канонического canvas/surface token. Независимость осей сохраняется: противоположный фон разрешён
 для намеренного contrast testing, но metadata явно предупреждает, что Component может стать
 неразличимым. Агент использует рекомендацию по умолчанию и отклоняется от неё только осознанно.
+
+## D-081 — Один Design Lab поддерживает platform implementations через adapters и capabilities
+
+**Статус:** принято, 2026-07-26; foundation реализован, runtime/generation phases продолжаются.
+
+Design Lab не выпускается отдельными React, Vue, SwiftUI или Compose-приложениями. Product shell,
+Catalog, Workbench, Canvas, tokens, docs, search и AI остаются общими. Конкретная Component
+implementation обнаруживается и, когда возможно, исполняется platform/framework adapter'ом в
+изолированном runtime. UI показывает только фактически доступные capabilities: catalog, contract,
+static/live preview, controls, inspection, composition, capture, handoff и native validation.
+Отсутствие максимального уровня не скрывает Component и не ломает соседние entities.
+
+`component.json + TSX` сохраняется как совместимый первый adapter, но перестаёт считаться конечным
+универсальным определением Component. Целевое basic discovery использует существующие ecosystem
+contracts и не требует обязательного Design Lab metadata-файла, когда identity уже можно вывести
+из package exports, framework metadata, Storybook CSF, Custom Element registration, SwiftUI
+`#Preview` или Compose `@Preview`. Optional metadata разрешает неоднозначность и добавляет семантику,
+не дублируя вычислимые факты.
+
+Конкретная React/Vue/SwiftUI/Compose реализация остаётся `ComponentImplementation` со своим API.
+Optional `ComponentFamily` связывает implementations одной продуктовой роли и даёт переключение и
+сравнение, но не создаёт ложную общую props-схему. Физически разные Library могут входить в одно
+family после явного подтверждения человека.
+
+Первоначально здесь предполагался ранний editable web surrogate → generated SwiftUI/Compose
+handoff с обязательным source diff-review. D-082 исправляет две ошибки этого порядка: native
+заморожен до полного web coverage, а designer review является визуальным. Защита source и diff
+остаются внутренней/Developer-mode механикой, не пользовательским сценарием дизайнера.
+
+Полный порядок и Definition of Done закреплены в
+`docs/16-multiplatform-implementation-plan.md`; техническое обоснование и первичные источники — в
+`docs/15-multiplatform-components-exploration.md`.
+
+Первый реализованный срез добавил normalized adapter/capability/contract response без breaking
+изменения старого Component API; strong-evidence manifest-free discovery для TSX, Vue, Svelte,
+Custom Elements, SwiftUI и Compose; external browser preview; capability-gated Workbench;
+explicit same-source `family` switcher; и read-only Swift/Kotlin/source handoff с provenance и
+path confinement. Это не закрывает изолированные Vue/Svelte runtimes, cross-Library family,
+генерацию SwiftUI/Compose, diff/write protection или native build/capture — они остаются явно
+незакрытыми пунктами `docs/16-multiplatform-implementation-plan.md`.
+
+## D-082 — Сначала полностью закрывается web; code review не входит в designer flow
+
+**Статус:** принято, 2026-07-26; уточняет и ограничивает порядок D-081.
+
+Основной пользователь Design Lab — дизайнер с AI-подпиской, который может не понимать код вообще.
+Поэтому обязательный review Swift/Kotlin/C# diff дизайнером был ошибочной постановкой. Designer
+подтверждает визуальный результат, состояния, переходы, responsive behavior и понятные platform
+warnings. Exact source, diff, provenance, generated hash, build logs и разрешение конфликтов
+остаются внутренней защитой или optional Developer mode.
+
+До native-разработки Design Lab полностью закрывает web. Framework-neutral должны стать не только
+Components, но также Wireframes и Pages: React, Vue, Svelte и Custom Elements используют один shell,
+Canvas и semantic entity contracts, но исполняются своими изолированными adapters. Текущие TSX,
+`*.wireframe.tsx` и `*.page.tsx` сохраняются как React compatibility path, а не универсальный
+обязательный source format.
+
+Tokens, Palette, Fonts и ordinary Assets не дублируются по web frameworks. Tokens имеют один
+semantic source и web output, Palette остаётся представлением color tokens, Fonts используют общий
+registry/files, Assets — общую filesystem inventory. Adapter различия относятся к loading и
+handoff, а не к новым React/Vue/Svelte sources of truth.
+
+Native roadmap открывается только после Web Definition of Done и включает не только iOS/Android,
+но также macOS и Windows tracks (.NET/C# и, отдельно, C++/native Windows). Каждый track требует
+собственных platform rules, validation toolchain и native-specialized agent reasoning. Для native
+настоящая platform implementation является основной технической реальностью; web representation —
+дополнение для дизайнерского просмотра, а не источник, диктующий SwiftUI/Compose/.NET architecture.
+
+Полная последовательность, границы shared modules и Web Definition of Done записаны в
+`docs/17-web-first-platform-strategy.md`.
