@@ -10,6 +10,9 @@ roadmap, но не конкурируют с web за текущую реали�
 
 Исследование, ограничения и первичные источники собраны в
 [`15-multiplatform-components-exploration.md`](15-multiplatform-components-exploration.md).
+Варианты runtime architecture и точное значение lifecycle разобраны в
+[`18-web-runtime-architecture-options.md`](18-web-runtime-architecture-options.md); выбор ещё не
+принят.
 
 ## Неподвижные продуктовые требования
 
