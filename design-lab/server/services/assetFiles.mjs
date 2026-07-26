@@ -1,6 +1,7 @@
 import { readFile } from 'node:fs/promises'
-import { extname, join, relative, resolve, sep } from 'node:path'
+import { extname } from 'node:path'
 import { getSource } from './projectRegistry.mjs'
+import { resolveMountedFile } from './sourceMounts.mjs'
 
 const contentTypes = {
   '.avif': 'image/avif',
@@ -10,16 +11,6 @@ const contentTypes = {
   '.png': 'image/png',
   '.svg': 'image/svg+xml',
   '.webp': 'image/webp',
-}
-
-function assertSafeAssetPath(root, target) {
-  const relativePath = relative(root, target)
-  if (!relativePath || relativePath === '..' || relativePath.startsWith(`..${sep}`)) {
-    throw Object.assign(new Error('Asset path escapes the source assets directory'), {
-      status: 400,
-      code: 'ASSET_PATH_OUTSIDE_SOURCE',
-    })
-  }
 }
 
 function sanitizeSvg(svg, { fromTsx = false } = {}) {
@@ -77,9 +68,19 @@ function renderTsxIcon(source) {
 
 async function resolveAsset(sourceId, assetPath) {
   const source = await getSource(sourceId)
-  const root = resolve(source.path, 'assets')
-  const target = resolve(join(root, assetPath))
-  assertSafeAssetPath(root, target)
+  let target
+  try {
+    target = (await resolveMountedFile(source, 'assets', assetPath)).target
+  } catch (error) {
+    if (error.code === 'ENOENT')
+      throw Object.assign(new Error('Asset not found'), { status: 404, code: 'ASSET_NOT_FOUND' })
+    if (error.code?.startsWith('SOURCE_'))
+      throw Object.assign(new Error('Asset path escapes the configured assets roots'), {
+        status: 400,
+        code: 'ASSET_PATH_OUTSIDE_SOURCE',
+      })
+    throw error
+  }
   try {
     return { target, body: await readFile(target) }
   } catch (error) {

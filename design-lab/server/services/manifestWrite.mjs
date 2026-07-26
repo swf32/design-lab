@@ -1,6 +1,7 @@
 import { readFile, writeFile } from 'node:fs/promises'
-import { basename, join } from 'node:path'
+import { basename } from 'node:path'
 import { getSource } from './projectRegistry.mjs'
+import { resolveMountedFile } from './sourceMounts.mjs'
 
 const manifestByModule = {
   pages: 'page.json',
@@ -16,7 +17,27 @@ export async function patchEntityManifest(sourceId, moduleId, directory, patch) 
     })
 
   const source = await getSource(sourceId)
-  const manifestPath = join(source.path, moduleId, directory, manifestName)
+  let manifestPath
+  try {
+    manifestPath = (
+      await resolveMountedFile(source, moduleId, `${directory.replace(/\/$/, '')}/${manifestName}`)
+    ).target
+  } catch (error) {
+    if (error.code === 'ENOENT')
+      throw Object.assign(new Error(`${manifestName} was not found for "${directory}".`), {
+        code: 'MANIFEST_NOT_FOUND',
+        status: 404,
+      })
+    if (error.code?.startsWith('SOURCE_'))
+      throw Object.assign(
+        new Error(`The ${moduleId} entity path is outside its configured roots.`),
+        {
+          code: 'MANIFEST_PATH_OUTSIDE_SOURCE',
+          status: 400,
+        },
+      )
+    throw error
+  }
   let manifest
   try {
     manifest = JSON.parse(await readFile(manifestPath, 'utf8'))

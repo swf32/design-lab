@@ -271,7 +271,7 @@ async function candidateFiles(root, current = root, result = []) {
     throw error
   }
   for (const entry of entries) {
-    if (entry.name.startsWith('.')) continue
+    if (entry.name.startsWith('.') || entry.isSymbolicLink()) continue
     const path = join(current, entry.name)
     if (entry.isDirectory()) {
       if (!IGNORED_DIRECTORIES.has(entry.name)) await candidateFiles(root, path, result)

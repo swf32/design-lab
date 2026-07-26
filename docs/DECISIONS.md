@@ -4,7 +4,7 @@
 
 ## D-001 — Единая локальная территория Design Lab
 
-**Статус:** принято, 2026-07-16.
+**Статус:** частично заменено D-084/D-085 для embedded mode; canonical greenfield остаётся.
 
 Корневая директория workspace является общей локальной территорией продукта. В ней приложение `design-lab/` и хранилище `projects/` лежат рядом и не смешиваются.
 
@@ -15,11 +15,12 @@
 - код приложения, проекты и библиотеки визуально и структурно разделены;
 - `projects/`, `libraries/` и `.designlab/` не входят в git-историю самого приложения;
 - интерфейс не просит пользователя управлять абсолютными путями;
-- подключение существующего репозитория означает миграцию в каноническую структуру, а не настройку путей.
+- для canonical greenfield сохраняется `projects/<slug>/`; существующий repository подключается
+  in place через D-084/D-085 и не обязан мигрировать.
 
 ## D-002 — Автоматическое обнаружение относится ко всем основным сущностям
 
-**Статус:** принято, 2026-07-16.
+**Статус:** принято, 2026-07-16; D-085 расширяет discovery на configured mounts.
 
 Автоматическое обнаружение обязательно для Tokens, Palette, Fonts и Components.
 
@@ -53,11 +54,16 @@
 
 ## D-005 — Design Lab задаёт структуру, а не адаптируется к произвольной
 
-**Статус:** принято, 2026-07-16.
+**Статус:** заменено D-084/D-085 для existing repositories; применяется к Design Lab-authored roots.
 
-Design Lab является структурированным хранилищем дизайн-систем. Project и Library обязаны следовать каноническому файловому контракту продукта. Автоматическое обнаружение работает рекурсивно внутри закреплённых каталогов `components/`, `tokens/`, `palette/`, `fonts/` и других модулей, но не сканирует произвольные пути чужого репозитория.
+Design Lab остаётся структурированным хранилищем для собственных authored entities. Canonical
+greenfield Project/Library следуют файловому контракту продукта. Existing repository подключается
+через versioned relative mounts: scanner не обходит весь диск и не принимает absolute paths, но
+может читать доказуемые source roots вне canonical имён папок.
 
-В интерфейсе не должно быть настройки вроде «укажите директорию компонентов». Существующую дизайн-систему пользователь переносит в формат Design Lab вручную, импортёром или с помощью AI. Постфактум-установка Design Lab означает добавление папки приложения рядом с каноническим `projects/`, а не бесшовное подключение к любой существующей структуре.
+В интерфейсе по-прежнему нет developer-form «введите пути руками». Read-only onboarding сам
+находит mounts, показывает понятную сводку и требует подтверждение перед записью integration config.
+Перенос в canonical layout остаётся отдельной optional migration, а не ценой установки.
 
 ## D-006 — Design Lab dogfoods одну редактируемую Library без kernel
 
@@ -1369,3 +1375,30 @@ Design Lab и приложение команды являются разным�
 переписывает port приложения и не проксирует его без отдельной будущей integration. В dev-сборке
 внутренний API может использовать второй private loopback port за Vite proxy, но пользователь
 открывает один Design Lab origin.
+
+## D-085 — Mount resolver един для Catalog и AI; multiple roots получают source-relative identity
+
+**Статус:** принято и реализовано, 2026-07-26.
+
+`designlab.config.json` хранит только relative mount roots. Один resolver выполняет normalization,
+source containment и перевод между filesystem path и публичным entity path для Components,
+Wireframes, Pages, Tokens, Fonts и Assets. Absolute POSIX/Windows paths, `..`, ambiguous multi-mount
+paths и выход за source root отклоняются до чтения или записи. Catalog, Directory tree, asset
+streaming, source handoff, manifest PATCH и MCP/CLI/AI context используют этот resolver; отдельные
+трактовки paths для разных consumers запрещены.
+
+Filesystem symlinks не являются обходом boundary: scanners не индексируют symlink entries, а
+прямое чтение/запись проверяет real path source, mount и target перед операцией.
+
+Для одного mount entity path остаётся коротким и relative к этому mount, сохраняя текущие canonical
+IDs и удобные routes. Если у одного module kind несколько mounts, storage identity становится
+source-relative и включает mount path: например, `packages/react/src/Button` и
+`packages/vue/src/Button`. Это предотвращает молчаливую коллизию framework roots, не вводя aliases,
+symlinks или перенос файлов. Authored semantic ids внутри manifests по-прежнему должны быть
+уникальны в пределах одного source; duplicate across mounts остаётся видимым diagnostic, потому что
+автоматический alias сломал бы authored Page flows, relations и handoff semantics.
+
+Embedded source восстанавливается из `design-lab/designlab.config.json`, даже если derived registry
+пуст или удалён. Build-time `libraries/*` runtime registries намеренно не расширяются произвольными
+globs: следующий Web gate — isolated runtime adapter protocol, сначала для сохранения React без
+регрессий, затем для Vue и Svelte.

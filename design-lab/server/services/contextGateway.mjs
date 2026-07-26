@@ -8,6 +8,12 @@ import {
 } from './moduleEntities.mjs'
 import { getSource, listSources } from './projectRegistry.mjs'
 import { componentSymbol } from '../../shared/componentIdentity.mjs'
+import {
+  resolveMountedFile,
+  resolveMountedPath,
+  sourceManagedPath,
+  sourceRelativePath,
+} from './sourceMounts.mjs'
 
 export const CONTEXT_INDEX_VERSION = 1
 export const CONTEXT_KINDS = [
@@ -186,12 +192,22 @@ function assetImport(sourceManifest, asset) {
 async function compositionUses(source, sourceManifest, entryRelativePath) {
   const importFrom = sourceManifest.componentImport
   if (!entryRelativePath || !importFrom) return []
-  const { imports } = await parseComponentSourceImports(join(source.path, entryRelativePath))
+  const [moduleId, ...pathParts] = entryRelativePath.split('/')
+  const { imports } = await parseComponentSourceImports(
+    (await resolveMountedFile(source, moduleId, pathParts.join('/'))).target,
+  )
   const symbols = new Set()
   for (const sourceImport of imports)
     if (sourceImport.specifier === importFrom)
       for (const symbol of sourceImport.symbols) symbols.add(symbol)
   return [...symbols]
+}
+
+function mountedEntityPath(source, moduleId, publicPath, { allowRoot = true } = {}) {
+  return sourceRelativePath(
+    source,
+    resolveMountedPath(source, moduleId, publicPath, { allowRoot }).target,
+  )
 }
 
 async function readSourceManifest(source) {
@@ -213,7 +229,7 @@ async function markdownFiles(root, current = root, result = []) {
     throw error
   }
   for (const entry of entries) {
-    if (entry.name.startsWith('.')) continue
+    if (entry.name.startsWith('.') || entry.isSymbolicLink()) continue
     const path = join(current, entry.name)
     if (entry.isDirectory()) await markdownFiles(root, path, result)
     else if (entry.name.toLowerCase().endsWith('.md')) result.push(path)
@@ -232,7 +248,7 @@ async function componentEntities(source, sourceManifest) {
       compactWhitespace(component.description) ||
       markdownLead(component.documentation) ||
       `Reusable ${component.name} interface component.`
-    const directory = `components/${component.directory}`
+    const directory = mountedEntityPath(source, 'components', component.directory)
     return {
       ref: entityRef(source.id, 'component', component.id),
       id: component.id,
@@ -284,7 +300,9 @@ async function componentEntities(source, sourceManifest) {
         entry: component.entry ? join(directory, component.entry) : null,
         style: component.style ? join(directory, component.style) : null,
         manifest: component.manifestFile ? join(directory, 'component.json') : null,
-        sourcePath: component.sourcePath ?? null,
+        sourcePath: component.sourcePath
+          ? mountedEntityPath(source, 'components', component.sourcePath, { allowRoot: false })
+          : null,
         playground: component.playground ? join(directory, component.playground) : null,
         preview: component.preview ? join(directory, component.preview) : null,
         stories: component.stories ? join(directory, component.stories) : null,
@@ -311,7 +329,7 @@ async function tokenEntities(source) {
     description:
       compactWhitespace(token.description) ||
       `${token.type} design token with resolved values for ${Object.keys(token.values ?? {}).join(', ')}.`,
-    path: `tokens/${token.file}`,
+    path: mountedEntityPath(source, 'tokens', token.file, { allowRoot: false }),
     status: null,
     tags: [token.type, ...token.path.split('.'), ...(token.tags ?? [])],
     search: {
@@ -342,7 +360,7 @@ async function assetEntities(source, sourceManifest) {
       `${asset.type} asset stored in ${asset.directory || 'the assets root'} as ${asset.extension.toUpperCase()}${
         asset.aspectRatio ? `, ${asset.width}×${asset.height} (${asset.aspectRatio})` : ''
       }.`,
-    path: `assets/${asset.path}`,
+    path: mountedEntityPath(source, 'assets', asset.path, { allowRoot: false }),
     status: null,
     tags: [
       asset.type,
@@ -372,7 +390,7 @@ async function fontEntities(source) {
     description:
       compactWhitespace(font.description) ||
       `Font family ${font.name} with ${(font.styles ?? []).length} registered style${(font.styles ?? []).length === 1 ? '' : 's'}.`,
-    path: font.source ? `fonts/${font.source}` : 'fonts/fonts.json',
+    path: mountedEntityPath(source, 'fonts', font.source ?? 'fonts.json', { allowRoot: false }),
     status: null,
     tags: [
       'typography',
@@ -393,7 +411,7 @@ async function fontEntities(source) {
 // way (optional authored `aliases`/`useWhen`/`avoidWhen` on the manifest, README fallback), only
 // the module id, ref kind, and a couple of kind-specific manifest fields differ.
 function referenceScreenEntity({ source, kind, moduleId, item, entryPath, extraDetails }) {
-  const directory = `${moduleId}/${item.directory}`
+  const directory = mountedEntityPath(source, moduleId, item.directory)
   const description =
     compactWhitespace(item.description) ||
     markdownLead(item.documentation) ||
@@ -437,8 +455,9 @@ async function wireframeEntities(source, sourceManifest) {
   const data = await getModuleEntities(source.id, 'wireframes')
   return Promise.all(
     data.wireframes.map(async (wireframe) => {
-      const entryPath = wireframe.entry
-        ? join('wireframes', wireframe.directory, wireframe.entry)
+      const mountedEntryPath = wireframe.entry ? join(wireframe.directory, wireframe.entry) : null
+      const entryPath = mountedEntryPath
+        ? mountedEntityPath(source, 'wireframes', mountedEntryPath, { allowRoot: false })
         : null
       const entity = referenceScreenEntity({
         source,
@@ -451,7 +470,11 @@ async function wireframeEntities(source, sourceManifest) {
           states: (wireframe.states ?? []).map(({ id, name }) => ({ id, name })),
         },
       })
-      entity.details.compositionUses = await compositionUses(source, sourceManifest, entryPath)
+      entity.details.compositionUses = await compositionUses(
+        source,
+        sourceManifest,
+        mountedEntryPath ? `wireframes/${mountedEntryPath}` : null,
+      )
       return entity
     }),
   )
@@ -461,7 +484,10 @@ async function pageEntities(source, sourceManifest) {
   const data = await getModuleEntities(source.id, 'pages')
   return Promise.all(
     data.pages.map(async (page) => {
-      const entryPath = page.entry ? join('pages', page.directory, page.entry) : null
+      const mountedEntryPath = page.entry ? join(page.directory, page.entry) : null
+      const entryPath = mountedEntryPath
+        ? mountedEntityPath(source, 'pages', mountedEntryPath, { allowRoot: false })
+        : null
       const entity = referenceScreenEntity({
         source,
         kind: 'page',
@@ -474,7 +500,11 @@ async function pageEntities(source, sourceManifest) {
           derivedFromWireframe: page.derivedFromWireframe ?? null,
         },
       })
-      entity.details.compositionUses = await compositionUses(source, sourceManifest, entryPath)
+      entity.details.compositionUses = await compositionUses(
+        source,
+        sourceManifest,
+        mountedEntryPath ? `pages/${mountedEntryPath}` : null,
+      )
       return entity
     }),
   )
@@ -482,7 +512,10 @@ async function pageEntities(source, sourceManifest) {
 
 async function knowledgeEntities(source, kind) {
   const directory = knowledgeDirectories[kind]
-  const root = join(source.path, directory)
+  const root =
+    kind === 'rule' && source.configPath
+      ? sourceManagedPath(source, dirname(source.configPath), 'rules')
+      : sourceManagedPath(source, directory)
   const files = await markdownFiles(root)
   return Promise.all(
     files.map(async (file) => {
@@ -542,7 +575,7 @@ export async function buildContextCatalog({ sourceId, kinds = CONTEXT_KINDS } = 
   )
   return {
     schemaVersion: CONTEXT_INDEX_VERSION,
-    generatedFrom: 'canonical Design Lab filesystem sources',
+    generatedFrom: 'configured Design Lab filesystem sources',
     sources: sources.map(sourceIdentity),
     entities: entities.map((entity, index) => ({ index: index + 1, ...entity })),
   }
@@ -983,7 +1016,9 @@ export async function writeContextIndex({ sourceId } = {}) {
     })
   const source = await getSource(sourceId)
   const catalog = await buildContextCatalog({ sourceId })
-  const directory = join(source.path, '.designlab', 'index')
+  const directory = source.configPath
+    ? sourceManagedPath(source, dirname(source.configPath), '.cache', 'index')
+    : sourceManagedPath(source, '.designlab', 'index')
   const target = join(directory, `context.v${CONTEXT_INDEX_VERSION}.json`)
   const temporary = `${target}.${randomUUID()}.tmp`
   await mkdir(directory, { recursive: true })
@@ -995,7 +1030,7 @@ export async function writeContextIndex({ sourceId } = {}) {
   await rename(temporary, target)
   return {
     source: sourceIdentity(source),
-    path: relative(source.path, target),
+    path: sourceRelativePath(source, target),
     entities: catalog.entities.length,
   }
 }

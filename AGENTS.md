@@ -21,16 +21,16 @@ For every token, asset, or font creation or modification, read and follow [`rule
 
 ## Core invariants
 
-- The workspace root contains the `design-lab/` application and its sibling `projects/` and future `libraries/` stores.
-- Project creation accepts only a name and always resolves storage to `projects/<slug>/`; the user does not choose a parent directory.
+- In embedded mode the product repository is the workspace root and contains one `design-lab/` integration folder; the standalone development workspace may additionally contain sibling `projects/` and `libraries/` stores.
+- Project onboarding accepts a name plus `Connect existing` or `Start clean`. Existing sources stay in place through relative mounts; canonical greenfield storage may still resolve to managed Design Lab roots without asking a designer for absolute paths.
 - The filesystem is the source of truth. Indexes and caches are derived and rebuildable.
-- Design Lab owns a canonical filesystem contract. Existing design systems must be migrated into it; never ask users to configure arbitrary component, token, palette, or font directories.
-- Tokens, palette metadata, fonts, and components support automatic discovery only inside their canonical project/library directories. Optional adjacent metadata improves semantics but is never required for basic discovery.
+- Design Lab owns canonical authoring contracts but does not require an existing design system to migrate. Deterministic onboarding discovers relative Component, Wireframe, Page, Token, Asset, and Font mounts; designers are not asked to locate `node_modules` or enter absolute paths.
+- Tokens, palette metadata, fonts, assets, Components, Wireframes, and Pages support automatic discovery inside configured source mounts. Optional adjacent metadata improves semantics but is never required when strong filesystem/framework evidence already establishes basic identity.
 - The directory panel is module-specific: it shows entities and folders relevant to the active module in the selected project/library, not the Design Lab application repository.
 - Palette is a visual and semantic layer over color tokens; it must not duplicate color values as a second source of truth.
 - `libraries/design-lab-system/` is the single source of truth for Design Lab's own tokens, icons, fonts, and reusable UI components. The application consumes that same Library; never maintain a mirrored copy under application source.
 - Do not add an immutable UI kernel or fallback design system. A broken customization may break Design Lab; recovery is reinstalling the default `design-lab-system` Library.
-- `assets/` owns images, video, SVG, and code-native icons such as TSX; do not create a separate Icons module.
+- Asset mounts own images, video, SVG, and code-native icons such as TSX; do not create a separate Icons module.
 - A canonical Design Lab-authored Component may use a `component.json` directory contract with adjacent implementation, types, preview, stories/states, README, and changelog files. Strong ecosystem evidence may discover an existing implementation without that manifest; optional metadata improves semantics and resolves ambiguity rather than becoming a second registry. Component categories and nesting are arbitrary folders above implementations.
 - A Wireframe is a directory with `wireframe.json`, an adjacent framework-specific renderer, README, and changelog. The current typed `*.wireframe.tsx` renderer is the React compatibility adapter, not the universal web format. Its manifest owns framework-neutral layout directions, state snapshots, typed controls, and the user-flow graph.
 - A Page is a directory with `page.json`, an adjacent framework-specific renderer, README, and changelog. The current typed `*.page.tsx` renderer is the React compatibility adapter. Its manifest owns framework-neutral states, provenance, and the inter-Page navigation graph.

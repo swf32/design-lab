@@ -1,9 +1,9 @@
 # Embedded installation and attach-first sources
 
-**Статус:** направление принято 2026-07-26; первая foundation-версия setup реализована. Install
-footprint зафиксирован как package/CLI + видимая `design-lab/` integration folder + маленький
-управляемый блок в root `AGENTS.md`. Полное чтение attached mounts всеми модулями ещё не готово и
-остаётся обязательным gate перед framework runtimes.
+**Статус:** направление принято 2026-07-26; setup и source-resolution foundation реализованы.
+Install footprint зафиксирован как package/CLI + видимая `design-lab/` integration folder +
+маленький управляемый блок в root `AGENTS.md`. Следующий gate — заменить build-time React
+`import.meta.glob` registries изолированным runtime adapter protocol до добавления Vue/Svelte.
 
 ## Короткий вывод
 
@@ -39,12 +39,22 @@ source of truth в своих реальных файлах. Маленький 
   roots.
 - Design Lab public port настраивается через `DESIGN_LAB_PORT` (default `5317`), а private local API
   — через `DESIGN_LAB_API_PORT` (default `4173`). Ни один из них не меняет port приложения команды.
+- Единый containment-safe resolver читает configured mounts в Catalog, Directory tree, Tokens,
+  Assets/preview, Fonts, Components, Wireframes, Pages, source handoff, Page/Wireframe writes и
+  MCP/CLI/AI context. Absolute paths, `..` и symlink escapes из config/entity URLs отклоняются.
+- Один mount сохраняет короткие module-relative paths. При нескольких roots одного kind публичный
+  path становится source-relative (`packages/vue/src/Card.vue`), поэтому два framework packages
+  не перекрывают друг друга.
+- `designlab.config.json` является source of truth для embedded source: при пустом/удалённом
+  registry Design Lab автоматически восстанавливает Project, mounts и package environments из
+  filesystem config. Registry остаётся производным.
+- Derived AI index attached source записывается в `design-lab/.cache/index`, а не создаёт новый
+  root-level store.
 
-Это пока foundation, а не обещание полной attach-совместимости. Registry уже сохраняет mounts и
-package environments, но существующие module scanners, tree, watcher/runtime, MCP и AI index ещё
-используют canonical `source.path/<module>` в нескольких местах. Пока единый resolver не подключён
-ко всем этим consumers, нестандартный root может быть найден в onboarding, но не обязан полностью
-появиться в Catalog. Поэтому Vue/Svelte runtime начинается только после mount resolver gate.
+Это всё ещё не обещание готового arbitrary framework runtime. Текущие React preview/story,
+Wireframe и Page registries используют build-time `libraries/*` globs. Catalog, handoff и AI уже
+mount-aware, но live execution станет mount-aware только через следующий isolated adapter host;
+расширять существующие globs на случайные directories запрещено.
 
 ## Что подсказал Storybook, а что нельзя копировать буквально
 

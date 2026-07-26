@@ -694,16 +694,18 @@ Web sequencing и границы shared/native modules: `docs/17-web-first-platf
       тот же setup service (D-084).
 - [x] Зафиксирована port isolation: Design Lab и application dev server являются независимыми
       локальными процессами и не меняют ports друг друга.
-- [ ] Заменить обязательную migration-first политику в D-001/D-008 и product framework на
+- [x] Заменена обязательная migration-first политика в D-001/D-005, top-level product framing и
+      collaboration invariants на
       attach-in-place default для existing repositories; canonical layout оставить greenfield и
       optional migration mode.
 - [x] Введён первый versioned setup config (`schemaVersion: 1`) с source mounts и package
       environments; config хранит relative roots и не перечисляет entities. Типы и validation
       должны быть вынесены в общий schema package вместе с mount resolver.
-- [ ] Реализовать единый mount/path resolver и containment policy для UI, scanners, watcher,
-      runtime, MCP, CLI и AI index.
-- [ ] Перевести fixed `source.path/<module>` scanners и build-time `libraries/*` globs на attached
-      roots/runtime adapter host.
+- [ ] Единый mount/path resolver и containment policy реализованы для UI data, scanners, tree,
+      Assets, handoff, manifest writes, MCP, CLI и AI index; ещё подключить filesystem watcher и
+      isolated runtime adapter host (D-085).
+- [ ] Fixed `source.path/<module>` scanners переведены на attached roots; build-time
+      `libraries/*` Component/Wireframe/Page globs ещё заменить runtime adapter host.
 - [x] Реализован deterministic repository scan с evidence/confidence, framework/package detection
       и designer-readable summary; AI не является единственным scanner.
 - [ ] Реализован component-based onboarding `Connect existing` / `Start clean`, default `Use files
@@ -717,7 +719,7 @@ Web sequencing и границы shared/native modules: `docs/17-web-first-platf
 
 ## Ближайший конкретный шаг
 
-Сначала принять install footprint и провести source resolution foundation с fixed canonical paths
-на attached mounts. Не строить новый browser runtime поверх `libraries/*` glob: после foundation
-спроектировать isolated protocol, перевести на него React без регрессий и затем подключить Vue для
-Components/Wireframes/Pages; следующий adapter — Svelte. Native backlog не открывать до Web DoD.
+Source resolution foundation закрыт. Теперь спроектировать isolated browser runtime protocol,
+перевести на него React Components/Wireframes/Pages без регрессий и затем подключить Vue; следующий
+adapter — Svelte. Не расширять `libraries/*` build-time globs и не открывать native backlog до Web
+DoD.

@@ -32,7 +32,7 @@ async function tokenFilesUnder(root, current = root, result = []) {
     throw error
   }
   for (const entry of entries) {
-    if (entry.name.startsWith('.')) continue
+    if (entry.name.startsWith('.') || entry.isSymbolicLink()) continue
     const path = join(current, entry.name)
     if (entry.isDirectory()) await tokenFilesUnder(root, path, result)
     else if (entry.name.endsWith('.tokens.json')) result.push(path)
@@ -337,13 +337,26 @@ function resolveCatalogTokens(tokens, modes) {
   })
 }
 
-export async function readTokenCatalog(sourcePath) {
-  const root = join(sourcePath, 'tokens')
-  const filePaths = (await tokenFilesUnder(root)).sort()
+export async function readTokenCatalogRoots(roots) {
+  const normalizedRoots = roots.map((item) =>
+    typeof item === 'string'
+      ? { root: item, prefix: '' }
+      : { root: item.root, prefix: item.prefix ?? '' },
+  )
+  const fileEntries = (
+    await Promise.all(
+      normalizedRoots.map(async ({ root, prefix }) =>
+        (await tokenFilesUnder(root)).map((filePath) => ({ filePath, root, prefix })),
+      ),
+    )
+  )
+    .flat()
+    .sort((left, right) => left.filePath.localeCompare(right.filePath))
   const documents = []
 
-  for (const filePath of filePaths) {
-    const file = relative(root, filePath)
+  for (const { filePath, root, prefix } of fileEntries) {
+    const localFile = relative(root, filePath).split('\\').join('/')
+    const file = prefix ? `${prefix}/${localFile}` : localFile
     try {
       const document = JSON.parse(await readFile(filePath, 'utf8'))
       documents.push(normalizeDocument(document, file))
@@ -395,4 +408,8 @@ export async function readTokenCatalog(sourcePath) {
     tokens,
     diagnostics,
   }
+}
+
+export async function readTokenCatalog(sourcePath) {
+  return readTokenCatalogRoots([{ root: join(sourcePath, 'tokens'), prefix: '' }])
 }

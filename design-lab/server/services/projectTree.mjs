@@ -2,6 +2,7 @@ import { readdir } from 'node:fs/promises'
 import { join, relative, resolve, sep } from 'node:path'
 import { getSource } from './projectRegistry.mjs'
 import { getModuleNavigation } from './moduleEntities.mjs'
+import { mountedPublicPath, sourceMounts } from './sourceMounts.mjs'
 
 const MODULE_DIRECTORIES = {
   home: '.',
@@ -44,7 +45,8 @@ async function scanDirectory(rootPath, currentPath, level, result) {
     (a, b) => Number(b.isDirectory()) - Number(a.isDirectory()) || a.name.localeCompare(b.name),
   )
   for (const entry of entries) {
-    if (ignoredNames.has(entry.name) || entry.name.startsWith('.')) continue
+    if (entry.isSymbolicLink() || ignoredNames.has(entry.name) || entry.name.startsWith('.'))
+      continue
     const absolutePath = join(currentPath, entry.name)
     result.push({
       name: entry.name,
@@ -59,19 +61,44 @@ async function scanDirectory(rootPath, currentPath, level, result) {
 export async function getProjectTree(projectId, moduleId, { tokenView = 'tokens' } = {}) {
   const project = await getSource(projectId)
   const semanticTree = await getModuleNavigation(projectId, moduleId, { tokenView })
-  if (semanticTree)
+  if (semanticTree) {
+    const mounts = sourceMounts(project, moduleId === 'palette' ? 'tokens' : moduleId)
     return {
       projectId,
       module: moduleId,
-      rootPath: resolve(project.path, moduleId),
+      rootPath: mounts[0].root,
+      rootPaths: mounts.map((mount) => mount.root),
       tree: semanticTree,
     }
+  }
   const moduleDirectory = MODULE_DIRECTORIES[moduleId]
   if (moduleDirectory === undefined)
     throw Object.assign(new Error('Unknown module'), { status: 400, code: 'UNKNOWN_MODULE' })
-  const rootPath = resolve(project.path, moduleDirectory)
+  const moduleMounts = ['components', 'wireframes', 'pages', 'assets', 'tokens', 'fonts'].includes(
+    moduleId,
+  )
+    ? sourceMounts(project, moduleId)
+    : null
+  const rootPath = moduleMounts?.[0]?.root ?? resolve(project.path, moduleDirectory)
   assertInsideProject(project.path, rootPath)
   const tree = []
-  await scanDirectory(rootPath, rootPath, 0, tree)
-  return { projectId, module: moduleId, rootPath, tree }
+  if (moduleMounts) {
+    for (const mount of moduleMounts) {
+      const mountedTree = []
+      await scanDirectory(mount.root, mount.root, 0, mountedTree)
+      for (const item of mountedTree)
+        tree.push({
+          ...item,
+          path: mountedPublicPath(moduleMounts, mount, item.path),
+          level: item.level + Number(mount.multiple),
+        })
+    }
+  } else await scanDirectory(rootPath, rootPath, 0, tree)
+  return {
+    projectId,
+    module: moduleId,
+    rootPath,
+    rootPaths: moduleMounts?.map((mount) => mount.root) ?? [rootPath],
+    tree,
+  }
 }

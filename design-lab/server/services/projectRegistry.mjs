@@ -1,6 +1,6 @@
 import { randomUUID } from 'node:crypto'
 import { access, mkdir, readFile, readdir, rename, writeFile } from 'node:fs/promises'
-import { join, resolve } from 'node:path'
+import { dirname, join, relative, resolve, sep } from 'node:path'
 import { fileURLToPath } from 'node:url'
 
 const REGISTRY_VERSION = 1
@@ -57,10 +57,50 @@ async function writeRegistry(registry) {
   await rename(temporary, target)
 }
 
+function isInside(root, target) {
+  const path = relative(root, target)
+  return path === '' || (path !== '..' && !path.startsWith(`..${sep}`))
+}
+
+async function discoverWorkspaceInstallation() {
+  const workspacePath = getWorkspaceDirectory()
+  const configPath = join(workspacePath, 'design-lab', 'designlab.config.json')
+  let config
+  try {
+    config = JSON.parse(await readFile(configPath, 'utf8'))
+  } catch (error) {
+    if (error.code === 'ENOENT') return null
+    return null
+  }
+  if (config.schemaVersion !== 1 || !config.source || !config.name) return null
+  const sourcePath = resolve(dirname(configPath), config.source.root ?? '..')
+  if (!isInside(workspacePath, sourcePath)) return null
+  return {
+    id: config.source.id ?? config.installationId,
+    name: config.name,
+    path: sourcePath,
+    kind: 'project',
+    mode: config.mode ?? 'attach',
+    schemaVersion: config.schemaVersion,
+    mounts: config.source.mounts ?? {},
+    packageEnvironments: config.source.packageEnvironments ?? [],
+    configPath: relative(sourcePath, configPath).split(sep).join('/'),
+    createdAt: null,
+  }
+}
+
 export async function listProjects() {
   const registry = await readRegistry()
+  const installed = await discoverWorkspaceInstallation()
+  const registered = installed
+    ? registry.projects.filter(
+        (project) =>
+          project.id !== installed.id && resolve(project.path) !== resolve(installed.path),
+      )
+    : registry.projects
+  const knownProjects = installed ? [installed, ...registered] : registered
   const projects = await Promise.all(
-    registry.projects.map(async (project) => {
+    knownProjects.map(async (project) => {
       try {
         await access(project.path)
         return { ...project, available: true }
@@ -204,7 +244,7 @@ export async function registerInstalledProject({ name, root, mode, source, confi
     (project) => project.mode === mode && resolve(project.path) === projectPath,
   )
   const project = {
-    id: existing?.id ?? randomUUID(),
+    id: existing?.id ?? source.id ?? randomUUID(),
     name: projectName,
     path: projectPath,
     kind: 'project',

@@ -1,16 +1,22 @@
-import { access, readFile, readdir } from 'node:fs/promises'
+import { access, readFile, readdir, realpath } from 'node:fs/promises'
 import { basename, dirname, extname, join, relative, resolve, sep } from 'node:path'
 import { parse } from '@babel/parser'
 import { imageSize } from 'image-size'
 import { getSource } from './projectRegistry.mjs'
 import { buildPageSitemap } from './flowLayout.mjs'
-import { readTokenCatalog } from './tokenCatalog.mjs'
+import { readTokenCatalogRoots } from './tokenCatalog.mjs'
 import {
   buildComponentFamilies,
   discoverManifestFreeComponents,
   resolveComponentImplementation,
 } from './componentAdapters.mjs'
 import { componentDisplayName, componentSymbol } from '../../shared/componentIdentity.mjs'
+import {
+  mountedDirectoryPath,
+  mountedPublicPath,
+  resolveMountedPath,
+  sourceMounts,
+} from './sourceMounts.mjs'
 
 // Bump when a manifest field is added/changed in a way older readers cannot safely ignore, and
 // pair the bump with a migration for existing files (D-047). One shared constant keeps every
@@ -53,6 +59,7 @@ async function filesUnder(root, predicate, current = root, result = []) {
     throw error
   }
   for (const entry of entries) {
+    if (entry.isSymbolicLink()) continue
     const path = join(current, entry.name)
     if (entry.isDirectory()) await filesUnder(root, predicate, path, result)
     else if (predicate(entry.name)) result.push(path)
@@ -69,11 +76,39 @@ async function directoriesUnder(root, current = root, result = []) {
     throw error
   }
   for (const entry of entries) {
-    if (!entry.isDirectory() || entry.name.startsWith('.')) continue
+    if (entry.isSymbolicLink() || !entry.isDirectory() || entry.name.startsWith('.')) continue
     const path = join(current, entry.name)
     result.push(relative(root, path))
     await directoriesUnder(root, path, result)
   }
+  return result
+}
+
+async function safeAdjacentPath(directory, filename) {
+  if (typeof filename !== 'string' || !filename.trim() || filename.split(/[\\/]/).includes('..'))
+    return null
+  const target = resolve(directory, filename)
+  if (!isInside(target, resolve(directory))) return null
+  try {
+    const [realDirectory, realTarget] = await Promise.all([realpath(directory), realpath(target)])
+    return isInside(realTarget, realDirectory) ? realTarget : null
+  } catch {
+    return null
+  }
+}
+
+async function readAdjacentText(directory, filename) {
+  const target = await safeAdjacentPath(directory, filename)
+  return target ? readFile(target, 'utf8').catch(() => null) : null
+}
+
+function mountPrefix(mount) {
+  return mount.multiple ? mount.path : ''
+}
+
+function mountedFolders(mounts, mount, folders) {
+  const result = folders.map((folder) => mountedDirectoryPath(mounts, mount, folder))
+  if (mount.multiple) result.unshift(mount.path)
   return result
 }
 
@@ -120,71 +155,87 @@ async function imageDimensions(filePath) {
 }
 
 async function assetsFor(source, sourceId) {
-  const root = join(source.path, 'assets')
-  const [files, folders] = await Promise.all([
-    filesUnder(
-      root,
-      (name) => !name.startsWith('.') && assetExtensions.has(extname(name).toLowerCase()),
-    ),
-    directoriesUnder(root),
-  ])
-  const assets = await Promise.all(
-    files.map(async (filePath) => {
-      const path = relative(root, filePath)
-      const extension = extname(path).slice(1).toLowerCase()
-      const kind = assetKind(path)
-      const metadataPath = join(
-        dirname(filePath),
-        `${basename(filePath, extname(filePath))}.meta.json`,
-      )
-      const [metadataResult, dimensions] = await Promise.all([
-        readFile(metadataPath, 'utf8')
-          .then((content) => ({
-            metadata: JSON.parse(content),
-            metadataFile: relative(root, metadataPath),
-          }))
-          .catch((error) => {
-            if (error.code !== 'ENOENT') throw error
-            return { metadata: {}, metadataFile: null }
-          }),
-        kind === 'image' ? imageDimensions(filePath) : null,
+  const mounts = sourceMounts(source, 'assets')
+  const scans = await Promise.all(
+    mounts.map(async (mount) => {
+      const [files, folders] = await Promise.all([
+        filesUnder(
+          mount.root,
+          (name) => !name.startsWith('.') && assetExtensions.has(extname(name).toLowerCase()),
+        ),
+        directoriesUnder(mount.root),
       ])
-      const { metadata, metadataFile } = metadataResult
-      return {
-        id: path,
-        name: path.split('/').at(-1),
-        path,
-        directory: dirname(path) === '.' ? '' : dirname(path),
-        extension,
-        type: kind,
-        previewUrl:
-          kind === 'image' || (kind === 'icon' && ['svg', 'tsx'].includes(extension))
-            ? `/api/sources/${encodeURIComponent(sourceId)}/asset-previews/${path.split('/').map(encodeURIComponent).join('/')}`
-            : null,
-        width: dimensions?.width ?? null,
-        height: dimensions?.height ?? null,
-        aspectRatio: dimensions?.aspectRatio ?? null,
-        orientation: dimensions?.orientation ?? null,
-        metadataFile,
-        description: metadata.description ?? null,
-        aliases: metadata.aliases ?? [],
-        useWhen: metadata.useWhen ?? [],
-        avoidWhen: metadata.avoidWhen ?? [],
-        tags: metadata.tags ?? [],
-        license: metadata.license ?? null,
-        alt: metadata.alt ?? null,
-      }
+      return { mount, files, folders }
     }),
+  )
+  const assets = await Promise.all(
+    scans.flatMap(({ mount, files }) =>
+      files.map(async (filePath) => {
+        const localPath = relative(mount.root, filePath).split(sep).join('/')
+        const path = mountedPublicPath(mounts, mount, localPath)
+        const extension = extname(path).slice(1).toLowerCase()
+        const kind = assetKind(localPath)
+        const metadataPath = join(
+          dirname(filePath),
+          `${basename(filePath, extname(filePath))}.meta.json`,
+        )
+        const [metadataResult, dimensions] = await Promise.all([
+          readFile(metadataPath, 'utf8')
+            .then((content) => ({
+              metadata: JSON.parse(content),
+              metadataFile: mountedPublicPath(
+                mounts,
+                mount,
+                relative(mount.root, metadataPath).split(sep).join('/'),
+              ),
+            }))
+            .catch((error) => {
+              if (error.code !== 'ENOENT') throw error
+              return { metadata: {}, metadataFile: null }
+            }),
+          kind === 'image' ? imageDimensions(filePath) : null,
+        ])
+        const { metadata, metadataFile } = metadataResult
+        return {
+          id: path,
+          name: path.split('/').at(-1),
+          path,
+          directory: dirname(path) === '.' ? '' : dirname(path).split(sep).join('/'),
+          mountPath: mount.path,
+          extension,
+          type: kind,
+          previewUrl:
+            kind === 'image' || (kind === 'icon' && ['svg', 'tsx'].includes(extension))
+              ? `/api/sources/${encodeURIComponent(sourceId)}/asset-previews/${path.split('/').map(encodeURIComponent).join('/')}`
+              : null,
+          width: dimensions?.width ?? null,
+          height: dimensions?.height ?? null,
+          aspectRatio: dimensions?.aspectRatio ?? null,
+          orientation: dimensions?.orientation ?? null,
+          metadataFile,
+          description: metadata.description ?? null,
+          aliases: metadata.aliases ?? [],
+          useWhen: metadata.useWhen ?? [],
+          avoidWhen: metadata.avoidWhen ?? [],
+          tags: metadata.tags ?? [],
+          license: metadata.license ?? null,
+          alt: metadata.alt ?? null,
+        }
+      }),
+    ),
   )
   return {
     kind: 'assets',
-    folders: folders.sort(),
+    folders: scans.flatMap(({ mount, folders }) => mountedFolders(mounts, mount, folders)).sort(),
     assets: assets.sort((a, b) => a.path.localeCompare(b.path)),
   }
 }
 
 async function tokensFor(source) {
-  return readTokenCatalog(source.path)
+  const mounts = sourceMounts(source, 'tokens')
+  return readTokenCatalogRoots(
+    mounts.map((mount) => ({ root: mount.root, prefix: mountPrefix(mount) })),
+  )
 }
 
 // Shared across Wireframe and Page manifests: both use the same typed control registry and the
@@ -204,6 +255,21 @@ function diagnoseDuplicateIds(items, entity, prefix) {
     if (item?.id) seen.add(item.id)
   }
   return diagnostics
+}
+
+function addCrossMountIdDiagnostics(entities, prefix, diagnosticsField = 'diagnostics') {
+  const counts = new Map()
+  for (const entity of entities) counts.set(entity.id, (counts.get(entity.id) ?? 0) + 1)
+  for (const entity of entities) {
+    if ((counts.get(entity.id) ?? 0) < 2) continue
+    entity[diagnosticsField] = [
+      ...(entity[diagnosticsField] ?? []),
+      {
+        code: `${prefix}-id-duplicate-across-mounts`,
+        message: `The authored id "${entity.id}" is used by more than one ${prefix} in this source. Rename one id so routes, relations, and handoff are unambiguous.`,
+      },
+    ]
+  }
 }
 
 function validateControls(controls, prefix) {
@@ -342,43 +408,49 @@ function wireframeDiagnostics(wireframe) {
 }
 
 async function wireframesFor(source, sourceId) {
-  const root = join(source.path, 'wireframes')
-  const [manifests, discoveredFolders, tokenData] = await Promise.all([
-    filesUnder(root, (name) => name === 'wireframe.json'),
-    directoriesUnder(root),
+  const mounts = sourceMounts(source, 'wireframes')
+  const [scans, tokenData] = await Promise.all([
+    Promise.all(
+      mounts.map(async (mount) => ({
+        mount,
+        manifests: await filesUnder(mount.root, (name) => name === 'wireframe.json'),
+        folders: await directoriesUnder(mount.root),
+      })),
+    ),
     tokensFor(source),
   ])
-  const entityDirectories = manifests.map((filePath) => relative(root, dirname(filePath)))
-  const folders = discoveredFolders.filter(
-    (folder) =>
-      !entityDirectories.some(
-        (entityDirectory) => folder === entityDirectory || folder.startsWith(`${entityDirectory}/`),
-      ),
+  const manifestEntries = scans.flatMap(({ mount, manifests }) =>
+    manifests.map((filePath) => ({ mount, filePath })),
   )
+  const entityDirectories = manifestEntries.map(({ mount, filePath }) =>
+    mountedDirectoryPath(
+      mounts,
+      mount,
+      relative(mount.root, dirname(filePath)).split(sep).join('/'),
+    ),
+  )
+  const folders = scans
+    .flatMap(({ mount, folders: discoveredFolders }) =>
+      mountedFolders(mounts, mount, discoveredFolders),
+    )
+    .filter(
+      (folder) =>
+        !entityDirectories.some(
+          (entityDirectory) =>
+            folder === entityDirectory || folder.startsWith(`${entityDirectory}/`),
+        ),
+    )
   const wireframes = []
-  for (const filePath of manifests) {
+  for (const { mount, filePath } of manifestEntries) {
     const { manifest, diagnostics: manifestDiagnostics } = await readManifest(filePath)
-    const directory = relative(root, dirname(filePath))
-    const readAdjacent = async (filename) => {
-      if (!filename) return null
-      try {
-        return await readFile(join(dirname(filePath), filename), 'utf8')
-      } catch {
-        return null
-      }
-    }
+    const localDirectory = relative(mount.root, dirname(filePath)).split(sep).join('/')
+    const directory = mountedDirectoryPath(mounts, mount, localDirectory)
     const [documentation, changelogDocumentation] = await Promise.all([
-      readAdjacent(manifest.docs),
-      readAdjacent(manifest.changelog),
+      readAdjacentText(dirname(filePath), manifest.docs),
+      readAdjacentText(dirname(filePath), manifest.changelog),
     ])
     let entry = manifest.entry ?? null
-    if (entry) {
-      try {
-        await access(join(dirname(filePath), entry))
-      } catch {
-        entry = null
-      }
-    }
+    if (entry && !(await safeAdjacentPath(dirname(filePath), entry))) entry = null
     const wireframe = {
       ...manifest,
       id: manifest.id ?? directory,
@@ -386,7 +458,8 @@ async function wireframesFor(source, sourceId) {
       entry,
       sourceId,
       directory,
-      file: relative(root, filePath),
+      file: mountedPublicPath(mounts, mount, relative(mount.root, filePath).split(sep).join('/')),
+      mountPath: mount.path,
       documentation,
       changelogDocumentation,
     }
@@ -401,9 +474,10 @@ async function wireframesFor(source, sourceId) {
       ].filter((file) => file.path),
     })
   }
+  addCrossMountIdDiagnostics(wireframes, 'wireframe')
   return {
     kind: 'wireframes',
-    folders,
+    folders: [...new Set(folders)].sort(),
     modes: tokenData.modes,
     themeVariables: tokenVariablesByMode(tokenData),
     wireframes: wireframes.sort((a, b) => a.name.localeCompare(b.name)),
@@ -587,44 +661,50 @@ function pageDiagnostics(page, { pageIdsInSource, derivedWireframe }) {
 }
 
 async function pagesFor(source, sourceId) {
-  const root = join(source.path, 'pages')
-  const [manifests, discoveredFolders, tokenData] = await Promise.all([
-    filesUnder(root, (name) => name === 'page.json'),
-    directoriesUnder(root),
+  const mounts = sourceMounts(source, 'pages')
+  const [scans, tokenData] = await Promise.all([
+    Promise.all(
+      mounts.map(async (mount) => ({
+        mount,
+        manifests: await filesUnder(mount.root, (name) => name === 'page.json'),
+        folders: await directoriesUnder(mount.root),
+      })),
+    ),
     tokensFor(source),
   ])
-  const entityDirectories = manifests.map((filePath) => relative(root, dirname(filePath)))
-  const folders = discoveredFolders.filter(
-    (folder) =>
-      !entityDirectories.some(
-        (entityDirectory) => folder === entityDirectory || folder.startsWith(`${entityDirectory}/`),
-      ),
+  const manifestEntries = scans.flatMap(({ mount, manifests }) =>
+    manifests.map((filePath) => ({ mount, filePath })),
   )
+  const entityDirectories = manifestEntries.map(({ mount, filePath }) =>
+    mountedDirectoryPath(
+      mounts,
+      mount,
+      relative(mount.root, dirname(filePath)).split(sep).join('/'),
+    ),
+  )
+  const folders = scans
+    .flatMap(({ mount, folders: discoveredFolders }) =>
+      mountedFolders(mounts, mount, discoveredFolders),
+    )
+    .filter(
+      (folder) =>
+        !entityDirectories.some(
+          (entityDirectory) =>
+            folder === entityDirectory || folder.startsWith(`${entityDirectory}/`),
+        ),
+    )
 
   const parsed = []
-  for (const filePath of manifests) {
+  for (const { mount, filePath } of manifestEntries) {
     const { manifest, diagnostics: manifestDiagnostics } = await readManifest(filePath)
-    const directory = relative(root, dirname(filePath))
-    const readAdjacent = async (filename) => {
-      if (!filename) return null
-      try {
-        return await readFile(join(dirname(filePath), filename), 'utf8')
-      } catch {
-        return null
-      }
-    }
+    const localDirectory = relative(mount.root, dirname(filePath)).split(sep).join('/')
+    const directory = mountedDirectoryPath(mounts, mount, localDirectory)
     const [documentation, changelogDocumentation] = await Promise.all([
-      readAdjacent(manifest.docs),
-      readAdjacent(manifest.changelog),
+      readAdjacentText(dirname(filePath), manifest.docs),
+      readAdjacentText(dirname(filePath), manifest.changelog),
     ])
     let entry = manifest.entry ?? null
-    if (entry) {
-      try {
-        await access(join(dirname(filePath), entry))
-      } catch {
-        entry = null
-      }
-    }
+    if (entry && !(await safeAdjacentPath(dirname(filePath), entry))) entry = null
     parsed.push({
       manifestDiagnostics,
       page: {
@@ -634,7 +714,8 @@ async function pagesFor(source, sourceId) {
         entry,
         sourceId,
         directory,
-        file: relative(root, filePath),
+        file: mountedPublicPath(mounts, mount, relative(mount.root, filePath).split(sep).join('/')),
+        mountPath: mount.path,
         documentation,
         changelogDocumentation,
         diagnosticsAcknowledged: manifest.diagnosticsAcknowledged ?? [],
@@ -682,9 +763,11 @@ async function pagesFor(source, sourceId) {
     })
   }
 
+  addCrossMountIdDiagnostics(pages, 'page')
+
   return {
     kind: 'pages',
-    folders,
+    folders: [...new Set(folders)].sort(),
     modes: tokenData.modes,
     themeVariables: tokenVariablesByMode(tokenData),
     pages: pages.sort((a, b) => a.name.localeCompare(b.name)),
@@ -701,10 +784,7 @@ async function componentStyle(directory, manifest) {
     stem ? `${stem}.css` : null,
   ].filter(Boolean)
   for (const candidate of [...new Set(candidates)]) {
-    try {
-      await access(join(directory, candidate))
-      return candidate
-    } catch {}
+    if (await safeAdjacentPath(directory, candidate)) return candidate
   }
   return null
 }
@@ -717,10 +797,7 @@ async function componentPlayground(directory, manifest) {
     `${stem}.playground.ts`,
   ].filter(Boolean)
   for (const candidate of [...new Set(candidates)]) {
-    try {
-      await access(join(directory, candidate))
-      return candidate
-    } catch {}
+    if (await safeAdjacentPath(directory, candidate)) return candidate
   }
   return null
 }
@@ -912,10 +989,14 @@ function isScriptSource(filePath) {
 }
 
 async function componentRelations(source, sourceManifest, components) {
-  const componentRoot = join(source.path, 'components')
   const directories = components.map((component) => ({
     component,
-    path: resolve(componentRoot, component.directory),
+    path: resolveMountedPath(
+      source,
+      'components',
+      component.sourceDirectory ?? component.directory,
+      { allowRoot: true },
+    ).target,
   }))
   const bySymbol = new Map(
     components.map((component) => [componentSymbol(component, component.directory), component]),
@@ -928,8 +1009,24 @@ async function componentRelations(source, sourceManifest, components) {
 
   async function dependenciesFor(component, rootFile) {
     if (!rootFile) return { dependencies: [], diagnostics: [] }
-    const ownerDirectory = resolve(componentRoot, component.directory)
-    const queue = [resolve(ownerDirectory, rootFile)]
+    const ownerDirectory = resolveMountedPath(
+      source,
+      'components',
+      component.sourceDirectory ?? component.directory,
+      { allowRoot: true },
+    ).target
+    const rootTarget = resolve(ownerDirectory, rootFile)
+    if (!isInside(rootTarget, ownerDirectory))
+      return {
+        dependencies: [],
+        diagnostics: [
+          {
+            code: 'component-source-outside-mount',
+            message: `${rootFile} resolves outside the Component directory.`,
+          },
+        ],
+      }
+    const queue = [rootTarget]
     const visited = new Set()
     const dependencies = new Map()
     const diagnostics = []
@@ -937,7 +1034,18 @@ async function componentRelations(source, sourceManifest, components) {
       const filePath = queue.shift()
       if (!filePath || visited.has(filePath)) continue
       visited.add(filePath)
-      const scan = await parseComponentSourceImports(filePath)
+      const [realOwnerDirectory, realFilePath] = await Promise.all([
+        realpath(ownerDirectory).catch(() => null),
+        realpath(filePath).catch(() => null),
+      ])
+      if (!realOwnerDirectory || !realFilePath || !isInside(realFilePath, realOwnerDirectory)) {
+        diagnostics.push({
+          code: 'component-source-outside-mount',
+          message: `${relative(ownerDirectory, filePath)} resolves outside the Component directory.`,
+        })
+        continue
+      }
+      const scan = await parseComponentSourceImports(realFilePath)
       diagnostics.push(
         ...scan.diagnostics.map((diagnostic) => ({
           ...diagnostic,
@@ -1030,124 +1138,163 @@ export async function getModuleEntities(sourceId, moduleId) {
     }
   }
   if (moduleId === 'fonts') {
-    try {
-      const registry = JSON.parse(await readFile(join(source.path, 'fonts', 'fonts.json'), 'utf8'))
-      const tokenData = await tokensFor(source)
-      return {
-        kind: 'fonts',
-        modes: tokenData.modes,
-        typography: tokenData.tokens.filter((token) =>
-          ['fontFamily', 'fontWeight', 'fontSize', 'lineHeight', 'letterSpacing'].includes(
-            token.type,
-          ),
+    const mounts = sourceMounts(source, 'fonts')
+    const [registries, tokenData] = await Promise.all([
+      Promise.all(
+        mounts.map(async (mount) => {
+          try {
+            const registry = JSON.parse(await readFile(join(mount.root, 'fonts.json'), 'utf8'))
+            return (registry.families ?? []).map((family) => ({
+              ...family,
+              mountPath: mount.path,
+            }))
+          } catch (error) {
+            if (error.code === 'ENOENT') return []
+            throw error
+          }
+        }),
+      ),
+      tokensFor(source),
+    ])
+    return {
+      kind: 'fonts',
+      modes: tokenData.modes,
+      typography: tokenData.tokens.filter((token) =>
+        ['fontFamily', 'fontWeight', 'fontSize', 'lineHeight', 'letterSpacing'].includes(
+          token.type,
         ),
-        families: registry.families ?? [],
-      }
-    } catch (error) {
-      if (error.code === 'ENOENT')
-        return { kind: 'fonts', modes: ['default'], typography: [], families: [] }
-      throw error
+      ),
+      families: registries.flat(),
     }
   }
   if (moduleId === 'components') {
-    const root = join(source.path, 'components')
-    const [manifests, discoveredFolders, sourceManifest, tokenData] = await Promise.all([
-      filesUnder(root, (name) => name === 'component.json'),
-      directoriesUnder(root),
+    const mounts = sourceMounts(source, 'components')
+    const [scans, sourceManifest, tokenData] = await Promise.all([
+      Promise.all(
+        mounts.map(async (mount) => {
+          const manifests = await filesUnder(mount.root, (name) => name === 'component.json')
+          const localComponentDirectories = manifests.map((filePath) =>
+            relative(mount.root, dirname(filePath)).split(sep).join('/'),
+          )
+          return {
+            mount,
+            manifests,
+            localComponentDirectories,
+            folders: await directoriesUnder(mount.root),
+            inferred: await discoverManifestFreeComponents(mount.root, localComponentDirectories),
+          }
+        }),
+      ),
       readSourceManifest(source),
       tokensFor(source),
     ])
-    const componentDirectories = manifests.map((filePath) => relative(root, dirname(filePath)))
-    const folders = discoveredFolders.filter(
-      (folder) =>
-        !componentDirectories.some(
-          (componentDirectory) =>
-            folder === componentDirectory || folder.startsWith(`${componentDirectory}/`),
-        ),
+    const componentDirectories = scans.flatMap(({ mount, localComponentDirectories }) =>
+      localComponentDirectories.map((directory) => mountedDirectoryPath(mounts, mount, directory)),
     )
+    const folders = scans
+      .flatMap(({ mount, folders: discoveredFolders }) =>
+        mountedFolders(mounts, mount, discoveredFolders),
+      )
+      .filter(
+        (folder) =>
+          !componentDirectories.some(
+            (componentDirectory) =>
+              folder === componentDirectory || folder.startsWith(`${componentDirectory}/`),
+          ),
+      )
     const components = []
-    for (const filePath of manifests) {
-      const file = relative(root, filePath)
-      const { manifest, diagnostics: manifestDiagnostics } = await readManifest(filePath)
-      let documentation = null
-      if (manifest.docs) {
-        try {
-          documentation = await readFile(join(dirname(filePath), manifest.docs), 'utf8')
-        } catch {}
+    for (const { mount, manifests } of scans) {
+      for (const filePath of manifests) {
+        const localFile = relative(mount.root, filePath).split(sep).join('/')
+        const file = mountedPublicPath(mounts, mount, localFile)
+        const { manifest, diagnostics: manifestDiagnostics } = await readManifest(filePath)
+        const [documentation, changelogDocumentation] = await Promise.all([
+          readAdjacentText(dirname(filePath), manifest.docs),
+          readAdjacentText(dirname(filePath), manifest.changelog),
+        ])
+        const localDirectory = localFile.split('/').slice(0, -1).join('/')
+        const directory = mountedDirectoryPath(mounts, mount, localDirectory)
+        const category = directory.split('/').slice(0, -1).join('/')
+        const [style, playground] = await Promise.all([
+          componentStyle(dirname(filePath), manifest),
+          componentPlayground(dirname(filePath), manifest),
+        ])
+        const component = {
+          ...manifest,
+          sourcePath: manifest.sourcePath
+            ? mountedPublicPath(mounts, mount, manifest.sourcePath)
+            : null,
+          id: manifest.id ?? directory,
+          name: componentDisplayName(manifest, directory),
+          variants: manifest.variants ?? [],
+          states: manifest.states ?? [],
+          category,
+          style,
+          playground,
+          sourceId,
+          documentation,
+          changelogDocumentation,
+          file,
+          manifestFile: file,
+          directory,
+          sourceDirectory: directory,
+          mountPath: mount.path,
+        }
+        const implementation = resolveComponentImplementation(component)
+        component.platform = implementation.platform
+        component.technology = implementation.technology
+        component.adapter = implementation.adapter
+        component.familyId = implementation.familyId
+        component.capabilities = implementation.capabilities
+        component.implementation = implementation
+        component.completenessDiagnostics = [
+          ...manifestDiagnostics,
+          ...componentCompletenessDiagnostics(component),
+          ...implementation.diagnostics,
+        ]
+        components.push({
+          ...component,
+          import: componentImport(source, sourceManifest, component),
+          files: componentFiles(component),
+        })
       }
-      let changelogDocumentation = null
-      if (manifest.changelog) {
-        try {
-          changelogDocumentation = await readFile(
-            join(dirname(filePath), manifest.changelog),
-            'utf8',
-          )
-        } catch {}
-      }
-      const directory = file.split('/').slice(0, -1).join('/')
-      const category = directory.split('/').slice(0, -1).join('/')
-      const [style, playground] = await Promise.all([
-        componentStyle(dirname(filePath), manifest),
-        componentPlayground(dirname(filePath), manifest),
-      ])
-      const component = {
-        ...manifest,
-        id: manifest.id ?? directory,
-        name: componentDisplayName(manifest, directory),
-        variants: manifest.variants ?? [],
-        states: manifest.states ?? [],
-        category,
-        style,
-        playground,
-        sourceId,
-        documentation,
-        changelogDocumentation,
-        file,
-        manifestFile: file,
-        directory,
-      }
-      const implementation = resolveComponentImplementation(component)
-      component.platform = implementation.platform
-      component.technology = implementation.technology
-      component.adapter = implementation.adapter
-      component.familyId = implementation.familyId
-      component.capabilities = implementation.capabilities
-      component.implementation = implementation
-      component.completenessDiagnostics = [
-        ...manifestDiagnostics,
-        ...componentCompletenessDiagnostics(component),
-        ...implementation.diagnostics,
-      ]
-      components.push({
-        ...component,
-        import: componentImport(source, sourceManifest, component),
-        files: componentFiles(component),
-      })
     }
-    const inferredComponents = await discoverManifestFreeComponents(root, componentDirectories)
-    for (const inferred of inferredComponents) {
-      const implementation = resolveComponentImplementation(inferred)
-      const component = {
-        ...inferred,
-        sourceId,
-        platform: implementation.platform,
-        technology: implementation.technology,
-        adapter: implementation.adapter,
-        familyId: implementation.familyId,
-        capabilities: implementation.capabilities,
-        implementation,
-        completenessDiagnostics: implementation.diagnostics,
+    for (const { mount, inferred: inferredComponents } of scans) {
+      for (const inferred of inferredComponents) {
+        const directory = mountedDirectoryPath(mounts, mount, inferred.directory)
+        const sourceDirectory = mountedDirectoryPath(mounts, mount, inferred.sourceDirectory)
+        const sourcePath = mountedPublicPath(mounts, mount, inferred.sourcePath)
+        const component = {
+          ...inferred,
+          id: mountedPublicPath(mounts, mount, inferred.id),
+          category: mountedDirectoryPath(mounts, mount, inferred.category),
+          directory,
+          sourceDirectory,
+          sourcePath,
+          file: sourcePath,
+          mountPath: mount.path,
+          sourceId,
+        }
+        const implementation = resolveComponentImplementation(component)
+        component.platform = implementation.platform
+        component.technology = implementation.technology
+        component.adapter = implementation.adapter
+        component.familyId = implementation.familyId
+        component.capabilities = implementation.capabilities
+        component.implementation = implementation
+        component.completenessDiagnostics = implementation.diagnostics
+        components.push({
+          ...component,
+          import: null,
+          files: componentFiles(component),
+        })
       }
-      components.push({
-        ...component,
-        import: null,
-        files: componentFiles(component),
-      })
     }
+    addCrossMountIdDiagnostics(components, 'component', 'completenessDiagnostics')
     const relatedComponents = await componentRelations(source, sourceManifest, components)
     return {
       kind: 'components',
-      folders,
+      folders: [...new Set(folders)].sort(),
       modes: tokenData.modes,
       themeVariables: tokenVariablesByMode(tokenData),
       families: buildComponentFamilies(relatedComponents),

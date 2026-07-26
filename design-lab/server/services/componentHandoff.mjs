@@ -1,7 +1,8 @@
 import { readFile } from 'node:fs/promises'
-import { extname, resolve, relative, sep } from 'node:path'
+import { extname, relative, sep } from 'node:path'
 import { getModuleEntities } from './moduleEntities.mjs'
 import { getSource } from './projectRegistry.mjs'
+import { resolveMountedFile } from './sourceMounts.mjs'
 
 const LANGUAGE_BY_EXTENSION = new Map([
   ['.js', 'javascript'],
@@ -52,12 +53,28 @@ export async function getComponentHandoff(sourceId, componentId) {
       status: 409,
       code: 'COMPONENT_SOURCE_UNAVAILABLE',
     })
-  const root = resolve(source.path, 'components')
   const relativeSourcePath = component.sourcePath
     ? component.sourcePath
     : `${component.directory}/${sourcePath}`
-  const target = resolve(root, relativeSourcePath)
-  assertComponentSourcePath(root, target)
+  let target
+  try {
+    target = (await resolveMountedFile(source, 'components', relativeSourcePath)).target
+  } catch (error) {
+    if (error.code === 'ENOENT')
+      throw Object.assign(new Error('Component source file not found'), {
+        status: 404,
+        code: 'COMPONENT_SOURCE_NOT_FOUND',
+      })
+    if (error.code?.startsWith('SOURCE_'))
+      throw Object.assign(
+        new Error('Component source path escapes the configured component roots'),
+        {
+          status: 400,
+          code: 'COMPONENT_SOURCE_OUTSIDE_SOURCE',
+        },
+      )
+    throw error
+  }
   try {
     return {
       componentId: component.id,

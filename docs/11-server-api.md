@@ -20,7 +20,11 @@ Liveness probe. Returns `{ "status": "ok", "runtime": "node", "revision": <numbe
 
 ### `GET /api/projects`
 
-Returns `{ "projects": Project[], "workspacePath": string }`. `Project.available` is computed per request by an `fs.access` check against the registered `path`; a Project whose directory was deleted outside Design Lab still appears with `available: false` rather than disappearing silently.
+Returns `{ "projects": Project[], "workspacePath": string }`. The embedded Project is rebuilt from
+`design-lab/designlab.config.json` on every listing and de-duplicated against the derived registry,
+so deleting registry state does not disconnect the source. `Project.available` is computed per
+request by an `fs.access` check against `path`; other registered Projects whose directories were
+deleted still appear with `available: false` rather than disappearing silently.
 
 ### `GET /api/sources`
 
@@ -54,7 +58,7 @@ plus the scan validation errors above.
 
 ### `GET /api/projects/:projectId/tree` and `GET /api/sources/:sourceId/tree`
 
-Two routes, identical handler (`getProjectTree`). Query: `?module=<moduleId>` (defaults to `home`). Tokens additionally accept `&view=tokens|files`: `tokens` returns the logical token hierarchy, while `files` returns typed filesystem folder → token document → token group → token navigation. Both are derived from the same normalized catalog and neither contains a registered taxonomy. For `wireframes`, `pages`, `components`, `tokens`, and `assets`, the handler delegates to semantic navigation (`getModuleNavigation`, folders + typed entities, not raw implementation files). Other known module ids fall back to a raw recursive directory scan (`scanDirectory`, ignoring `node_modules`, `.git`, `.designlab`, `dist`, and dotfiles, capped at 8 levels of depth) rooted at that module's canonical subdirectory. Unknown module ids return `400 UNKNOWN_MODULE`.
+Two routes, identical handler (`getProjectTree`). Query: `?module=<moduleId>` (defaults to `home`). Tokens additionally accept `&view=tokens|files`: `tokens` returns the logical token hierarchy, while `files` returns typed filesystem folder → token document → token group → token navigation. Both are derived from the same normalized catalog and neither contains a registered taxonomy. For `wireframes`, `pages`, `components`, `tokens`, and `assets`, the handler delegates to semantic navigation (`getModuleNavigation`, folders + typed entities, not raw implementation files). Module roots resolve through source mounts; the response includes legacy `rootPath` plus `rootPaths` for multi-root sources. Other known module ids fall back to a raw recursive scan with the same mount resolver where applicable. Unknown module ids return `400 UNKNOWN_MODULE`.
 
 ### `GET /api/sources/:sourceId/modules/:moduleId`
 
@@ -71,12 +75,17 @@ The main entity endpoint. Returns the shape documented per-module in `05-entitie
 
 Every module scan is **stateless and rescans the filesystem on every request** — there is no server-side cache for this endpoint. A broken/unparseable `component.json`, `wireframe.json`, or `page.json` is localized to that entity as `manifest-parse-error`; neighboring entities remain available.
 
+All filesystem-backed module shapes use the same mount identity rule. One configured root exposes
+paths relative to that root. Multiple roots of the same kind expose source-relative paths including
+their mount (`packages/vue/src/Card.vue`) so routes and entity ids remain unambiguous. Mount config
+accepts relative paths only and rejects escaping/ambiguous paths with `SOURCE_*` errors.
+
 ### `GET /api/sources/:sourceId/components/:componentId/handoff`
 
 Returns the exact discovered implementation source as `{ componentId, familyId, platform,
 technology, path, language, source, provenance, warnings }`. `:componentId` may contain `/`. The
 route is read-only, resolves only Components that advertise the `handoff` capability, and confines
-the source path to the source's canonical `components/` directory. Native handoff includes an
+the source path to one configured Component mount. Native handoff includes an
 explicit warning that source discovery is not proof of a successful platform build/render.
 
 Errors: `404 COMPONENT_NOT_FOUND`, `409 COMPONENT_HANDOFF_UNAVAILABLE`,
@@ -92,7 +101,7 @@ Returns the authored-SCSS handoff described in `10-inspection-architecture.md`: 
 Both stream a binary body (`sendBuffer`, not JSON) with `Cache-Control: no-store`. `:assetPath` may contain `/`.
 
 - `assets/...` serves the raw file with a strict allow-list content type (`avif/gif/jpeg/jpg/png/svg/webp` only — video files and `.tsx` icons have **no** raw-serving content type and return `415 ASSET_PREVIEW_UNSUPPORTED` from this route, even though they are valid discovered assets in the `components`/`assets` module payload).
-- `asset-previews/...` is the *rendered* preview path used by `AssetCard`: `.tsx` icons go through `renderTsxIcon` (regex-extract the `<svg>` literal, then `sanitizeSvg`), `.svg` files go through `sanitizeSvg` directly, everything else with a known image content type is passed through unchanged. Both routes share `resolveAsset`/`assertSafeAssetPath`, which throws `400 ASSET_PATH_OUTSIDE_SOURCE` for any path escaping `<source>/assets/`, and `404 ASSET_NOT_FOUND` for a missing file.
+- `asset-previews/...` is the *rendered* preview path used by `AssetCard`: `.tsx` icons go through `renderTsxIcon` (regex-extract the `<svg>` literal, then `sanitizeSvg`), `.svg` files go through `sanitizeSvg` directly, everything else with a known image content type is passed through unchanged. Both routes resolve through configured Asset mounts and return `400 ASSET_PATH_OUTSIDE_SOURCE` for an escaping or ambiguous path, and `404 ASSET_NOT_FOUND` for a missing file.
 - SVG/TSX sanitization rejects (`422`) content without exactly one `<svg>...</svg>` root (`ICON_SVG_ROOT_REQUIRED`), content containing `<script>`, `<foreignObject>`, `<iframe>`, `<object>`, `<embed>`, `<use>`, any `on*=` handler, or any `href`/`xlinkHref` (`ICON_PREVIEW_UNSAFE`), and any remaining dynamic `{}` JSX expression after the TSX-specific static prop rewriting pass (`ICON_PREVIEW_DYNAMIC_JSX`).
 
 ### `GET /api/entities?projectId=<id>&module=<moduleId>`

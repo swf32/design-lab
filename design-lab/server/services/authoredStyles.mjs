@@ -1,4 +1,4 @@
-import { readFile } from 'node:fs/promises'
+import { readFile, realpath } from 'node:fs/promises'
 import { dirname, extname, relative, resolve, sep } from 'node:path'
 import { parse as parseModule } from '@babel/parser'
 import postcss from 'postcss'
@@ -128,20 +128,35 @@ async function importedStyleFiles(entryPath) {
 
 export async function getAuthoredStyles(sourceId, sourceFile) {
   const source = await getSource(sourceId)
-  const entryPath = resolve(source.path, sourceFile)
-  if (!isInside(entryPath, resolve(source.path)))
+  const sourceRoot = resolve(source.path)
+  const entryPath = resolve(sourceRoot, sourceFile)
+  const [realSourceRoot, realEntryPath] = await Promise.all([
+    realpath(sourceRoot),
+    realpath(entryPath).catch(() => null),
+  ])
+  if (
+    !isInside(entryPath, sourceRoot) ||
+    !realEntryPath ||
+    !isInside(realEntryPath, realSourceRoot)
+  )
     throw Object.assign(new Error('Inspection source must stay inside its Design Lab source'), {
       status: 400,
       code: 'INSPECTION_SOURCE_INVALID',
     })
-  const styleFiles = await importedStyleFiles(entryPath)
+  const styleFiles = await importedStyleFiles(realEntryPath)
   const styles = []
   for (const stylePath of styleFiles) {
-    if (!isInside(stylePath, resolve(source.path))) continue
-    const authored = await readFile(stylePath, 'utf8')
+    const realStylePath = await realpath(stylePath).catch(() => null)
+    if (
+      !isInside(stylePath, sourceRoot) ||
+      !realStylePath ||
+      !isInside(realStylePath, realSourceRoot)
+    )
+      continue
+    const authored = await readFile(realStylePath, 'utf8')
     styles.push({
-      file: relative(source.path, stylePath).split(sep).join('/'),
-      rules: parseAuthoredStyles(authored, stylePath),
+      file: relative(source.path, realStylePath).split(sep).join('/'),
+      rules: parseAuthoredStyles(authored, realStylePath),
     })
   }
   return { sourceId, sourceFile, styles }
