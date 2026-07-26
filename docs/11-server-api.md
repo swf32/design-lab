@@ -1,6 +1,6 @@
 # Local HTTP API reference
 
-The Design Lab server (`design-lab/server/index.mjs`) is a single dependency-free `node:http` server, not an Express/Fastify app. It listens on `127.0.0.1:4173` only (not `0.0.0.0`) and is meant to be reached through the Vite dev server proxy (`/api` → `http://127.0.0.1:4173`, see `vite.config.ts`) or `npm run preview`. There is no authentication: the security boundary is "loopback-only, local machine, single user," the same boundary already documented for MCP in `09-ai-context-and-mcp.md`.
+The Design Lab server (`design-lab/server/index.mjs`) is a single dependency-free `node:http` server, not an Express/Fastify app. It listens on loopback only (not `0.0.0.0`); the private API port is configured by `DESIGN_LAB_API_PORT` and defaults to `4173`. Vite proxies `/api` to that port and publishes the Design Lab UI on the independent `DESIGN_LAB_PORT` (default `5317`). Neither setting changes the product application's dev-server port. There is no authentication: the security boundary is "loopback-only, local machine, single user," the same boundary already documented for MCP in `09-ai-context-and-mcp.md`.
 
 This reference exists because no other document lists the actual routes, status codes, and error shapes. It must stay in sync with `server/index.mjs`; if a route is added, removed, or its shape changes, update this file in the same change per `AGENTS.md`.
 
@@ -31,6 +31,26 @@ Returns `{ "sources": (Library | Project)[], "workspacePath": string }`. Sources
 Body: `{ "name": string }` (2–80 characters after trimming). Creates a new Project at `projects/<slugified-name>/` (see `projectRegistry.mjs` `slugify` — Unicode-normalized, non-letter/digit runs become `-`, lower-cased; empty result falls back to `design-system`). Scaffolds `components/`, `tokens/`, `palette/`, `fonts/`, `assets/{icons,images,videos}/`, `docs/`, plus `project.json`, `tokens/base.tokens.json`, `fonts/fonts.json`, and `docs/README.md`. Returns `201 { "project": Project }`.
 
 Errors: `400 INVALID_PROJECT_NAME`, `409 PROJECT_DIRECTORY_EXISTS` (a same-slug directory already exists on disk — this is a directory collision, not a registry-id collision, so two visually different names that slugify identically will collide).
+
+### `GET /api/onboarding/scan`
+
+Query: `?mode=attach|managed&name=<optional-name>`. Builds the same setup plan used by the CLI for
+the configured workspace root. This route is read-only: it scans package manifests, lockfiles,
+framework evidence and candidate Component/Token/Asset/Font/Page/Wireframe roots, then returns the
+proposed versioned config and an explicit `changes` receipt. `moveFiles` and `deleteFiles` are empty.
+
+Errors: `400 SETUP_MODE_INVALID`, `400 SETUP_NAME_INVALID`, `404 SETUP_ROOT_NOT_FOUND`.
+
+### `POST /api/onboarding/apply`
+
+Body: `{ "name": string, "mode": "attach" | "managed", "confirmed": true }`. Rebuilds the plan
+server-side, writes the integration folder and bounded `AGENTS.md` pointer, then registers the
+attached/managed source. The UI's final `Connect project` action sends the explicit confirmation;
+a prior scan alone never grants it. Returns `201` with the applied result and registered `project`.
+
+Errors: `409 SETUP_CONFIRMATION_REQUIRED` when `confirmed` is absent/false,
+`409 SETUP_DIRECTORY_OCCUPIED` when a non-Design-Lab `design-lab/` folder already contains files,
+plus the scan validation errors above.
 
 ### `GET /api/projects/:projectId/tree` and `GET /api/sources/:sourceId/tree`
 
@@ -86,5 +106,7 @@ Static-ish info payload for the Settings page: the absolute Node executable path
 ## What is intentionally not here
 
 - **MCP** (`designlab_sources`/`designlab_search`/`designlab_get` over stdio) and the **CLI** (`npm run designlab -- ...`) are separate adapters over the same `contextGateway`, not HTTP routes — see `09-ai-context-and-mcp.md`.
-- There is no `PATCH`/`PUT`/`DELETE` route anywhere in this server. The only mutation is `POST /api/projects`. Token/component/wireframe editing, deletion, and the token CRUD routes sketched in `IMPLEMENTATION-CHECKLIST.md` (`POST/PATCH/DELETE /api/tokens...`) are not implemented yet.
+- Mutations currently include project/setup creation and the narrow Page/Wireframe manifest PATCH
+  routes implemented in `server/index.mjs`. General Token/Component CRUD and deletion are not
+  implemented yet.
 - There is no filesystem watcher or push channel (SSE/WebSocket); every read endpoint is pull/rescan-on-request. This is the same gap tracked in `IMPLEMENTATION-CHECKLIST.md` §0.4.

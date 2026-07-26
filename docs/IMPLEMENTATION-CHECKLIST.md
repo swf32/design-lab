@@ -687,25 +687,33 @@ Web sequencing и границы shared/native modules: `docs/17-web-first-platf
       `docs/20-embedded-install-and-attach-mode.md`.
 - [x] Принята dependency ownership: реальный owning `package.json` + существующий lock/install
       environment + отдельный managed adapter cache (D-083).
-- [ ] Принять install footprint: package/CLI + integration folder + tiny root hooks
-      (рекомендация), полностью self-contained folder или global/desktop app.
-- [ ] Принять имя и visibility integration folder: `design-lab/` или `.designlab/`.
+- [x] Принят install footprint: package/CLI + одна видимая `design-lab/` integration folder + tiny
+      managed root hooks; cache остаётся внутри `design-lab/.cache/` (D-084).
+- [x] Приняты dual onboarding entry points: component-based `Create Project` и agent-first CLI
+      plan с обязательным отдельным подтверждением перед записью; будущий MCP action переиспользует
+      тот же setup service (D-084).
+- [x] Зафиксирована port isolation: Design Lab и application dev server являются независимыми
+      локальными процессами и не меняют ports друг друга.
 - [ ] Заменить обязательную migration-first политику в D-001/D-008 и product framework на
       attach-in-place default для existing repositories; canonical layout оставить greenfield и
       optional migration mode.
-- [ ] Ввести versioned `DesignLabInstallation`/`SourceMount`/`PackageEnvironment` schema; config
-      хранит только relative roots/globs и не перечисляет entities.
+- [x] Введён первый versioned setup config (`schemaVersion: 1`) с source mounts и package
+      environments; config хранит relative roots и не перечисляет entities. Типы и validation
+      должны быть вынесены в общий schema package вместе с mount resolver.
 - [ ] Реализовать единый mount/path resolver и containment policy для UI, scanners, watcher,
       runtime, MCP, CLI и AI index.
 - [ ] Перевести fixed `source.path/<module>` scanners и build-time `libraries/*` globs на attached
       roots/runtime adapter host.
-- [ ] Реализовать deterministic repository scan с evidence/confidence и designer-readable summary;
-      AI разбирает неоднозначности, но не является единственным scanner.
-- [ ] Реализовать onboarding `Connect existing` / `Start clean`, default `Use files where they
-      are`, optional managed migration, apply plan и self-check.
-- [ ] Реализовать package environment resolver без ручного `node_modules` path.
-- [ ] Реализовать managed root instruction pointers, integration status, repair и uninstall без
-      копирования полного rule set.
+- [x] Реализован deterministic repository scan с evidence/confidence, framework/package detection
+      и designer-readable summary; AI не является единственным scanner.
+- [ ] Реализован component-based onboarding `Connect existing` / `Start clean`, default `Use files
+      where they are` и confirm-gated apply plan; ещё нужны post-apply self-check, repair и optional
+      managed migration существующих файлов.
+- [x] Реализован первый package environment resolver: ближайшие реальные `package.json` и lockfile
+      определяются без ручного `node_modules` path; workspace edge cases ещё покрываются adapter
+      diagnostics.
+- [ ] Реализован managed root `AGENTS.md` pointer без перезаписи пользовательского текста и локальные
+      rule contracts; ещё нужны integration status, repair и uninstall.
 
 ## Ближайший конкретный шаг
 

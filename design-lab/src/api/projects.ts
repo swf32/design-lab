@@ -6,6 +6,38 @@ export type Project = {
   schemaVersion: number
   createdAt: string
   available: boolean
+  mode?: 'managed' | 'attach'
+}
+
+export type ProjectSetupMode = 'attach' | 'managed'
+export type ProjectSetupPlan = {
+  schemaVersion: number
+  name: string
+  mode: ProjectSetupMode
+  scan: {
+    suggestedName: string
+    frameworks: string[]
+    found: Record<string, { roots: number; files: number }>
+    mounts: Record<
+      string,
+      Array<{
+        path: string
+        confidence: 'high' | 'medium' | 'low'
+        evidence: string[]
+        fileCount: number
+        packageRoot: string
+      }>
+    >
+    warnings: string[]
+  }
+  changes: {
+    createDirectories: string[]
+    createFiles: string[]
+    updateFiles: string[]
+    moveFiles: string[]
+    deleteFiles: string[]
+  }
+  requiresConfirmation: true
 }
 
 export type ProjectTreeItem = {
@@ -44,6 +76,24 @@ export async function listProjects() {
 
 export async function createProject(input: { name: string }) {
   return request<{ project: Project }>('/api/projects', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(input),
+  })
+}
+
+export async function scanProjectSetup(input: { name?: string; mode: ProjectSetupMode }) {
+  const parameters = new URLSearchParams({ mode: input.mode })
+  if (input.name?.trim()) parameters.set('name', input.name.trim())
+  return request<ProjectSetupPlan>(`/api/onboarding/scan?${parameters}`)
+}
+
+export async function applyProjectSetup(input: {
+  name: string
+  mode: ProjectSetupMode
+  confirmed: true
+}) {
+  return request<{ project: Project }>('/api/onboarding/apply', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(input),

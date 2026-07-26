@@ -189,3 +189,35 @@ export async function createProject(input) {
   await writeRegistry(registry)
   return { ...project, available: true }
 }
+
+export async function registerInstalledProject({ name, root, mode, source, configPath }) {
+  const projectName = typeof name === 'string' ? name.trim() : ''
+  if (projectName.length < 2 || projectName.length > 80)
+    throw Object.assign(new Error('Project name must contain 2–80 characters'), {
+      status: 400,
+      code: 'INVALID_PROJECT_NAME',
+    })
+
+  const projectPath = resolve(root)
+  const registry = await readRegistry()
+  const existing = registry.projects.find(
+    (project) => project.mode === mode && resolve(project.path) === projectPath,
+  )
+  const project = {
+    id: existing?.id ?? randomUUID(),
+    name: projectName,
+    path: projectPath,
+    kind: 'project',
+    mode,
+    schemaVersion: 1,
+    mounts: source.mounts ?? {},
+    packageEnvironments: source.packageEnvironments ?? [],
+    configPath,
+    createdAt: existing?.createdAt ?? new Date().toISOString(),
+  }
+
+  if (existing) registry.projects[registry.projects.indexOf(existing)] = project
+  else registry.projects.push(project)
+  await writeRegistry(registry)
+  return { ...project, available: true }
+}

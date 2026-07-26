@@ -1,6 +1,12 @@
 import { createServer } from 'node:http'
 import { readJson, sendBuffer, sendError, sendJson } from './lib/http.mjs'
-import { createProject, listProjects, listSources } from './services/projectRegistry.mjs'
+import {
+  createProject,
+  getWorkspaceDirectory,
+  listProjects,
+  listSources,
+  registerInstalledProject,
+} from './services/projectRegistry.mjs'
 import { getProjectTree } from './services/projectTree.mjs'
 import { getModuleEntities } from './services/moduleEntities.mjs'
 import { getAssetFile, getAssetPreview } from './services/assetFiles.mjs'
@@ -8,8 +14,10 @@ import { getIntegrationInfo } from './services/integrationInfo.mjs'
 import { getAuthoredStyles } from './services/authoredStyles.mjs'
 import { patchEntityManifest } from './services/manifestWrite.mjs'
 import { getComponentHandoff } from './services/componentHandoff.mjs'
+import { applySetupPlan, createSetupPlan } from './services/setupService.mjs'
 
 let revision = 0
+const apiPort = Number.parseInt(process.env.DESIGN_LAB_API_PORT ?? '4173', 10)
 
 createServer(async (request, response) => {
   const url = new URL(request.url ?? '/', 'http://localhost')
@@ -25,6 +33,35 @@ createServer(async (request, response) => {
     }
     if (request.method === 'GET' && url.pathname === '/api/integrations/mcp') {
       return sendJson(response, 200, getIntegrationInfo())
+    }
+    if (request.method === 'GET' && url.pathname === '/api/onboarding/scan') {
+      return sendJson(
+        response,
+        200,
+        await createSetupPlan({
+          root: getWorkspaceDirectory(),
+          mode: url.searchParams.get('mode') ?? 'attach',
+          name: url.searchParams.get('name') ?? undefined,
+        }),
+      )
+    }
+    if (request.method === 'POST' && url.pathname === '/api/onboarding/apply') {
+      const input = await readJson(request)
+      const result = await applySetupPlan({
+        root: getWorkspaceDirectory(),
+        mode: input.mode ?? 'attach',
+        name: input.name,
+        confirmed: input.confirmed === true,
+      })
+      const project = await registerInstalledProject({
+        name: input.name,
+        root: getWorkspaceDirectory(),
+        mode: result.mode,
+        source: result.source,
+        configPath: result.configPath,
+      })
+      revision += 1
+      return sendJson(response, 201, { ...result, project })
     }
     if (request.method === 'POST' && url.pathname === '/api/projects') {
       const project = await createProject(await readJson(request))
@@ -157,6 +194,6 @@ createServer(async (request, response) => {
   } catch (error) {
     return sendError(response, error)
   }
-}).listen(4173, '127.0.0.1', () => {
-  console.log('Design Lab local API: http://127.0.0.1:4173')
+}).listen(apiPort, '127.0.0.1', () => {
+  console.log(`Design Lab local API: http://127.0.0.1:${apiPort}`)
 })

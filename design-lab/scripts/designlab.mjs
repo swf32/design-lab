@@ -16,6 +16,7 @@ import {
   getComponentCaptureInfo,
   renderComponentCapture,
 } from '../server/services/componentCapture.mjs'
+import { applySetupPlan, createSetupPlan } from '../server/services/setupService.mjs'
 
 const args = process.argv.slice(2)
 const command = args[0] ?? 'help'
@@ -35,6 +36,9 @@ const VALUED_FLAGS = new Set([
   '--source-mode',
   '--interface-theme',
   '--output',
+  '--root',
+  '--name',
+  '--mode',
 ])
 
 function option(name) {
@@ -77,6 +81,8 @@ function help() {
   process.stdout.write(`Design Lab AI context CLI
 
 Usage:
+  npm run designlab -- setup [--root <project-folder>] [--mode attach|managed] [--name <name>]
+  npm run designlab -- setup --apply --confirm [--root <project-folder>] [--mode attach|managed]
   npm run designlab -- sources
   npm run designlab -- catalog --source <source-id> [--kind component,token]
   npm run designlab -- search "<intent>" --source <source-id> [--kind component] [--within <scope>] [--limit 8]
@@ -94,11 +100,45 @@ wireframe/page folders one path segment at a time instead of guessing an id.
 For Tokens, --view files walks folders and documents before token groups; --view paths walks the
 logical dotted token tree. Search --within accepts a filesystem subtree, document, logical token
 group, or "document.tokens.json#logical.group".
+
+Setup is read-only unless both --apply and --confirm are present. Before using --confirm, explain
+the returned changes in plain language and ask the user to approve them. Setup never moves or
+deletes existing product files.
 `)
 }
 
 try {
-  if (command === 'sources') {
+  if (command === 'setup') {
+    const input = {
+      root: resolve(option('--root') ?? process.cwd()),
+      name: option('--name'),
+      mode: option('--mode') ?? 'attach',
+    }
+    if (args.includes('--apply')) {
+      print(
+        await applySetupPlan({
+          ...input,
+          confirmed: args.includes('--confirm'),
+        }),
+      )
+    } else {
+      const plan = await createSetupPlan(input)
+      print({
+        schemaVersion: plan.schemaVersion,
+        mode: plan.mode,
+        name: plan.name,
+        summary: {
+          frameworks: plan.scan.frameworks,
+          found: plan.scan.found,
+          warnings: plan.scan.warnings,
+        },
+        changes: plan.changes,
+        requiresConfirmation: plan.requiresConfirmation,
+        nextStep:
+          'Explain this plan to the user in plain language. Apply it only after explicit confirmation.',
+      })
+    }
+  } else if (command === 'sources') {
     const result = await listSources()
     print(result.sources.map(({ id, name, kind, available }) => ({ id, name, kind, available })))
   } else if (command === 'catalog') {

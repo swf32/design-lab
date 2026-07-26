@@ -34,11 +34,7 @@ import {
   type TableColumn,
 } from '@design-lab/system/components'
 import { CardsViewIcon, CopyIcon, ListViewIcon } from '@design-lab/system/icons'
-import {
-  getComponentHandoff,
-  type ComponentHandoff,
-  type ModuleData,
-} from '../../api/projects'
+import { getComponentHandoff, type ComponentHandoff, type ModuleData } from '../../api/projects'
 import type { PlaygroundControls, PlaygroundValues } from '@design-lab/system/playground'
 import { TypedPlaygroundControls } from '../../components/TypedPlaygroundControls/TypedPlaygroundControls'
 import {
@@ -772,7 +768,10 @@ function ComponentConceptOverview({
         onSelect={onSelectComponent}
       />
       {presentation.kind === 'external' && (
-        <section className="component-external-preview" aria-label={`${component.name} live preview`}>
+        <section
+          className="component-external-preview"
+          aria-label={`${component.name} live preview`}
+        >
           <iframe
             src={presentation.url}
             title={`${component.name} live preview`}

@@ -1346,3 +1346,26 @@ rebuildable managed cache и не записываются в product dependenci
 Подробная модель и оставшиеся UX/security вопросы закреплены в
 `docs/19-dependencies-and-libraries.md`; attach-first следствия — в
 `docs/20-embedded-install-and-attach-mode.md`.
+
+## D-084 — Embedded install использует dual onboarding и отдельный локальный порт
+
+**Статус:** принято, 2026-07-26; foundation реализуется.
+
+Основной install footprint — package/CLI плюс одна видимая integration folder `design-lab/` и
+маленькие управляемые root hooks. Существующий production source остаётся на месте; удалить или
+перенести его setup не может без отдельного явного согласования. Derived adapter/runtime cache
+находится в `design-lab/.cache/` и не является source of truth.
+
+Onboarding имеет два равноправных входа над одним setup plan. В приложении он открывается из
+`Create Project`: пользователь выбирает подключение существующей системы или чистый старт, видит
+простое read-only резюме найденного и отдельно подтверждает запись. Agent-first onboarding работает
+до первого запуска UI через CLI и root `AGENTS.md` pointer; будущий MCP action должен вызывать тот
+же service, а не создавать второй setup pipeline. Правило требует от агента сначала
+объяснить простым языком, что найдено и какие файлы будут созданы или изменены, затем запросить у
+пользователя подтверждение. Флаг подтверждения не выводится из scan автоматически.
+
+Design Lab и приложение команды являются разными локальными процессами. Design Lab публикует свой
+настраиваемый loopback port; dev server продукта продолжает использовать собственный port. Setup не
+переписывает port приложения и не проксирует его без отдельной будущей integration. В dev-сборке
+внутренний API может использовать второй private loopback port за Vite proxy, но пользователь
+открывает один Design Lab origin.

@@ -1,8 +1,9 @@
 # Embedded installation and attach-first sources
 
-**Статус:** продуктово-архитектурный анализ. Направление «Design Lab прежде всего подключается к
-существующему repository и не требует переноса production source» предложено пользователем
-2026-07-26. Точный install footprint ещё требует выбора; реализация не начата.
+**Статус:** направление принято 2026-07-26; первая foundation-версия setup реализована. Install
+footprint зафиксирован как package/CLI + видимая `design-lab/` integration folder + маленький
+управляемый блок в root `AGENTS.md`. Полное чтение attached mounts всеми модулями ещё не готово и
+остаётся обязательным gate перед framework runtimes.
 
 ## Короткий вывод
 
@@ -22,6 +23,28 @@ greenfield и для новых Design Lab-only сущностей, но пер�
 source of truth в своих реальных файлах. Маленький integration config сообщает только, где искать
 разные виды сущностей и какой package environment ими владеет. Он не перечисляет каждую сущность и
 не дублирует её содержание.
+
+## Что уже реализовано
+
+- `designlab setup` выполняет read-only scan по умолчанию и показывает designer-readable summary,
+  evidence/confidence, package owners, lockfiles и список будущих изменений.
+- Запись требует одновременно `--apply --confirm`; без отдельного подтверждения service отвечает
+  `SETUP_CONFIRMATION_REQUIRED` и ничего не меняет.
+- Apply создаёт `design-lab/designlab.config.json`, managed folders/cache, локальную копию contracts
+  и ограниченный marker-блок в существующем `AGENTS.md`, сохраняя остальное содержание файла.
+- Setup plan всегда содержит пустые `moveFiles` и `deleteFiles`; существующий production source не
+  переносится и не удаляется.
+- `Create Project` использует тот же plan: `Use my existing project` сначала только сканирует, затем
+  показывает понятную сводку и отдельную кнопку `Connect project`; `Start clean` создаёт managed
+  roots.
+- Design Lab public port настраивается через `DESIGN_LAB_PORT` (default `5317`), а private local API
+  — через `DESIGN_LAB_API_PORT` (default `4173`). Ни один из них не меняет port приложения команды.
+
+Это пока foundation, а не обещание полной attach-совместимости. Registry уже сохраняет mounts и
+package environments, но существующие module scanners, tree, watcher/runtime, MCP и AI index ещё
+используют canonical `source.path/<module>` в нескольких местах. Пока единый resolver не подключён
+ко всем этим consumers, нестандартный root может быть найден в onboarding, но не обязан полностью
+появиться в Catalog. Поэтому Vue/Svelte runtime начинается только после mount resolver gate.
 
 ## Что подсказал Storybook, а что нельзя копировать буквально
 

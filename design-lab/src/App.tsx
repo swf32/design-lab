@@ -32,12 +32,15 @@ import {
   StarIcon,
 } from '@design-lab/system/icons'
 import {
-  createProject,
+  applyProjectSetup,
   getModuleData,
   getProjectTree,
   listProjects,
+  scanProjectSetup,
   type ModuleData,
   type Project,
+  type ProjectSetupMode,
+  type ProjectSetupPlan,
   type ProjectTreeItem,
   type TokenNavigationView,
 } from './api/projects'
@@ -474,12 +477,31 @@ export default function App() {
     setNavigationWidth((width) => clampNavigationWidth(width + direction * 12))
   }
 
-  const handleCreateProject = async (input: { name: string }) => {
+  const handleScanProject = async (input: {
+    name: string
+    mode: ProjectSetupMode
+  }): Promise<ProjectSetupPlan> => {
     setProjectCreating(true)
     setProjectError(null)
     try {
-      const result = await createProject(input)
-      setProjects((current) => [...current, result.project])
+      return await scanProjectSetup(input)
+    } catch (error) {
+      setProjectError(error instanceof Error ? error.message : 'Could not check this project')
+      throw error
+    } finally {
+      setProjectCreating(false)
+    }
+  }
+
+  const handleCreateProject = async (input: { name: string; mode: ProjectSetupMode }) => {
+    setProjectCreating(true)
+    setProjectError(null)
+    try {
+      const result = await applyProjectSetup({ ...input, confirmed: true })
+      setProjects((current) => [
+        ...current.filter((project) => project.id !== result.project.id),
+        result.project,
+      ])
       setActiveProjectId(result.project.id)
       setProjectDialogOpen(false)
     } catch (error) {
@@ -849,6 +871,7 @@ export default function App() {
         error={projectError}
         canClose={projects.length > 0}
         onClose={() => setProjectDialogOpen(false)}
+        onScan={handleScanProject}
         onCreate={handleCreateProject}
       />
     </main>

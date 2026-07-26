@@ -331,14 +331,17 @@ test('strong ecosystem evidence discovers Components without component.json', as
     const result = await getModuleEntities('multiplatform-system', 'components')
     const components = new Map(result.components.map((component) => [component.id, component]))
 
-    assert.deepEqual([...components.keys()], [
-      'native/Badge',
-      'native/Chip',
-      'web/Counter',
-      'web/Notice',
-      'web/ProfileCard',
-      'web/user-card',
-    ])
+    assert.deepEqual(
+      [...components.keys()],
+      [
+        'native/Badge',
+        'native/Chip',
+        'web/Counter',
+        'web/Notice',
+        'web/ProfileCard',
+        'web/user-card',
+      ],
+    )
     assert.equal(components.has('web/Internal'), false)
     assert.equal(components.get('web/Notice').adapter, 'react-manifest')
     assert.equal(components.get('web/ProfileCard').adapter, 'vue-sfc')

@@ -80,7 +80,8 @@ function implementationCapabilities(component, { platform, technology }) {
   const hasStaticPreview = Boolean(component.previewImage)
   const hasReactPreview = technology === 'react' && Boolean(component.preview)
   const hasReactRuntime =
-    technology === 'react' && Boolean(component.preview || component.stories || component.playground)
+    technology === 'react' &&
+    Boolean(component.preview || component.stories || component.playground)
   const hasExternalRuntime = Boolean(component.previewUrl)
   const hasLivePreview = hasReactRuntime || hasExternalRuntime
 
@@ -106,7 +107,7 @@ export function resolveComponentImplementation(component) {
     authoredAdapter ??
     (component.previewUrl && technology === 'unknown'
       ? 'external-browser'
-      : ADAPTER_BY_TECHNOLOGY.get(technology) ?? 'unknown-source')
+      : (ADAPTER_BY_TECHNOLOGY.get(technology) ?? 'unknown-source'))
   const externalUrl = authoredString(component.previewUrl)
   const entry = authoredString(component.entry) ?? authoredString(component.sourcePath)
   const fallbackPath = authoredString(component.playground) ?? authoredString(component.preview)
@@ -237,7 +238,9 @@ function componentEvidence(file, source) {
     return match ? { symbol: match[1], technology: 'compose', evidence: 'compose-function' } : null
   }
   if (['.js', '.mjs', '.ts'].includes(extension)) {
-    const customElement = source.match(/customElements\.define\(\s*['"]([a-z][a-z0-9._-]*-[a-z0-9._-]+)['"]/)
+    const customElement = source.match(
+      /customElements\.define\(\s*['"]([a-z][a-z0-9._-]*-[a-z0-9._-]+)['"]/,
+    )
     if (customElement)
       return {
         symbol: filenameSymbol ?? customElement[1],

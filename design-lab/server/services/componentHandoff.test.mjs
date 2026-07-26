@@ -36,7 +36,8 @@ test('discovered native source is returned as read-only handoff with explicit pr
       join(library, 'library.json'),
       JSON.stringify({ id: 'mobile-system', name: 'Mobile System', kind: 'library' }),
     )
-    const swift = 'import SwiftUI\n\nstruct ProfileCard: View { var body: some View { Text("Profile") } }\n'
+    const swift =
+      'import SwiftUI\n\nstruct ProfileCard: View { var body: some View { Text("Profile") } }\n'
     await writeFile(join(library, 'components', 'ios', 'ProfileCard.swift'), swift)
 
     const handoff = await getComponentHandoff('mobile-system', 'ios/ProfileCard')
