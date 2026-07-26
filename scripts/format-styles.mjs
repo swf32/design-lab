@@ -7,15 +7,10 @@ import * as prettier from 'prettier'
 const root = process.cwd()
 const mode = process.argv.includes('--check') ? 'check' : 'write'
 const styleRoots = [join(root, 'design-lab/src'), join(root, 'libraries')]
-// Mirrors .prettierignore's `libraries/klyp/**`: migrated Library source keeps its
-// original authoring conventions until D-056 (docs/DECISIONS.md) settles how far
-// third-party Library sources get folded into Design Lab's own tooling.
-const excludedDirs = [join(root, 'libraries/klyp')]
 
 async function filesUnder(directory, predicate, result = []) {
   for (const entry of await readdir(directory, { withFileTypes: true })) {
     const path = join(directory, entry.name)
-    if (excludedDirs.includes(path)) continue
     if (entry.isDirectory()) await filesUnder(path, predicate, result)
     else if (predicate(path)) result.push(path)
   }

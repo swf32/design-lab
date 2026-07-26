@@ -67,7 +67,7 @@ export function renderPage({ values, onAction }: PageRenderContext) {
         <section className="dl-page-account__card">
           <header>
             <span>Workspace</span>
-            <h2>Northstar Travel</h2>
+            <h2>Product Workspace</h2>
           </header>
           <dl className="dl-page-account__details">
             <div>

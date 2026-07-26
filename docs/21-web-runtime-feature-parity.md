@@ -27,7 +27,6 @@ React fallback, чужой thumbnail или успешный ответ с не�
 | Props/state controls                    | React Story props          | нет                     | serializable args/state contract                  |
 | Preview/Story screenshot через CLI/MCP  | React compatibility bridge | нет                     | runtime-owned capture surface                     |
 | Wireframe/Page render, states и flow    | eager TSX registries       | нет                     | те же runtime messages, другой entity kind        |
-| Wireframe/Page MCP capture              | нет                        | нет                     | сначала общий React baseline, затем adapters      |
 | Runtime errors и HMR                    | общий Vite graph           | нет                     | isolated diagnostics/HMR на runtime profile       |
 | Tokens, Palette, Fonts, ordinary Assets | общий source               | общий source            | runtime loading надо доказать E2E                 |
 | TSX code-native icons                   | да                         | нет                     | SVG source или framework-specific asset family    |
@@ -67,7 +66,7 @@ MCP/CLI capture
 
 Descriptor принадлежит runtime, а не MCP: entity/view, opaque `selector`, CSS width/height и DPR.
 Поэтому capture service не должен знать React CSS-классы. Текущий React Component renderer уже
-отвечает для preview/story; Wireframe/Page screen/flow vocabulary ещё требуется добавить.
+отвечает для preview/story. Wireframe/Page не являются MCP capture targets в текущем продукте.
 Vue/Svelte должны вернуть тот же descriptor; отдельные `capture_vue` и `capture_svelte` команды
 запрещены.
 
@@ -91,9 +90,9 @@ Framework adapter считается поддержанным только ко�
 
 ### Wireframes и Pages
 
-После Component parity тот же adapter обязан поддержать реальные framework renderers для
+После Component parity тот же adapter в отдельной фазе должен поддержать реальные framework renderers для
 Wireframe и Page: state snapshots, typed controls, token modes, flow/navigation events, fullscreen,
-resize, errors/HMR и capture surface. Manifest semantics и user-flow graph остаются общими; React,
+resize и errors/HMR. Manifest semantics и user-flow graph остаются общими; React,
 Vue и Svelte файлы не обязаны иметь одинаковый синтаксис.
 
 ### Общие модули
@@ -113,8 +112,8 @@ generated CSS, но не вторая Vue/Svelte копия значений.
 | CLI/MCP Story capture    | required | required | required |
 | token modes/fonts/assets | required | required | required |
 | isolated error           | required | required | required |
-| Wireframe states/flow    | required | required | required |
-| Page states/navigation   | required | required | required |
+| Wireframe states/flow    | later web phase | later web phase | later web phase |
+| Page states/navigation   | later web phase | later web phase | later web phase |
 
 Deep Inspector может иметь разную глубину, но matrix проверяет, что заявленная глубина совпадает с
 реальностью. Новая framework badge не выпускается, пока обязательные строки для соответствующего

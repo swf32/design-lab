@@ -151,7 +151,7 @@ const markdownComponents: Components = {
 // document focused behavior of an existing production implementation"). A hand-authored switch
 // on `component.id` previously lived here and imported real @design-lab/system production
 // components directly; it broke as soon as another Library shipped a same-named component
-// (Klyp's own `button`/`input`/`checkbox`/`slider`/... collided) because ids are unique only
+// across unrelated sources because ids are unique only
 // within one Library, not across sources. Story and Playground modules now resolve independently
 // through the shared filesystem-keyed runtime.
 function Specimen({

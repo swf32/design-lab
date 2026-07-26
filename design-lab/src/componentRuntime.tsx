@@ -7,11 +7,7 @@ export type ComponentEntity = Extract<ModuleData, { kind: 'components' }>['compo
 
 type PreviewModule = Record<string, ComponentType>
 const previewModules = import.meta.glob<PreviewModule>(
-  [
-    '../../libraries/*/components/**/*.preview.tsx',
-    // Runtime-incomplete libraries stay discoverable via scanners, but must not enter the Vite graph.
-    '!../../libraries/klyp/components/**',
-  ],
+  '../../libraries/*/components/**/*.preview.tsx',
   { eager: true },
 )
 
@@ -44,39 +40,15 @@ type StoryRuntimeImport = {
   statement: string
 }
 
-const storyModules = {
-  ...import.meta.glob<StoryModule>(
-    ['../../libraries/*/components/**/*.stories.{ts,tsx}', '!../../libraries/klyp/components/**'],
-    { eager: true },
-  ),
-  // D-056: these are the Klyp stories whose runtime dependencies and Design Lab story contract
-  // are currently supported. Keep this exception aligned with the normal Workbench runtime.
-  ...import.meta.glob<StoryModule>(
-    [
-      '../../libraries/klyp/components/ui/Button/Button.stories.tsx',
-      '../../libraries/klyp/components/brand/MeshButton/MeshButton.stories.tsx',
-    ],
-    { eager: true },
-  ),
-}
+const storyModules = import.meta.glob<StoryModule>(
+  '../../libraries/*/components/**/*.stories.{ts,tsx}',
+  { eager: true },
+)
 
-const playgroundModules = {
-  ...import.meta.glob<ComponentPlaygroundModule>(
-    [
-      '../../libraries/*/components/**/*.playground.{ts,tsx}',
-      '!../../libraries/klyp/components/**',
-    ],
-    { eager: true },
-  ),
-  // D-056: keep the same supported Klyp runtime boundary as Stories.
-  ...import.meta.glob<ComponentPlaygroundModule>(
-    [
-      '../../libraries/klyp/components/ui/Button/Button.playground.tsx',
-      '../../libraries/klyp/components/brand/MeshButton/MeshButton.playground.tsx',
-    ],
-    { eager: true },
-  ),
-}
+const playgroundModules = import.meta.glob<ComponentPlaygroundModule>(
+  '../../libraries/*/components/**/*.playground.{ts,tsx}',
+  { eager: true },
+)
 
 export function previewComponentFor(component: ComponentEntity, sourceId: string) {
   if (component.adapter !== 'react-manifest') return null

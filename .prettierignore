@@ -2,4 +2,3 @@
 **/dist/**
 **/node_modules/**
 # Migrated third-party DS source — keep upstream formatting.
-libraries/klyp/**

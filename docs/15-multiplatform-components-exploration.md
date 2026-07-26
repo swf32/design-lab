@@ -35,7 +35,7 @@ Component может дополнительно иметь live preview, control
 - relations и Inspector анализируют только JS/TS/JSX/TSX;
 - пользовательский Library code eager-import-ится в Vite graph самого Design Lab.
 
-Открытый вопрос D-056 уже демонстрирует проблему даже внутри React: сторонняя Klyp Library имеет
+Решение D-056 уже демонстрирует проблему даже внутри одного framework: сторонняя Library может иметь
 собственные runtime dependencies, поэтому discovery работает для всей Library, но реальный
 Workbench запускает только два специально разрешённых Component. Добавление Vue или Svelte в этот
 же общий Vite graph проблему не решит, а умножит её.

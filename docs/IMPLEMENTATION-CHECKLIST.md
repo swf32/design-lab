@@ -86,15 +86,11 @@
 - [ ] Apply one explicit path-containment helper to every read/write route and scanner.
 - [x] Add invalid-entity isolation so one broken manifest becomes a diagnostic instead of failing the whole module/search request (`manifest-parse-error`, `server/services/moduleEntities.mjs`). Still open: token files and other non-`component.json`/`wireframe.json` scanners.
 
-### P0 — Klyp migration follow-up (2026-07-21)
+### P0 — External Library cleanup and general runtime policy (2026-07-26)
 
-- [x] Fix: removed `ComponentWorkbench`'s hand-maintained per-id demo switch, which rendered `@design-lab/system`'s own production component whenever another Library shared its id. Inline Workbench now resolves the adjacent Playground by `sourceId + directory`; an unavailable or control-free module degrades to the compact no-controls strip instead of a wrong specimen.
-- [ ] High-priority open decision — see `D-056`: where third-party Library dependencies (`@klyp/icons`, `react-aria-components`, `motion`, `cmdk`, plus heavier `brand`-only deps like `@tiptap/*`/`shiki`/`ai`/`vaul`/`@dnd-kit/*`) should be installed and resolved as a general policy, before the rest of `libraries/klyp` (beyond the `Button`/`MeshButton` exception below) can get Stories/Playground.
-- [x] Scoped exception (2026-07-21, see `D-056`): `Button` and `MeshButton` now have real, contract-compliant Stories (`export const stories` + `renderStoryExample`) and Playground (`definePlayground`/`renderPlaygroundVariant`) and render for real in Workbench/Playground. Their runtime deps (`motion`, `react-aria-components`, `lottie-react`) are installed via `libraries/klyp/package.json`; `@klyp/icons` resolves through a `vite.config.ts` alias. Shared `componentRuntime.tsx` owns the two eager glob calls per artifact type: the general Klyp-negated glob plus the exact two-file exception (a glob negation cannot be selectively re-included in the same call).
-- [x] Fixed a migration bug found while wiring the exception above: `copyShared()` in `scripts/migrate-klyp.mjs` mis-copied `packages/{ui,brand}/src/__shared` to `components/{ui,brand}/_shared` (wrong underscore count) and brand root files (`_brand-context.tsx`, `_mesh-keyframes.scss`, `vite-shims.d.ts`, `prompt-input/`) one level too deep — breaking every component's `'../__shared/...'` / `'../_brand-context'` relative import. Fixed in the script and physically in the already-migrated tree.
-- [ ] Once D-056 is resolved as a general policy: remove the remaining `libraries/klyp` exclusion from the eager `import.meta.glob` calls and re-author the rest of Klyp's Stories in the Design Lab contract (Klyp's original `*.stories.tsx` are Storybook CSF, which the generic Hero renderer cannot execute — Button/MeshButton's were rewritten, not reused as-is).
-- [ ] Author `*.playground.tsx` for the rest of Klyp's `ui/` primitives (none besides `Button` were migrated — Klyp had no equivalent artifact); this is manual per-component work, not scriptable from the source migration.
-- [ ] Reclassify `libraries/klyp/components/{ui,brand}/*` into an Atomic taxonomy (primitives/atoms/molecules) — user has opted to do this classification manually rather than by heuristic; migrator currently mirrors the source `ui`/`brand` package split as top-level folders, not a semantic hierarchy.
+- [x] Removed the obsolete one-off external Library experiments, their migrator, aliases and eager-runtime exceptions.
+- [x] Kept `ComponentWorkbench` resolution source-aware: an unavailable module degrades honestly instead of rendering a same-id component from another Library.
+- [x] Replaced per-Library dependency exceptions with the source-local ownership and adapter-cache policy from D-083.
 
 ### P1 — AI retrieval quality
 
@@ -690,9 +686,8 @@ Web sequencing и границы shared/native modules: `docs/17-web-first-platf
       filename больше не считается доказательством Vue runtime.
 - [ ] Добавить committed React/Vue/Svelte fixture packages с настоящими framework/compiler
       dependencies и чистой установкой.
-- [ ] Расширить capture protocol с Component preview/story до Component playground, Wireframe
-      screen/flow и Page screen/flow.
-- [ ] Добавить единый CLI/MCP entity capture вместо Component-only React baseline.
+- [ ] Оставить MCP capture строго для Component preview/story и доказать одинаковый path в каждом
+      заявленном web adapter; Component Playground остаётся UI-only до отдельного продуктового решения.
 - [ ] Убрать eager React globs из Catalog, Stories, Playground, Wireframes и Pages после переноса
       baseline на child runtime.
 - [ ] Нормализовать Story/args/state/events/slots/snippets без `ReactNode` в shell contract.

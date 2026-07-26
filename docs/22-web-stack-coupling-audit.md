@@ -40,11 +40,10 @@ Vue/Svelte support.
 | Wireframe runtime          | eager `*.wireframe.tsx` glob returning React nodes                                                 | `wireframes/registry.ts`, `WireframeView.tsx`                                  | runtime protocol renderer per framework                                    |
 | Page runtime               | eager `*.page.tsx` glob returning React nodes                                                      | `pages/registry.ts`, `PageView.tsx`                                            | runtime protocol renderer per framework                                    |
 | Wireframe/Page flows       | shell calls React renderer repeatedly and captures DOM clicks locally                              | `WireframeView`, `PageView`, `useFlowActionCapture`                            | action/event messages across iframe boundary; inert flow previews          |
-| Wireframe/Page capture     | отсутствует как MCP/CLI tool; capture descriptor accepts only Component `preview/story`            | `runtimeProtocol.mjs`, MCP registry                                            | screen/flow descriptors and framework-neutral entity capture tool          |
 | HMR/watcher                | Library code lives in shell Vite graph; attached mounts are not runtime-watched                    | eager globs; no mounted runtime watcher                                        | child Vite HMR + targeted profile restart/invalidation                     |
 | Runtime errors             | React import failure может повредить общий shell graph                                             | eager globs                                                                    | iframe/process error boundary and readable adapter diagnostics             |
 | External URL               | iframe exists, but no handshake, readiness, args, events, capture or inspection                    | `ModuleView.tsx` iframe                                                        | optional bridge negotiation; otherwise honest preview-only capability      |
-| MCP/CLI                    | search/get/browse generic; screenshot tool Component-only and React-executable                     | `server/mcp/index.mjs`, `scripts/designlab.mjs`                                | capability response + Component/Wireframe/Page captures through same host  |
+| MCP/CLI                    | search/get/browse generic; screenshot tool намеренно Component preview/story-only и React-executable | `server/mcp/index.mjs`, `scripts/designlab.mjs`                              | capability response + Component preview/story через каждый adapter         |
 | Rules/AI authoring         | Component rules and many diagnostics still require `.tsx`, ReactNode, JSX and React Story shape    | `rules/*`, `moduleEntities.mjs`                                                | adapter-neutral base contract plus framework-specific appendices           |
 | Creation/scaffolding       | no framework-aware Component/Wireframe/Page creation pipeline                                      | onboarding/rules only                                                          | ask/detect target framework; create ecosystem-native files in chosen mount |
 | URL identity               | selected framework implementation/runtime state is not preserved                                   | current routes identify entity only                                            | persist implementation/profile + args/state/mode without exposing ports    |
@@ -77,18 +76,14 @@ adapter-specific parsing/printing.
 
 ## Что было забыто в первом protocol slice
 
-1. Capture descriptor был реализован только для Component `preview`/`story`; в protocol vocabulary
-   были Wireframe/Page render capabilities, но не их screen/flow capture surfaces.
-2. Не было настоящей Vue dependency, Vue compiler plugin или Vue browser fixture. `.vue` в temp
+1. Не было настоящей Vue dependency, Vue compiler plugin или Vue browser fixture. `.vue` в temp
    directory проверял только filesystem/profile logic.
-3. Не был отдельно проаудирован authoring contract: `COMPONENT_RULES.md` и server diagnostics всё
+2. Не был отдельно проаудирован authoring contract: `COMPONENT_RULES.md` и server diagnostics всё
    ещё считают TSX preview/story/playground стандартом готовности.
-4. Фраза «Assets общие» была слишком широкой: ordinary media общие, TSX icons — React code.
-5. Relations, copied source и Inspector были объединены словом handoff, хотя raw source handoff уже
+3. Фраза «Assets общие» была слишком широкой: ordinary media общие, TSX icons — React code.
+4. Relations, copied source и Inspector были объединены словом handoff, хотя raw source handoff уже
    generic, а semantic/deep handoff всё ещё JSX-specific.
-6. MCP имеет только Component capture. Для Wireframe/Page нет даже React MCP screenshot baseline,
-   с которым можно сравнивать Vue/Svelte.
-7. Не была заведена настоящая framework fixture library, поэтому нельзя проверить dependency
+5. Не была заведена настоящая framework fixture library, поэтому нельзя проверить dependency
    resolution, plugin version, HMR, CSS leakage, token/font/asset loading и process cleanup вместе.
 
 ## Обязательные реальные fixtures
@@ -98,7 +93,8 @@ adapter-specific parsing/printing.
 - `fixtures/web-parity/react`, `vue`, `svelte` с реальными package manifests и framework versions;
 - одинаковая семантическая Button/Card implementation, минимум одна Story, props/state/event;
 - одинаковые token modes, font, SVG/raster asset и один framework-native code icon case;
-- Component preview/story, Wireframe screen/flow, Page screen/navigation;
+- Component preview/story; Wireframe screen/flow и Page screen/navigation проверяются позже как
+  отдельная web-rendering фаза, а не MCP capture contract;
 - намеренная compile error и runtime error для проверки изоляции;
 - HMR change, runtime restart и close cleanup;
 - Playwright assertions по DOM behavior и PNG metadata/hash/geometry;
@@ -109,14 +105,13 @@ environment, не запускает настоящий compiler и не про�
 
 ## Исправленный порядок работ
 
-1. Расширить protocol entity/view vocabulary: Component preview/story/playground, Wireframe
-   screen/flow, Page screen/flow.
-2. Создать реальный React fixture и перенести его на child runtime; это baseline регрессий.
-3. Подключить framework-aware Story/controls/events, capture и error/HMR tests к React baseline.
-4. Создать настоящий Vue package/fixture и закрыть всю Component vertical.
-5. Закрыть Vue Wireframe/Page, relations, source printing и Inspector capability.
-6. Повторить без исключений для Svelte.
-7. Только после зелёной matrix удалить eager globs и назвать framework supported.
+1. Создать реальный React fixture и перенести его на child runtime; это baseline регрессий.
+2. Подключить framework-aware Story/controls/events, Component preview/story capture и error/HMR
+   tests к React baseline.
+3. Создать настоящий Vue package/fixture и закрыть всю Component vertical.
+4. Закрыть Vue Wireframe/Page web-rendering, relations, source printing и Inspector capability.
+5. Повторить без исключений для Svelte.
+6. Только после зелёной matrix удалить eager globs и назвать framework supported.
 
 Этот audit является входом в implementation checklist. Он не требует сделать все adapters
 одновременно, но запрещает терять поверхность из поля зрения.

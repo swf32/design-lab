@@ -44,7 +44,7 @@ UI различает:
 
 ### Design Lab Libraries
 
-Локальные переиспользуемые дизайн-системы из `libraries/*`: например Northstar может использовать
+Локальные переиспользуемые дизайн-системы из `libraries/*`: например продуктовая Library может использовать
 `@design-lab/system`.
 
 Design Lab связывает такую зависимость автоматически, когда package name в `package.json` совпадает
@@ -69,9 +69,9 @@ UI показывает:
 canonical Library это может выглядеть так:
 
 ```text
-libraries/klyp/
+libraries/product-system/
 ├── library.json
-├── package.json       ← Klyp объявляет свои dependencies здесь
+├── package.json       ← Library объявляет свои dependencies здесь
 ├── package-lock.json  ← если npm и принято per-source locking
 ├── components/
 ├── wireframes/
@@ -96,7 +96,7 @@ npm workspaces связывает локальные packages и может ра
 Поэтому сегодня:
 
 ```text
-libraries/klyp/package.json      ← ownership Klyp
+libraries/product-system/package.json      ← ownership Library
 node_modules/motion/             ← файл физически может лежать в общем root
 ```
 
@@ -246,10 +246,9 @@ utilities. Карточка отвечает: какая система испо
 
 - Root npm workspace включает `libraries/*`.
 - Каждая текущая Library уже имеет `package.json`.
-- Klyp объявляет `react`, `motion`, `react-aria-components` и `lottie-react` в собственном manifest,
-  но они устанавливаются общим root workspace.
-- Northstar объявляет local `@design-lab/system` dependency.
-- D-056 уже фиксирует отсутствие общей dependency policy как high-priority blocker.
+- Каждая Library объявляет framework и runtime packages в собственном manifest, даже если npm
+  физически hoist-ит их в общий root `node_modules`.
+- D-083 фиксирует общую dependency ownership и runtime environment policy.
 - `node_modules`, `.designlab` и runtime indexes уже ignored/derived.
 
 ## Открытые продуктовые решения

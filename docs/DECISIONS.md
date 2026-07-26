@@ -400,7 +400,7 @@ Playground получает общий Inspector в нижнем правом у
 
 Inspector показывает source handoff как production `InspectorCodePopover` с `CodeBlock`. Component превращается в JSX с реальными public props. Настоящий composition slot предпочитает явный authored TSX/HTML из `inspectionSourceAttributes`: Library icon показывает canonical import и `<StarIcon />`, а не результат рендера `<svg><path>`. Только при отсутствии source metadata slot использует HTML fragment без внутренних `data-dl-*` markers. Обычный element превращается в совпавшие authored same-origin CSS declarations. Обычный текстовый `children` не считается slot автоматически; slot marker принадлежит caller-supplied composition region наподобие `leading`, `trailing`, `header` или `footer`. Исходные `width: 100%`, shorthands и `var(--token)` сохраняются; computed pixel geometry и resolved RGB не выдаются за код. Click или keyboard activation копирует весь fragment.
 
-Первым сквозным примером служит production `Button`: Pricing Wireframe вставляет `StarIcon` через настоящий named `leading` slot. Plain label остаётся обычным Button content. Northstar Travel System также использует общий inspection contract в production Trip Card и Flight Search wireframe.
+Первым сквозным примером служит production `Button`: Pricing Wireframe вставляет `StarIcon` через настоящий named `leading` slot. Plain label остаётся обычным Button content.
 
 Floating controls не принадлежат scroll geometry rail. Color Picker рендерит palette через portal, выбирает доступную сторону относительно trigger, ограничивается visual viewport и использует mobile touch sizing; открытие palette не создаёт недоступное дополнительное пространство прокрутки.
 
@@ -430,7 +430,7 @@ Wireframe открывается fullscreen вне Application Sidebar, Director
 
 **Статус:** принято, 2026-07-20.
 
-Product theme Wireframe не является interface preference Design Lab и не описывается вручную в `wireframe.json`. Scanner получает modes и resolved token variables из канонических token files активного Project/Library. Dev mode скрывает control при одном mode, использует `TabSwitcher` при двух-трёх и `RadioButton` group при четырёх и более. Выбранный `mode` сохраняется в URL и одинаково scope-ится на fullscreen screen и все renderer-backed previews; каталог использует default mode источника. Поэтому Wireframe Northstar получает только `day/night/sunset`, а не `dark/light` Design Lab.
+Product theme Wireframe не является interface preference Design Lab и не описывается вручную в `wireframe.json`. Scanner получает modes и resolved token variables из канонических token files активного Project/Library. Dev mode скрывает control при одном mode, использует `TabSwitcher` при двух-трёх и `RadioButton` group при четырёх и более. Выбранный `mode` сохраняется в URL и одинаково scope-ится на fullscreen screen и все renderer-backed previews; каталог использует default mode источника. Поэтому каждый Wireframe получает только modes своего source, а не `dark/light` Design Lab.
 
 State node User Flow является одной graph entity, но показывает рядом две реальные responsive композиции одного renderer: desktop 16:9 и portrait mobile (при zoom ≥ порога full LOD; см. D-062). Virtual preview viewport устанавливает CSS inline-size container, поэтому mobile layout определяется представленным viewport, а не шириной внешнего браузера. Authored coordinates сохраняют topology; `UserFlowCanvas` группирует близкие x-координаты в columns и гарантирует minimum spacing между enlarged nodes и rows. Явная автоматическая нормализация layout может autosave-иться обратно в manifest через write API (D-062); silent runtime-only коррекция без персистенции по-прежнему не записывается.
 
@@ -699,63 +699,15 @@ Wireframe Canvas-инфраструктуру); агрегированный sit
   с `route: "/account"` лежит в filesystem-папке `account/`) — резолвинг сперва проверяет совпадение
   с чьим-то `mirroredRoute`, и только потом падает на обычное дерево навигации модуля.
 
-## D-056 — Открытый вопрос: где живут npm-зависимости мигрированной Library
+## D-056 — Где живут зависимости внешней Library
 
-**Статус:** открытый вопрос высокого приоритета, зафиксирован 2026-07-21. Решение не принято.
+**Статус:** первоначальный эксперимент удалён 2026-07-26; общее решение принято в D-083.
 
-`libraries/klyp/` — первая Library, чей исходный код при миграции сохранил чужие runtime-импорты
-(`@klyp/icons`, `@klyp/ui`, `react-aria-components`, `motion`, `cmdk`, а у части `brand`-компонентов
-также `@tiptap/*`, `shiki`, `ai`, `vaul`, `@dnd-kit/*`). Design Lab пока не устанавливает и не резолвит
-ни одну из них: `libraries/klyp` намеренно исключён из eager Vite-glob'ов (`*.stories.tsx`,
-`*.preview.tsx`, `*.playground.tsx`), поэтому discovery работает (`component.json`, tokens, assets),
-но реального запуска чужого кода в Workbench/Playground сейчас нет.
-
-Открытый вопрос — архитектурная политика для будущих миграций, а не разовый фикс для Klyp: куда
-устанавливать зависимости стороннего дизайн-системного кода —
-
-- в корневой `package.json` workspace (тяжёлые библиотеки одной Library утяжеляют весь `node_modules`
-  и dev-сборку приложения для всех Project/Library);
-- внутрь `libraries/<name>/package.json` как собственного пакета с изолированным деревом зависимостей
-  (не тривиально совместить с единым Vite dev-графом `design-lab/`, который сейчас читает `libraries/*`
-  напрямую как исходники, а не как собранные npm-пакеты);
-- или третий механизм (npm workspaces per-Library, отдельный build step, alias-слой), который пока не
-  спроектирован.
-
-Решение материально влияет на архитектуру сборки и на то, насколько дорогой становится каждая
-следующая миграция стороннего репозитория. Требует отдельного продуктового решения до того, как
-Klyp (или любая следующая внешняя Library) получит реальные Stories/Playground **для всех своих
-компонентов**.
-
-**Точечное исключение (2026-07-21), не решение политики:** `Button` и `MeshButton` — единственные
-два Klyp-компонента, которые реально запускаются в Workbench/Playground. Сделано так:
-
-- их прямые runtime-зависимости (`motion`, `react-aria-components`, `lottie-react` — транзитивно
-  через барель `@klyp/icons`) добавлены в `libraries/klyp/package.json#dependencies` и подняты
-  через существующий root npm workspace (`workspaces: ["design-lab", "libraries/*"]` уже включал
-  `libraries/klyp`, так что это не новый механизм — просто первое реальное использование);
-- `@klyp/icons` (никогда не публиковался в npm, это внутренний Klyp-пакет) резолвится через
-  `resolve.alias` в `design-lab/vite.config.ts` на `libraries/klyp/assets/icons/`;
-- `Button.stories.tsx` / `MeshButton.stories.tsx` были **переписаны** с оригинального Klyp
-  Storybook CSF-формата (`meta`/`StoryObj` из `../__shared/stories-types`) на контракт Design Lab
-  (`export const stories` + `renderStoryExample`, см. `COMPONENT_RULES.md`) — общий generic-рендер
-  Hero-специмена умеет исполнять только этот контракт, не CSF;
-- `Button.playground.tsx` / `MeshButton.playground.tsx` — новые файлы по конвенции
-  `definePlayground`/`renderPlaygroundVariant` из `@design-lab/system/playground`, обнаруживаются
-  автоматически (без поля в `component.json`, как и у `design-lab-system`);
-- eager Vite-glob в shared `componentRuntime.tsx` теперь состоит из ДВУХ
-  раздельных `import.meta.glob()` вызовов на каждый тип артефакта: общий (со сплошной negation
-  `!libraries/klyp/components/**`) + отдельный со списком ровно этих двух файлов. Это осознанно —
-  glob-negation исключает совпадения из всего набора паттернов одного вызова независимо от порядка,
-  её нельзя точечно "отменить" последующим positive-паттерном в том же вызове.
-- Побочно найден и исправлен баг миграции: `copyShared()` в `scripts/migrate-klyp.mjs` копировал
-  `packages/{ui,brand}/src/__shared` в `components/{ui,brand}/_shared` (одно подчёркивание вместо
-  двух) и рутовые brand-файлы (`_brand-context.tsx`, `_mesh-keyframes.scss`, `vite-shims.d.ts`,
-  `prompt-input/`) — в `components/brand/_shared/` вместо `components/brand/`, что не совпадало с
-  исходными относительными импортами (`../__shared/...`, `../_brand-context`). Исправлено и в
-  скрипте, и физически (`git mv`) в уже смигрированном дереве.
-
-Это остаётся точечным, не отменяет открытый вопрос выше: оставшиеся ~135 Klyp-компонентов всё ещё
-исключены из eager-графа и не получили Stories/Playground.
+Точечные alias, runtime-исключения и миграторы под одну конкретную Library запрещены: они создают
+ложную поддержку и постепенно превращают shell в набор частных интеграций. Dependency declaration
+принадлежит ближайшему реальному `package.json` source, lock/install environment может находиться
+выше в workspace, а adapter cache хранится отдельно и остаётся derived. Полная ownership-модель,
+attach-mode и lifecycle закреплены в D-083 и `docs/19-dependencies-and-libraries.md`.
 
 ## D-058 — Context gateway: raster/video assets импортятся как package export, а не `/api/` URL; browse, batch get, did-you-mean, Wireframe/Page как context kinds
 
@@ -1415,8 +1367,9 @@ adapters через versioned serializable protocol; отдельные прод
 
 Framework support не считается готовым по одному discovery или demo preview. Для Components
 обязательны live render, Stories, serializable controls/state/events, token modes, localized errors,
-HMR, handoff и одинаковый UI/CLI/MCP capture path. Затем тот же adapter закрывает Wireframes и Pages:
-states, controls, flow/navigation, fullscreen, errors/HMR и capture. Deep inspection и ecosystem
+HMR, handoff и одинаковый UI/CLI/MCP capture path для Component preview/story. Затем тот же adapter
+может отдельно закрыть web-rendering Wireframes и Pages: states, controls, flow/navigation,
+fullscreen и errors/HMR. MCP capture Wireframes/Pages в текущий scope не входит. Deep inspection и ecosystem
 metadata могут различаться по глубине, но каждая заявленная capability обязана быть проверена.
 
 Capture surface объявляет сам runtime: kind, opaque selector, CSS geometry и DPR после readiness.
@@ -1428,9 +1381,9 @@ thumbnail, static image или arbitrary external URL как настоящую 
 неподдержанными в live runtime и capture до прохождения matrix из
 `docs/21-web-runtime-feature-parity.md`.
 
-Уточнение после полного coupling audit: реализованный capture descriptor пока покрывает только
-React Component preview/story. Wireframe/Page screen/flow capture, настоящий Vue/Svelte compiler
-fixture, framework-aware relations/source printing/Inspector и adapter-neutral authoring rules не
+Уточнение после полного coupling audit: реализованный capture descriptor намеренно покрывает
+Component preview/story. Настоящий Vue/Svelte compiler fixture,
+framework-aware relations/source printing/Inspector и adapter-neutral authoring rules не
 реализованы. `.vue` file fixture проверяет discovery/profile resolution, но не является runtime
 test. Полный перечень доказательств и gaps закреплён в `docs/22-web-stack-coupling-audit.md`.
 

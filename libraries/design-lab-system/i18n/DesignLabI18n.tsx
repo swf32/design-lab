@@ -71,7 +71,7 @@ export const en = {
     'Design Lab will add its own folder and a short AI instruction. It will not move or delete your product files.',
   'project.showDetails': 'Show files Design Lab will add',
   'project.name': 'Name',
-  'project.placeholder': 'For example, Klyp Design System',
+  'project.placeholder': 'For example, Product Design System',
   'action.close': 'Close',
   'action.cancel': 'Cancel',
   'action.back': 'Back',

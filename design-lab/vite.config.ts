@@ -8,15 +8,6 @@ const designLabApiPort = Number.parseInt(process.env.DESIGN_LAB_API_PORT ?? '417
 
 export default defineConfig({
   plugins: [designLabInspectionPlugin(resolve(import.meta.dirname, '..')), react()],
-  resolve: {
-    alias: {
-      // Klyp's own `@klyp/icons` package was never published to npm — it's
-      // migrated in-place under libraries/klyp/assets/icons. This alias is a
-      // narrow, component-scoped stopgap (Button + MeshButton only, per
-      // D-056) until the library dependency-resolution strategy is decided.
-      '@klyp/icons': resolve(import.meta.dirname, '../libraries/klyp/assets/icons'),
-    },
-  },
   server: {
     port: designLabPort,
     strictPort: true,

@@ -34,7 +34,7 @@ export function renderStoryExample(example: { props: Record<string, unknown> }) 
       language={kind === 'element' ? 'scss' : 'tsx'}
       code={
         kind === 'element'
-          ? '.northstar-button {\n  width: 100%;\n}'
+          ? '.product-button {\n  width: 100%;\n}'
           : '<Button variant="primary">Search</Button>'
       }
     />
