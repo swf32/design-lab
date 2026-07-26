@@ -13,7 +13,7 @@
     "mcp": "node server/mcp/index.mjs",
     "designlab": "node scripts/designlab.mjs",
     "capture:install-browser": "playwright install chromium",
-    "test": "node --test shared/runtimeProtocol.test.mjs src/storySourcePrinter.test.mjs scripts/inspectionTransform.test.mjs server/services/authoredStyles.test.mjs server/services/componentAdapters.test.mjs server/services/componentHandoff.test.mjs server/services/componentRelations.test.mjs server/services/pages.test.mjs server/services/flowLayout.test.mjs server/services/tokenCatalog.test.mjs server/services/sourceMounts.test.mjs server/services/mountedSources.test.mjs server/services/projectRegistry.test.mjs server/services/setupService.test.mjs server/services/contextGateway.test.mjs server/mcp/index.test.mjs",
+    "test": "node --test shared/runtimeProtocol.test.mjs src/storySourcePrinter.test.mjs scripts/inspectionTransform.test.mjs server/services/authoredStyles.test.mjs server/services/componentAdapters.test.mjs server/services/componentHandoff.test.mjs server/services/componentRelations.test.mjs server/services/pages.test.mjs server/services/flowLayout.test.mjs server/services/tokenCatalog.test.mjs server/services/sourceMounts.test.mjs server/services/mountedSources.test.mjs server/services/projectRegistry.test.mjs server/services/runtimeProfiles.test.mjs server/services/runtimeSupervisor.test.mjs server/services/setupService.test.mjs server/services/contextGateway.test.mjs server/mcp/index.test.mjs",
     "build": "tsc -b && vite build",
     "preview": "vite preview",
     "typecheck": "tsc -b --pretty false"

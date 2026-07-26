@@ -666,7 +666,8 @@ Components использует Tokens, Palette и Fonts и становится
       для React/Vue/Svelte/Custom Elements/SwiftUI/Compose готов; package exports, CEM и framework
       metadata ещё не подключены).
 - [ ] Phase 2: isolated React/non-React browser runtimes и external preview (versioned JSON protocol
-      и React capture bridge готовы; supervisor/isolated adapters ещё нет).
+      и React capture bridge, profile resolver и lifecycle supervisor готовы; child launcher и
+      isolated adapters ещё нет).
 - [ ] Phase 3: framework-neutral Workbench, capture, controls и Storybook CSF ingestion
       (capability-gated detail UI и runtime-owned capture surface готовы; shared runtime/controls/CSF
       ещё нет).
@@ -711,7 +712,7 @@ Web sequencing и границы shared/native modules: `docs/17-web-first-platf
 - [x] Реализован deterministic repository scan с evidence/confidence, framework/package detection
       и designer-readable summary; AI не является единственным scanner.
 - [ ] Реализован component-based onboarding `Connect existing` / `Start clean`, default `Use files
-    where they are` и confirm-gated apply plan; ещё нужны post-apply self-check, repair и optional
+  where they are` и confirm-gated apply plan; ещё нужны post-apply self-check, repair и optional
       managed migration существующих файлов.
 - [x] Реализован первый package environment resolver: ближайшие реальные `package.json` и lockfile
       определяются без ручного `node_modules` path; workspace edge cases ещё покрываются adapter
@@ -721,7 +722,8 @@ Web sequencing и границы shared/native modules: `docs/17-web-first-platf
 
 ## Ближайший конкретный шаг
 
-Source resolution foundation и versioned runtime/capture contract закрыты. Теперь реализовать
-isolated runtime supervisor, перевести на него React Components/Wireframes/Pages без регрессий и
-затем подключить Vue по полной feature-parity matrix; следующий adapter — Svelte. Не расширять
-`libraries/*` build-time globs и не открывать native backlog до Web DoD.
+Source resolution, versioned runtime/capture contract, package-aware runtime profiles и lifecycle
+supervisor закрыты. Теперь реализовать child process launcher и перевести на него React
+Components/Wireframes/Pages без регрессий, затем подключить Vue по полной feature-parity matrix;
+следующий adapter — Svelte. Не расширять `libraries/*` build-time globs и не открывать native
+backlog до Web DoD.

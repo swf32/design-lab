@@ -1405,7 +1405,8 @@ globs: следующий Web gate — isolated runtime adapter protocol, сна
 
 ## D-086 — Framework считается готовым только по feature parity; capture принадлежит runtime
 
-**Статус:** принято, 2026-07-26; protocol и React capture bridge реализованы, adapters продолжаются.
+**Статус:** принято, 2026-07-26; protocol, React capture bridge, runtime profiles и lifecycle
+supervisor реализованы, child launcher/adapters продолжаются.
 
 Основной web runtime — managed isolated runtime на `source + technology + package environment` с
 external URL как явным escape hatch. Один shell Design Lab управляет React, Vue, Svelte и другими
@@ -1426,3 +1427,10 @@ thumbnail, static image или arbitrary external URL как настоящую 
 Текущий React capture переведён на этот descriptor как compatibility bridge. Vue/Svelte остаются
 неподдержанными в live runtime и capture до прохождения matrix из
 `docs/21-web-runtime-feature-parity.md`.
+
+Runtime profile имеет stable identity из source, technology и ближайшего owning package root.
+Framework package/version разрешается из существующего package environment, lockfile может
+принадлежать workspace выше package. Supervisor лениво coalesces параллельный start, принимает
+только loopback origin, локализует start/exit error, поддерживает restart/dispose и не меняет
+состояние соседнего profile. Первая lifetime policy держит готовый profile до закрытия Design Lab
+или явного dispose; automatic idle shutdown откладывается до измерения реального потребления.

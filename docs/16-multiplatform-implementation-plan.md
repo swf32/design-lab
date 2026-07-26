@@ -86,6 +86,10 @@ roadmap, но не конкурируют с web за текущую реали�
 - [x] Определить единый iframe/process protocol: `ready`, `render`, `setArgs`, `event`, `resize`,
       `error`, `capture`, `inspect`, `dispose`.
 - [ ] Изолировать dependencies, global CSS и runtime errors по source/adapter.
+- [x] Разрешать stable runtime profile по source, technology и ближайшему owning package
+      environment; соседние packages получают разные profiles.
+- [x] Реализовать framework-neutral lifecycle supervisor со start coalescing, localized failure,
+      loopback-only origin, restart/dispose и unexpected-exit state.
 - [ ] React adapter воспроизводит текущие Preview/Story/Playground возможности.
 - [ ] Project Components получают тот же runtime path, что Library Components.
 - [x] External URL adapter показывает любой browser-renderable target без deep inspection.

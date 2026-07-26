@@ -1,7 +1,8 @@
 # Web runtime architecture: варианты и lifecycle
 
 **Статус:** managed isolated runtime + external fallback принят в D-086, 2026-07-26. Versioned
-protocol/capture bridge реализован; process supervisor и isolated framework adapters ещё в работе.
+protocol/capture bridge, runtime-profile resolver и lifecycle supervisor реализованы; child process
+launcher и isolated framework adapters ещё в работе.
 
 Этот выбор определяет, как один Design Lab сможет одновременно показывать React, Vue, Svelte,
 Custom Elements, а затем их Components, Wireframes и Pages.
@@ -200,10 +201,10 @@ runtime не готов.
 2. Dependency ownership уже принято в D-083: product packages используют существующий
    `package.json`/lockfile/environment, Design Lab adapters — отдельный rebuildable cache. Остаётся
    UX явной подготовки отсутствующих dependencies.
-3. Runtime lifetime: держать до закрытия Design Lab; останавливать после idle timeout; или держать
-   только active source.
-4. Version policy: adapter использует framework из source, совместимую версию из Design Lab или
-   изолированный adapter package с version negotiation.
+3. Первая runtime lifetime policy: держать лениво запущенный profile до закрытия Design Lab или
+   явного restart/dispose. Idle timeout можно добавить после измерения памяти; он не меняет protocol.
+4. Framework package и версия разрешаются из owning package environment source. Design Lab-owned
+   plugins остаются в adapter cache и потребуют version negotiation перед launcher phase.
 5. Preview trust: какие browser permissions нужны Components и какие запрещены по умолчанию.
 
 Feature parity и запрет React-only ложноположительных capabilities закреплены в
