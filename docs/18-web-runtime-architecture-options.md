@@ -1,7 +1,7 @@
 # Web runtime architecture: варианты и lifecycle
 
-**Статус:** анализ, решение не принято. Пользователь предварительно склоняется к изолированному
-managed runtime, но запросил разбор до реализации.
+**Статус:** managed isolated runtime + external fallback принят в D-086, 2026-07-26. Versioned
+protocol/capture bridge реализован; process supervisor и isolated framework adapters ещё в работе.
 
 Этот выбор определяет, как один Design Lab сможет одновременно показывать React, Vue, Svelte,
 Custom Elements, а затем их Components, Wireframes и Pages.
@@ -166,16 +166,16 @@ build target и указывает preview URL. Design Lab показывает 
 
 ## Сравнение
 
-| Критерий | Managed isolated | Один общий runtime | External-only |
-| --- | --- | --- | --- |
-| Один запуск для дизайнера | лучший | лучший | плохой |
-| Изоляция dependencies | высокая | низкая | высокая |
-| Изоляция crash/CSS | высокая | низкая | высокая |
-| Controls/inspection protocol | контролирует Design Lab | проще, но framework-coupled | зависит от внешнего target |
-| Память | выше на активный profile | ниже в начале | вне Design Lab |
-| Сложность реализации | высокая | низкая сначала, высокая позже | низкая для preview |
-| Совместимость с экзотическим build | через fallback | слабая | максимальная |
-| Соответствие философии продукта | высокое | низкое в долгую | среднее как fallback |
+| Критерий                           | Managed isolated         | Один общий runtime            | External-only              |
+| ---------------------------------- | ------------------------ | ----------------------------- | -------------------------- |
+| Один запуск для дизайнера          | лучший                   | лучший                        | плохой                     |
+| Изоляция dependencies              | высокая                  | низкая                        | высокая                    |
+| Изоляция crash/CSS                 | высокая                  | низкая                        | высокая                    |
+| Controls/inspection protocol       | контролирует Design Lab  | проще, но framework-coupled   | зависит от внешнего target |
+| Память                             | выше на активный profile | ниже в начале                 | вне Design Lab             |
+| Сложность реализации               | высокая                  | низкая сначала, высокая позже | низкая для preview         |
+| Совместимость с экзотическим build | через fallback           | слабая                        | максимальная               |
+| Соответствие философии продукта    | высокое                  | низкое в долгую               | среднее как fallback       |
 
 ## Рекомендация
 
@@ -190,20 +190,24 @@ External URL остаётся для Go/Wasm, Angular/enterprise builds и proje
 получает список процессов — он получает один Canvas и локализованное сообщение, если конкретный
 runtime не готов.
 
-## Что пока не решено
+## Что остаётся implementation policy
 
-Перед реализацией нужны отдельные решения:
+Эти пункты больше не блокируют выбранную архитектуру, но должны быть закрыты и протестированы по
+мере реализации:
 
 1. Config policy: только Design Lab-controlled config; project config; или controlled default с
    explicit external fallback.
-2. Dependency policy: никогда не устанавливать; предлагать явное действие; или создавать отдельное
-   managed environment. Отдельный разбор ownership, physical install и UI находится в
-   `19-dependencies-and-libraries.md`.
+2. Dependency ownership уже принято в D-083: product packages используют существующий
+   `package.json`/lockfile/environment, Design Lab adapters — отдельный rebuildable cache. Остаётся
+   UX явной подготовки отсутствующих dependencies.
 3. Runtime lifetime: держать до закрытия Design Lab; останавливать после idle timeout; или держать
    только active source.
 4. Version policy: adapter использует framework из source, совместимую версию из Design Lab или
    изолированный adapter package с version negotiation.
 5. Preview trust: какие browser permissions нужны Components и какие запрещены по умолчанию.
+
+Feature parity и запрет React-only ложноположительных capabilities закреплены в
+`21-web-runtime-feature-parity.md`.
 
 ## Источники
 

@@ -134,6 +134,14 @@ the browser binary installs it once with `npm run capture:install-browser --work
 The renderer starts a private local API/Vite pair only when the normal Design Lab development
 runtime is not already available, and shuts down only the processes it started.
 
+Capture is capability-honest. The framework runtime, not MCP, publishes a versioned capture
+surface descriptor with readiness, selector, geometry and DPR. MCP uses the same
+`designlab_capture_component` tool for every framework and includes runtime adapter/profile data in
+the result. A static thumbnail or arbitrary external `previewUrl` is never returned as if it were a
+real implementation capture; until its adapter supplies the bridge, the tool reports that capture
+is unavailable. Current execution is wired through the React compatibility bridge; Vue/Svelte
+remain explicitly unfinished in `21-web-runtime-feature-parity.md`.
+
 `catalog` returns compact descriptions and refs. `get` returns the complete entity, or `{ entities, errors }` when given more than one ref. A `get` miss reports up to three fuzzy-matched existing refs of the same kind (`Did you mean: ...`) instead of a bare not-found. `browse` returns folders and leaf refs under one path without reading the full flat catalog. `index` atomically rebuilds `.designlab/index/context.v1.json`; deleting that file loses no user data.
 
 `search` and `get` currently rescan canonical files on each request, so they always see the latest saved source without waiting for an index rebuild. The written `.designlab/index/context.v1.json` is presently a disposable snapshot/export, not the hot read path for search. Scoped watcher invalidation and cache-backed reads remain a performance improvement, not a correctness requirement.

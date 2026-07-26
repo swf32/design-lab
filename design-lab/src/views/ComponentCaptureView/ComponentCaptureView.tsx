@@ -2,6 +2,7 @@ import { useEffect, useState, type CSSProperties, type ReactNode } from 'react'
 import { ComponentCard, ComponentThumbnail, StoryCanvas } from '@design-lab/system/components'
 import { getModuleData, type ModuleData } from '../../api/projects'
 import { designSystemModeStyle } from '../../designSystemMode'
+import { createRuntimeCaptureInfo } from '../../../shared/runtimeProtocol.mjs'
 import {
   previewComponentFor,
   storyModuleFor,
@@ -145,6 +146,12 @@ export function ComponentCaptureView() {
 
   const component = data.components.find((candidate) => candidate.id === request.componentId)
   if (!component) return <main className="component-capture-state">Component was not found</main>
+  if (!component.capabilities.includes('capture'))
+    return (
+      <main className="component-capture-state">
+        {component.technology} adapter does not provide a capture surface for this Component yet.
+      </main>
+    )
 
   const sourceMode = request.sourceMode ?? data.modes[0] ?? 'default'
   if (data.modes.length && !data.modes.includes(sourceMode))
@@ -156,21 +163,49 @@ export function ComponentCaptureView() {
 
   const sourceStyle = designSystemModeStyle(data.themeVariables, sourceMode) as CSSProperties
   const module = storyModuleFor(component)
-  const captureInfo = {
+  const availableStories = (module?.stories ?? []).map(({ id, name, kind }) => ({ id, name, kind }))
+  const captureInfo = createRuntimeCaptureInfo({
     ref: `${request.sourceId}:component:${component.id}`,
     component: { id: component.id, name: component.name },
+    runtime: {
+      profileId: `${request.sourceId}:react-compatibility`,
+      adapter: 'react-compatibility',
+      technology: 'react',
+      capabilities: [
+        'component.preview',
+        ...(availableStories.length ? ['component.story'] : []),
+        'capture',
+        'hmr',
+      ],
+    },
     availableModes: data.modes,
     modeRecommendations: data.modes.map((mode) => ({
       mode,
       interfaceTheme: recommendedInterfaceTheme(data.themeVariables[mode] ?? {}),
     })),
-    availableStories: (module?.stories ?? []).map(({ id, name, kind }) => ({ id, name, kind })),
+    availableStories,
     interfaceThemes: ['dark', 'light'],
     captures: {
-      preview: { cssWidth: 260, cssHeight: 150, dpr: 2, pixelWidth: 520, pixelHeight: 300 },
-      story: { cssWidth: 600, cssHeight: 180, dpr: 2, pixelWidth: 1200, pixelHeight: 360 },
+      preview: {
+        kind: 'preview',
+        selector: '.dl-component-card__preview',
+        cssWidth: 260,
+        cssHeight: 150,
+        dpr: 2,
+      },
+      ...(availableStories.length
+        ? {
+            story: {
+              kind: 'story',
+              selector: '.dl-story-canvas__stage',
+              cssWidth: 600,
+              cssHeight: 180,
+              dpr: 2,
+            },
+          }
+        : {}),
     },
-  }
+  })
   if (request.capture === 'info')
     return (
       <main

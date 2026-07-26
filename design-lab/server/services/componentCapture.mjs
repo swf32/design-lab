@@ -5,6 +5,10 @@ import { resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { chromium } from 'playwright'
 import { getContextEntity } from './contextGateway.mjs'
+import {
+  getRuntimeCaptureDescriptor,
+  parseRuntimeCaptureInfo,
+} from '../../shared/runtimeProtocol.mjs'
 
 const APPLICATION_ROOT = resolve(fileURLToPath(new URL('../..', import.meta.url)))
 const API_ORIGIN = 'http://127.0.0.1:4173'
@@ -105,7 +109,15 @@ async function readCaptureInfo(page) {
   }
 
   const raw = await ready.getAttribute('data-capture-info')
-  return raw ? JSON.parse(raw) : null
+  if (!raw) throw captureError('Runtime did not provide capture info', 'CAPTURE_PROTOCOL_INVALID')
+  try {
+    return parseRuntimeCaptureInfo(JSON.parse(raw))
+  } catch (error) {
+    throw captureError(
+      `Runtime returned invalid capture info: ${error.message}`,
+      'CAPTURE_PROTOCOL_INVALID',
+    )
+  }
 }
 
 export async function getComponentCaptureInfo(ref, interfaceTheme = 'dark') {
@@ -173,15 +185,17 @@ export async function renderComponentCapture({
     })
     const info = await readCaptureInfo(page)
     await page.evaluate(() => document.fonts.ready)
-
-    const target = page.locator(
-      capture === 'preview' ? '.dl-component-card__preview' : '.dl-story-canvas__stage',
-    )
+    let descriptor
+    try {
+      descriptor = getRuntimeCaptureDescriptor(info, capture)
+    } catch (error) {
+      throw captureError(error.message, 'CAPTURE_CAPABILITY_UNAVAILABLE')
+    }
+    const target = page.locator(descriptor.selector)
     const box = await target.boundingBox()
     if (!box) throw captureError('Capture target is not visible', 'CAPTURE_TARGET_MISSING')
 
-    const expected =
-      capture === 'preview' ? { width: 260, height: 150 } : { width: 600, height: 180 }
+    const expected = { width: descriptor.cssWidth, height: descriptor.cssHeight }
     if (Math.round(box.width) !== expected.width || Math.round(box.height) !== expected.height)
       throw captureError(
         `Capture geometry is ${Math.round(box.width)}×${Math.round(box.height)}; expected ${expected.width}×${expected.height}`,
@@ -230,11 +244,12 @@ export async function renderComponentCapture({
         interfaceTheme,
         recommendedInterfaceTheme: recommendedTheme,
         warnings,
-        cssWidth: expected.width,
-        cssHeight: expected.height,
-        dpr: 2,
-        pixelWidth: expected.width * 2,
-        pixelHeight: expected.height * 2,
+        runtime: info.runtime,
+        cssWidth: descriptor.cssWidth,
+        cssHeight: descriptor.cssHeight,
+        dpr: descriptor.dpr,
+        pixelWidth: descriptor.pixelWidth,
+        pixelHeight: descriptor.pixelHeight,
         mimeType: 'image/png',
         bytes: png.length,
         sha256: createHash('sha256').update(png).digest('hex'),

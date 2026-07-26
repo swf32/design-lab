@@ -91,7 +91,10 @@ function implementationCapabilities(component, { platform, technology }) {
   if (hasContract && (hasLivePreview || component.stories)) capabilities.push('controls')
   if (technology === 'react' && component.entry) capabilities.push('inspection')
   if (platform === 'web' && component.entry) capabilities.push('composition')
-  if (hasStaticPreview || hasLivePreview) capabilities.push('capture')
+  // Capture is granted only when the runtime adapter actually exposes a capture surface.
+  // A static image or arbitrary external URL is visible, but the current capture protocol
+  // cannot truthfully control or capture either one yet.
+  if (hasReactRuntime) capabilities.push('capture')
   if (component.entry || component.sourcePath) capabilities.push('handoff')
   if (component.validationCommand) capabilities.push('native-validation')
   return uniqueCapabilities(capabilities)

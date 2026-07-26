@@ -52,7 +52,7 @@ test('native source remains useful without pretending to have a browser runtime'
   assert.deepEqual(implementation.capabilities, ['catalog', 'handoff'])
 })
 
-test('external browser unlocks live preview while Custom Element source stays capability-honest', () => {
+test('external browser unlocks live preview without promising a capture bridge', () => {
   const external = resolveComponentImplementation({
     id: 'go-widget',
     file: 'widget/component.json',
@@ -71,7 +71,7 @@ test('external browser unlocks live preview while Custom Element source stays ca
     kind: 'external-url',
     url: 'http://127.0.0.1:8080/widget',
   })
-  assert.deepEqual(external.capabilities, ['catalog', 'live-preview', 'capture'])
+  assert.deepEqual(external.capabilities, ['catalog', 'live-preview'])
   assert.equal(customElement.technology, 'web-component')
   assert.equal(customElement.adapter, 'custom-element')
   assert.equal(customElement.capabilities.includes('live-preview'), false)

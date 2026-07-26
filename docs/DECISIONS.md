@@ -1402,3 +1402,27 @@ Embedded source восстанавливается из `design-lab/designlab.co
 пуст или удалён. Build-time `libraries/*` runtime registries намеренно не расширяются произвольными
 globs: следующий Web gate — isolated runtime adapter protocol, сначала для сохранения React без
 регрессий, затем для Vue и Svelte.
+
+## D-086 — Framework считается готовым только по feature parity; capture принадлежит runtime
+
+**Статус:** принято, 2026-07-26; protocol и React capture bridge реализованы, adapters продолжаются.
+
+Основной web runtime — managed isolated runtime на `source + technology + package environment` с
+external URL как явным escape hatch. Один shell Design Lab управляет React, Vue, Svelte и другими
+adapters через versioned serializable protocol; отдельные продукты или MCP-команды на framework не
+создаются.
+
+Framework support не считается готовым по одному discovery или demo preview. Для Components
+обязательны live render, Stories, serializable controls/state/events, token modes, localized errors,
+HMR, handoff и одинаковый UI/CLI/MCP capture path. Затем тот же adapter закрывает Wireframes и Pages:
+states, controls, flow/navigation, fullscreen, errors/HMR и capture. Deep inspection и ecosystem
+metadata могут различаться по глубине, но каждая заявленная capability обязана быть проверена.
+
+Capture surface объявляет сам runtime: kind, opaque selector, CSS geometry и DPR после readiness.
+Playwright/MCP не знают React/Vue/Svelte DOM internals. Если bridge отсутствует, capability
+`capture` отсутствует и пользователь получает понятное unsupported. Запрещено молча снимать fallback
+thumbnail, static image или arbitrary external URL как настоящую implementation.
+
+Текущий React capture переведён на этот descriptor как compatibility bridge. Vue/Svelte остаются
+неподдержанными в live runtime и capture до прохождения matrix из
+`docs/21-web-runtime-feature-parity.md`.

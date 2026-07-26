@@ -665,9 +665,11 @@ Components использует Tokens, Palette и Fonts и становится
 - [ ] Phase 1: discovery без обязательного per-Component `component.json` (strong-evidence scanner
       для React/Vue/Svelte/Custom Elements/SwiftUI/Compose готов; package exports, CEM и framework
       metadata ещё не подключены).
-- [ ] Phase 2: isolated React/non-React browser runtimes и external preview.
+- [ ] Phase 2: isolated React/non-React browser runtimes и external preview (versioned JSON protocol
+      и React capture bridge готовы; supervisor/isolated adapters ещё нет).
 - [ ] Phase 3: framework-neutral Workbench, capture, controls и Storybook CSF ingestion
-      (capability-gated detail UI готов; shared runtime/controls/CSF ещё нет).
+      (capability-gated detail UI и runtime-owned capture surface готовы; shared runtime/controls/CSF
+      ещё нет).
 - [ ] Phase 4: Component Family, platform switcher и cross-Library links (explicit family и
       same-source switcher готовы; comparison/cross-Library links ещё нет).
 - [ ] Phase 4.5: framework-neutral Wireframe/Page runtime для React, Vue, Svelte и browser boundary.
@@ -709,7 +711,7 @@ Web sequencing и границы shared/native modules: `docs/17-web-first-platf
 - [x] Реализован deterministic repository scan с evidence/confidence, framework/package detection
       и designer-readable summary; AI не является единственным scanner.
 - [ ] Реализован component-based onboarding `Connect existing` / `Start clean`, default `Use files
-      where they are` и confirm-gated apply plan; ещё нужны post-apply self-check, repair и optional
+    where they are` и confirm-gated apply plan; ещё нужны post-apply self-check, repair и optional
       managed migration существующих файлов.
 - [x] Реализован первый package environment resolver: ближайшие реальные `package.json` и lockfile
       определяются без ручного `node_modules` path; workspace edge cases ещё покрываются adapter
@@ -719,7 +721,7 @@ Web sequencing и границы shared/native modules: `docs/17-web-first-platf
 
 ## Ближайший конкретный шаг
 
-Source resolution foundation закрыт. Теперь спроектировать isolated browser runtime protocol,
-перевести на него React Components/Wireframes/Pages без регрессий и затем подключить Vue; следующий
-adapter — Svelte. Не расширять `libraries/*` build-time globs и не открывать native backlog до Web
-DoD.
+Source resolution foundation и versioned runtime/capture contract закрыты. Теперь реализовать
+isolated runtime supervisor, перевести на него React Components/Wireframes/Pages без регрессий и
+затем подключить Vue по полной feature-parity matrix; следующий adapter — Svelte. Не расширять
+`libraries/*` build-time globs и не открывать native backlog до Web DoD.

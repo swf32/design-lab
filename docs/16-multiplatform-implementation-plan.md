@@ -83,7 +83,7 @@ roadmap, но не конкурируют с web за текущую реали�
 ## Phase 2 — изолированные web runtimes
 
 - [ ] Убрать пользовательский Library code из eager Vite graph приложения Design Lab.
-- [ ] Определить единый iframe/process protocol: `ready`, `render`, `setArgs`, `event`, `resize`,
+- [x] Определить единый iframe/process protocol: `ready`, `render`, `setArgs`, `event`, `resize`,
       `error`, `capture`, `inspect`, `dispose`.
 - [ ] Изолировать dependencies, global CSS и runtime errors по source/adapter.
 - [ ] React adapter воспроизводит текущие Preview/Story/Playground возможности.
@@ -112,7 +112,8 @@ roadmap, но не конкурируют с web за текущую реали�
 - [ ] Source panel показывает правильный язык и canonical usage для активной implementation.
 - [x] Inspector имеет adapter-specific depth; отсутствие deep inspection объясняется, а не
       имитируется.
-- [ ] Capture работает для любого browser runtime через общий surface contract.
+- [ ] Capture работает для любого browser runtime через общий surface contract (контракт и React
+      compatibility bridge готовы; isolated Vue/Svelte/external bridges ещё не готовы).
 - [ ] Storybook CSF ingestion использует существующие Stories без обязательного переписывания в
       Design Lab Story format.
 - [ ] URL сохраняет implementation/platform/technology и активное состояние.
