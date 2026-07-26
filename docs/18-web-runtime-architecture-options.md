@@ -197,7 +197,8 @@ runtime не готов.
 1. Config policy: только Design Lab-controlled config; project config; или controlled default с
    explicit external fallback.
 2. Dependency policy: никогда не устанавливать; предлагать явное действие; или создавать отдельное
-   managed environment.
+   managed environment. Отдельный разбор ownership, physical install и UI находится в
+   `19-dependencies-and-libraries.md`.
 3. Runtime lifetime: держать до закрытия Design Lab; останавливать после idle timeout; или держать
    только active source.
 4. Version policy: adapter использует framework из source, совместимую версию из Design Lab или
