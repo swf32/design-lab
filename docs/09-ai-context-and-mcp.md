@@ -69,6 +69,15 @@ For Components, the preferred authored semantic fields in `component.json` are:
 
 All fields are optional for discovery. If `description` is absent, the gateway derives the first useful paragraph from the adjacent README. Props, variants, states, category, aliases, and use-cases become retrieval signals. Wireframes and Pages support the identical optional `aliases`/`useWhen`/`avoidWhen` fields on `wireframe.json`/`page.json`, so a finished composition (e.g. "split auth layout", "marketing landing page") is discoverable by intent the same way a Component is, instead of only being reachable through a Component's `usedBy` relations pointing at the Workbench.
 
+Tokens use the same bounded-retrieval principle but add a narrower hierarchy. An agent first scopes
+to a source and filesystem subtree, then browses token documents/groups, searches within that scope,
+and finally resolves only the selected leaf refs or reference chains. Supported token adapters map
+the source dialect's native description/comment, aliases and usage guidance into the normalized
+catalog when those fields exist. Metadata remains optional: semantic and component roles benefit
+from intent descriptions, while an exact-value primitive should not invent prose that merely repeats
+its path and literal. The raw token documents and their folder structure remain source of truth; the
+gateway index is derived and disposable.
+
 The current deterministic fallback uses weighted lexical matching, typo-tolerant token similarity, phrase bonuses, and stop-word removal. It returns an explicit relevance score and reports the matched fields. This is not presented as an embedding model.
 
 The next retrieval layer is a pluggable multilingual embedding provider plus lexical fallback and reranking. Embeddings remain a derived cache under `.designlab/embeddings/`.
@@ -81,6 +90,10 @@ The local server uses stdio and is read-only. It exposes:
 - `designlab_search`;
 - `designlab_get` — accepts one `ref`/`index`, or a `refs[]` array to resolve several entities in a single call (unresolved refs come back as individual errors, not a failed call);
 - `designlab_browse` — walks canonical Component, Token, Asset, Wireframe, or Page groups one filesystem path segment at a time (e.g. every Token category, then everything under `color`, then everything under `color.accent`) by reusing the same navigation tree the Directory Panel renders. This is a second discovery path alongside `search`, for when an agent needs to see what exists at a path instead of guessing an id from a hidden-name ranked list.
+  Tokens additionally accept `view: "files"`: the first call returns filesystem folders and token
+  documents with format/mode/count/diagnostic summaries; browsing a document returns its logical
+  groups and leaves through paths such as `semantic/layout.tokens.json#semantic.layout`. The
+  backward-compatible `view: "paths"` walks the merged dotted token tree.
 - `designlab_capture_component` — first returns every token-discovered source mode and executable
   Story id for a Component, then renders either the isolated `260×150` catalog preview or one
   `600×180` Story Canvas Stage as an opaque DPR-2 PNG. Arbitrary source modes remain independent
@@ -105,9 +118,12 @@ The same operations are available without MCP:
 ```sh
 npm run designlab -- sources
 npm run designlab -- search "text entry with validation" --source design-lab-system --kind component
+npm run designlab -- search "space between distinct interface sections" --source design-lab-system --kind token --within semantic/layout.tokens.json#layout.gap
 npm run designlab -- get design-lab-system:component:input
 npm run designlab -- get design-lab-system:component:input design-lab-system:component:button
 npm run designlab -- browse --source design-lab-system --kind token --path color.accent --depth 2
+npm run designlab -- browse --source design-lab-system --kind token --view files
+npm run designlab -- browse --source design-lab-system --kind token --view files --path semantic/layout.tokens.json
 npm run designlab -- capture design-lab-system:component:button
 npm run designlab -- capture design-lab-system:component:button --capture story --story sizes --source-mode light --interface-theme dark
 npm run designlab -- index --source design-lab-system
@@ -134,6 +150,11 @@ runtime is not already available, and shuts down only the processes it started.
 
 - Filesystem changes are rescanned on request; incremental watcher invalidation is not implemented yet.
 - Embedding-based multilingual semantic retrieval is not implemented yet.
+- Token retrieval now normalizes Design Lab `value/type` and DTCG-style `$value/$type` leaves,
+  resolves exact references across files and modes, isolates document/token diagnostics, supports
+  `browse view=files|paths`, and scopes search through `within`. Legacy/plain and custom adapters,
+  richer DTCG extensions/composite reference forms, line/column source ranges, token usage impact,
+  and the source-preserving write/build path from D-075 are not implemented yet.
 - Direct production `uses` / `usedBy` and example-only `examplesUse` / `usedInExamplesBy` are included for Components. Wireframes and Pages report a one-directional `compositionUses` (Components they import) derived the same way, but do not yet appear on the Component side as an inverse `usedInPages`/`usedInWireframes` relation. Transitive impact plus token, font, and asset usage are not indexed yet.
 - Rules, Decisions, Prompts, and Docs are searchable when their canonical source directories exist, but their dedicated UI modules are not implemented.
 - Remote HTTP MCP, authentication, hosted sources, and write tools are deliberately outside this slice.

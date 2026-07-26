@@ -1,19 +1,18 @@
 const previewStyles = String.raw`
 .preview-slider {
-  width: min(248px, 100%);
-  min-height: 96px;
-  margin: auto;
+  width: min(232px, 100%);
   display: grid;
-  place-content: center stretch;
-  gap: 10px;
+  gap: var(--space-8);
+  color: var(--color-text-primary);
 }
 .preview-slider__header {
   display: flex;
   align-items: baseline;
   justify-content: space-between;
-  color: var(--color-text-primary);
-  font-size: 11px;
+  gap: var(--space-12);
+  font-size: 12px;
   font-weight: 520;
+  line-height: 1.25;
 }
 .preview-slider__header output {
   color: var(--color-text-secondary);
@@ -21,14 +20,22 @@ const previewStyles = String.raw`
 }
 .preview-slider__track {
   position: relative;
-  height: 9px;
+  height: 22px;
+}
+.preview-slider__rail {
+  position: absolute;
+  inset: 7px 0;
+  border: 1px solid var(--color-border-subtle);
   border-radius: 999px;
   background: var(--color-surface-raised);
 }
 .preview-slider__fill {
   position: absolute;
-  inset: 0 48% 0 0;
-  border-radius: inherit;
+  top: 7px;
+  bottom: 7px;
+  left: 0;
+  width: 52%;
+  border-radius: 999px;
   background: var(--color-accent-primary);
 }
 .preview-slider__thumb {
@@ -41,7 +48,7 @@ const previewStyles = String.raw`
   border: 3px solid var(--color-accent-primary);
   border-radius: 50%;
   background: var(--color-surface-primary);
-  box-shadow: 0 2px 7px color-mix(in srgb, var(--color-canvas) 28%, transparent);
+  box-shadow: 0 2px 7px color-mix(in srgb, var(--color-canvas) 30%, transparent);
   transform: translate(-50%, -50%);
 }
 `
@@ -56,7 +63,8 @@ export function SliderPreview() {
           <output>52</output>
         </div>
         <div className="preview-slider__track">
-          <i className="preview-slider__fill" />
+          <span className="preview-slider__rail" />
+          <span className="preview-slider__fill" />
           <i className="preview-slider__thumb" />
         </div>
       </div>

@@ -52,7 +52,7 @@ const previewStyles = String.raw`
 .preview-marketing-nav__pill {
   width: 18px;
   height: 12px;
-  border-radius: var(--radius-small);
+  border-radius: var(--corner-control);
   background: color-mix(in srgb, var(--color-status-success) 16%, transparent);
 }
 
@@ -60,7 +60,7 @@ const previewStyles = String.raw`
   width: 22px;
   height: 12px;
   border: 1px solid var(--color-border-default);
-  border-radius: var(--radius-small);
+  border-radius: var(--corner-control);
   background: transparent;
 }
 `

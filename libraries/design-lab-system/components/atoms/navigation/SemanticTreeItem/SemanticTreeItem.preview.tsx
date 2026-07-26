@@ -6,7 +6,7 @@ const previewStyles = String.raw`
   height: 30px;
   padding: 0 7px;
   box-sizing: border-box;
-  border-radius: var(--radius-small);
+  border-radius: var(--corner-control);
   background: var(--color-surface-hover);
   display: flex;
   align-items: center;

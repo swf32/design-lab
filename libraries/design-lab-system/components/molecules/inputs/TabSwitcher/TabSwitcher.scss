@@ -1,14 +1,52 @@
 .dl-tab-switcher {
+  position: relative;
   width: max-content;
+  max-width: 100%;
   padding: 3px;
   border: 1px solid var(--color-border-default);
-  border-radius: var(--radius-small);
+  border-radius: var(--corner-control);
   background: var(--color-surface-secondary);
   display: flex;
   align-items: center;
   gap: 2px;
 }
+.dl-tab-switcher--overflow-wrap {
+  width: 100%;
+  flex-wrap: wrap;
+}
+.dl-tab-switcher--overflow-scroll {
+  width: 100%;
+  overflow-x: auto;
+  overflow-y: hidden;
+  scrollbar-width: thin;
+  overscroll-behavior-inline: contain;
+}
+.dl-tab-switcher--overflow-scroll button {
+  flex: 0 0 auto;
+}
+.dl-tab-switcher--segmented::before {
+  content: '';
+  position: absolute;
+  z-index: 0;
+  top: 0;
+  left: 0;
+  width: var(--tab-switcher-indicator-width);
+  height: var(--tab-switcher-indicator-height);
+  border-radius: 4px;
+  background: var(--color-surface-hover);
+  box-shadow: 0 0 0 1px var(--color-border-subtle);
+  opacity: var(--tab-switcher-indicator-opacity);
+  transform: translate(var(--tab-switcher-indicator-x), var(--tab-switcher-indicator-y));
+  transition:
+    transform var(--transition-fast),
+    width var(--transition-fast),
+    height var(--transition-fast),
+    opacity var(--transition-fast);
+  pointer-events: none;
+}
 .dl-tab-switcher button {
+  position: relative;
+  z-index: 1;
   min-width: 54px;
   height: 26px;
   padding: 0 9px;
@@ -21,6 +59,7 @@
   font-size: 9px;
   text-transform: capitalize;
   cursor: pointer;
+  touch-action: manipulation;
   transition:
     background var(--transition-fast),
     color var(--transition-fast),
@@ -30,9 +69,9 @@
   color: var(--color-text-secondary);
 }
 .dl-tab-switcher button.is-active {
-  background: var(--color-surface-hover);
+  background: transparent;
   color: var(--color-text-primary);
-  box-shadow: 0 0 0 1px var(--color-border-subtle);
+  box-shadow: none;
 }
 .dl-tab-switcher button:focus-visible {
   box-shadow:
@@ -47,7 +86,7 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: var(--spacing-1);
+  gap: var(--space-4);
 }
 .dl-tab-switcher__icon {
   display: grid;
@@ -113,34 +152,9 @@
   box-shadow: none;
 }
 
-@media (max-width: 760px) {
-  .dl-tab-switcher,
-  .dl-tab-switcher--small {
-    padding: 3px;
-  }
-
-  .dl-tab-switcher button,
-  .dl-tab-switcher--small button {
-    min-width: 44px;
-    height: 44px;
-    padding-inline: 12px;
-    font-size: 13px;
-    touch-action: manipulation;
-  }
-
-  .dl-tab-switcher--toggle,
-  .dl-tab-switcher--toggle.dl-tab-switcher--small {
-    --tab-switcher-control: 44px;
-    --tab-switcher-padding: 3px;
-    height: 52px;
-  }
-
-  .dl-tab-switcher--toggle button,
-  .dl-tab-switcher--toggle.dl-tab-switcher--small button {
-    min-width: var(--tab-switcher-control);
-    width: var(--tab-switcher-control);
-    height: var(--tab-switcher-control);
-    padding: 0;
-    font-size: 16px;
+@media (prefers-reduced-motion: reduce) {
+  .dl-tab-switcher--segmented::before,
+  .dl-tab-switcher--toggle::before {
+    transition: none;
   }
 }

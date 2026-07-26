@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- Changed: Catalog preview compares project and library source rows with production mark, two-line text, and ArrowDownIcon grammar inside the card safe area.
 - Changed: Added authored semantic retrieval metadata for MCP and CLI search.
 
 - Changed: Workbench stories now render automatically from the adjacent story module.

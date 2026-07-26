@@ -6,6 +6,8 @@ import {
   useRef,
   useState,
   type CSSProperties,
+  type KeyboardEvent as ReactKeyboardEvent,
+  type PointerEvent as ReactPointerEvent,
   type ReactNode,
 } from 'react'
 import { createPortal } from 'react-dom'
@@ -29,6 +31,55 @@ function normalizeHex(value: string) {
   return null
 }
 
+type HsvColor = { hue: number; saturation: number; value: number }
+
+function hexToHsv(hex: string): HsvColor {
+  const normalized = normalizeHex(hex) ?? '#000000'
+  const red = Number.parseInt(normalized.slice(1, 3), 16) / 255
+  const green = Number.parseInt(normalized.slice(3, 5), 16) / 255
+  const blue = Number.parseInt(normalized.slice(5, 7), 16) / 255
+  const max = Math.max(red, green, blue)
+  const min = Math.min(red, green, blue)
+  const delta = max - min
+  let hue = 0
+  if (delta) {
+    if (max === red) hue = 60 * (((green - blue) / delta) % 6)
+    else if (max === green) hue = 60 * ((blue - red) / delta + 2)
+    else hue = 60 * ((red - green) / delta + 4)
+  }
+  return {
+    hue: Math.round(hue < 0 ? hue + 360 : hue),
+    saturation: max === 0 ? 0 : (delta / max) * 100,
+    value: max * 100,
+  }
+}
+
+function hsvToHex({ hue, saturation, value }: HsvColor) {
+  const chroma = (value / 100) * (saturation / 100)
+  const sector = hue / 60
+  const second = chroma * (1 - Math.abs((sector % 2) - 1))
+  const match = value / 100 - chroma
+  const [red, green, blue] =
+    sector < 1
+      ? [chroma, second, 0]
+      : sector < 2
+        ? [second, chroma, 0]
+        : sector < 3
+          ? [0, chroma, second]
+          : sector < 4
+            ? [0, second, chroma]
+            : sector < 5
+              ? [second, 0, chroma]
+              : [chroma, 0, second]
+  return `#${[red, green, blue]
+    .map((channel) =>
+      Math.round((channel + match) * 255)
+        .toString(16)
+        .padStart(2, '0'),
+    )
+    .join('')}`
+}
+
 export type ColorPickerProps = {
   label: string
   value?: string | null
@@ -39,6 +90,8 @@ export type ColorPickerProps = {
   allowClear?: boolean
   disabled?: boolean
   className?: string
+  open?: boolean
+  onOpenChange?: (open: boolean) => void
 }
 
 export function ColorPicker({
@@ -51,21 +104,39 @@ export function ColorPicker({
   allowClear = true,
   disabled = false,
   className = '',
+  open: openProp,
+  onOpenChange,
 }: ColorPickerProps) {
   const { t } = useDesignLabI18n()
-  const [open, setOpen] = useState(false)
+  const [internalOpen, setInternalOpen] = useState(false)
+  const open = openProp ?? internalOpen
   const [internal, setInternal] = useState<string | null>(
     value === undefined ? defaultValue : value,
   )
   const color = value === undefined ? internal : value
   const safeColor = normalizeHex(color ?? '') ?? defaultValue
   const [draft, setDraft] = useState(safeColor)
+  const [hsv, setHsv] = useState(() => hexToHsv(safeColor))
   const rootRef = useRef<HTMLDivElement>(null)
   const triggerRef = useRef<HTMLButtonElement>(null)
   const popoverRef = useRef<HTMLDivElement>(null)
   const [popoverPosition, setPopoverPosition] = useState<CSSProperties | null>(null)
 
-  useEffect(() => setDraft(safeColor), [safeColor])
+  const setOpen = useCallback(
+    (next: boolean) => {
+      if (openProp === undefined) setInternalOpen(next)
+      onOpenChange?.(next)
+    },
+    [onOpenChange, openProp],
+  )
+
+  useEffect(() => {
+    setDraft(safeColor)
+    setHsv((current) => {
+      const next = hexToHsv(safeColor)
+      return next.saturation === 0 ? { ...next, hue: current.hue } : next
+    })
+  }, [safeColor])
   const positionPopover = useCallback(() => {
     const triggerElement = triggerRef.current
     const popoverElement = popoverRef.current
@@ -133,12 +204,45 @@ export function ColorPicker({
   const commit = (next: string | null) => {
     if (value === undefined) setInternal(next)
     onChange?.(next)
-    if (next) setDraft(next)
+    if (next) {
+      setDraft(next)
+      setHsv((current) => {
+        const nextHsv = hexToHsv(next)
+        return nextHsv.saturation === 0 ? { ...nextHsv, hue: current.hue } : nextHsv
+      })
+    }
+  }
+  const commitHsv = (next: HsvColor) => {
+    setHsv(next)
+    const hex = hsvToHex(next)
+    setDraft(hex)
+    if (value === undefined) setInternal(hex)
+    onChange?.(hex)
   }
   const commitDraft = () => {
     const next = normalizeHex(draft)
     if (next) commit(next)
     else setDraft(safeColor)
+  }
+  const updateSpectrum = (event: ReactPointerEvent<HTMLDivElement>) => {
+    const bounds = event.currentTarget.getBoundingClientRect()
+    commitHsv({
+      ...hsv,
+      saturation: Math.min(100, Math.max(0, ((event.clientX - bounds.left) / bounds.width) * 100)),
+      value: Math.min(100, Math.max(0, 100 - ((event.clientY - bounds.top) / bounds.height) * 100)),
+    })
+  }
+  const handleSpectrumKeyDown = (event: ReactKeyboardEvent<HTMLDivElement>) => {
+    const step = event.shiftKey ? 10 : 1
+    let next = hsv
+    if (event.key === 'ArrowLeft') next = { ...hsv, saturation: Math.max(0, hsv.saturation - step) }
+    else if (event.key === 'ArrowRight')
+      next = { ...hsv, saturation: Math.min(100, hsv.saturation + step) }
+    else if (event.key === 'ArrowUp') next = { ...hsv, value: Math.min(100, hsv.value + step) }
+    else if (event.key === 'ArrowDown') next = { ...hsv, value: Math.max(0, hsv.value - step) }
+    else return
+    event.preventDefault()
+    commitHsv(next)
   }
 
   return (
@@ -155,7 +259,7 @@ export function ColorPicker({
         aria-haspopup="dialog"
         disabled={disabled}
         style={{ color: color ?? undefined }}
-        onClick={() => setOpen((current) => !current)}
+        onClick={() => setOpen(!open)}
       >
         {trigger ?? <span className="dl-color-picker__swatch" style={{ background: safeColor }} />}
       </button>
@@ -171,16 +275,41 @@ export function ColorPicker({
               visibility: popoverPosition ? 'visible' : 'hidden',
             }}
           >
-            <div className="dl-color-picker__heading">
-              <span className="dl-color-picker__preview" style={{ background: safeColor }} />
-              <strong>{label}</strong>
+            <div className="dl-color-picker__spectrum-wrap">
+              <div
+                className="dl-color-picker__spectrum"
+                role="slider"
+                tabIndex={0}
+                aria-label={t('colorPicker.saturationBrightness')}
+                aria-valuemin={0}
+                aria-valuemax={100}
+                aria-valuenow={Math.round(hsv.saturation)}
+                aria-valuetext={`${Math.round(hsv.saturation)}% / ${Math.round(hsv.value)}%`}
+                style={{ backgroundColor: `hsl(${hsv.hue} 100% 50%)` }}
+                onKeyDown={handleSpectrumKeyDown}
+                onPointerDown={(event) => {
+                  event.currentTarget.setPointerCapture(event.pointerId)
+                  updateSpectrum(event)
+                }}
+                onPointerMove={(event) => {
+                  if (event.currentTarget.hasPointerCapture(event.pointerId)) updateSpectrum(event)
+                }}
+              >
+                <span
+                  className="dl-color-picker__spectrum-thumb"
+                  style={{ left: `${hsv.saturation}%`, top: `${100 - hsv.value}%` }}
+                />
+              </div>
             </div>
-            <label className="dl-color-picker__spectrum">
-              <span>{t('colorPicker.color')}</span>
+            <label className="dl-color-picker__hue">
+              <span>{t('colorPicker.hue')}</span>
+              <output>{Math.round(hsv.hue)}°</output>
               <input
-                type="color"
-                value={safeColor}
-                onChange={(event) => commit(event.target.value)}
+                type="range"
+                min={0}
+                max={359}
+                value={Math.round(hsv.hue)}
+                onChange={(event) => commitHsv({ ...hsv, hue: Number(event.target.value) })}
               />
             </label>
             <div className="dl-color-picker__presets" aria-label={t('colorPicker.presets')}>

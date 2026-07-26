@@ -1,5 +1,9 @@
 # Changelog
 
+## Unreleased
+
+- Changed: Removed viewport-based option and toggle scaling; small and medium geometry now remains identical at every width while wrap/scroll stays caller-controlled.
+
 ## 0.5.0 — 2026-07-23
 
 - Added: `iconSize` controls all option icons independently from button size and touch-target geometry.
@@ -14,8 +18,9 @@
 
 ## Unreleased
 
-- Accessibility: Phone layouts expand every segmented and toggle option to a minimum 44px touch target.
-- Visual: Mobile labels and icon glyphs use a readable size without changing desktop density.
+- Added: `overflow` lets consumers choose `fit`, multi-row `wrap`, or single-row `scroll`; the scrollbar is desktop-only.
+- Motion: segmented selection uses a measured moving indicator and disables transitions for reduced motion.
+- Visual: phone controls grow by no more than 4px from the corresponding desktop size.
 - Changed: Workbench stories now render automatically from the adjacent story module.
 - Breaking: Canonical filesystem and URL path moved to `components/molecules/inputs/TabSwitcher`; no legacy redirect is retained.
 - Changed: Category is derived from the component directory; the package barrel export remains automatic.

@@ -6,4 +6,4 @@ Use Select for enum values and longer option sets. Use Tab Switcher when two or 
 
 Labels are visible by default. `visuallyHideLabel` keeps the accessible label when a dense inspector already provides equivalent visual context. Errors connect through `aria-describedby` and `aria-invalid`.
 
-At phone widths, every size uses a minimum 48px field and 16px control text.
+`small`, `medium`, and `large` geometry is viewport-invariant. Native option-picker behavior remains platform-specific, but the closed field keeps the same height, padding, and type scale on desktop and phone layouts.

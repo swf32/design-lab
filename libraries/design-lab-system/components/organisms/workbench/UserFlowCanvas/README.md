@@ -4,4 +4,6 @@ Production infinite Canvas for directed Wireframe and Page state graphs. Every s
 
 Dragging empty Canvas space pans the graph. Two-finger pinch and trackpad pinch zoom around the gesture midpoint without scaling the browser page; Zoom out, Reset, and Zoom in remain visible keyboard-accessible alternatives. Arrow keys move focus between state cards when the graph viewport or a card is focused. The low-contrast grid is drawn across the viewport and derives its position and size from the same pan/zoom transform, so it has no visible finite edge.
 
+The tools keep the same button geometry at every viewport width. Narrow viewports allow the tools row to scroll instead of enlarging its actions.
+
 Use authored stable coordinates from the entity manifest. The Canvas preserves authored column order while enforcing enough horizontal and within-column vertical separation for the paired screen nodes, preventing geometry changes from creating overlaps. Consumers own node screen content, source-specific theme variables, optional persisted `viewState`, and the relationship between selection and opening a rendered state. The component does not infer product transitions or persist graph data.

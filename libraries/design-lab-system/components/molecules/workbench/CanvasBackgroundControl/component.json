@@ -19,7 +19,14 @@
   "docs": "README.md",
   "changelog": "CHANGELOG.md",
   "status": "ready",
-  "states": ["dark-grid", "light-grid", "solid", "solid-picker-open"],
+  "previewMotion": {
+    "trigger": "card-hover-focus",
+    "kind": "reveal",
+    "durationToken": "transition.preview",
+    "easingToken": "easing.preview",
+    "reducedMotion": "static-baseline"
+  },
+  "states": ["collapsed", "expanded", "dark-grid", "light-grid", "solid", "solid-picker-open"],
   "variants": ["default"],
   "props": {
     "mode": {

@@ -11,7 +11,7 @@ const previewStyles = String.raw`
 .preview-sidebar-tabs span {
   width: 33px;
   height: 50px;
-  border-radius: var(--radius-medium);
+  border-radius: var(--corner-surface);
   background: var(--color-surface-hover);
 }
 .preview-sidebar-tabs span:first-child {
@@ -37,7 +37,7 @@ const previewStyles = String.raw`
   padding: 4px;
   overflow: hidden;
   border: 1px solid transparent;
-  border-radius: var(--radius-medium);
+  border-radius: var(--corner-surface);
   background: var(--color-surface-primary);
   opacity: 0.5;
   display: flex;

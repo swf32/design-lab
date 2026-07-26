@@ -2,6 +2,14 @@
 
 ## Unreleased
 
+- Changed: Removed the mobile-only four-pixel growth; collapsed and expanded control geometry is now identical across viewport widths.
+- Changed: The control now rests as one selected background swatch and reveals all modes on pointer hover or keyboard focus using the small Tab Switcher geometry.
+- Fixed: Collapsed dark grid, light grid, and solid swatches now share one exact position; hidden flex gaps no longer offset later options.
+- Changed: Touch interaction now uses a first tap to reveal, a second tap to select or open the picker, and an outside tap to collapse.
+- Accessibility: Focus disclosure matches hover disclosure, and reduced-motion preferences remove the expansion transition without hiding the choices.
+- Changed: Enlarged the three canvas background samples into 22px circular swatches and replaced the bespoke solid-color popover with the shared embedded Color Picker.
+- Visual: rebuilt the catalog preview as the segmented grid-and-solid mode switcher with production diagonal swatches and card-hover mode handoff; removed the always-open picker composition from the thumbnail.
+- Changed: declared catalog preview motion for mutually exclusive mode selection.
 - Changed: Added authored semantic retrieval metadata for MCP and CLI search.
 
 - Changed: Workbench stories now render automatically from the adjacent story module.

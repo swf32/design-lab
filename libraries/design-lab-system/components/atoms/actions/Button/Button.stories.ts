@@ -1,11 +1,14 @@
 import { createElement } from 'react'
 import type { StoryExample } from '../../../storyContract'
+import { StarIcon } from '../../../../assets/icons'
 import { Button, type ButtonProps } from './Button'
 
 export function renderStoryExample(example: StoryExample) {
   const props = example.props as unknown as Omit<ButtonProps, 'children'>
   return createElement(Button, {
     ...props,
+    leading: props.leading === 'star' ? createElement(StarIcon, { size: 14 }) : props.leading,
+    trailing: props.trailing === 'star' ? createElement(StarIcon, { size: 14 }) : props.trailing,
     children: example.label,
   })
 }
@@ -17,10 +20,22 @@ export const stories = [
     name: 'Variants',
     description: 'Compare semantic emphasis at one size.',
     examples: [
-      { label: 'Primary', props: { variant: 'primary' } },
-      { label: 'Secondary', props: { variant: 'secondary' } },
-      { label: 'Ghost', props: { variant: 'ghost' } },
-      { label: 'Danger', props: { variant: 'danger' } },
+      {
+        label: 'Primary',
+        props: { variant: 'primary' },
+      },
+      {
+        label: 'Secondary',
+        props: { variant: 'secondary' },
+      },
+      {
+        label: 'Ghost',
+        props: { variant: 'ghost' },
+      },
+      {
+        label: 'Danger',
+        props: { variant: 'danger' },
+      },
     ],
   },
   {
@@ -30,7 +45,10 @@ export const stories = [
     description: 'Compare density without changing semantic emphasis.',
     examples: [
       { label: 'Small', props: { size: 'small' } },
-      { label: 'Medium', props: { size: 'medium' } },
+      {
+        label: 'Medium',
+        props: { size: 'medium' },
+      },
       { label: 'Large', props: { size: 'large' } },
     ],
   },
@@ -41,7 +59,10 @@ export const stories = [
     description: 'Compare intrinsic and container-filling layout.',
     examples: [
       { label: 'Intrinsic', props: {} },
-      { label: 'Full width', props: { fullWidth: true } },
+      {
+        label: 'Full width',
+        props: { fullWidth: true },
+      },
     ],
   },
   {
@@ -61,9 +82,18 @@ export const stories = [
     name: 'States and composition',
     description: 'Review disabled behavior and optional slots.',
     examples: [
-      { label: 'Disabled', props: { disabled: true } },
-      { label: 'Leading', props: { leading: '←' } },
-      { label: 'Trailing', props: { trailing: '→' } },
+      {
+        label: 'Disabled',
+        props: { disabled: true },
+      },
+      {
+        label: 'Leading icon',
+        props: { leading: 'star' },
+      },
+      {
+        label: 'Trailing icon',
+        props: { trailing: 'star' },
+      },
     ],
   },
 ]

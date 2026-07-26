@@ -6,18 +6,18 @@ const previewStyles = String.raw`
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: var(--spacing-2);
+  gap: var(--space-8);
 }
 
 .preview-workbench-action {
   min-height: 22px;
   padding: 0 7px;
   border: 1px dashed currentColor;
-  border-radius: var(--radius-pill);
+  border-radius: var(--corner-full);
   background: var(--color-workbench-action-surface);
   display: inline-flex;
   align-items: center;
-  gap: var(--spacing-1);
+  gap: var(--space-4);
   font-size: 8px;
   font-weight: 650;
 }

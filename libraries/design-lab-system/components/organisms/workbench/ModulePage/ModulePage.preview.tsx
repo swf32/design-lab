@@ -5,7 +5,7 @@ const previewStyles = String.raw`
   box-sizing: border-box;
   padding: 14px;
   border: 1px solid var(--color-border-subtle);
-  border-radius: var(--radius-medium);
+  border-radius: var(--corner-surface);
   display: grid;
   grid-template-rows: 24px 1fr;
   gap: 10px;
@@ -14,7 +14,7 @@ const previewStyles = String.raw`
   border-bottom: 1px solid var(--color-border-subtle);
 }
 .preview-module-page div {
-  border-radius: var(--radius-card);
+  border-radius: var(--corner-card);
   background: var(--color-surface-secondary);
 }
 `

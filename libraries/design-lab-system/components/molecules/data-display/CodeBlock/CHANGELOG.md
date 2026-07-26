@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+- Added: The root now exposes an explicit `dl-code-block--expanded` state for composed emphasis and styling.
+- Added: `collapsedLines` shows a compact source preview with accessible expand and collapse actions while preserving full-source copying.
+- Added: `code-only` removes header chrome and floats Copy and disclosure actions inside the source surface.
+- Visual: catalog preview now shows real monospace source with a copy action; card hover transitions to the copied state.
+- Added: `previewMotion` metadata for the copy feedback state transition.
 - Added: `copyOnClick` turns the complete code fragment into an accessible copy target.
 - Changed: Added authored semantic retrieval metadata for MCP and CLI search.
 

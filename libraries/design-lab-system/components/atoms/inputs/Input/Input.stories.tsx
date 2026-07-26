@@ -40,11 +40,11 @@ export const stories = [
     ],
   },
   {
-    id: 'mobile-entry',
+    id: 'viewport-invariant-entry',
     kind: 'context',
-    name: 'Phone text entry',
+    name: 'Viewport-invariant entry',
     description:
-      'Phone layouts keep every field at least 48px tall and use 16px control text across all visual sizes.',
+      'Each explicit size keeps the same control height, padding, and type scale at desktop and phone widths.',
     examples: [
       { label: 'Compact search', props: { variant: 'search', size: 'small' } },
       { label: 'Component name', props: { variant: 'text', size: 'medium' } },

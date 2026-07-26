@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- Visual: Catalog preview is one recognizable card with a simple specimen, real Button name, and In Progress → Ready status motion.
 - Added: Optional lifecycle status badge using the production Chip component.
 - Visual: Status sits with the overlaid component name without creating another interactive target.
 - Changed: Added authored semantic retrieval metadata for MCP and CLI search.

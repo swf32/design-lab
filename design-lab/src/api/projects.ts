@@ -11,10 +11,20 @@ export type Project = {
 export type ProjectTreeItem = {
   name: string
   path: string
-  kind: 'folder' | 'file' | 'component' | 'token' | 'asset' | 'wireframe' | 'page'
+  kind:
+    | 'folder'
+    | 'file'
+    | 'component'
+    | 'token-document'
+    | 'token-group'
+    | 'token'
+    | 'asset'
+    | 'wireframe'
+    | 'page'
   level: number
   id?: string
   virtual?: boolean
+  diagnostics?: number
 }
 
 type ApiError = { error?: { message?: string } }
@@ -40,21 +50,49 @@ export async function createProject(input: { name: string }) {
   })
 }
 
-export async function getProjectTree(projectId: string, moduleId: string) {
+export type TokenNavigationView = 'tokens' | 'files'
+
+export async function getProjectTree(
+  projectId: string,
+  moduleId: string,
+  tokenView: TokenNavigationView = 'tokens',
+) {
   return request<{ tree: ProjectTreeItem[] }>(
-    `/api/sources/${encodeURIComponent(projectId)}/tree?module=${encodeURIComponent(moduleId)}`,
+    `/api/sources/${encodeURIComponent(projectId)}/tree?module=${encodeURIComponent(moduleId)}&view=${encodeURIComponent(tokenView)}`,
   )
 }
 
+export type TokenValue =
+  string | number | boolean | null | TokenValue[] | { [key: string]: TokenValue }
+export type TokenDiagnostic = {
+  code: string
+  message: string
+  file: string
+  severity?: 'warning' | 'error'
+  mode?: string
+  path?: string
+  reference?: string
+}
 export type TokenEntity = {
   id: string
   path: string
   type: string
-  value: string | number
+  rawValue: TokenValue
+  value: TokenValue
   mode: string
-  values: Record<string, string | number>
+  rawValues: Record<string, TokenValue>
+  values: Record<string, TokenValue>
+  references: string[]
+  referenceChains: Record<string, string[]>
   description: string | null
+  aliases: string[]
+  useWhen: string[]
+  avoidWhen: string[]
+  tags: string[]
   file: string
+  format: 'design-lab' | 'dtcg'
+  sourceLocation: { file: string; path: string }
+  diagnostics: TokenDiagnostic[]
 }
 export type AssetEntity = {
   id: string
@@ -88,8 +126,71 @@ export type ComponentRelations = {
     component?: ComponentRelation
   }>
 }
+export type ComponentCapability =
+  | 'catalog'
+  | 'contract'
+  | 'static-preview'
+  | 'live-preview'
+  | 'controls'
+  | 'inspection'
+  | 'composition'
+  | 'capture'
+  | 'handoff'
+  | 'native-validation'
+export type ComponentImplementation = {
+  id: string
+  familyId: string | null
+  platform: string
+  technology: string
+  adapter: string
+  locator:
+    | { kind: 'file'; path: string }
+    | { kind: 'external-url'; url: string }
+    | { kind: 'manifest'; path: string }
+  contract: {
+    props: Record<string, unknown>
+    events: Record<string, unknown>
+    slots: Record<string, unknown>
+  }
+  capabilities: ComponentCapability[]
+  evidence: {
+    technology: 'authored' | 'derived'
+    platform: 'authored' | 'derived'
+    adapter: 'authored' | 'derived'
+  }
+  diagnostics: Array<{ code: string; message: string }>
+}
+export type ComponentHandoff = {
+  componentId: string
+  familyId: string | null
+  platform: string
+  technology: string
+  path: string
+  language: string
+  source: string
+  provenance: {
+    kind: 'authored' | 'generated'
+    generated: Record<string, unknown> | null
+  }
+  warnings: string[]
+}
 export type ModuleData =
-  | { kind: 'tokens'; files: string[]; modes: string[]; tokens: TokenEntity[] }
+  | {
+      kind: 'tokens'
+      files: string[]
+      documents: Array<{
+        file: string
+        format: 'design-lab' | 'dtcg' | 'mixed' | 'unknown' | 'invalid'
+        defaultMode: string
+        explicitDefaultMode: boolean
+        modes: string[]
+        tokenCount: number
+        diagnostics: TokenDiagnostic[]
+      }>
+      modes: string[]
+      tokens: TokenEntity[]
+      diagnostics: TokenDiagnostic[]
+    }
   | { kind: 'palette'; modes: string[]; colors: TokenEntity[] }
   | {
       kind: 'fonts'
@@ -108,17 +209,40 @@ export type ModuleData =
       folders: string[]
       modes: string[]
       themeVariables: Record<string, Record<string, string | number>>
+      families: Array<{
+        id: string
+        name: string
+        implementations: Array<{
+          id: string
+          name: string
+          platform: string
+          technology: string
+          adapter: string
+          capabilities: ComponentCapability[]
+        }>
+      }>
       components: Array<{
         id: string
         sourceId?: string
         name: string
+        platform: string
+        technology: string
+        adapter: string
+        previewUrl?: string
+        tagName?: string
+        capabilities: ComponentCapability[]
+        implementation: ComponentImplementation
+        familyId: string | null
         entry?: string
         style?: string | null
         status?: string
         variants: string[]
         states?: string[]
         previewMotion?: PreviewMotion
-        props?: Record<string, { type: string; default?: unknown; values?: string[] }>
+        props?: Record<
+          string,
+          { type: string; default?: unknown; values?: string[]; required?: boolean; slot?: boolean }
+        >
         docs?: string
         stories?: string
         preview?: string
@@ -137,6 +261,13 @@ export type ModuleData =
         }>
         relations: ComponentRelations
         file: string
+        manifestFile?: string | null
+        sourcePath?: string | null
+        discovery?: {
+          kind: 'derived'
+          evidence: string
+          confidence: 'strong' | 'probable'
+        }
         directory: string
       }>
     }
@@ -330,6 +461,15 @@ export type ModuleData =
 export function getModuleData(sourceId: string, moduleId: string) {
   return request<ModuleData>(
     `/api/sources/${encodeURIComponent(sourceId)}/modules/${encodeURIComponent(moduleId)}`,
+  )
+}
+
+export function getComponentHandoff(sourceId: string, componentId: string) {
+  return request<ComponentHandoff>(
+    `/api/sources/${encodeURIComponent(sourceId)}/components/${componentId
+      .split('/')
+      .map(encodeURIComponent)
+      .join('/')}/handoff`,
   )
 }
 

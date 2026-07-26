@@ -36,10 +36,22 @@
       "label": "Subscription",
       "description": "Changes entitlement, highlighted pricing, and available token actions.",
       "options": [
-        { "value": "none", "label": "No subscription" },
-        { "value": "starter", "label": "Starter" },
-        { "value": "team", "label": "Team" },
-        { "value": "top", "label": "Top" }
+        {
+          "value": "none",
+          "label": "No subscription"
+        },
+        {
+          "value": "starter",
+          "label": "Starter"
+        },
+        {
+          "value": "team",
+          "label": "Team"
+        },
+        {
+          "value": "top",
+          "label": "Top"
+        }
       ]
     },
     {
@@ -67,7 +79,10 @@
       "max": 100,
       "step": 10,
       "unit": "%",
-      "visibleWhen": { "control": "plan", "equals": "top" }
+      "visibleWhen": {
+        "control": "plan",
+        "equals": "top"
+      }
     }
   ],
   "states": [
@@ -146,12 +161,42 @@
   ],
   "flow": {
     "nodes": [
-      { "id": "discover", "state": "no-subscription", "x": 80, "y": 360 },
-      { "id": "starter", "state": "starter-annual", "x": 620, "y": 80 },
-      { "id": "team", "state": "team-running-low", "x": 620, "y": 660 },
-      { "id": "top-ready", "state": "top-empty", "x": 1160, "y": 360 },
-      { "id": "top-half", "state": "top-half", "x": 1700, "y": 100 },
-      { "id": "top-full", "state": "top-full", "x": 2240, "y": 360 }
+      {
+        "id": "discover",
+        "state": "no-subscription",
+        "x": 80,
+        "y": 360
+      },
+      {
+        "id": "starter",
+        "state": "starter-annual",
+        "x": 768,
+        "y": 80
+      },
+      {
+        "id": "team",
+        "state": "team-running-low",
+        "x": 768,
+        "y": 660
+      },
+      {
+        "id": "top-ready",
+        "state": "top-empty",
+        "x": 1456,
+        "y": 360
+      },
+      {
+        "id": "top-half",
+        "state": "top-half",
+        "x": 2144,
+        "y": 100
+      },
+      {
+        "id": "top-full",
+        "state": "top-full",
+        "x": 2832,
+        "y": 360
+      }
     ],
     "edges": [
       {

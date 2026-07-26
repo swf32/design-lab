@@ -34,7 +34,7 @@ Errors: `400 INVALID_PROJECT_NAME`, `409 PROJECT_DIRECTORY_EXISTS` (a same-slug 
 
 ### `GET /api/projects/:projectId/tree` and `GET /api/sources/:sourceId/tree`
 
-Two routes, identical handler (`getProjectTree`). Query: `?module=<moduleId>` (defaults to `home`). For `wireframes`, `components`, `tokens`, and `assets`, this delegates to the semantic navigation tree (`getModuleNavigation`, folders + typed entities, not raw files). For any other known module id (`home`, `pages`, `palette`, `fonts`) it falls back to a raw recursive directory scan (`scanDirectory`, ignoring `node_modules`, `.git`, `.designlab`, `dist`, and dotfiles, capped at 8 levels of depth) rooted at that module's canonical subdirectory. `home`'s module directory is `.` — the entire source root — so `GET .../tree?module=home` returns the full source tree including every module's files. Unknown module ids return `400 UNKNOWN_MODULE`.
+Two routes, identical handler (`getProjectTree`). Query: `?module=<moduleId>` (defaults to `home`). Tokens additionally accept `&view=tokens|files`: `tokens` returns the logical token hierarchy, while `files` returns typed filesystem folder → token document → token group → token navigation. Both are derived from the same normalized catalog and neither contains a registered taxonomy. For `wireframes`, `pages`, `components`, `tokens`, and `assets`, the handler delegates to semantic navigation (`getModuleNavigation`, folders + typed entities, not raw implementation files). Other known module ids fall back to a raw recursive directory scan (`scanDirectory`, ignoring `node_modules`, `.git`, `.designlab`, `dist`, and dotfiles, capped at 8 levels of depth) rooted at that module's canonical subdirectory. Unknown module ids return `400 UNKNOWN_MODULE`.
 
 ### `GET /api/sources/:sourceId/modules/:moduleId`
 
@@ -42,14 +42,26 @@ The main entity endpoint. Returns the shape documented per-module in `05-entitie
 
 | `moduleId` | Result shape |
 |---|---|
-| `components` | `{ kind: "components", folders, modes, themeVariables, components: Component[] }` — each Component carries `import`, `files[]`, `completenessDiagnostics`, and `relations` (`uses`/`usedBy`/`examplesUse`/`usedInExamplesBy`/`diagnostics`) |
+| `components` | `{ kind: "components", folders, modes, themeVariables, families, components: Component[] }` — each Component carries normalized `implementation` (`platform`, `technology`, `adapter`, `locator`, `contract`, `capabilities`), optional explicit `familyId`, `import`, `files[]`, and `relations` (`uses`/`usedBy`/`examplesUse`/`usedInExamplesBy`/`diagnostics`). Strong framework evidence can discover a Component without `component.json`. |
 | `wireframes` | `{ kind: "wireframes", folders, modes, themeVariables, wireframes: Wireframe[] }` — each Wireframe carries the full manifest plus `diagnostics[]` and `files[]` |
 | `tokens` | `{ kind: "tokens", files, modes, tokens: Token[] }` |
 | `palette` | `{ kind: "palette", modes, colors: Token[] }` (derived by filtering `tokens` to `type === "color"`, not a separate palette store) |
 | `fonts` | `{ kind: "fonts", modes, typography: Token[], families }` (missing `fonts.json` returns an empty-but-valid shape, not an error) |
 | anything else | `{ kind: moduleId, entities: [] }` — a deliberate placeholder for not-yet-implemented modules (e.g. `pages`), not a 404 |
 
-Every module scan is **stateless and rescans the filesystem on every request** — there is no server-side cache for this endpoint. A broken/unparseable `component.json` or `wireframe.json` currently throws an uncaught `JSON.parse` error that surfaces as a generic `500`, not a scoped per-entity diagnostic — this is the same "invalid-entity isolation" gap already tracked in `IMPLEMENTATION-CHECKLIST.md` (P0), and it means a single malformed manifest can currently take down the whole module response, not just that one entity's card.
+Every module scan is **stateless and rescans the filesystem on every request** — there is no server-side cache for this endpoint. A broken/unparseable `component.json`, `wireframe.json`, or `page.json` is localized to that entity as `manifest-parse-error`; neighboring entities remain available.
+
+### `GET /api/sources/:sourceId/components/:componentId/handoff`
+
+Returns the exact discovered implementation source as `{ componentId, familyId, platform,
+technology, path, language, source, provenance, warnings }`. `:componentId` may contain `/`. The
+route is read-only, resolves only Components that advertise the `handoff` capability, and confines
+the source path to the source's canonical `components/` directory. Native handoff includes an
+explicit warning that source discovery is not proof of a successful platform build/render.
+
+Errors: `404 COMPONENT_NOT_FOUND`, `409 COMPONENT_HANDOFF_UNAVAILABLE`,
+`409 COMPONENT_SOURCE_UNAVAILABLE`, `400 COMPONENT_SOURCE_OUTSIDE_SOURCE`, or
+`404 COMPONENT_SOURCE_NOT_FOUND`.
 
 ### `GET /api/sources/:sourceId/inspection/styles?file=<entryRelativePath>`
 

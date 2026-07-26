@@ -60,8 +60,17 @@ test('stdio MCP exposes the Design Lab search and get workflow', async (context)
 
   const browse = await client.callTool({
     name: 'designlab_browse',
-    arguments: { sourceId: 'design-lab-system', kind: 'token', path: 'radius' },
+    arguments: { sourceId: 'design-lab-system', kind: 'token', path: 'corner' },
   })
   const browseBody = JSON.parse(browse.content[0].text)
-  assert.ok(browseBody.items.some((item) => item.ref === 'design-lab-system:token:radius.medium'))
+  assert.ok(browseBody.items.some((item) => item.ref === 'design-lab-system:token:corner.surface'))
+
+  const browseTokenFiles = await client.callTool({
+    name: 'designlab_browse',
+    arguments: { sourceId: 'design-lab-system', kind: 'token', view: 'files' },
+  })
+  const browseTokenFilesBody = JSON.parse(browseTokenFiles.content[0].text)
+  assert.ok(
+    browseTokenFilesBody.items.some((item) => item.kind === 'folder' && item.path === 'primitives'),
+  )
 })

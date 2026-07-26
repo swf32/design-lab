@@ -1,6 +1,7 @@
 import './CanvasBackgroundControl.scss'
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useDesignLabI18n } from '../../../../i18n'
+import { ColorPicker } from '../../inputs/ColorPicker/ColorPicker'
 import { TabSwitcher } from '../../inputs/TabSwitcher/TabSwitcher'
 
 export type CanvasMode = 'dark-grid' | 'light-grid' | 'solid'
@@ -12,8 +13,6 @@ export type CanvasBackgroundControlProps = {
 }
 
 const presets = ['#111111', '#f2f1ed', '#264653', '#6d3be8', '#d96c52', '#2a9d8f']
-const validHex = /^#[0-9a-f]{6}$/i
-
 export function CanvasBackgroundControl({
   mode,
   color,
@@ -22,25 +21,46 @@ export function CanvasBackgroundControl({
 }: CanvasBackgroundControlProps) {
   const { t } = useDesignLabI18n()
   const [pickerOpen, setPickerOpen] = useState(false)
-  const [draft, setDraft] = useState(color)
-  useEffect(() => setDraft(color), [color])
+  const [touchExpanded, setTouchExpanded] = useState(false)
+  const rootRef = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    if (!touchExpanded) return
+
+    const collapseOutside = (event: PointerEvent) => {
+      const root = rootRef.current
+      if (!root?.contains(event.target as Node)) {
+        setTouchExpanded(false)
+        if (root?.contains(document.activeElement)) (document.activeElement as HTMLElement).blur()
+      }
+    }
+
+    document.addEventListener('pointerdown', collapseOutside)
+    return () => document.removeEventListener('pointerdown', collapseOutside)
+  }, [touchExpanded])
 
   const chooseMode = (next: CanvasMode) => {
     onModeChange(next)
-    setPickerOpen(next === 'solid')
-  }
-  const commit = (next: string) => {
-    setDraft(next)
-    if (validHex.test(next)) onColorChange(next)
+    if (next !== 'solid') setPickerOpen(false)
   }
 
   return (
-    <div className="dl-canvas-control-wrap">
+    <div
+      ref={rootRef}
+      className={`dl-canvas-control dl-canvas-control--${mode}${pickerOpen ? ' dl-canvas-control--picker-open' : ''}${touchExpanded ? ' dl-canvas-control--touch-expanded' : ''}`}
+      role="group"
+      aria-label="Canvas background"
+      onPointerDownCapture={(event) => {
+        if (event.pointerType === 'mouse' || touchExpanded) return
+        event.preventDefault()
+        setTouchExpanded(true)
+      }}
+    >
       <TabSwitcher
-        ariaLabel="Canvas background"
+        ariaLabel="Canvas grid background"
         variant="segmented"
         size="small"
-        className="dl-canvas-control"
+        className="dl-canvas-control__grid-options"
         value={mode}
         onChange={chooseMode}
         options={[
@@ -54,42 +74,24 @@ export function CanvasBackgroundControl({
             label: <span className="dl-canvas-control__sample dl-canvas-control__sample--light" />,
             accessibleLabel: t('canvas.light'),
           },
-          {
-            value: 'solid',
-            label: <span className="dl-canvas-control__sample" style={{ background: color }} />,
-            accessibleLabel: t('canvas.solid'),
-          },
         ]}
       />
-      {mode === 'solid' && pickerOpen && (
-        <div className="dl-canvas-color-popover" role="dialog" aria-label={t('canvas.dialog')}>
-          <div
-            className="dl-canvas-color-popover__preview"
-            style={{ background: validHex.test(draft) ? draft : color }}
-          />
-          <label>
-            <span>{t('canvas.hex')}</span>
-            <input
-              value={draft}
-              maxLength={7}
-              spellCheck={false}
-              onChange={(event) => commit(event.target.value)}
-            />
-          </label>
-          <div className="dl-canvas-color-popover__presets">
-            {presets.map((preset) => (
-              <button
-                key={preset}
-                type="button"
-                aria-label={preset}
-                className={preset.toLowerCase() === color.toLowerCase() ? 'is-active' : ''}
-                style={{ background: preset }}
-                onClick={() => commit(preset)}
-              />
-            ))}
-          </div>
-        </div>
-      )}
+      <ColorPicker
+        className={`dl-canvas-control__solid${mode === 'solid' ? ' is-active' : ''}`}
+        label={t('canvas.dialog')}
+        value={color}
+        presets={presets}
+        allowClear={false}
+        open={pickerOpen}
+        onOpenChange={(nextOpen) => {
+          setPickerOpen(nextOpen)
+          if (nextOpen) onModeChange('solid')
+        }}
+        onChange={(next) => {
+          if (next) onColorChange(next)
+        }}
+        trigger={<span className="dl-canvas-control__sample" style={{ background: color }} />}
+      />
     </div>
   )
 }

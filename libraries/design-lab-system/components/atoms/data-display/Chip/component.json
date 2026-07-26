@@ -26,7 +26,17 @@
     },
     "color": {
       "type": "ChipColor",
-      "values": ["default", "accent", "success", "warning", "danger"],
+      "values": [
+        "default",
+        "accent",
+        "success",
+        "warning",
+        "danger",
+        "teal",
+        "cyan",
+        "violet",
+        "orange"
+      ],
       "default": "default"
     },
     "variant": {

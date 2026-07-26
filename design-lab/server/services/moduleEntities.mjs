@@ -4,6 +4,12 @@ import { parse } from '@babel/parser'
 import { imageSize } from 'image-size'
 import { getSource } from './projectRegistry.mjs'
 import { buildPageSitemap } from './flowLayout.mjs'
+import { readTokenCatalog } from './tokenCatalog.mjs'
+import {
+  buildComponentFamilies,
+  discoverManifestFreeComponents,
+  resolveComponentImplementation,
+} from './componentAdapters.mjs'
 import { componentDisplayName, componentSymbol } from '../../shared/componentIdentity.mjs'
 
 // Bump when a manifest field is added/changed in a way older readers cannot safely ignore, and
@@ -177,58 +183,8 @@ async function assetsFor(source, sourceId) {
   }
 }
 
-function flattenTokens(group, file, path = [], result = []) {
-  for (const [key, node] of Object.entries(group ?? {})) {
-    const tokenPath = [...path, key]
-    if (node && typeof node === 'object' && Object.hasOwn(node, 'value'))
-      result.push({
-        id: tokenPath.join('.'),
-        path: tokenPath.join('.'),
-        type: node.type ?? 'unknown',
-        value: node.value,
-        description: node.description ?? null,
-        aliases: node.aliases ?? [],
-        useWhen: node.useWhen ?? [],
-        avoidWhen: node.avoidWhen ?? [],
-        tags: node.tags ?? [],
-        file,
-      })
-    else if (node && typeof node === 'object') flattenTokens(node, file, tokenPath, result)
-  }
-  return result
-}
-
 async function tokensFor(source) {
-  const root = join(source.path, 'tokens')
-  const files = await filesUnder(root, (name) => name.endsWith('.tokens.json'))
-  const tokens = []
-  const modes = new Set()
-  for (const filePath of files) {
-    const document = JSON.parse(await readFile(filePath, 'utf8'))
-    const file = relative(root, filePath)
-    const defaultMode = document.defaultMode ?? 'default'
-    const base = flattenTokens(document.tokens, file)
-    const modeMaps = new Map()
-    modes.add(defaultMode)
-    for (const [mode, definition] of Object.entries(document.themes ?? {})) {
-      modes.add(mode)
-      modeMaps.set(
-        mode,
-        new Map(flattenTokens(definition.tokens, file).map((token) => [token.path, token.value])),
-      )
-    }
-    for (const token of base) {
-      const values = { [defaultMode]: token.value }
-      for (const mode of modes) values[mode] = modeMaps.get(mode)?.get(token.path) ?? token.value
-      tokens.push({ ...token, mode: defaultMode, values })
-    }
-  }
-  return {
-    kind: 'tokens',
-    files: files.map((file) => relative(root, file)),
-    modes: [...modes],
-    tokens,
-  }
+  return readTokenCatalog(source.path)
 }
 
 // Shared across Wireframe and Page manifests: both use the same typed control registry and the
@@ -793,9 +749,9 @@ function componentImport(source, sourceManifest, component) {
 
 function componentFiles(component) {
   return [
-    { role: 'implementation', path: component.entry },
+    { role: 'implementation', path: component.sourcePath ?? component.entry },
     { role: 'styles', path: component.style },
-    { role: 'manifest', path: basename(component.file) },
+    { role: 'manifest', path: component.manifestFile ? basename(component.manifestFile) : null },
     { role: 'playground', path: component.playground },
     { role: 'preview', path: component.preview },
     { role: 'stories', path: component.stories },
@@ -849,13 +805,19 @@ function componentCompletenessDiagnostics(component) {
 }
 
 function tokenVariablesByMode(tokenData) {
+  const cssValue = (value) =>
+    typeof value === 'string' || typeof value === 'number'
+      ? value
+      : value === null
+        ? ''
+        : JSON.stringify(value)
   return Object.fromEntries(
     tokenData.modes.map((mode) => [
       mode,
       Object.fromEntries(
         tokenData.tokens.map((token) => [
           `--ds-${token.path.replaceAll('.', '-')}`,
-          token.values[mode] ?? token.value,
+          cssValue(token.values[mode] ?? token.value),
         ]),
       ),
     ]),
@@ -1141,11 +1103,20 @@ export async function getModuleEntities(sourceId, moduleId) {
         documentation,
         changelogDocumentation,
         file,
+        manifestFile: file,
         directory,
       }
+      const implementation = resolveComponentImplementation(component)
+      component.platform = implementation.platform
+      component.technology = implementation.technology
+      component.adapter = implementation.adapter
+      component.familyId = implementation.familyId
+      component.capabilities = implementation.capabilities
+      component.implementation = implementation
       component.completenessDiagnostics = [
         ...manifestDiagnostics,
         ...componentCompletenessDiagnostics(component),
+        ...implementation.diagnostics,
       ]
       components.push({
         ...component,
@@ -1153,12 +1124,34 @@ export async function getModuleEntities(sourceId, moduleId) {
         files: componentFiles(component),
       })
     }
+    const inferredComponents = await discoverManifestFreeComponents(root, componentDirectories)
+    for (const inferred of inferredComponents) {
+      const implementation = resolveComponentImplementation(inferred)
+      const component = {
+        ...inferred,
+        sourceId,
+        platform: implementation.platform,
+        technology: implementation.technology,
+        adapter: implementation.adapter,
+        familyId: implementation.familyId,
+        capabilities: implementation.capabilities,
+        implementation,
+        completenessDiagnostics: implementation.diagnostics,
+      }
+      components.push({
+        ...component,
+        import: null,
+        files: componentFiles(component),
+      })
+    }
+    const relatedComponents = await componentRelations(source, sourceManifest, components)
     return {
       kind: 'components',
       folders,
       modes: tokenData.modes,
       themeVariables: tokenVariablesByMode(tokenData),
-      components: await componentRelations(source, sourceManifest, components),
+      families: buildComponentFamilies(relatedComponents),
+      components: relatedComponents,
     }
   }
   return { kind: moduleId, entities: [] }
@@ -1195,7 +1188,107 @@ function navigationFromPaths(entities, entityKind, folderPaths = []) {
   return flattenNavigation(root)
 }
 
-export async function getModuleNavigation(sourceId, moduleId) {
+function tokenNavigationId(token) {
+  // A logical path is allowed to occur in more than one document so the catalog can report the
+  // conflict without hiding either declaration. Navigation IDs therefore include storage
+  // identity even though the token's public identity remains its logical path.
+  return `${token.id}::${token.file}`
+}
+
+export function tokenNavigation(data, view) {
+  const containers = new Map()
+  const leaves = []
+  const addContainer = (item) => containers.set(`${item.kind}:${item.path}`, item)
+
+  if (view === 'files') {
+    for (const document of data.documents) {
+      const fileParts = document.file.split('/')
+      for (let length = 1; length < fileParts.length; length += 1)
+        addContainer({
+          name: fileParts[length - 1],
+          path: `by-file/${fileParts.slice(0, length).join('/')}`,
+          kind: 'folder',
+          level: length - 1,
+        })
+      addContainer({
+        name: fileParts.at(-1),
+        path: `by-file/${document.file}`,
+        kind: 'token-document',
+        level: fileParts.length - 1,
+        diagnostics: document.diagnostics.length,
+      })
+    }
+
+    for (const token of data.tokens) {
+      const fileDepth = token.file.split('/').length
+      const parts = token.path.split('.')
+      const documentPath = `by-file/${token.file}`
+      const hasDescendants = data.tokens.some(
+        (candidate) =>
+          candidate !== token &&
+          candidate.file === token.file &&
+          candidate.path.startsWith(`${token.path}.`),
+      )
+      const containerDepth = hasDescendants ? parts.length : parts.length - 1
+      for (let length = 1; length <= containerDepth; length += 1)
+        addContainer({
+          name: parts[length - 1],
+          path: `${documentPath}/${parts.slice(0, length).join('/')}`,
+          kind: 'token-group',
+          level: fileDepth + length - 1,
+        })
+      leaves.push({
+        id: tokenNavigationId(token),
+        name: hasDescendants ? '$root' : parts.at(-1),
+        path: `${documentPath}/${parts.join('/')}${hasDescendants ? '/$root' : ''}`,
+        kind: 'token',
+        level: fileDepth + parts.length - 1 + Number(hasDescendants),
+      })
+    }
+  } else {
+    const logicalPathCounts = new Map()
+    for (const token of data.tokens)
+      logicalPathCounts.set(token.path, (logicalPathCounts.get(token.path) ?? 0) + 1)
+    const duplicateIndexes = new Map()
+
+    for (const token of data.tokens) {
+      const parts = token.path.split('.')
+      const hasDescendants = data.tokens.some(
+        (candidate) => candidate !== token && candidate.path.startsWith(`${token.path}.`),
+      )
+      const isDuplicate = logicalPathCounts.get(token.path) > 1
+      const needsContainer = hasDescendants || isDuplicate
+      const containerDepth = needsContainer ? parts.length : parts.length - 1
+      for (let length = 1; length <= containerDepth; length += 1)
+        addContainer({
+          name: parts[length - 1],
+          path: `by-token/${parts.slice(0, length).join('/')}`,
+          kind: 'token-group',
+          level: length - 1,
+        })
+      const duplicateIndex = duplicateIndexes.get(token.path) ?? 0
+      duplicateIndexes.set(token.path, duplicateIndex + 1)
+      const leafSuffix = isDuplicate
+        ? `/@source-${duplicateIndex + 1}`
+        : hasDescendants
+          ? '/$root'
+          : ''
+      leaves.push({
+        id: tokenNavigationId(token),
+        name: isDuplicate ? token.file : hasDescendants ? '$root' : parts.at(-1),
+        path: `by-token/${parts.join('/')}${leafSuffix}`,
+        kind: 'token',
+        level: parts.length - 1 + Number(needsContainer),
+      })
+    }
+  }
+
+  return [...containers.values(), ...leaves].sort(
+    (a, b) => a.path.localeCompare(b.path) || a.kind.localeCompare(b.kind),
+  )
+}
+
+export async function getModuleNavigation(sourceId, moduleId, { tokenView = 'tokens' } = {}) {
   const data = await getModuleEntities(sourceId, moduleId)
   if (data.kind === 'wireframes')
     return navigationFromPaths(
@@ -1239,14 +1332,7 @@ export async function getModuleNavigation(sourceId, moduleId) {
       'component',
       data.folders,
     )
-  if (data.kind === 'tokens')
-    return navigationFromPaths(
-      data.tokens.map((token) => {
-        const parts = token.path.split('.')
-        return { id: token.id, name: parts.at(-1), path: token.path, groups: parts.slice(0, -1) }
-      }),
-      'token',
-    )
+  if (data.kind === 'tokens') return tokenNavigation(data, tokenView)
   if (data.kind === 'assets')
     return navigationFromPaths(
       data.assets.map((asset) => ({

@@ -41,10 +41,11 @@ export const stories = [
     ],
   },
   {
-    id: 'phone-context',
+    id: 'viewport-invariant-selection',
     kind: 'context',
-    name: 'Phone selection',
-    description: 'The native picker keeps a 48px field and 16px text at phone widths.',
+    name: 'Viewport-invariant selection',
+    description:
+      'The selected size keeps identical field and type geometry at every viewport width.',
     examples: [{ label: 'Travel filter', props: { size: 'small' } }],
   },
 ]

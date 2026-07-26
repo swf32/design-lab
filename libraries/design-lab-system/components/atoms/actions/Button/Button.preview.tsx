@@ -16,7 +16,7 @@ const previewStyles = String.raw`
   width: auto;
   height: 32px;
   padding: 0 13px;
-  border-radius: var(--radius-small);
+  border-radius: var(--corner-control);
   display: flex;
   align-items: center;
   gap: 5px;

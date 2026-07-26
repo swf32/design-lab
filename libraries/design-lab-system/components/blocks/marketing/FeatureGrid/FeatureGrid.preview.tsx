@@ -50,7 +50,7 @@ const previewStyles = String.raw`
   min-width: 0;
   padding: 4px 3px;
   border: 1px solid var(--color-border-default);
-  border-radius: var(--radius-small);
+  border-radius: var(--corner-control);
   background: color-mix(in srgb, var(--color-surface-primary) 94%, transparent);
   display: flex;
   flex-direction: column;

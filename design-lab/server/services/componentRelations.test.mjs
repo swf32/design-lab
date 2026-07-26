@@ -66,27 +66,30 @@ test('component references are derived from the canonical filesystem contract', 
 test('production and example relationships stay separate and direct', async () => {
   const components = await componentInventory()
   const button = components.get('button')
-  const dialog = components.get('create-project-dialog')
+  const dialog = components.get('dialog')
   const moduleHeader = components.get('module-header')
   const storyCanvas = components.get('story-canvas')
   const playground = components.get('workbench-playground')
 
   assert.deepEqual(
     dialog.relations.uses.map((relation) => relation.id),
-    ['button'],
+    ['icon-button'],
   )
   assert.equal(
     dialog.relations.uses.some((relation) => relation.id === 'input'),
     false,
   )
-  assert.deepEqual(dialog.relations.examplesUse, [])
+  assert.deepEqual(
+    dialog.relations.examplesUse.map((relation) => relation.id),
+    ['button', 'input'],
+  )
   assert.deepEqual(
     moduleHeader.relations.uses.map((relation) => relation.id),
     ['button'],
   )
   assert.deepEqual(
     button.relations.usedBy.map((relation) => relation.id),
-    ['module-header', 'create-project-dialog'],
+    ['module-header'],
   )
   assert.deepEqual(
     storyCanvas.relations.examplesUse.map((relation) => relation.id),
@@ -103,6 +106,7 @@ test('production and example relationships stay separate and direct', async () =
       'marketing-nav',
       'marketing-story',
       'story-canvas',
+      'dialog',
       'workspace-header',
       'playground-controls-rail',
       'wireframe-dev-panel',
@@ -278,5 +282,74 @@ test('a schemaVersion newer than the server understands degrades to a diagnostic
       future.diagnostics.some((diagnostic) => diagnostic.code === 'schema-version-unsupported'),
       true,
     )
+  })
+})
+
+test('strong ecosystem evidence discovers Components without component.json', async () => {
+  await withTemporaryLibrariesDirectory(async (librariesDirectory) => {
+    const libraryDirectory = join(librariesDirectory, 'multiplatform-system')
+    await mkdir(join(libraryDirectory, 'components', 'web'), { recursive: true })
+    await mkdir(join(libraryDirectory, 'components', 'native'), { recursive: true })
+    await writeFile(
+      join(libraryDirectory, 'library.json'),
+      JSON.stringify({
+        id: 'multiplatform-system',
+        kind: 'library',
+        name: 'Multiplatform System',
+        schemaVersion: 1,
+      }),
+    )
+    await writeFile(
+      join(libraryDirectory, 'components', 'web', 'Notice.tsx'),
+      'export function Notice() { return <aside>Notice</aside> }',
+    )
+    await writeFile(
+      join(libraryDirectory, 'components', 'web', 'Internal.tsx'),
+      'function Internal() { return <span>Private</span> }',
+    )
+    await writeFile(
+      join(libraryDirectory, 'components', 'web', 'ProfileCard.vue'),
+      '<template><article>Profile</article></template>',
+    )
+    await writeFile(
+      join(libraryDirectory, 'components', 'web', 'Counter.svelte'),
+      '<button>Count</button>',
+    )
+    await writeFile(
+      join(libraryDirectory, 'components', 'web', 'user-card.js'),
+      "customElements.define('user-card', class extends HTMLElement {})",
+    )
+    await writeFile(
+      join(libraryDirectory, 'components', 'native', 'Badge.swift'),
+      'import SwiftUI\nstruct Badge: View { var body: some View { Text("Badge") } }',
+    )
+    await writeFile(
+      join(libraryDirectory, 'components', 'native', 'Chip.kt'),
+      '@Composable\nfun Chip() { Text("Chip") }',
+    )
+
+    const result = await getModuleEntities('multiplatform-system', 'components')
+    const components = new Map(result.components.map((component) => [component.id, component]))
+
+    assert.deepEqual([...components.keys()], [
+      'native/Badge',
+      'native/Chip',
+      'web/Counter',
+      'web/Notice',
+      'web/ProfileCard',
+      'web/user-card',
+    ])
+    assert.equal(components.has('web/Internal'), false)
+    assert.equal(components.get('web/Notice').adapter, 'react-manifest')
+    assert.equal(components.get('web/ProfileCard').adapter, 'vue-sfc')
+    assert.equal(components.get('web/Counter').adapter, 'svelte-component')
+    assert.equal(components.get('web/user-card').adapter, 'custom-element')
+    assert.equal(components.get('native/Badge').platform, 'ios')
+    assert.equal(components.get('native/Chip').platform, 'android')
+    assert.deepEqual(components.get('native/Badge').files, [
+      { role: 'implementation', path: 'native/Badge.swift' },
+    ])
+    assert.equal(components.get('web/Notice').manifestFile, null)
+    assert.equal(components.get('web/Notice').discovery.evidence, 'public-jsx-export')
   })
 })

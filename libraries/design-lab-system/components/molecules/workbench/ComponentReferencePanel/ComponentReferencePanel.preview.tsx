@@ -1,52 +1,59 @@
 const previewStyles = String.raw`
 .preview-component-reference {
   width: min(248px, 100%);
-  min-height: 96px;
-  margin: auto;
-  display: grid;
-  grid-template-columns: 1.2fr 0.8fr;
-  gap: 6px;
+  box-sizing: border-box;
+  overflow: hidden;
+  border-bottom: 1px solid var(--color-border-subtle);
+  background: var(--color-surface-primary);
 }
-.preview-component-reference__code,
-.preview-component-reference__files,
-.preview-component-reference__graph {
-  padding: 7px;
-  border: 1px solid var(--color-border-subtle);
-  border-radius: var(--radius-small);
-  background: var(--color-surface-secondary);
+.preview-component-reference__import {
+  min-width: 0;
+  padding: 8px 9px;
+}
+.preview-component-reference__import header {
+  min-height: 10px;
+  margin-bottom: 5px;
+  display: flex;
+  align-items: center;
+}
+.preview-component-reference__import header strong,
+.preview-component-reference__graph-toggle {
+  color: var(--color-text-disabled);
+  font-size: 5px;
+  font-weight: 700;
+  letter-spacing: 0.11em;
+  text-transform: uppercase;
 }
 .preview-component-reference__code {
   min-width: 0;
+  overflow: hidden;
   color: var(--color-code);
+  display: block;
   font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-size: 6px;
+  line-height: 1.35;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.preview-component-reference__graph-toggle {
+  min-height: 24px;
+  padding: 0 9px;
+  border-top: 1px solid var(--color-border-subtle);
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+.preview-component-reference__graph-toggle small {
   font-size: 5px;
-  line-height: 1.5;
+  font-weight: 400;
 }
-.preview-component-reference__files {
-  display: grid;
-  align-content: center;
-  gap: 5px;
-}
-.preview-component-reference__files i,
-.preview-component-reference__graph i {
-  height: 3px;
-  border-radius: 2px;
-  background: var(--color-border-default);
-}
-.preview-component-reference__files i:nth-child(2) {
-  width: 72%;
-}
-.preview-component-reference__files i:nth-child(3) {
-  width: 88%;
-}
-.preview-component-reference__graph {
-  grid-column: 1 / -1;
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 5px;
-}
-.preview-component-reference__graph i:first-child {
-  background: var(--color-accent-primary);
+.preview-component-reference__graph-toggle i {
+  width: 5px;
+  height: 5px;
+  margin-left: auto;
+  border-right: 1px solid currentColor;
+  border-bottom: 1px solid currentColor;
+  transform: rotate(45deg);
 }
 `
 
@@ -54,28 +61,24 @@ export function ComponentReferencePanelPreview() {
   return (
     <>
       <style>{previewStyles}</style>
-      <div
+      <section
         className="preview-component-reference"
         role="img"
-        aria-label="Component import, files, and dependency reference"
+        aria-label="Component import and collapsed dependency reference"
       >
-        <code className="preview-component-reference__code">
-          import {'{ Button }'}
-          <br />
-          from '@design-lab/system/components'
-        </code>
-        <span className="preview-component-reference__files">
+        <section className="preview-component-reference__import">
+          <header>
+            <strong>Import</strong>
+          </header>
+          <code className="preview-component-reference__code">
+            {"import { Button } from '@design-lab/…'"}
+          </code>
+        </section>
+        <div className="preview-component-reference__graph-toggle" aria-hidden="true">
+          Relations <small>2</small>
           <i />
-          <i />
-          <i />
-        </span>
-        <span className="preview-component-reference__graph">
-          <i />
-          <i />
-          <i />
-          <i />
-        </span>
-      </div>
+        </div>
+      </section>
     </>
   )
 }

@@ -1,6 +1,8 @@
 export type StoryExample = {
   label: string
   props: Record<string, unknown>
+  source?: string
+  imports?: string[]
 }
 
 export type StoryDefinition = {
@@ -9,5 +11,6 @@ export type StoryDefinition = {
   name: string
   description?: string
   interactive?: boolean
+  imports?: string[]
   examples?: StoryExample[]
 }

@@ -119,6 +119,10 @@
     },
     "renderItemActions": {
       "type": "(item: DirectoryTreeItem) => ReactNode"
+    },
+    "viewControl": {
+      "type": "ReactNode",
+      "slot": true
     }
   }
 }

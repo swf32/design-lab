@@ -4,11 +4,15 @@ import type { StoryExample } from '../../../storyContract'
 import { IconButton } from './IconButton'
 
 export function renderStoryExample(example: StoryExample) {
-  return createElement(IconButton, {
-    ...example.props,
+  const { fixture, ...props } = example.props
+  const button = createElement(IconButton, {
+    ...props,
     'aria-label': String(example.props['aria-label'] ?? example.label),
     children: createElement(StarIcon, { size: 16 }),
   })
+  return fixture === 'toolbar'
+    ? createElement('div', { role: 'toolbar', 'aria-label': example.label }, button)
+    : button
 }
 
 export const stories = [

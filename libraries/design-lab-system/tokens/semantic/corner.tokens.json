@@ -1,0 +1,28 @@
+{
+  "schemaVersion": 1,
+  "name": "Semantic corners",
+  "tokens": {
+    "corner": {
+      "control": {
+        "type": "radius",
+        "value": "{radius.6}",
+        "description": "Corner treatment for buttons, fields, chips, and compact controls."
+      },
+      "surface": {
+        "type": "radius",
+        "value": "{radius.8}",
+        "description": "Corner treatment for panels, popovers, and medium surfaces."
+      },
+      "card": {
+        "type": "radius",
+        "value": "{radius.12}",
+        "description": "Stable corner treatment for catalog and content cards."
+      },
+      "full": {
+        "type": "radius",
+        "value": "{radius.999}",
+        "description": "Fully rounded treatment for pills and circular controls."
+      }
+    }
+  }
+}

@@ -2,17 +2,20 @@
   width: 100%;
   overflow: hidden;
   border: 1px solid var(--color-border-subtle);
-  border-radius: var(--radius-medium);
+  border-radius: var(--corner-surface);
   background: var(--color-surface-secondary);
 }
 .dl-story-canvas__header {
-  min-height: 72px;
-  padding: 14px 16px;
+  padding: 8px 16px;
   border-bottom: 1px solid var(--color-border-subtle);
+}
+.dl-story-canvas__heading {
+  min-width: 0;
+}
+.dl-story-canvas__title-row {
   display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 18px;
+  align-items: center;
+  gap: var(--space-8);
 }
 .dl-story-canvas__header h3 {
   margin: 0;
@@ -20,21 +23,23 @@
   font-size: 13px;
   font-weight: 600;
 }
-.dl-story-canvas__header p {
+.dl-story-canvas__header .dl-story-canvas__heading > p {
   max-width: 640px;
-  margin: 5px 0 0;
+  margin: 0;
   color: var(--color-text-muted);
   font-size: 10px;
   line-height: 1.5;
 }
-.dl-story-canvas__header > code {
-  padding: 4px 6px;
+.dl-story-canvas__title-row > code {
+  flex: 0 0 auto;
+  padding: 2px 5px;
   border-radius: 4px;
   background: var(--color-surface-raised);
   color: var(--color-code);
   font-size: 8px;
 }
 .dl-story-canvas__stage {
+  position: relative;
   min-height: 180px;
   padding: 24px;
   display: flex;
@@ -51,4 +56,50 @@
     0 10px,
     10px -10px,
     -10px 0;
+}
+.dl-story-canvas__canvas-tools {
+  position: absolute;
+  z-index: 3;
+  top: 12px;
+  right: 12px;
+}
+.dl-story-canvas__stage--dark-grid {
+  background-color: var(--color-canvas-grid-dark-a);
+  background-image:
+    linear-gradient(45deg, var(--color-canvas-grid-dark-b) 25%, transparent 25%),
+    linear-gradient(-45deg, var(--color-canvas-grid-dark-b) 25%, transparent 25%),
+    linear-gradient(45deg, transparent 75%, var(--color-canvas-grid-dark-b) 75%),
+    linear-gradient(-45deg, transparent 75%, var(--color-canvas-grid-dark-b) 75%);
+}
+.dl-story-canvas__stage--light-grid {
+  background-color: var(--color-canvas-grid-light-a);
+  background-image:
+    linear-gradient(45deg, var(--color-canvas-grid-light-b) 25%, transparent 25%),
+    linear-gradient(-45deg, var(--color-canvas-grid-light-b) 25%, transparent 25%),
+    linear-gradient(45deg, transparent 75%, var(--color-canvas-grid-light-b) 75%),
+    linear-gradient(-45deg, transparent 75%, var(--color-canvas-grid-light-b) 75%);
+}
+.dl-story-canvas__stage--solid {
+  background: var(--canvas-solid);
+}
+.dl-story-canvas__source {
+  padding: 0;
+  border-top: 1px solid var(--color-border-subtle);
+  background: var(--color-surface-primary);
+}
+.dl-story-canvas__source .dl-code-block {
+  margin: 0;
+}
+.dl-story-canvas__source .dl-code-block pre {
+  opacity: 0.2;
+  transition: opacity var(--transition-fast);
+}
+.dl-story-canvas__source .dl-code-block:is(:hover, :focus-within, .dl-code-block--expanded) pre {
+  opacity: 1;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .dl-story-canvas__source .dl-code-block pre {
+    transition: none;
+  }
 }

@@ -3,28 +3,29 @@
   background: var(--color-surface-primary);
 }
 .dl-component-reference__primary {
-  display: grid;
-  grid-template-columns: minmax(0, 1.2fr) minmax(320px, 0.8fr);
+  display: block;
 }
 .dl-component-reference__import,
-.dl-component-reference__files {
+.dl-component-reference-files {
   min-width: 0;
-  padding: var(--spacing-3) var(--spacing-4);
+  padding: var(--space-12) var(--space-16);
 }
 .dl-component-reference__import {
-  border-right: 1px solid var(--color-border-subtle);
+  max-width: 880px;
 }
 .dl-component-reference__primary header,
-.dl-component-reference__relations > header {
+.dl-component-reference__relations > header,
+.dl-component-reference-files > header {
   min-height: 20px;
-  margin-bottom: var(--spacing-2);
+  margin-bottom: var(--space-8);
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: var(--spacing-2);
+  gap: var(--space-8);
 }
 .dl-component-reference__primary header strong,
 .dl-component-reference__relations > header strong,
+.dl-component-reference-files > header strong,
 .dl-component-reference__diagnostics > strong {
   color: var(--color-text-disabled);
   font-size: 8px;
@@ -33,7 +34,9 @@
   text-transform: uppercase;
 }
 .dl-component-reference__primary header span,
-.dl-component-reference__relations > header span {
+.dl-component-reference__relations > header span,
+.dl-component-reference-files > header span,
+.dl-component-reference__graph-toggle span {
   color: var(--color-text-disabled);
   font-size: 8px;
   font-variant-numeric: tabular-nums;
@@ -41,19 +44,24 @@
 .dl-component-reference__import .dl-code-block {
   min-height: 58px;
 }
-.dl-component-reference__files > div {
+.dl-component-reference-files {
+  border: 1px solid var(--color-border-subtle);
+  border-radius: var(--corner-surface);
+  background: var(--color-surface-primary);
+}
+.dl-component-reference-files > div {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 5px var(--spacing-3);
+  gap: 5px var(--space-12);
 }
-.dl-component-reference__files > div > span {
+.dl-component-reference-files > div > span {
   min-width: 0;
   display: grid;
   grid-template-columns: 76px minmax(0, 1fr);
   align-items: baseline;
   gap: 6px;
 }
-.dl-component-reference__files small {
+.dl-component-reference-files small {
   overflow: hidden;
   color: var(--color-text-disabled);
   font-size: 7px;
@@ -62,7 +70,7 @@
   text-transform: uppercase;
   white-space: nowrap;
 }
-.dl-component-reference__files code {
+.dl-component-reference-files code {
   min-width: 0;
   overflow: hidden;
   color: var(--color-code);
@@ -70,28 +78,82 @@
   text-overflow: ellipsis;
   white-space: nowrap;
 }
+.dl-component-reference__graph-disclosure {
+  border-top: 1px solid var(--color-border-subtle);
+}
+.dl-component-reference__graph-toggle {
+  width: 100%;
+  min-height: 38px;
+  padding: 0 var(--space-16);
+  border: 0;
+  background: transparent;
+  display: flex;
+  align-items: center;
+  gap: var(--space-8);
+  color: var(--color-text-muted);
+  cursor: pointer;
+}
+.dl-component-reference__graph-toggle strong {
+  color: var(--color-text-disabled);
+  font-size: 8px;
+  letter-spacing: 0.11em;
+  text-transform: uppercase;
+}
+.dl-component-reference__graph-toggle i {
+  margin-left: auto;
+  display: grid;
+  place-items: center;
+  transition: transform var(--transition-fast);
+}
+.dl-component-reference__graph-disclosure.is-expanded .dl-component-reference__graph-toggle i {
+  transform: rotate(180deg);
+}
+.dl-component-reference__graph-toggle:hover {
+  background: var(--color-surface-hover);
+  color: var(--color-text-primary);
+}
+.dl-component-reference__graph-toggle:focus-visible {
+  outline: 2px solid var(--color-accent-primary);
+  outline-offset: -2px;
+}
+.dl-component-reference__graph-shell {
+  display: grid;
+  grid-template-rows: 0fr;
+  transition: grid-template-rows var(--transition-fast);
+}
+.dl-component-reference__graph-disclosure.is-expanded .dl-component-reference__graph-shell {
+  grid-template-rows: 1fr;
+}
 .dl-component-reference__graph {
+  min-height: 0;
+  overflow: hidden;
   border-top: 1px solid var(--color-border-subtle);
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
 }
 .dl-component-reference__relations {
   min-width: 0;
-  padding: 10px var(--spacing-3) var(--spacing-3);
+  padding: 10px var(--space-16) var(--space-16);
   border-right: 1px solid var(--color-border-subtle);
 }
 .dl-component-reference__relations:last-child {
   border-right: 0;
 }
-.dl-component-reference__relations > div {
+.dl-component-reference__relation-list {
+  height: 90px;
+  overflow-y: auto;
+  padding-right: 3px;
   display: grid;
+  align-content: start;
   gap: 4px;
+  scrollbar-width: thin;
+  overscroll-behavior: contain;
 }
 .dl-component-reference__relations button {
   min-width: 0;
   padding: 6px 7px;
   border: 1px solid var(--color-border-subtle);
-  border-radius: var(--radius-small);
+  border-radius: var(--corner-control);
   background: var(--color-surface-secondary);
   text-align: left;
   cursor: pointer;
@@ -131,7 +193,7 @@
   font-size: 8px;
 }
 .dl-component-reference__diagnostics {
-  padding: 9px var(--spacing-4);
+  padding: 9px var(--space-16);
   border-top: 1px solid color-mix(in srgb, var(--color-status-warning) 35%, transparent);
   background: color-mix(in srgb, var(--color-status-warning) 8%, var(--color-surface-primary));
 }
@@ -141,13 +203,6 @@
   font-size: 9px;
 }
 @media (max-width: 980px) {
-  .dl-component-reference__primary {
-    grid-template-columns: 1fr;
-  }
-  .dl-component-reference__import {
-    border-right: 0;
-    border-bottom: 1px solid var(--color-border-subtle);
-  }
   .dl-component-reference__graph {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
@@ -159,7 +214,7 @@
   }
 }
 @media (max-width: 620px) {
-  .dl-component-reference__files > div,
+  .dl-component-reference-files > div,
   .dl-component-reference__graph {
     grid-template-columns: 1fr;
   }
@@ -167,5 +222,11 @@
   .dl-component-reference__relations:nth-child(2) {
     border-right: 0;
     border-bottom: 1px solid var(--color-border-subtle);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .dl-component-reference__graph-shell,
+  .dl-component-reference__graph-toggle i {
+    transition: none;
   }
 }

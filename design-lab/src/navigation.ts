@@ -44,7 +44,7 @@ export function appRouteHref(module: ModuleId, sourceId: string, path = '') {
 
 export function treeItemRoutePath(item: ProjectTreeItem) {
   if (item.virtual) return ''
-  if (item.kind === 'token') return item.path.replaceAll('.', '/')
+  if (item.kind === 'token') return item.path
   if (item.kind === 'asset') return item.path.replace(/\.[^/.]+$/, '')
   return item.path
 }

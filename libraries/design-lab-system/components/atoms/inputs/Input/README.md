@@ -2,6 +2,8 @@
 
 Input is the atomic text-entry family for single-line text, search, and multiline content. It keeps field anatomy and accessibility consistent while preserving the native `input` or `textarea` element.
 
+`small`, `medium`, and `large` geometry is viewport-invariant. A size keeps the same height, padding, labels, feedback, and type scale on desktop and phone layouts.
+
 ## Control kinds
 
 - `text` renders an `input` and accepts native input types such as `email`, `url`, `password`, and `number`;

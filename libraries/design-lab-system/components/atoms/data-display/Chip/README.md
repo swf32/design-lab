@@ -10,6 +10,8 @@ Compact informational label for categories, statuses, and concise metadata. Its 
 - `warning` — attention without failure;
 - `danger` — failed, destructive, or blocked state.
 
+Use `teal`, `cyan`, `violet`, and `orange` to distinguish peer metadata categories without implying a status. These tones are intentionally separate from success, warning, and danger.
+
 ## Variants
 
 `primary` is filled, `secondary` is outlined, `tertiary` is text-only, and `soft` uses a quiet tinted surface. Sizes are `small`, `medium`, and `large`.

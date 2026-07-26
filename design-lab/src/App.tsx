@@ -9,7 +9,6 @@ import {
 } from 'react'
 import {
   AppSidebar,
-  CreateProjectDialog,
   DirectoryPanel,
   TabSwitcher,
   WorkspaceHeader,
@@ -40,9 +39,11 @@ import {
   type ModuleData,
   type Project,
   type ProjectTreeItem,
+  type TokenNavigationView,
 } from './api/projects'
 import { appRouteHref, findRouteTreeItem, readAppRoute, treeItemRoutePath } from './navigation'
 import { ErrorBoundary } from './ErrorBoundary'
+import { CreateProjectDialog } from './components/CreateProjectDialog/CreateProjectDialog'
 
 const moduleMessageKeys: Record<ModuleId, MessageKey> = {
   home: 'module.home',
@@ -85,6 +86,7 @@ const ACTIVE_PROJECT_KEY = 'design-lab:active-project'
 const THEME_KEY = 'design-lab:theme'
 const CANVAS_MODE_KEY = 'design-lab:canvas-mode'
 const CANVAS_COLOR_KEY = 'design-lab:canvas-color'
+const TOKEN_NAVIGATION_VIEW_KEY = 'design-lab:token-navigation-view'
 const ALL_FOLDER_PATH = '__all__'
 const MOBILE_LAYOUT_QUERY = '(max-width: 760px)'
 type ThemeMode = 'dark' | 'light'
@@ -116,6 +118,23 @@ function getInitialNavigationWidth() {
   return clampNavigationWidth(Number.isFinite(saved) ? saved : DEFAULT_NAVIGATION_WIDTH)
 }
 
+function tokenViewFromRoute(path: string): TokenNavigationView | null {
+  if (path === 'by-file' || path.startsWith('by-file/')) return 'files'
+  if (path === 'by-token' || path.startsWith('by-token/')) return 'tokens'
+  return null
+}
+
+function getInitialTokenNavigationView(): TokenNavigationView {
+  return (
+    tokenViewFromRoute(initialRoute.path) ??
+    (localStorage.getItem(TOKEN_NAVIGATION_VIEW_KEY) === 'files' ? 'files' : 'tokens')
+  )
+}
+
+function treeItemIsContainer(item: ProjectTreeItem) {
+  return ['folder', 'token-document', 'token-group'].includes(item.kind)
+}
+
 export default function App() {
   const { t, locale } = useDesignLabI18n()
   const [theme, setTheme] = useState<ThemeMode>(getInitialTheme)
@@ -141,6 +160,9 @@ export default function App() {
   const [moduleLoading, setModuleLoading] = useState(false)
   const [selectedEntityId, setSelectedEntityId] = useState<string | null>(null)
   const [selectedFolderPath, setSelectedFolderPath] = useState(ALL_FOLDER_PATH)
+  const [tokenNavigationView, setTokenNavigationView] = useState<TokenNavigationView>(
+    getInitialTokenNavigationView,
+  )
   const [projectDialogOpen, setProjectDialogOpen] = useState(false)
   const [projectCreating, setProjectCreating] = useState(false)
   const [projectError, setProjectError] = useState<string | null>(null)
@@ -257,6 +279,8 @@ export default function App() {
       setActive(route.module)
       setRoutePath(route.path)
       setRouteSourceId(route.sourceId)
+      const routeTokenView = tokenViewFromRoute(route.path)
+      if (route.module === 'tokens' && routeTokenView) setTokenNavigationView(routeTokenView)
       const target = projects.find((project) => project.id === route.sourceId && project.available)
       if (target && target.id !== activeProjectId) setActiveProjectId(target.id)
     }
@@ -303,7 +327,7 @@ export default function App() {
     localStorage.setItem(ACTIVE_PROJECT_KEY, activeProjectId)
     setTree([])
     setTreeLoading(true)
-    getProjectTree(activeProjectId, active)
+    getProjectTree(activeProjectId, active, tokenNavigationView)
       .then((result) => setTree(result.tree))
       .catch(() => setTree([]))
       .finally(() => setTreeLoading(false))
@@ -312,7 +336,11 @@ export default function App() {
       .then(setModuleData)
       .catch(() => setModuleData(null))
       .finally(() => setModuleLoading(false))
-  }, [active, activeProjectId])
+  }, [active, activeProjectId, tokenNavigationView])
+
+  useEffect(() => {
+    localStorage.setItem(TOKEN_NAVIGATION_VIEW_KEY, tokenNavigationView)
+  }, [tokenNavigationView])
 
   useEffect(() => {
     if (treeLoading) return
@@ -328,7 +356,7 @@ export default function App() {
       return
     }
     const canonicalPath = treeItemRoutePath(item)
-    if (item.kind === 'folder') {
+    if (treeItemIsContainer(item)) {
       setSelectedFolderPath(item.virtual ? ALL_FOLDER_PATH : item.path)
       setSelectedEntityId(null)
     } else {
@@ -653,6 +681,24 @@ export default function App() {
             }}
             selectedEntityId={selectedEntityId}
             selectedFolderPath={selectedFolderPath}
+            viewControl={
+              active === 'tokens' ? (
+                <TabSwitcher
+                  ariaLabel={t('tokens.navigation.label')}
+                  options={[
+                    { value: 'tokens', label: t('tokens.navigation.tokens') },
+                    { value: 'files', label: t('tokens.navigation.files') },
+                  ]}
+                  value={tokenNavigationView}
+                  onChange={(view) => {
+                    setTokenNavigationView(view)
+                    navigate('tokens')
+                  }}
+                  size="small"
+                  overflow="wrap"
+                />
+              ) : undefined
+            }
             onTreeItemSelect={(item) => {
               setMobileNavigationOpen(false)
               navigate(active, treeItemRoutePath(item))

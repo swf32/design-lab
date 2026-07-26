@@ -47,7 +47,7 @@ export function renderStoryExample(example: StoryExample) {
                 height: 360,
                 padding: 32,
                 border: '1px solid var(--color-border-default)',
-                borderRadius: 'var(--radius-card)',
+                borderRadius: 'var(--corner-card)',
                 background: 'var(--color-surface-primary)',
                 fontSize: 28,
               }}

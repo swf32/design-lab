@@ -107,15 +107,15 @@
 .dl-workbench-inspector__trigger {
   position: fixed;
   z-index: 52;
-  right: max(var(--spacing-4), env(safe-area-inset-right));
-  bottom: max(var(--spacing-4), env(safe-area-inset-bottom));
+  right: max(var(--space-16), env(safe-area-inset-right));
+  bottom: max(var(--space-16), env(safe-area-inset-bottom));
 }
 
 .dl-workbench-inspector__hard-mode {
   position: fixed;
   z-index: 52;
-  right: max(var(--spacing-4), env(safe-area-inset-right));
-  bottom: calc(max(var(--spacing-4), env(safe-area-inset-bottom)) + 48px);
+  right: max(var(--space-16), env(safe-area-inset-right));
+  bottom: calc(max(var(--space-16), env(safe-area-inset-bottom)) + 48px);
 }
 
 .dl-workbench-inspector__hard-mode.dl-workbench-action--active {

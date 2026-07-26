@@ -32,7 +32,7 @@ const previewStyles = String.raw`
   width: 19px;
   height: 19px;
   border: 1px solid var(--color-border-subtle);
-  border-radius: var(--radius-small);
+  border-radius: var(--corner-control);
 }
 `
 

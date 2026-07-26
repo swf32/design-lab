@@ -5,6 +5,56 @@ import { tmpdir } from 'node:os'
 import test from 'node:test'
 import { designLabInspectionPlugin } from './inspectionTransform.mjs'
 
+test('story transform exports canonical runtime imports for automatic handoff', async () => {
+  const workspace = await mkdtemp(join(tmpdir(), 'design-lab-story-handoff-'))
+  try {
+    const library = join(workspace, 'libraries', 'test-system')
+    const iconDirectory = join(library, 'assets', 'icons')
+    const buttonDirectory = join(library, 'components', 'atoms', 'IconButton')
+    await mkdir(iconDirectory, { recursive: true })
+    await mkdir(buttonDirectory, { recursive: true })
+    await writeFile(
+      join(library, 'library.json'),
+      JSON.stringify({
+        id: 'test-system',
+        packageName: '@test/system',
+        componentImport: '@test/system/components',
+        iconImport: '@test/system/icons',
+      }),
+    )
+    await writeFile(join(iconDirectory, 'StarIcon.tsx'), 'export function StarIcon() {}')
+    await writeFile(join(iconDirectory, 'index.ts'), "export * from './StarIcon'\n")
+    await writeFile(
+      join(buttonDirectory, 'component.json'),
+      JSON.stringify({ name: 'Icon Button', entry: 'IconButton.tsx', props: {} }),
+    )
+    await writeFile(
+      join(buttonDirectory, 'IconButton.tsx'),
+      'export function IconButton() { return null }',
+    )
+    const entry = join(buttonDirectory, 'IconButton.stories.ts')
+    const authored = `import { createElement } from 'react'
+import { StarIcon } from '../../../assets/icons'
+import { IconButton } from './IconButton'
+
+export function renderStoryExample() {
+  return createElement(IconButton, null, createElement(StarIcon))
+}
+`
+    await writeFile(entry, authored)
+    const plugin = designLabInspectionPlugin(workspace)
+    const result = await plugin.transform.call({}, authored, entry)
+    assert.ok(result?.code)
+    assert.match(result.code, /__designLabStoryImports/)
+    assert.ok(result.code.includes("import { IconButton } from '@test/system/components'"))
+    assert.ok(result.code.includes("import { StarIcon } from '@test/system/icons'"))
+    assert.match(result.code, /value: IconButton/)
+    assert.match(result.code, /value: StarIcon/)
+  } finally {
+    await rm(workspace, { recursive: true, force: true })
+  }
+})
+
 test('review transform discovers Component calls and manifest slots without authored markers', async () => {
   const workspace = await mkdtemp(join(tmpdir(), 'design-lab-inspection-'))
   try {

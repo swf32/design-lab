@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+- Changed: Removed mobile-only palette, field, preset, and type enlargement; the picker now only repositions and clamps to the viewport.
+- Changed: Replaced the operating system color input with an embedded saturation/brightness field and hue slider, including pointer dragging, keyboard adjustment, and controllable open state for composed controls.
+- Changed: Catalog preview now shows the popover silhouette with spectrum bar, preset grid, selected swatch, and HEX field instead of a mismatched swatch-and-dots layout.
 - Changed: Palette now uses a viewport-aware portal so it remains reachable in scrolling rails and
   on mobile without increasing the scroll area.
 - Changed: Added authored semantic retrieval metadata for MCP and CLI search.

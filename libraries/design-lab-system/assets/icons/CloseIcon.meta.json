@@ -1,0 +1,7 @@
+{
+  "description": "Diagonal cross icon for dismissing a dialog, panel, or temporary surface.",
+  "aliases": ["close icon", "dismiss", "x icon"],
+  "useWhen": ["close a modal dialog", "dismiss a temporary surface"],
+  "avoidWhen": ["represent deletion", "communicate an error state"],
+  "tags": ["action", "close", "dismiss", "overlay"]
+}

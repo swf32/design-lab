@@ -1,24 +1,32 @@
-import { mkdir, readFile, writeFile } from 'node:fs/promises'
+import { mkdir, writeFile } from 'node:fs/promises'
 import { dirname, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
+import { readTokenCatalog } from '../../../design-lab/server/services/tokenCatalog.mjs'
 
 const root = resolve(fileURLToPath(new URL('..', import.meta.url)))
-const source = JSON.parse(await readFile(resolve(root, 'tokens/base.tokens.json'), 'utf8'))
+const catalog = await readTokenCatalog(root)
 
-function declarations(group, path = [], result = []) {
-  for (const [key, value] of Object.entries(group ?? {})) {
-    const next = [...path, key]
-    if (value && typeof value === 'object' && Object.hasOwn(value, 'value'))
-      result.push(`  --${next.join('-')}: ${value.value};`)
-    else if (value && typeof value === 'object') declarations(value, next, result)
-  }
-  return result
+function cssValue(value) {
+  if (typeof value === 'string' || typeof value === 'number') return value
+  if (value === null) return ''
+  return JSON.stringify(value)
 }
 
-const blocks = [`:root, [data-theme="dark"] {\n${declarations(source.tokens).join('\n')}\n}`]
-for (const [theme, definition] of Object.entries(source.themes ?? {}))
-  blocks.push(`[data-theme="${theme}"] {\n${declarations(definition.tokens).join('\n')}\n}`)
+function declarations(mode) {
+  return catalog.tokens.map(
+    (token) =>
+      `  --${token.path.replaceAll('.', '-')}: ${cssValue(token.values[mode] ?? token.value)};`,
+  )
+}
+
+const defaultMode = catalog.modes.includes('dark') ? 'dark' : catalog.modes[0]
+const blocks = [
+  `:root, [data-theme="${defaultMode}"] {\n${declarations(defaultMode).join('\n')}\n}`,
+]
+for (const mode of catalog.modes)
+  if (mode !== defaultMode)
+    blocks.push(`[data-theme="${mode}"] {\n${declarations(mode).join('\n')}\n}`)
 
 const target = resolve(root, 'tokens/generated/tokens.css')
 await mkdir(dirname(target), { recursive: true })
-await writeFile(target, `/* Generated from tokens/base.tokens.json. */\n${blocks.join('\n\n')}\n`)
+await writeFile(target, `/* Generated from canonical token documents. */\n${blocks.join('\n\n')}\n`)

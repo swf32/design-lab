@@ -19,7 +19,7 @@ const previewStyles = String.raw`
 .preview-marketing-hero__chip {
   width: 28px;
   height: 8px;
-  border-radius: var(--radius-medium);
+  border-radius: var(--corner-surface);
   background: color-mix(in srgb, var(--color-accent-secondary) 18%, transparent);
 }
 
@@ -72,7 +72,7 @@ const previewStyles = String.raw`
 
 .preview-marketing-hero__btn {
   height: 10px;
-  border-radius: var(--radius-small);
+  border-radius: var(--corner-control);
 }
 
 .preview-marketing-hero__btn--primary {
@@ -90,7 +90,7 @@ const previewStyles = String.raw`
   min-width: 0;
   height: 100%;
   border: 1px solid var(--color-border-default);
-  border-radius: var(--radius-small);
+  border-radius: var(--corner-control);
   background: linear-gradient(
     145deg,
     color-mix(in srgb, var(--color-accent-primary) 16%, transparent),

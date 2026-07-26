@@ -7,6 +7,7 @@ import { getAssetFile, getAssetPreview } from './services/assetFiles.mjs'
 import { getIntegrationInfo } from './services/integrationInfo.mjs'
 import { getAuthoredStyles } from './services/authoredStyles.mjs'
 import { patchEntityManifest } from './services/manifestWrite.mjs'
+import { getComponentHandoff } from './services/componentHandoff.mjs'
 
 let revision = 0
 
@@ -39,6 +40,7 @@ createServer(async (request, response) => {
         await getProjectTree(
           decodeURIComponent(treeMatch[1]),
           url.searchParams.get('module') ?? 'home',
+          { tokenView: url.searchParams.get('view') ?? 'tokens' },
         ),
       )
     }
@@ -50,6 +52,7 @@ createServer(async (request, response) => {
         await getProjectTree(
           decodeURIComponent(sourceTreeMatch[1]),
           url.searchParams.get('module') ?? 'home',
+          { tokenView: url.searchParams.get('view') ?? 'tokens' },
         ),
       )
     }
@@ -61,6 +64,19 @@ createServer(async (request, response) => {
         await getModuleEntities(
           decodeURIComponent(sourceModuleMatch[1]),
           decodeURIComponent(sourceModuleMatch[2]),
+        ),
+      )
+    }
+    const componentHandoffMatch = url.pathname.match(
+      /^\/api\/sources\/([^/]+)\/components\/(.+)\/handoff$/,
+    )
+    if (request.method === 'GET' && componentHandoffMatch) {
+      return sendJson(
+        response,
+        200,
+        await getComponentHandoff(
+          decodeURIComponent(componentHandoffMatch[1]),
+          componentHandoffMatch[2].split('/').map(decodeURIComponent).join('/'),
         ),
       )
     }

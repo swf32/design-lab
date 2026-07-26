@@ -1,22 +1,39 @@
-import { createElement } from 'react'
+import { createElement, useState } from 'react'
 import type { StoryExample } from '../../../storyContract'
 import { CanvasBackgroundControl, type CanvasMode } from './CanvasBackgroundControl'
 
-export function renderStoryExample(example: StoryExample) {
+function CanvasBackgroundControlFixture({
+  mode: initialMode,
+  color: initialColor,
+}: {
+  mode: CanvasMode
+  color: string
+}) {
+  const [mode, setMode] = useState(initialMode)
+  const [color, setColor] = useState(initialColor)
+
   return createElement(CanvasBackgroundControl, {
+    mode,
+    color,
+    onModeChange: setMode,
+    onColorChange: setColor,
+  })
+}
+
+export function renderStoryExample(example: StoryExample) {
+  return createElement(CanvasBackgroundControlFixture, {
     mode: String(example.props.mode ?? 'dark-grid') as CanvasMode,
     color: String(example.props.color ?? '#264653'),
-    onModeChange: () => undefined,
-    onColorChange: () => undefined,
   })
 }
 
 export const stories = [
   {
     id: 'modes',
-    kind: 'state',
-    name: 'Background modes',
-    description: 'Switch between the two grid modes and a resolved solid color.',
+    kind: 'behavior',
+    name: 'Compact mode disclosure',
+    description:
+      'Only the selected background is visible at rest; hover or keyboard focus reveals every mode.',
     interactive: true,
     examples: [
       { label: 'Dark grid', props: { mode: 'dark-grid' } },
@@ -28,7 +45,7 @@ export const stories = [
     id: 'picker',
     kind: 'behavior',
     name: 'Solid color picker',
-    description: 'Choose a preset or enter a valid six-digit HEX value.',
+    description: 'Choose saturation, brightness, hue, a preset, or a valid six-digit HEX value.',
     interactive: true,
     examples: [{ label: 'Open', props: { mode: 'solid' } }],
   },

@@ -1,0 +1,53 @@
+{
+  "schemaVersion": 1,
+  "name": "Shell component tokens",
+  "tokens": {
+    "shell": {
+      "sidebar": {
+        "collapsed": {
+          "type": "dimension",
+          "value": "{space.48}",
+          "description": "Width of the icon-only Application Sidebar rail."
+        },
+        "expanded": {
+          "type": "dimension",
+          "value": "{space.72}",
+          "description": "Width of the Application Sidebar while module labels are disclosed."
+        }
+      },
+      "navigation": {
+        "width": {
+          "type": "dimension",
+          "value": "340px",
+          "description": "Combined width budget shared by Application Sidebar and Directory Panel."
+        },
+        "min": {
+          "type": "dimension",
+          "value": "260px",
+          "description": "Minimum combined navigation width before the workspace becomes unusable."
+        }
+      },
+      "directory-panel": {
+        "min": {
+          "type": "dimension",
+          "value": "188px",
+          "description": "Minimum readable width of the semantic Directory Panel."
+        }
+      },
+      "workspace": {
+        "min": {
+          "type": "dimension",
+          "value": "360px",
+          "description": "Minimum width reserved for the main Design Lab workspace."
+        }
+      },
+      "tab": {
+        "height": {
+          "type": "dimension",
+          "value": "{space.52}",
+          "description": "Fixed row height for primary Sidebar Tab navigation items."
+        }
+      }
+    }
+  }
+}

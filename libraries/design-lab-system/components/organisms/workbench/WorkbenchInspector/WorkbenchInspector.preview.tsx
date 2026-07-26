@@ -6,7 +6,7 @@ const previewStyles = String.raw`
   height: 112px;
   position: relative;
   border: 1px solid var(--color-border-subtle);
-  border-radius: var(--radius-medium);
+  border-radius: var(--corner-surface);
   background: var(--color-surface-secondary);
   overflow: hidden;
 }
@@ -18,18 +18,18 @@ const previewStyles = String.raw`
   top: 24px;
   left: 24px;
   border: 2px dashed var(--color-inspection-component);
-  border-radius: var(--radius-small);
+  border-radius: var(--corner-control);
   background: color-mix(in srgb, var(--color-inspection-component) 10%, transparent);
 }
 
 .preview-workbench-inspector__popover {
   width: 68px;
-  padding: var(--spacing-2);
+  padding: var(--space-8);
   position: absolute;
   top: 14px;
   right: 10px;
   border: 1px solid var(--color-inspection-component);
-  border-radius: var(--radius-small);
+  border-radius: var(--corner-control);
   background: var(--color-surface-raised);
   color: var(--color-code);
   font-size: 6px;
@@ -42,11 +42,11 @@ const previewStyles = String.raw`
   right: 10px;
   bottom: 8px;
   border: 1px dashed var(--color-inspection-component);
-  border-radius: var(--radius-small);
+  border-radius: var(--corner-control);
   color: var(--color-inspection-component);
   display: inline-flex;
   align-items: center;
-  gap: var(--spacing-1);
+  gap: var(--space-4);
   font-size: 7px;
 }
 `

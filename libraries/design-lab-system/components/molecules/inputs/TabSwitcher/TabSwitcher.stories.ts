@@ -9,6 +9,7 @@ import {
 import {
   TabSwitcher,
   type TabSwitcherOption,
+  type TabSwitcherOverflow,
   type TabSwitcherSize,
   type TabSwitcherVariant,
 } from './TabSwitcher'
@@ -73,6 +74,7 @@ export function renderStoryExample(example: StoryExample) {
     variant: String(props.variant ?? 'segmented') as TabSwitcherVariant,
     size: String(props.size ?? 'medium') as TabSwitcherSize,
     iconSize: Number(props.iconSize ?? 14),
+    overflow: String(props.overflow ?? 'fit') as TabSwitcherOverflow,
   })
 }
 
@@ -120,11 +122,11 @@ export const stories = [
     ],
   },
   {
-    id: 'touch-density',
+    id: 'viewport-invariant-density',
     kind: 'context',
-    name: 'Phone touch density',
+    name: 'Viewport-invariant density',
     description:
-      'At phone widths, both visual variants keep their compact appearance while each option expands to a minimum 44px touch target.',
+      'Segmented and toggle controls keep their explicit small or medium geometry at every viewport width.',
     examples: [
       {
         label: 'Theme toggle',
@@ -133,6 +135,28 @@ export const stories = [
       {
         label: 'View selector',
         props: { variant: 'segmented', size: 'small', content: 'view-icons' },
+      },
+    ],
+  },
+  {
+    id: 'overflow',
+    kind: 'context',
+    name: 'Constrained width',
+    description: 'Consumers choose wrapping or horizontal scrolling when all options cannot fit.',
+    examples: [
+      {
+        label: 'Wrapped options',
+        props: {
+          overflow: 'wrap',
+          options: ['overview', 'tokens', 'palette', 'typography', 'assets', 'components'],
+        },
+      },
+      {
+        label: 'Scrollable options',
+        props: {
+          overflow: 'scroll',
+          options: ['overview', 'tokens', 'palette', 'typography', 'assets', 'components'],
+        },
       },
     ],
   },

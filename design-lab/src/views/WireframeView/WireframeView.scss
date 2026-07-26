@@ -27,19 +27,19 @@
 .wireframe-view__flow-hint {
   position: absolute;
   z-index: 6;
-  inset-block-start: var(--spacing-3);
+  inset-block-start: var(--space-12);
   inset-inline-start: 50%;
   transform: translateX(-50%);
   max-width: min(520px, calc(100% - 48px));
-  padding: var(--spacing-2) var(--spacing-3);
+  padding: var(--space-8) var(--space-12);
   border: 1px solid var(--color-border-default);
-  border-radius: var(--radius-medium);
+  border-radius: var(--corner-surface);
   background: color-mix(in srgb, var(--color-surface-raised) 92%, transparent);
   box-shadow: 0 12px 32px color-mix(in srgb, var(--color-overlay-scrim) 24%, transparent);
   backdrop-filter: blur(12px);
   display: flex;
   align-items: center;
-  gap: var(--spacing-3);
+  gap: var(--space-12);
   color: var(--color-text-secondary);
   font-size: 12px;
 }
@@ -66,17 +66,17 @@
   display: grid;
   place-content: center;
   justify-items: center;
-  gap: var(--spacing-2);
+  gap: var(--space-8);
 }
 .wireframe-view__missing strong {
   color: var(--color-text-primary);
 }
 .wireframe-dev-controls {
   display: grid;
-  gap: calc(var(--spacing-4) * 1.5);
+  gap: calc(var(--space-16) * 1.5);
 }
 .wireframe-dev-controls > section {
-  padding-bottom: calc(var(--spacing-4) * 1.5);
+  padding-bottom: calc(var(--space-16) * 1.5);
   border-bottom: 1px solid var(--color-border-subtle);
 }
 .wireframe-dev-controls > section:last-child {
@@ -85,11 +85,11 @@
 }
 .wireframe-dev-controls > section > header {
   min-height: 28px;
-  margin-bottom: var(--spacing-3);
+  margin-bottom: var(--space-12);
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: var(--spacing-2);
+  gap: var(--space-8);
 }
 .wireframe-dev-controls > section > header > span {
   color: var(--color-text-secondary);
@@ -102,7 +102,7 @@
 .wireframe-dev-controls__values,
 .wireframe-dev-controls__radio > div {
   display: grid;
-  gap: var(--spacing-3);
+  gap: var(--space-12);
 }
 .wireframe-dev-controls__review > .dl-button {
   justify-content: flex-start;
@@ -113,9 +113,9 @@
 .wireframe-dev-controls__copy-fallback {
   width: 100%;
   min-height: 44px;
-  padding: 0 var(--spacing-3);
+  padding: 0 var(--space-12);
   border: 1px solid var(--color-border-default);
-  border-radius: var(--radius-small);
+  border-radius: var(--corner-control);
   background: var(--color-surface-secondary);
   color: var(--color-text-secondary);
   font: inherit;
@@ -128,14 +128,14 @@
 }
 .wireframe-dev-controls__radio {
   display: grid;
-  gap: var(--spacing-1);
+  gap: var(--space-4);
 }
 .wireframe-dev-controls__radio > strong {
   color: var(--color-text-secondary);
   font-size: 11px;
 }
 .wireframe-dev-controls__radio > p {
-  margin: 0 0 var(--spacing-2);
+  margin: 0 0 var(--space-8);
   color: var(--color-text-muted);
   font-size: 9px;
   line-height: 1.5;
@@ -150,9 +150,4 @@
   position: absolute;
   clip: rect(0 0 0 0);
   white-space: nowrap;
-}
-@media (max-width: 760px) {
-  .wireframe-dev-controls__review > .dl-tab-switcher button {
-    min-height: 44px;
-  }
 }

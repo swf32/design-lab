@@ -1,12 +1,12 @@
 .sidebar-tab {
   width: 100%;
   min-width: 0;
-  height: var(--size-tab-height);
-  flex: 0 0 var(--size-tab-height);
+  height: var(--shell-tab-height);
+  flex: 0 0 var(--shell-tab-height);
   padding: 4px;
   overflow: hidden;
   border: 1px solid transparent;
-  border-radius: var(--radius-medium);
+  border-radius: var(--corner-surface);
   background: var(--color-surface-primary);
   color: var(--color-text-primary);
   opacity: 0.5;

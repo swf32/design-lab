@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- Changed: Removed the redundant viewport-specific body-padding rule; only panel anchoring changes on narrow screens.
 - Changed: component and manifest-declared slot inspection is injected automatically from source.
 - Changed: Dev mode now uses the shared compact orange dashed Workbench Action.
 

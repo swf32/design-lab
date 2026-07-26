@@ -4,7 +4,7 @@ const previewStyles = String.raw`
   height: 150px;
   overflow: hidden;
   border: 1px solid var(--color-border-default);
-  border-radius: var(--radius-medium);
+  border-radius: var(--corner-surface);
   background: var(--color-surface-primary);
   display: grid;
   grid-template-rows: auto 1fr auto;

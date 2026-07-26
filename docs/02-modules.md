@@ -32,7 +32,7 @@ Directory Panel показывает только semantic entities активн
 
 На ширине телефона Application Sidebar и Directory Panel объединяются в modal navigation drawer поверх одноколоночного Workspace. Drawer открывается из постоянного workspace header, имеет явный Close, закрывается по backdrop и Escape, а выбор module, source, folder или entity сразу возвращает пользователя к контенту. Desktop сохраняет совместную изменяемую ширину двух navigation panels; resize handle на телефоне отсутствует.
 
-Мобильный Workspace использует один вертикальный scroll owner внутри активного Module/Workbench. Catalog cards складываются в одну колонку на узком телефоне и в две в landscape; token rows и props API переходят из широких таблиц в двухстрочные карточки. Header и content сохраняют минимум `16px` боковых gutters, соседние catalog groups разделены усиленным vertical rhythm. Safe-area insets, touch targets не меньше `44px`, поля высотой минимум `48px` с текстом `16px` и отсутствие горизонтального overflow являются частью shell contract.
+Мобильный Workspace использует один вертикальный scroll owner внутри активного Module/Workbench. Catalog cards складываются в одну колонку на узком телефоне и в две в landscape; token rows и props API переходят из широких таблиц в двухстрочные карточки. Responsive layout может менять колонки, перенос, scroll, clipping, visibility и overlay placement, но production Components сохраняют выбранные desktop height, padding, typography, gaps и target geometry без отдельной mobile density. Safe-area insets и отсутствие горизонтального overflow остаются частью shell contract.
 
 ## Components
 
@@ -78,19 +78,21 @@ Design Lab автоматически отображает:
 
 Component lifecycle использует `wireframe`, `in-progress` и `ready`. Catalog показывает статус production `Chip` рядом с названием карточки. Если status отсутствует или неизвестен, entity остаётся доступной, а Workbench показывает completeness diagnostic.
 
-Соседний `ComponentName.playground.tsx` автоматически создаёт `/components/<path>/playground`. Playground является отдельным fullscreen typed multi-variant review mode без Application Sidebar, Directory Panel и workspace header. На desktop остаются только постоянный левый controls rail и Canvas; на mobile первым показывается Canvas, а полупрозрачная neutral `WorkbenchAction` Settings снизу слева открывает dismissible overlay rail. Canvas Background Control плавает сверху справа над Canvas. Варианты переключаются по stable ids, controls строятся из общего registry, а активный variant, mode и значения сериализуются в URL. Production `WorkbenchInspector` с фиолетовым dashed `WorkbenchAction` снизу справа включает hover-preview на desktop и pinned selection по click/tap. Review-build AST transform автоматически связывает обычные TSX imports с найденными Component manifests, определяет slots из manifest props и регистрирует host source locations без авторских `data-dl-*` или строк-дублей. Component даёт точный authored JSX callsite, named slot — его authored TSX и canonical imports, обычный DOM element — исходный SCSS/CSS из Node analyzer с `$variables`, mixins, nesting, `100%` и `var(...)`, а не CSSOM/computed pixels/RGB. Wireframe-only Component может существовать без production implementation, preview и Stories; после выбора направления он дополняется production-файлами в той же папке и проходит lifecycle до `ready`.
+Соседний `ComponentName.playground.tsx` автоматически создаёт `/components/<path>/playground`. Playground является отдельным fullscreen typed multi-variant review mode без Application Sidebar, Directory Panel и workspace header. На desktop остаются только постоянный левый controls rail и Canvas; на mobile первым показывается Canvas, а полупрозрачная neutral `WorkbenchAction` Settings снизу слева открывает dismissible overlay rail. Canvas Background Control плавает сверху справа над Canvas, по умолчанию показывает только выбранный mode и раскрывает small TabSwitcher по hover или focus без дополнительного Canvas padding. Варианты переключаются по stable ids, controls строятся из общего registry, а активный variant, mode и значения сериализуются в URL. Production `WorkbenchInspector` с фиолетовым dashed `WorkbenchAction` снизу справа включает hover-preview на desktop и pinned selection по click/tap. Review-build AST transform автоматически связывает обычные TSX imports с найденными Component manifests, определяет slots из manifest props и регистрирует host source locations без авторских `data-dl-*` или строк-дублей. Component даёт точный authored JSX callsite, named slot — его authored TSX и canonical imports, обычный DOM element — исходный SCSS/CSS из Node analyzer с `$variables`, mixins, nesting, `100%` и `var(...)`, а не CSSOM/computed pixels/RGB. Wireframe-only Component может существовать без production implementation, preview и Stories; после выбора направления он дополняется production-файлами в той же папке и проходит lifecycle до `ready`.
 
-Workbench начинает detail с автоматически вычисленного Component Reference: канонический package import через production `CodeBlock`, полный список фактически найденных файлов и четыре группы прямых связей. `Uses` / `Used by` строятся из production implementation, а `Examples use` / `Used in examples by` — только из импортов соседнего story module, исключая уже известные production dependencies. Это позволяет, например, показать Button как production dependency Create Project Dialog, но Button внутри Story Canvas — только как зависимость примера.
+Workbench начинает detail с автоматически вычисленного Component Reference: канонический package import через production `CodeBlock` и свёрнутый по умолчанию граф из четырёх групп прямых связей. Каждая группа ограничена высотой примерно 2,5 relation cards и прокручивается независимо. `Uses` / `Used by` строятся из production implementation, а `Examples use` / `Used in examples by` — только из импортов соседнего story module, исключая уже известные production dependencies. Полный список фактически найденных файлов показывается последним блоком detail, ниже Changelog.
 
-Story JSX не хранится в `ModuleView`. Manifest указывает соседний `*.stories.ts(x)`, который экспортирует metadata `stories` и исполняемый `renderStoryExample`; Workbench автоматически находит модуль по filesystem directory. Добавление нового Component со Story не требует правки application registry или switch по component id.
+Story JSX не хранится в `ModuleView`. Manifest указывает соседний `*.stories.ts(x)`, который экспортирует metadata `stories` и исполняемый `renderStoryExample`; Workbench автоматически находит модуль по filesystem directory. Добавление нового Component со Story не требует правки application registry или switch по component id. Story Canvas используют компактный viewport-invariant header без фиксированной высоты, держат kind рядом с названием, синхронизируют Canvas background через свёрнутый control поверх правого верхнего угла stage без изменения stage padding и показывают вплотную ниже canonical imports вместе с TSX usage каждого видимого примера. Handoff строится по фактическому React node из `renderStoryExample`: review transform автоматически сопоставляет статические Component/icon imports с публичными package imports, а runtime serializer сохраняет реально разрешённые props, children, slots, host composition и renderer transforms. Это одинаковый механизм для всех Components; `source`/`imports` остаются только escape hatch для намеренно несериализуемого примера. Headerless CodeBlock показывает первые три строки; source code имеет opacity `0.2` в покое и `1` при hover, focus-within или раскрытии, а expand/collapse и Copy работают с полным handoff.
+
+На detail-странице Production Component Playground и отдельный fullscreen Wireframe Playground — разные поверхности. Inline Playground рендерит реальную production implementation через обнаруженный Story renderer, строит поддерживаемые props controls из `component.json` без component-id switch и держит rail справа; при отсутствии executable Story или редактируемых production props остаётся компактная информационная полоса. Соседний `*.playground.tsx` принадлежит только отдельному wireframing/ideation route, открываемому явно подписанным действием, и не подменяет production Component на detail-странице.
 
 Preview использует площадь карточки только для узнаваемой иллюстрации компонента. Название принадлежит нижнему overlay Component Card, а category, source entry и variant count остаются catalog/detail metadata и не повторяются внутри preview как заголовки, badges или легенды. Текст внутри иллюстрации остаётся только там, где он является частью изображаемого UI.
 
 Preview строится от реального implementation, а не от названия компонента. По умолчанию он показывает один крупный representative specimen и один главный visual contract; дополнительные состояния допустимы только для объяснения одной оси поведения. Родительский shell, выдуманные controls и декоративное заполнение карточки запрещены, если они не принадлежат самому компоненту. Сравниваемые элементы получают явные общие линии, а оптическое центрирование и заявленное выравнивание проверяются внутри фактической Component Card в dark и light themes.
 
-Preview area владеет общим видимым safe area: `spacing.4` по горизонтали и `spacing.3` по вертикали. Full-width specimen учитывает собственные padding и border через `border-box` и не касается края карточки. Edge-to-edge допустим только как явно объявленное исключение, когда контакт с краем является определяющим поведением самого компонента.
+Preview area владеет общим видимым safe area: `space.16` по горизонтали и `space.12` по вертикали. Full-width specimen учитывает собственные padding и border через `border-box` и не касается края карточки. Edge-to-edge допустим только как явно объявленное исключение, когда контакт с краем является определяющим поведением самого компонента.
 
-Component Card не добавляет отдельный footer к высоте preview: название лежит поверх нижнего token-driven gradient, а card height совпадает с preview area. Карточка не имеет border и визуального hover treatment, сохраняет постоянную заливку и радиус `12px` на всех углах. Keyboard focus остаётся явно видимым. Grid каталога использует `spacing.1` между карточками.
+Component Card не добавляет отдельный footer к высоте preview: название лежит поверх нижнего token-driven gradient, а card height совпадает с preview area. Карточка не имеет border и визуального hover treatment, сохраняет постоянную заливку и радиус `12px` на всех углах. Keyboard focus остаётся явно видимым. Grid каталога использует `space.4` между карточками.
 
 ## Storybook
 
@@ -235,6 +237,31 @@ Palette рассматривается как отдельный слой пов
 - typography;
 
 - любые другие значения.
+
+Design Lab не требует от подключённой Project или Library одной авторской таксономии токенов.
+Канонической границей discovery остаётся `tokens/**`, но внутри неё разные поддерживаемые JSON-
+диалекты, разбиение по файлам, названия групп, modes и reference syntax проходят через format
+adapters в одну производную `TokenEntity` model. Исходные документы остаются source of truth и не
+переписываются в Design Lab-native форму без явного migration action.
+
+Directory Panel показывает две честные проекции одного catalog. `Tokens` строит дерево только из
+logical token paths, поэтому путь слева совпадает с именем в таблице. `Files` раскрывает source и
+filesystem folders, typed token documents, JSON groups и leaves, не изображая их одним видом
+папки. MCP и CLI используют ту же progressive disclosure; scoped search возвращает компактные refs
+и semantic metadata, а полная сущность и reference chain загружаются только явным `get`. Это не
+требует передавать модели весь набор токенов.
+
+Token table расставляет поля по рабочему приоритету: `Token → Type → Value → Stored in → Comment`.
+Comment читается прямо из optional `description`; отсутствующее описание не создаёт sidecar или
+второй registry. Колонки используют общий resizable-контракт production Component `Table`; для
+длинного реестра Tokens включает его optional zebra banding. В первой колонке всегда зарезервирован
+небольшой action slot: при hover/focus он показывает Copy и копирует точный logical token path,
+который пользователь видит в ячейке, без добавления display prefix или filesystem location.
+
+`design-lab-system` использует собственную рекомендуемую трёхслойную структуру
+`primitives / semantic / components`, но эта структура не становится обязательной для других
+Libraries. В primitives одно физическое значение хранится один раз; padding, margin и gap не
+дублируют числовые шкалы, а получают смысл на semantic или component layer.
 
 ## Fonts
 

@@ -1,0 +1,42 @@
+{
+  "schemaVersion": 1,
+  "name": "Semantic layout",
+  "tokens": {
+    "layout": {
+      "gap": {
+        "tight": {
+          "type": "dimension",
+          "value": "{space.4}",
+          "description": "Tight separation for compact peers and dense catalog items."
+        },
+        "related": {
+          "type": "dimension",
+          "value": "{space.8}",
+          "description": "Separation between directly related controls, labels, and content."
+        },
+        "group": {
+          "type": "dimension",
+          "value": "{space.12}",
+          "description": "Internal separation between elements in one interface group."
+        },
+        "section": {
+          "type": "dimension",
+          "value": "{space.16}",
+          "description": "Separation between distinct interface sections."
+        }
+      },
+      "inset": {
+        "control": {
+          "type": "dimension",
+          "value": "{space.12}",
+          "description": "Standard inline inset inside interface controls."
+        },
+        "panel": {
+          "type": "dimension",
+          "value": "{space.16}",
+          "description": "Standard content inset inside panels and workbench surfaces."
+        }
+      }
+    }
+  }
+}

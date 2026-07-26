@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- Fixed: Story handoff now includes the automatically discovered `StarIcon` import and rendered icon child; the toolbar context renders real host composition without leaking its fixture marker into `IconButton` props.
 - Changed: Added authored semantic retrieval metadata for MCP and CLI search.
 
 - Changed: Workbench stories now render automatically from the adjacent story module.

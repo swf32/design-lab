@@ -41,6 +41,19 @@ export const stories = [
     ],
   },
   {
+    id: 'extension-families',
+    kind: 'variant',
+    name: 'Extension families',
+    description:
+      'Code-native, vector, raster, and video formats use distinct category tones without implying status.',
+    examples: [
+      { label: 'Code', props: { kind: 'icon', extension: 'tsx' } },
+      { label: 'Vector', props: { kind: 'icon', extension: 'svg' } },
+      { label: 'Raster', props: { kind: 'image', extension: 'webp' } },
+      { label: 'Video', props: { kind: 'video', extension: 'mp4' } },
+    ],
+  },
+  {
     id: 'rendered-preview',
     kind: 'context',
     name: 'Rendered previews',

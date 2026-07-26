@@ -1,7 +1,7 @@
 {
   "id": "color-picker",
   "name": "Color Picker",
-  "description": "Edits a nullable color override through a native spectrum, presets, HEX input, and custom trigger.",
+  "description": "Edits a nullable color override through an embedded saturation, brightness, and hue picker, presets, HEX input, and custom trigger.",
   "aliases": ["colour picker", "color selector", "hex picker", "swatch picker"],
   "useWhen": [
     "choose an arbitrary color",
@@ -53,6 +53,12 @@
     },
     "className": {
       "type": "string"
+    },
+    "open": {
+      "type": "boolean"
+    },
+    "onOpenChange": {
+      "type": "(open: boolean) => void"
     }
   }
 }

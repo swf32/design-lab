@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- Visual: catalog preview now nests a CodeBlock-like copy surface under the inspection identity header with component-tinted border and shadow.
 - Added: a fourth teal `asset` identity for a resolved image/video import handoff, alongside Component, slot, and element.
 - Changed: removed authored Inspector attributes in favor of automatic source instrumentation.
 

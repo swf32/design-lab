@@ -25,9 +25,11 @@ const VALUED_FLAGS = new Set([
   '--kind',
   '--kinds',
   '--limit',
+  '--within',
   '--index',
   '--path',
   '--depth',
+  '--view',
   '--capture',
   '--story',
   '--source-mode',
@@ -77,10 +79,10 @@ function help() {
 Usage:
   npm run designlab -- sources
   npm run designlab -- catalog --source <source-id> [--kind component,token]
-  npm run designlab -- search "<intent>" --source <source-id> [--kind component] [--limit 8]
+  npm run designlab -- search "<intent>" --source <source-id> [--kind component] [--within <scope>] [--limit 8]
   npm run designlab -- get <entity-ref> [<entity-ref> ...] [--source <source-id>]
   npm run designlab -- get --index <number> --source <source-id>
-  npm run designlab -- browse --source <source-id> --kind token [--path color.accent] [--depth 2]
+  npm run designlab -- browse --source <source-id> --kind token [--view files|paths] [--path <path>] [--depth 2]
   npm run designlab -- capture <component-ref> [--capture info|preview|story] [--story sizes]
     [--source-mode <mode>] [--interface-theme dark|light] [--output capture.png]
   npm run designlab -- index --source <source-id>
@@ -89,6 +91,9 @@ Search intentionally returns descriptions and opaque refs, not entity names.
 Call get with a ref to reveal the verified name, import, props, variants, docs, and paths; pass
 several refs to resolve them in one call. Call browse to walk canonical component/token/asset/
 wireframe/page folders one path segment at a time instead of guessing an id.
+For Tokens, --view files walks folders and documents before token groups; --view paths walks the
+logical dotted token tree. Search --within accepts a filesystem subtree, document, logical token
+group, or "document.tokens.json#logical.group".
 `)
 }
 
@@ -121,6 +126,7 @@ try {
         sourceId: option('--source'),
         kinds: selectedKinds(),
         limit: Number(option('--limit') ?? 8),
+        within: option('--within'),
       }),
     )
   } else if (command === 'get') {
@@ -151,6 +157,7 @@ try {
         kind: option('--kind'),
         path: option('--path'),
         depth: option('--depth') ? Number(option('--depth')) : undefined,
+        view: option('--view') ?? undefined,
       }),
     )
   } else if (command === 'capture') {

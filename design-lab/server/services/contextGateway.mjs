@@ -264,6 +264,12 @@ async function componentEntities(source, sourceManifest) {
         states: component.states ?? [],
       },
       details: {
+        implementation: component.implementation ?? null,
+        familyId: component.familyId ?? null,
+        platform: component.platform ?? 'unknown',
+        technology: component.technology ?? 'unknown',
+        adapter: component.adapter ?? 'unknown-source',
+        capabilities: component.capabilities ?? ['catalog'],
         import: component.entry
           ? (component.import ?? componentImport(source, sourceManifest, component))
           : null,
@@ -277,7 +283,8 @@ async function componentEntities(source, sourceManifest) {
         },
         entry: component.entry ? join(directory, component.entry) : null,
         style: component.style ? join(directory, component.style) : null,
-        manifest: join(directory, 'component.json'),
+        manifest: component.manifestFile ? join(directory, 'component.json') : null,
+        sourcePath: component.sourcePath ?? null,
         playground: component.playground ? join(directory, component.playground) : null,
         preview: component.preview ? join(directory, component.preview) : null,
         stories: component.stories ? join(directory, component.stories) : null,
@@ -650,9 +657,42 @@ function relevance(entity, query) {
   }
 }
 
-export async function searchContext({ query, sourceId, kinds = CONTEXT_KINDS, limit = 8 } = {}) {
+function entityWithinScope(entity, within) {
+  if (!within) return true
+  const [sourcePath, logicalPath] = within.split('#')
+  const normalizedSourcePath = sourcePath.replace(/^tokens\//, '').replace(/^\/+|\/+$/g, '')
+  if (entity.kind === 'token') {
+    const fileMatches =
+      !normalizedSourcePath ||
+      entity.details.file === normalizedSourcePath ||
+      entity.details.file.startsWith(`${normalizedSourcePath}/`)
+    const logicalCandidate = logicalPath ?? sourcePath
+    const normalizedLogicalPath = logicalCandidate.replaceAll('/', '.').replace(/^\.+|\.+$/g, '')
+    const logicalMatches =
+      !normalizedLogicalPath ||
+      entity.id === normalizedLogicalPath ||
+      entity.id.startsWith(`${normalizedLogicalPath}.`)
+    if (logicalPath !== undefined || normalizedSourcePath.endsWith('.tokens.json'))
+      return fileMatches && logicalMatches
+    return fileMatches || logicalMatches
+  }
+  const normalizedEntityPath = entity.path.replace(/^\/+|\/+$/g, '')
+  return (
+    normalizedEntityPath === normalizedSourcePath ||
+    normalizedEntityPath.startsWith(`${normalizedSourcePath}/`)
+  )
+}
+
+export async function searchContext({
+  query,
+  sourceId,
+  kinds = CONTEXT_KINDS,
+  limit = 8,
+  within,
+} = {}) {
   const catalog = await buildContextCatalog({ sourceId, kinds })
   const results = catalog.entities
+    .filter((entity) => entityWithinScope(entity, within))
     .map((entity) => ({ entity, ...relevance(entity, query ?? '') }))
     .filter((result) => result.score >= 0.12)
     .sort((a, b) => b.score - a.score || a.entity.index - b.entity.index)
@@ -668,6 +708,7 @@ export async function searchContext({ query, sourceId, kinds = CONTEXT_KINDS, li
     }))
   return {
     query,
+    within: within ?? null,
     retrieval: 'weighted lexical + fuzzy fallback',
     namesHidden: true,
     resultCount: results.length,
@@ -675,9 +716,135 @@ export async function searchContext({ query, sourceId, kinds = CONTEXT_KINDS, li
   }
 }
 
+function tokenFilesystemItems(data, sourceId, pathPrefix, depth) {
+  const requested = pathPrefix?.replace(/^tokens\//, '').replace(/^\/+|\/+$/g, '') ?? ''
+  const [filePath, groupPath = null] = requested.split('#')
+  const document = data.documents.find((candidate) => candidate.file === filePath)
+
+  if (groupPath !== null || document) {
+    const activeDocument =
+      document ?? data.documents.find((candidate) => candidate.file === filePath)
+    if (!activeDocument)
+      throw Object.assign(new Error(`Token document not found: ${filePath}.`), {
+        status: 404,
+        code: 'TOKEN_DOCUMENT_NOT_FOUND',
+      })
+    const prefixParts = groupPath?.split('.').filter(Boolean) ?? []
+    const maxDepth = prefixParts.length + Math.max(1, depth)
+    const groups = new Map()
+    const leaves = []
+    for (const token of data.tokens.filter((candidate) => candidate.file === activeDocument.file)) {
+      const parts = token.path.split('.')
+      if (
+        prefixParts.some((part, index) => parts[index] !== part) ||
+        parts.length <= prefixParts.length
+      )
+        continue
+      for (
+        let length = prefixParts.length + 1;
+        length < parts.length && length <= maxDepth;
+        length += 1
+      ) {
+        const path = parts.slice(0, length).join('.')
+        groups.set(path, {
+          name: parts[length - 1],
+          path: `${activeDocument.file}#${path}`,
+          kind: 'token-group',
+          level: length - prefixParts.length - 1,
+          ref: null,
+        })
+      }
+      if (parts.length <= maxDepth)
+        leaves.push({
+          name: parts.at(-1),
+          path: `${activeDocument.file}#${token.path}`,
+          kind: 'token',
+          level: parts.length - prefixParts.length - 1,
+          ref: entityRef(sourceId, 'token', token.id),
+          type: token.type,
+          diagnostics: token.diagnostics.length,
+        })
+    }
+    return {
+      document: activeDocument,
+      items: [...groups.values(), ...leaves].sort(
+        (a, b) => a.level - b.level || a.path.localeCompare(b.path),
+      ),
+    }
+  }
+
+  const prefixParts = filePath.split('/').filter(Boolean)
+  const maxDepth = prefixParts.length + Math.max(1, depth)
+  const folders = new Map()
+  const documents = []
+  for (const candidate of data.documents) {
+    const parts = candidate.file.split('/')
+    if (prefixParts.some((part, index) => parts[index] !== part)) continue
+    for (
+      let length = prefixParts.length + 1;
+      length < parts.length && length <= maxDepth;
+      length += 1
+    ) {
+      const path = parts.slice(0, length).join('/')
+      folders.set(path, {
+        name: parts[length - 1],
+        path,
+        kind: 'folder',
+        level: length - prefixParts.length - 1,
+        ref: null,
+      })
+    }
+    if (parts.length <= maxDepth)
+      documents.push({
+        name: parts.at(-1),
+        path: candidate.file,
+        kind: 'token-document',
+        level: parts.length - prefixParts.length - 1,
+        ref: null,
+        format: candidate.format,
+        modes: candidate.modes,
+        tokens: candidate.tokenCount,
+        diagnostics: candidate.diagnostics.length,
+      })
+  }
+  return {
+    document: null,
+    items: [...folders.values(), ...documents].sort(
+      (a, b) => a.level - b.level || a.path.localeCompare(b.path),
+    ),
+  }
+}
+
+function logicalTokenNavigation(tokens) {
+  const folders = new Map()
+  const leaves = []
+  for (const token of tokens) {
+    const parts = token.path.split('.')
+    for (let length = 1; length < parts.length; length += 1) {
+      const path = parts.slice(0, length).join('.')
+      folders.set(path, {
+        name: parts[length - 1],
+        path,
+        kind: 'folder',
+        level: length - 1,
+      })
+    }
+    leaves.push({
+      id: token.id,
+      name: parts.at(-1),
+      path: token.path,
+      kind: 'token',
+      level: parts.length - 1,
+    })
+  }
+  return [...folders.values(), ...leaves].sort(
+    (a, b) => a.path.localeCompare(b.path) || a.kind.localeCompare(b.kind),
+  )
+}
+
 // A dead ref/index should not be a dead end: suggest the closest existing ids of the same kind
 // (when the ref names one) using the same fuzzy-match primitive `search` already relies on, so a
-// typo like "spacing.5" surfaces "spacing.4" instead of a bare 404.
+// typo like "space.5" surfaces nearby primitives instead of a bare 404.
 function suggestSimilar(catalog, ref) {
   if (!ref) return []
   const [, kind, ...idParts] = ref.split(':')
@@ -744,10 +911,16 @@ export async function getContextEntities({
   return { entities, errors }
 }
 
-// Reuses the exact tree the Directory Panel already renders (`getModuleNavigation`) so an agent
-// can walk canonical folders instead of guessing an id or reading the full flat catalog: no
-// hardcoded taxonomy, no second index — just the same filesystem groups filtered to one path.
-export async function browseSource({ sourceId, kind, path: pathPrefix, depth = 1 } = {}) {
+// The default path view reuses the exact tree the Directory Panel renders. Tokens additionally
+// expose a file view from the same normalized catalog, so agents can narrow filesystem → document
+// → logical group before resolving leaves without creating a second authored index.
+export async function browseSource({
+  sourceId,
+  kind,
+  path: pathPrefix,
+  depth = 1,
+  view = 'paths',
+} = {}) {
   if (!sourceId)
     throw Object.assign(new Error('sourceId is required to browse'), {
       status: 400,
@@ -762,7 +935,22 @@ export async function browseSource({ sourceId, kind, path: pathPrefix, depth = 1
       { status: 400, code: 'BROWSE_KIND_UNSUPPORTED' },
     )
   const source = await getSource(sourceId)
-  const items = (await getModuleNavigation(sourceId, moduleId)) ?? []
+  if (kind === 'token' && view === 'files') {
+    const data = await getModuleEntities(sourceId, 'tokens')
+    const result = tokenFilesystemItems(data, sourceId, pathPrefix, depth)
+    return {
+      source: sourceIdentity(source),
+      kind,
+      view,
+      path: pathPrefix ?? null,
+      document: result.document,
+      items: result.items,
+    }
+  }
+  const items =
+    kind === 'token'
+      ? logicalTokenNavigation((await getModuleEntities(sourceId, 'tokens')).tokens)
+      : ((await getModuleNavigation(sourceId, moduleId)) ?? [])
   const prefixParts = pathPrefix ? pathPrefix.split(/[./]/).filter(Boolean) : []
   const baseLevel = prefixParts.length
   const scoped = items.filter((item) => {
@@ -775,6 +963,7 @@ export async function browseSource({ sourceId, kind, path: pathPrefix, depth = 1
   return {
     source: sourceIdentity(source),
     kind,
+    view: kind === 'token' ? 'paths' : null,
     path: pathPrefix ?? null,
     items: scoped.map((item) => ({
       name: item.name,

@@ -22,6 +22,17 @@ export const stories = [
     })),
   },
   {
+    id: 'category-tones',
+    kind: 'variant',
+    name: 'Category tones',
+    description:
+      'Four non-status tones distinguish peer metadata without implying success, warning, or failure.',
+    examples: ['teal', 'cyan', 'violet', 'orange'].map((color) => ({
+      label: color,
+      props: { children: color, color, variant: 'soft' },
+    })),
+  },
+  {
     id: 'visual-variants',
     kind: 'variant',
     name: 'Visual variants',

@@ -1,5 +1,12 @@
 import './ModuleView.scss'
-import { isValidElement, useEffect, useState, type CSSProperties, type ReactNode } from 'react'
+import {
+  isValidElement,
+  useEffect,
+  useRef,
+  useState,
+  type CSSProperties,
+  type ReactNode,
+} from 'react'
 import ReactMarkdown, { type Components } from 'react-markdown'
 import { useDesignLabI18n } from '@design-lab/system/i18n'
 import {
@@ -11,6 +18,7 @@ import {
   ColorCard,
   ComponentCard,
   ComponentReferencePanel,
+  ComponentReferenceFiles,
   ComponentThumbnail,
   ModuleHeader,
   ModulePage,
@@ -25,25 +33,57 @@ import {
   type ChipColor,
   type TableColumn,
 } from '@design-lab/system/components'
-import { CardsViewIcon, ListViewIcon } from '@design-lab/system/icons'
-import type { ModuleData } from '../../api/projects'
+import { CardsViewIcon, CopyIcon, ListViewIcon } from '@design-lab/system/icons'
 import {
-  firstStoryExample,
+  getComponentHandoff,
+  type ComponentHandoff,
+  type ModuleData,
+} from '../../api/projects'
+import type { PlaygroundControls, PlaygroundValues } from '@design-lab/system/playground'
+import { TypedPlaygroundControls } from '../../components/TypedPlaygroundControls/TypedPlaygroundControls'
+import {
+  playgroundModuleFor,
   previewComponentFor,
+  storySourceFor,
   storyModuleFor,
   type ComponentEntity,
+  type StoryDefinition,
+  type StoryExample,
+  type StoryModule,
 } from '../../componentRuntime'
 import { wireframeRendererFor } from '../../wireframes/registry'
 import { pageRendererFor } from '../../pages/registry'
 import { designSystemModeStyle } from '../../designSystemMode'
 import { buildPageSitemap } from '../../lib/pageSitemap'
+import { componentPresentation } from '../../componentPresentation'
 
 type PageEntity = Extract<ModuleData, { kind: 'pages' }>['pages'][number]
+type ComponentFamily = Extract<ModuleData, { kind: 'components' }>['families'][number]
 type CatalogLayout = 'cards' | 'list'
 const pageStatusColors: Record<PageEntity['status'], ChipColor> = {
   draft: 'warning',
   review: 'accent',
   approved: 'success',
+}
+
+async function copyPlainText(value: string) {
+  if (navigator.clipboard?.writeText && window.isSecureContext)
+    try {
+      await navigator.clipboard.writeText(value)
+      return true
+    } catch {
+      // Fall through to the selection-based copy path.
+    }
+  const textarea = document.createElement('textarea')
+  textarea.value = value
+  textarea.setAttribute('readonly', '')
+  textarea.style.position = 'fixed'
+  textarea.style.opacity = '0'
+  document.body.append(textarea)
+  textarea.select()
+  const copied = document.execCommand('copy')
+  textarea.remove()
+  return copied
 }
 
 const componentListColumns: TableColumn<ComponentEntity>[] = [
@@ -57,14 +97,21 @@ const componentListColumns: TableColumn<ComponentEntity>[] = [
       </span>
     ),
     sortValue: (component) => component.name,
-    width: '42%',
+    width: '34%',
+  },
+  {
+    id: 'technology',
+    header: 'Technology',
+    cell: (component) => `${component.technology} · ${component.platform}`,
+    sortValue: (component) => `${component.platform}:${component.technology}`,
+    width: '18%',
   },
   {
     id: 'category',
     header: 'Category',
     cell: (component) => component.directory.split('/').slice(0, -1).join(' / ') || 'Root',
     sortValue: (component) => component.directory,
-    width: '30%',
+    width: '24%',
   },
   {
     id: 'status',
@@ -109,7 +156,8 @@ const markdownComponents: Components = {
 // on `component.id` previously lived here and imported real @design-lab/system production
 // components directly; it broke as soon as another Library shipped a same-named component
 // (Klyp's own `button`/`input`/`checkbox`/`slider`/... collided) because ids are unique only
-// within one Library, not across sources. See `storyModuleFor` / `firstStoryExample` below.
+// within one Library, not across sources. Story and Playground modules now resolve independently
+// through the shared filesystem-keyed runtime.
 function Specimen({
   label,
   children,
@@ -127,13 +175,33 @@ function Specimen({
   )
 }
 
-function DiscoveredComponentStories({ component }: { component: ComponentEntity }) {
+function DiscoveredComponentStories({
+  component,
+  canvasMode,
+  canvasColor,
+  onCanvasModeChange,
+  onCanvasColorChange,
+}: {
+  component: ComponentEntity
+  canvasMode: CanvasMode
+  canvasColor: string
+  onCanvasModeChange: (mode: CanvasMode) => void
+  onCanvasColorChange: (color: string) => void
+}) {
   const module = storyModuleFor(component)
   if (!module?.stories?.length || !module.renderStoryExample) return null
 
+  const renderedStories = module.stories.map((story) => ({
+    story,
+    examples: (story.examples ?? []).map((example) => ({
+      example,
+      node: module.renderStoryExample?.(example, story),
+    })),
+  }))
+
   return (
     <div className="focused-stories">
-      {module.stories.map((story) => (
+      {renderedStories.map(({ story, examples }) => (
         <StoryCanvas
           key={story.id}
           title={story.name}
@@ -141,11 +209,23 @@ function DiscoveredComponentStories({ component }: { component: ComponentEntity 
           meta={[story.kind ?? 'context', story.interactive && 'interactive']
             .filter(Boolean)
             .join(' · ')}
+          canvasMode={canvasMode}
+          canvasColor={canvasColor}
+          onCanvasModeChange={onCanvasModeChange}
+          onCanvasColorChange={onCanvasColorChange}
+          source={
+            storySourceFor(
+              component,
+              story,
+              examples.map(({ node }) => node),
+              module.__designLabStoryImports ?? [],
+            ) ?? undefined
+          }
         >
           <div className="story-comparison">
-            {(story.examples ?? []).map((example, index) => (
+            {examples.map(({ example, node }, index) => (
               <Specimen key={`${story.id}:${example.label}:${index}`} label={example.label}>
-                {module.renderStoryExample?.(example, story)}
+                {node}
               </Specimen>
             ))}
           </div>
@@ -155,8 +235,162 @@ function DiscoveredComponentStories({ component }: { component: ComponentEntity 
   )
 }
 
+function productionPlaygroundSetup(component: ComponentEntity, seed: StoryExample) {
+  const controls: PlaygroundControls = {}
+  const values: PlaygroundValues = {}
+  for (const [name, definition] of Object.entries(component.props ?? {})) {
+    const seedValue = seed.props[name]
+    const fallback =
+      seedValue ??
+      definition.default ??
+      (name === 'label' ? seed.label : undefined) ??
+      definition.values?.[0]
+    if (definition.values?.length) {
+      controls[name] = {
+        kind: 'enum',
+        label: name,
+        defaultValue: String(fallback ?? definition.values[0]),
+        options: definition.values.map((value) => ({ value, label: value })),
+      }
+      values[name] = controls[name].defaultValue
+      continue
+    }
+    if (definition.type.toLowerCase() === 'boolean') {
+      controls[name] = {
+        kind: 'boolean',
+        label: name,
+        defaultValue: Boolean(fallback),
+      }
+      values[name] = controls[name].defaultValue
+      continue
+    }
+    if (typeof fallback === 'string') {
+      controls[name] = {
+        kind: 'string',
+        label: name,
+        defaultValue: fallback,
+      }
+      values[name] = fallback
+    }
+  }
+  return { controls, values }
+}
+
+function ProductionComponentPlayground({
+  component,
+  canvasMode,
+  canvasColor,
+  onCanvasModeChange,
+  onCanvasColorChange,
+  productMode,
+  themeVariables,
+}: {
+  component: ComponentEntity
+  canvasMode: CanvasMode
+  canvasColor: string
+  onCanvasModeChange: (mode: CanvasMode) => void
+  onCanvasColorChange: (color: string) => void
+  productMode: string
+  themeVariables: Record<string, Record<string, string | number>>
+}) {
+  const { t } = useDesignLabI18n()
+  const module = storyModuleFor(component)
+  const story = module?.stories?.find((item) => item.examples?.length)
+  const seed = story?.examples?.[0]
+  const setup = seed ? productionPlaygroundSetup(component, seed) : null
+  if (
+    !module?.renderStoryExample ||
+    !story ||
+    !seed ||
+    !setup ||
+    !Object.keys(setup.controls).length
+  )
+    return (
+      <div className="workbench-playground-empty">
+        <span>{t('workbench.componentPlayground')}</span>
+        <p>{t('workbench.noEditableProps')}</p>
+      </div>
+    )
+
+  return (
+    <LoadedProductionComponentPlayground
+      key={`${component.sourceId}:${component.id}`}
+      component={component}
+      module={module}
+      story={story}
+      seed={seed}
+      setup={setup}
+      canvasMode={canvasMode}
+      canvasColor={canvasColor}
+      onCanvasModeChange={onCanvasModeChange}
+      onCanvasColorChange={onCanvasColorChange}
+      productMode={productMode}
+      themeVariables={themeVariables}
+    />
+  )
+}
+
+function LoadedProductionComponentPlayground({
+  component,
+  module,
+  story,
+  seed,
+  setup,
+  canvasMode,
+  canvasColor,
+  onCanvasModeChange,
+  onCanvasColorChange,
+  productMode,
+  themeVariables,
+}: {
+  component: ComponentEntity
+  module: StoryModule
+  story: StoryDefinition
+  seed: StoryExample
+  setup: ReturnType<typeof productionPlaygroundSetup>
+  canvasMode: CanvasMode
+  canvasColor: string
+  onCanvasModeChange: (mode: CanvasMode) => void
+  onCanvasColorChange: (color: string) => void
+  productMode: string
+  themeVariables: Record<string, Record<string, string | number>>
+}) {
+  const { t } = useDesignLabI18n()
+  const [values, setValues] = useState(setup.values)
+  const specimenStyle = designSystemModeStyle(themeVariables, productMode)
+  const exampleProps = { ...seed.props, ...values }
+  const exampleLabel = String(values.label ?? exampleProps.children ?? seed.label)
+
+  return (
+    <WorkbenchPlayground
+      mode={canvasMode}
+      color={canvasColor}
+      onModeChange={onCanvasModeChange}
+      onColorChange={onCanvasColorChange}
+      controlsPosition="end"
+      label={t('workbench.componentPlayground')}
+      controls={
+        <div className="inline-playground-controls">
+          <TypedPlaygroundControls
+            component={component}
+            controls={setup.controls}
+            values={values}
+            onChange={(key, value) => setValues((current) => ({ ...current, [key]: value }))}
+            heading={t('workbench.props')}
+          />
+        </div>
+      }
+    >
+      <div className="inline-playground-specimen" style={specimenStyle}>
+        {module.renderStoryExample?.({ ...seed, label: exampleLabel, props: exampleProps }, story)}
+      </div>
+    </WorkbenchPlayground>
+  )
+}
+
 function ComponentWorkbench({
   component,
+  family,
   onBack,
   onOpenPlayground,
   onSelectComponent,
@@ -164,8 +398,11 @@ function ComponentWorkbench({
   canvasColor,
   onCanvasModeChange,
   onCanvasColorChange,
+  productMode,
+  themeVariables,
 }: {
   component: ComponentEntity
+  family?: ComponentFamily
   onBack: () => void
   onOpenPlayground: () => void
   onSelectComponent: (id: string) => void
@@ -173,10 +410,15 @@ function ComponentWorkbench({
   canvasColor: string
   onCanvasModeChange: (mode: CanvasMode) => void
   onCanvasColorChange: (color: string) => void
+  productMode: string
+  themeVariables: Record<string, Record<string, string | number>>
 }) {
   const { t } = useDesignLabI18n()
   const canvasStyle = { '--canvas-solid': canvasColor } as CSSProperties
-  const heroSpecimen = firstStoryExample(component)
+  const playgroundModule = playgroundModuleFor(component)
+  const hasWireframePlayground = Boolean(
+    playgroundModule && Object.keys(playgroundModule.playground.controls).length,
+  )
 
   return (
     <div className={`workbench workbench--canvas-${canvasMode}`} style={canvasStyle}>
@@ -188,17 +430,21 @@ function ComponentWorkbench({
           onBack={onBack}
           meta={component.entry}
           actions={
-            component.playground ? (
+            hasWireframePlayground ? (
               <Button type="button" variant="primary" size="small" onClick={onOpenPlayground}>
-                Open Playground
+                {t('workbench.openWireframePlayground')}
               </Button>
             ) : undefined
           }
         />
       </div>
+      <ComponentFamilyNavigation
+        family={family}
+        activeId={component.id}
+        onSelect={onSelectComponent}
+      />
       <ComponentReferencePanel
         importStatement={component.import?.statement ?? ''}
-        files={component.files}
         uses={component.relations.uses}
         usedBy={component.relations.usedBy}
         examplesUse={component.relations.examplesUse}
@@ -206,22 +452,23 @@ function ComponentWorkbench({
         diagnostics={component.relations.diagnostics}
         onSelectRelation={(relation) => onSelectComponent(relation.id)}
       />
-      <WorkbenchPlayground
-        mode={canvasMode}
-        color={canvasColor}
-        onModeChange={onCanvasModeChange}
-        onColorChange={onCanvasColorChange}
-        label={t('workbench.playground')}
-      >
-        {heroSpecimen ?? (
-          <span className="workbench-placeholder">
-            {component.name}
-            <small>{t('workbench.controlsMissing')}</small>
-          </span>
-        )}
-      </WorkbenchPlayground>
+      <ProductionComponentPlayground
+        component={component}
+        canvasMode={canvasMode}
+        canvasColor={canvasColor}
+        onCanvasModeChange={onCanvasModeChange}
+        onCanvasColorChange={onCanvasColorChange}
+        productMode={productMode}
+        themeVariables={themeVariables}
+      />
       <section className="workbench__rail">
-        <DiscoveredComponentStories component={component} />
+        <DiscoveredComponentStories
+          component={component}
+          canvasMode={canvasMode}
+          canvasColor={canvasColor}
+          onCanvasModeChange={onCanvasModeChange}
+          onCanvasColorChange={onCanvasColorChange}
+        />
         {component.props && (
           <div className="workbench-section">
             <span>{t('workbench.propsApi')}</span>
@@ -264,8 +511,39 @@ function ComponentWorkbench({
             </div>
           </div>
         )}
+        <ComponentReferenceFiles files={component.files} />
       </section>
     </div>
+  )
+}
+
+function ComponentFamilyNavigation({
+  family,
+  activeId,
+  onSelect,
+}: {
+  family?: ComponentFamily
+  activeId: string
+  onSelect: (id: string) => void
+}) {
+  if (!family || family.implementations.length < 2) return null
+  return (
+    <nav className="component-family-navigation" aria-label={`${family.name} implementations`}>
+      <span>{family.name}</span>
+      <div>
+        {family.implementations.map((implementation) => (
+          <Button
+            key={implementation.id}
+            type="button"
+            variant={implementation.id === activeId ? 'primary' : 'ghost'}
+            size="small"
+            onClick={() => onSelect(implementation.id)}
+          >
+            {implementation.platform} · {implementation.technology}
+          </Button>
+        ))}
+      </div>
+    </nav>
   )
 }
 
@@ -392,7 +670,7 @@ function Catalog({
                         key={component.id}
                         name={component.name}
                         entry={component.entry ?? ''}
-                        meta={`${component.variants.length} variants`}
+                        meta={`${component.technology} · ${component.variants.length} variants`}
                         status={component.status}
                         preview={
                           <DiscoveredComponentPreview component={component} sourceId={sourceId} />
@@ -429,14 +707,43 @@ function Catalog({
 
 function ComponentConceptOverview({
   component,
+  sourceId,
+  family,
   onBack,
   onOpenPlayground,
+  onSelectComponent,
 }: {
   component: ComponentEntity
+  sourceId: string
+  family?: ComponentFamily
   onBack: () => void
   onOpenPlayground: () => void
+  onSelectComponent: (id: string) => void
 }) {
+  const { t } = useDesignLabI18n()
   const status = component.status ?? 'wireframe'
+  const module = playgroundModuleFor(component)
+  const presentation = componentPresentation(component)
+  const hasPlaygroundControls = Boolean(module && Object.keys(module.playground.controls).length)
+  const isWireframeConcept = component.status === 'wireframe' && Boolean(component.playground)
+  const [handoff, setHandoff] = useState<ComponentHandoff | null>(null)
+  const [handoffError, setHandoffError] = useState<string | null>(null)
+  useEffect(() => {
+    let cancelled = false
+    setHandoff(null)
+    setHandoffError(null)
+    if (!component.capabilities.includes('handoff')) return () => undefined
+    getComponentHandoff(sourceId, component.id)
+      .then((result) => {
+        if (!cancelled) setHandoff(result)
+      })
+      .catch((error: Error) => {
+        if (!cancelled) setHandoffError(error.message)
+      })
+    return () => {
+      cancelled = true
+    }
+  }, [component.id, component.capabilities, sourceId])
   return (
     <div className="workbench">
       <div className="workbench__top">
@@ -445,11 +752,11 @@ function ComponentConceptOverview({
           title={component.name}
           backLabel="Components"
           onBack={onBack}
-          meta="Wireframe-only component"
+          meta={`${component.technology} · ${component.platform}`}
           actions={
-            component.playground ? (
+            hasPlaygroundControls ? (
               <Button type="button" variant="primary" onClick={onOpenPlayground}>
-                Open Playground
+                {t('workbench.openWireframePlayground')}
               </Button>
             ) : (
               <Chip color="warning" variant="soft">
@@ -459,14 +766,39 @@ function ComponentConceptOverview({
           }
         />
       </div>
+      <ComponentFamilyNavigation
+        family={family}
+        activeId={component.id}
+        onSelect={onSelectComponent}
+      />
+      {presentation.kind === 'external' && (
+        <section className="component-external-preview" aria-label={`${component.name} live preview`}>
+          <iframe
+            src={presentation.url}
+            title={`${component.name} live preview`}
+            sandbox="allow-forms allow-modals allow-popups allow-scripts"
+          />
+        </section>
+      )}
       <section className="workbench__rail">
         <div className="workbench-section">
-          <span>Lifecycle</span>
+          <span>Implementation</span>
           <div className="workbench-markdown">
             <p>
-              This component is intentionally discoverable before a production entry exists. Its
-              typed Playground is the review surface for choosing a direction.
+              {isWireframeConcept
+                ? 'This Component is intentionally discoverable before a production entry exists. Its typed Playground is the review surface for choosing a direction.'
+                : `Design Lab discovered this ${component.technology} implementation through ${component.discovery?.evidence ?? component.adapter}. Richer Workbench tools appear only when its adapter provides them.`}
             </p>
+            <p>
+              Adapter: <code>{component.adapter}</code>
+            </p>
+            <div className="component-capability-list" aria-label="Available capabilities">
+              {component.capabilities.map((capability) => (
+                <Chip key={capability} variant="soft">
+                  {capability}
+                </Chip>
+              ))}
+            </div>
           </div>
         </div>
         <div className="workbench-section">
@@ -477,6 +809,24 @@ function ComponentConceptOverview({
             </ReactMarkdown>
           </div>
         </div>
+        {handoff && (
+          <div className="workbench-section">
+            <span>Developer handoff · {handoff.path}</span>
+            <CodeBlock code={handoff.source} language={handoff.language} />
+            {handoff.warnings.map((warning) => (
+              <p key={warning} className="component-handoff-warning">
+                {warning}
+              </p>
+            ))}
+          </div>
+        )}
+        {handoffError && (
+          <div className="workbench-section">
+            <span>Developer handoff</span>
+            <p className="component-handoff-warning">{handoffError}</p>
+          </div>
+        )}
+        <ComponentReferenceFiles files={component.files} />
       </section>
     </div>
   )
@@ -575,11 +925,25 @@ export function ModuleView({
   const { t } = useDesignLabI18n()
   const [pagesCatalogView, setPagesCatalogView] = useState<'catalog' | 'sitemap'>('catalog')
   const [catalogLayout, setCatalogLayout] = useState<CatalogLayout>('cards')
+  const [copiedTokenPath, setCopiedTokenPath] = useState<string | null>(null)
+  const copiedTokenTimeout = useRef<number | null>(null)
   const modes = data && 'modes' in data ? data.modes : []
   const [previewMode, setPreviewMode] = useState<string>(interfaceTheme)
   useEffect(() => {
     if (modes.length && !modes.includes(previewMode)) setPreviewMode(modes[0])
   }, [modes.join('|'), previewMode])
+  useEffect(
+    () => () => {
+      if (copiedTokenTimeout.current !== null) window.clearTimeout(copiedTokenTimeout.current)
+    },
+    [],
+  )
+  const copyTokenPath = async (path: string) => {
+    if (!(await copyPlainText(path))) return
+    setCopiedTokenPath(path)
+    if (copiedTokenTimeout.current !== null) window.clearTimeout(copiedTokenTimeout.current)
+    copiedTokenTimeout.current = window.setTimeout(() => setCopiedTokenPath(null), 1600)
+  }
   if (loading) return <div className="module-state">{t('status.loading')}</div>
   if (!data) return <div className="module-state">{t('status.unavailable')}</div>
   const modeActions =
@@ -589,34 +953,60 @@ export function ModuleView({
         options={modes.map((mode) => ({ value: mode, label: mode }))}
         value={previewMode}
         onChange={setPreviewMode}
+        overflow="scroll"
       />
     ) : undefined
   if (data.kind === 'tokens') {
-    const prefix = selectedFolderPath === '__all__' ? '' : selectedFolderPath.replaceAll('/', '.')
+    const prefix = selectedFolderPath === '__all__' ? '' : selectedFolderPath
     const tokens = prefix
-      ? data.tokens.filter((token) => token.path === prefix || token.path.startsWith(`${prefix}.`))
+      ? data.tokens.filter((token) => {
+          const logicalPath = `by-token/${token.path.replaceAll('.', '/')}`
+          const filePath = `by-file/${token.file}/${token.path.replaceAll('.', '/')}`
+          const navigationPath = prefix.startsWith('by-file/') ? filePath : logicalPath
+          return navigationPath === prefix || navigationPath.startsWith(`${prefix}/`)
+        })
       : data.tokens
     const title = prefix ? (selectedFolderPath.split('/').at(-1) ?? 'Tokens') : 'Tokens'
     const tokenRows = tokens.map((token) => ({
-      id: token.id,
+      id: `${token.id}::${token.file}`,
       path: token.path,
+      file: token.file,
       type: token.type,
       value: String(token.values[previewMode] ?? token.value),
+      description: token.description,
     }))
     const tokenColumns: TableColumn<(typeof tokenRows)[number]>[] = [
       {
         id: 'path',
         header: 'Token',
-        cell: (token) => <code className="token-table-path">{token.path}</code>,
+        cell: (token) => {
+          const copied = copiedTokenPath === token.path
+          return (
+            <span className="token-table-identity">
+              <button
+                className={`token-table-copy${copied ? ' is-copied' : ''}`}
+                type="button"
+                aria-label={`${t(copied ? 'tokens.copied' : 'tokens.copy')}: ${token.path}`}
+                title={t(copied ? 'tokens.copied' : 'tokens.copy')}
+                onClick={() => void copyTokenPath(token.path)}
+              >
+                <CopyIcon size={11} aria-hidden="true" />
+              </button>
+              <code className="token-table-path">{token.path}</code>
+            </span>
+          )
+        },
         sortValue: (token) => token.path,
-        width: '46%',
+        width: '28%',
+        minWidth: 180,
       },
       {
         id: 'type',
         header: 'Type',
         cell: (token) => <span className="token-table-type">{token.type}</span>,
         sortValue: (token) => token.type,
-        width: '18%',
+        width: '12%',
+        minWidth: 96,
       },
       {
         id: 'value',
@@ -634,6 +1024,28 @@ export function ModuleView({
           </span>
         ),
         sortValue: (token) => token.value,
+        width: '18%',
+        minWidth: 150,
+      },
+      {
+        id: 'file',
+        header: 'Stored in',
+        cell: (token) => <code className="token-table-source">{token.file}</code>,
+        sortValue: (token) => token.file,
+        width: '20%',
+        minWidth: 160,
+      },
+      {
+        id: 'description',
+        header: 'Comment',
+        cell: (token) => (
+          <span className="token-table-comment" title={token.description ?? undefined}>
+            {token.description ?? '—'}
+          </span>
+        ),
+        sortValue: (token) => token.description ?? '',
+        width: '22%',
+        minWidth: 180,
       },
     ]
     return (
@@ -645,15 +1057,21 @@ export function ModuleView({
           actions={modeActions}
         />
         {tokens.length ? (
-          <Table
-            rows={tokenRows}
-            columns={tokenColumns}
-            getRowId={(token) => token.id}
-            ariaLabel="Design tokens"
-            defaultSort={{ columnId: 'path', direction: 'ascending' }}
-            selectedRowId={selectedEntityId}
-            onRowSelect={(token) => onSelectEntity(token.id)}
-          />
+          <>
+            <span className="token-table-copy-status" role="status" aria-live="polite">
+              {copiedTokenPath ? `${t('tokens.copied')}: ${copiedTokenPath}` : ''}
+            </span>
+            <Table
+              rows={tokenRows}
+              columns={tokenColumns}
+              getRowId={(token) => token.id}
+              ariaLabel="Design tokens"
+              striped
+              defaultSort={{ columnId: 'path', direction: 'ascending' }}
+              selectedRowId={selectedEntityId}
+              onRowSelect={(token) => onSelectEntity(token.id)}
+            />
+          </>
         ) : (
           <div className="module-filter-empty">
             <strong>No tokens in this group</strong>
@@ -962,9 +1380,14 @@ export function ModuleView({
   }
   if (data.kind === 'components') {
     const selected = data.components.find((item) => item.id === selectedEntityId)
-    return selected?.entry ? (
+    const selectedFamily = selected?.familyId
+      ? data.families.find((family) => family.id === selected.familyId)
+      : undefined
+    const presentation = selected ? componentPresentation(selected) : null
+    return selected && presentation?.kind === 'react' ? (
       <ComponentWorkbench
         component={selected}
+        family={selectedFamily}
         onBack={onBack}
         onOpenPlayground={onOpenPlayground}
         onSelectComponent={onSelectEntity}
@@ -972,12 +1395,17 @@ export function ModuleView({
         canvasColor={canvasColor}
         onCanvasModeChange={onCanvasModeChange}
         onCanvasColorChange={onCanvasColorChange}
+        productMode={previewMode}
+        themeVariables={data.themeVariables}
       />
     ) : selected ? (
       <ComponentConceptOverview
         component={selected}
+        sourceId={sourceId}
+        family={selectedFamily}
         onBack={onBack}
         onOpenPlayground={onOpenPlayground}
+        onSelectComponent={onSelectEntity}
       />
     ) : (
       <Catalog

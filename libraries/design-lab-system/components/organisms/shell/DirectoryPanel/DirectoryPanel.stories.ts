@@ -1,4 +1,5 @@
 import { createElement } from 'react'
+import { TabSwitcher } from '../../../molecules/inputs/TabSwitcher/TabSwitcher'
 import type { StoryExample } from '../../../storyContract'
 import { DirectoryPanel, type DirectoryTreeItem } from './DirectoryPanel'
 
@@ -52,11 +53,42 @@ const denseTree: DirectoryTreeItem[] = [
   })),
 ]
 
+const tokenTree: DirectoryTreeItem[] = [
+  { name: 'All', path: '__all__', kind: 'folder', level: 0, virtual: true },
+  { name: 'semantic', path: 'by-file/semantic', kind: 'folder', level: 0 },
+  {
+    name: 'core.tokens.json',
+    path: 'by-file/semantic/core.tokens.json',
+    kind: 'token-document',
+    level: 1,
+  },
+  {
+    name: 'color',
+    path: 'by-file/semantic/core.tokens.json/color',
+    kind: 'token-group',
+    level: 2,
+  },
+  {
+    name: 'accent',
+    path: 'by-file/semantic/core.tokens.json/color/accent',
+    kind: 'token-group',
+    level: 3,
+  },
+  {
+    id: 'color.accent.primary',
+    name: 'primary',
+    path: 'by-file/semantic/core.tokens.json/color/accent/primary',
+    kind: 'token',
+    level: 4,
+  },
+]
+
 export function renderStoryExample(example: StoryExample) {
   const props = example.props
   const state = String(props.state ?? 'ready')
   const dense = props.fixture === 'dense-components'
-  const tree = state === 'empty' ? [] : dense ? denseTree : baseTree
+  const tokenFixture = props.fixture === 'tokens'
+  const tree = state === 'empty' ? [] : tokenFixture ? tokenTree : dense ? denseTree : baseTree
 
   return createElement(DirectoryPanel, {
     isResizing: state === 'resizing',
@@ -67,7 +99,7 @@ export function renderStoryExample(example: StoryExample) {
     onResizeKeyDown: () => undefined,
     projects: sources,
     activeProject: sources[0],
-    activeModuleLabel: 'Components',
+    activeModuleLabel: tokenFixture ? 'Tokens' : 'Components',
     tree,
     treeLoading: state === 'loading',
     onProjectChange: () => undefined,
@@ -79,10 +111,31 @@ export function renderStoryExample(example: StoryExample) {
     actionsEnabled: props.actionsEnabled !== false,
     defaultCollapsed: props.defaultCollapsed !== false,
     persistItemColors: false,
+    viewControl: tokenFixture
+      ? createElement(TabSwitcher, {
+          ariaLabel: 'Token navigation view',
+          size: 'small',
+          overflow: 'wrap',
+          options: [
+            { value: 'tokens', label: 'Tokens' },
+            { value: 'files', label: 'Files' },
+          ],
+          value: 'files',
+          onChange: () => undefined,
+        })
+      : undefined,
   })
 }
 
 export const stories = [
+  {
+    id: 'typed-token-hierarchy',
+    kind: 'integration',
+    name: 'Typed token hierarchy',
+    description:
+      'Filesystem folders, token documents, JSON groups, and token leaves remain visually and semantically distinct.',
+    examples: [{ label: 'Token files', props: { fixture: 'tokens' } }],
+  },
   {
     id: 'content-states',
     kind: 'state',

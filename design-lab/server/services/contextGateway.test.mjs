@@ -1,6 +1,11 @@
 import test from 'node:test'
 import assert from 'node:assert/strict'
-import { buildContextCatalog, getContextEntity, searchContext } from './contextGateway.mjs'
+import {
+  browseSource,
+  buildContextCatalog,
+  getContextEntity,
+  searchContext,
+} from './contextGateway.mjs'
 
 test('description-first search ranks authored component intent without revealing its name', async () => {
   const result = await searchContext({
@@ -55,8 +60,16 @@ test('default entities provide authored semantic context without separate regist
     true,
   )
   assert.equal(
-    byKind.token.every((entity) => entity.details.description),
+    byKind.token
+      .filter((entity) => !entity.details.file.startsWith('primitives/'))
+      .every((entity) => entity.details.description),
     true,
+  )
+  assert.ok(
+    byKind.token.some(
+      (entity) =>
+        entity.details.file === 'primitives/space.tokens.json' && !entity.details.description,
+    ),
   )
   assert.equal(
     byKind.asset.every(
@@ -100,7 +113,7 @@ test('token, asset, and font intent search use authored semantic metadata', asyn
     limit: 1,
   })
 
-  assert.equal(token.results[0].ref, 'design-lab-system:token:spacing.4')
+  assert.equal(token.results[0].ref, 'design-lab-system:token:layout.gap.section')
   assert.equal(asset.results[0].ref, 'design-lab-system:asset:icons/ArrowLeftIcon.tsx')
   assert.equal(font.results[0].ref, 'design-lab-system:font:interface-sans')
 
@@ -111,6 +124,55 @@ test('token, asset, and font intent search use authored semantic metadata', asyn
   assert.equal(
     icon.details.import.statement,
     "import { ArrowLeftIcon } from '@design-lab/system/icons'",
+  )
+})
+
+test('token retrieval can browse files before groups and scope search to one document subtree', async () => {
+  const files = await browseSource({
+    sourceId: 'design-lab-system',
+    kind: 'token',
+    view: 'files',
+  })
+  assert.equal(files.view, 'files')
+  assert.ok(files.items.some((item) => item.kind === 'folder' && item.path === 'components'))
+  assert.ok(files.items.some((item) => item.kind === 'folder' && item.path === 'primitives'))
+  assert.ok(files.items.some((item) => item.kind === 'folder' && item.path === 'semantic'))
+
+  const documents = await browseSource({
+    sourceId: 'design-lab-system',
+    kind: 'token',
+    view: 'files',
+    path: 'semantic',
+  })
+  const layoutDocument = documents.items.find((item) => item.path === 'semantic/layout.tokens.json')
+  assert.equal(layoutDocument.name, 'layout.tokens.json')
+  assert.equal(layoutDocument.kind, 'token-document')
+  assert.equal(layoutDocument.format, 'design-lab')
+  assert.deepEqual(layoutDocument.modes, [])
+  assert.ok(layoutDocument.tokens > 0)
+  assert.equal(layoutDocument.diagnostics, 0)
+
+  const groups = await browseSource({
+    sourceId: 'design-lab-system',
+    kind: 'token',
+    view: 'files',
+    path: 'semantic/layout.tokens.json',
+  })
+  assert.equal(groups.document.file, 'semantic/layout.tokens.json')
+  assert.ok(groups.items.some((item) => item.kind === 'token-group' && item.name === 'layout'))
+
+  const scoped = await searchContext({
+    query: 'space between distinct interface sections',
+    sourceId: 'design-lab-system',
+    kinds: ['token'],
+    within: 'semantic/layout.tokens.json#layout.gap',
+    limit: 3,
+  })
+  assert.equal(scoped.within, 'semantic/layout.tokens.json#layout.gap')
+  assert.equal(scoped.results[0].ref, 'design-lab-system:token:layout.gap.section')
+  assert.equal(
+    scoped.results.every((item) => item.ref.includes(':token:layout.gap.')),
+    true,
   )
 })
 

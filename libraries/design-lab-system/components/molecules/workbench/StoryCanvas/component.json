@@ -37,6 +37,21 @@
     "meta": {
       "type": "ReactNode",
       "slot": true
+    },
+    "canvasMode": {
+      "type": "CanvasMode"
+    },
+    "canvasColor": {
+      "type": "string"
+    },
+    "onCanvasModeChange": {
+      "type": "(mode: CanvasMode) => void"
+    },
+    "onCanvasColorChange": {
+      "type": "(color: string) => void"
+    },
+    "source": {
+      "type": "string"
     }
   }
 }

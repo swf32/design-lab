@@ -1,42 +1,39 @@
 const previewStyles = String.raw`
 .wireframe-screen-preview-specimen {
-  width: min(210px, 100%);
+  width: min(228px, 100%);
   aspect-ratio: 16 / 9;
-  border: 1px solid var(--color-border-default);
-  border-radius: var(--radius-small);
-  background: var(--color-surface-primary);
+  background: var(--color-canvas);
   overflow: hidden;
-  display: grid;
-  grid-template-rows: 18px 1fr;
+  position: relative;
+  box-shadow: inset 0 0 0 1px var(--color-border-subtle);
 }
-.wireframe-screen-preview-specimen::before {
-  border-bottom: 1px solid var(--color-border-subtle);
-  background:
-    linear-gradient(90deg, var(--color-text-disabled) 28px, transparent 28px) var(--spacing-2) 50% /
-      auto 3px no-repeat,
-    var(--color-surface-secondary);
-  content: '';
+
+.wireframe-screen-preview-specimen__viewport {
+  position: absolute;
+  inset: 10% 8%;
+  overflow: hidden;
+  border-radius: 2px;
+  box-shadow: inset 0 0 0 1px var(--color-border-subtle);
 }
-.wireframe-screen-preview-specimen::after {
-  margin: 12px;
-  border-radius: 4px;
+
+.wireframe-screen-preview-specimen__screen {
+  width: 100%;
+  height: 100%;
   background:
     linear-gradient(
-        90deg,
-        var(--color-surface-raised) 0 30%,
-        transparent 30% 34%,
-        var(--color-accent-primary) 34% 66%,
-        transparent 66% 70%,
-        var(--color-surface-raised) 70% 100%
+        var(--color-text-disabled) 0 4px,
+        transparent 4px 10px,
+        var(--color-border-default) 10px 14px,
+        transparent 14px
       )
-      0 68% / 100% 34px no-repeat,
-    linear-gradient(
-      var(--color-text-disabled) 18%,
-      transparent 18% 34%,
-      var(--color-border-default) 34% 40%,
-      transparent 40%
-    );
-  content: '';
+      10% 16% / 46% 18px no-repeat,
+    linear-gradient(var(--color-surface-secondary), var(--color-surface-secondary)) 10% 36% / 80%
+      24% no-repeat,
+    linear-gradient(var(--color-surface-secondary), var(--color-surface-secondary)) 10% 66% / 36%
+      18% no-repeat,
+    linear-gradient(var(--color-surface-secondary), var(--color-surface-secondary)) 54% 66% / 36%
+      18% no-repeat,
+    var(--color-surface-primary);
 }
 `
 
@@ -44,6 +41,9 @@ export function WireframeScreenPreviewPreview() {
   return (
     <div className="wireframe-screen-preview-specimen" aria-hidden="true">
       <style>{previewStyles}</style>
+      <div className="wireframe-screen-preview-specimen__viewport">
+        <div className="wireframe-screen-preview-specimen__screen" />
+      </div>
     </div>
   )
 }

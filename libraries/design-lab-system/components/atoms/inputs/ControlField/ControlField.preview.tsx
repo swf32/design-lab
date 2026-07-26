@@ -12,7 +12,7 @@ const previewStyles = String.raw`
 .preview-control-field span {
   height: 26px;
   border: 1px solid var(--color-border-default);
-  border-radius: var(--radius-small);
+  border-radius: var(--corner-control);
   background: var(--color-surface-secondary);
 }
 .preview-control-field i {

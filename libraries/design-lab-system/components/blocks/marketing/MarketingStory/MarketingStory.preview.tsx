@@ -13,7 +13,7 @@ const previewStyles = String.raw`
   min-width: 0;
   height: 100%;
   border: 1px solid var(--color-border-subtle);
-  border-radius: var(--radius-small);
+  border-radius: var(--corner-control);
   background: linear-gradient(
     145deg,
     color-mix(in srgb, var(--color-accent-secondary) 14%, transparent),
@@ -82,7 +82,7 @@ const previewStyles = String.raw`
   height: 10px;
   margin-top: 1px;
   border: 1px solid var(--color-border-default);
-  border-radius: var(--radius-small);
+  border-radius: var(--corner-control);
   background: transparent;
 }
 `

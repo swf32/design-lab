@@ -1,0 +1,30 @@
+{
+  "schemaVersion": 1,
+  "name": "Control component tokens",
+  "tokens": {
+    "control": {
+      "icon": {
+        "type": "dimension",
+        "value": "{space.24}",
+        "description": "Default square size for semantic interface icons."
+      },
+      "size": {
+        "s": {
+          "type": "dimension",
+          "value": "{space.32}",
+          "description": "Compact control height for dense inspectors and constrained toolbars."
+        },
+        "m": {
+          "type": "dimension",
+          "value": "{space.40}",
+          "description": "Default control height for standard interface actions."
+        },
+        "l": {
+          "type": "dimension",
+          "value": "{space.48}",
+          "description": "Prominent control height for spacious compositions."
+        }
+      }
+    }
+  }
+}

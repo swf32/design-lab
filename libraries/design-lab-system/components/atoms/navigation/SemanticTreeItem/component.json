@@ -23,6 +23,8 @@
   "variants": [
     "folder",
     "virtual-folder",
+    "token-document",
+    "token-group",
     "component",
     "token",
     "asset",

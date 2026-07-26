@@ -8,6 +8,8 @@ Selects one value from a small set of mutually exclusive options. Use the `segme
 
 Every icon-only option requires `accessibleLabel`. Product copy belongs to the caller and should come from the i18n dictionary.
 
+`small` and `medium` geometry is viewport-invariant for both visual variants. Narrow layouts choose `fit`, `wrap`, or `scroll`; they do not silently resize the options.
+
 Each option supports one of three content contracts:
 
 - `label` for text only;
@@ -24,7 +26,9 @@ different `size` props into individual SVG assets. It defaults to `14` for `smal
 
 Both `small` and `medium` sizes apply to both visual variants. In `toggle`, size changes the track and moving thumb as a unit; the selected option is not drawn as a segmented button.
 
-At phone widths, visual size no longer reduces the interactive area: every option expands to a minimum 44 by 44 CSS pixels. Use `small` to express compact appearance, not a precision-only touch target.
+At phone widths, each visual size grows by no more than four CSS pixels over desktop. This keeps dense workbench selectors compact instead of turning them into oversized mobile controls.
+
+Use `overflow="wrap"` when the selector may occupy multiple rows, or `overflow="scroll"` when it must remain on one line. Scrollbars remain visible on desktop and hidden on phone viewports while touch scrolling stays available. The selected segment moves with a measured indicator, including between wrapped rows, and respects reduced-motion preferences.
 
 The catalog preview opts into the shared preview-motion contract. Hovering or keyboard-focusing its Component Card moves both miniature selectors to their next illustrative state; leaving the card restores the baseline.
 

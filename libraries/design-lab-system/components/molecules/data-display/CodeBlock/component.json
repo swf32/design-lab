@@ -15,8 +15,15 @@
   "docs": "README.md",
   "changelog": "CHANGELOG.md",
   "status": "ready",
-  "variants": ["default"],
-  "states": ["ready", "copied", "overflow"],
+  "previewMotion": {
+    "trigger": "card-hover-focus",
+    "kind": "state-transition",
+    "durationToken": "transition.preview",
+    "easingToken": "easing.preview",
+    "reducedMotion": "static-baseline"
+  },
+  "variants": ["default", "code-only"],
+  "states": ["ready", "copied", "collapsed", "expanded", "overflow"],
   "props": {
     "code": {
       "type": "string",
@@ -26,6 +33,10 @@
       "type": "string",
       "default": "text"
     },
+    "variant": {
+      "type": "'default' | 'code-only'",
+      "default": "default"
+    },
     "showCopy": {
       "type": "boolean",
       "default": true
@@ -33,6 +44,9 @@
     "copyOnClick": {
       "type": "boolean",
       "default": false
+    },
+    "collapsedLines": {
+      "type": "number"
     }
   }
 }

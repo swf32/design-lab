@@ -1,7 +1,7 @@
 .dl-module-page {
   width: 100%;
   height: 100%;
-  padding: var(--spacing-4);
+  padding: var(--space-16);
   align-self: stretch;
 }
 
@@ -14,21 +14,9 @@
   overflow: hidden;
   display: grid;
   grid-template-rows: auto minmax(520px, 1fr);
-  gap: var(--spacing-4);
+  gap: var(--space-16);
 }
 
 .dl-module-page > .dl-module-header {
   margin-bottom: 18px;
-}
-
-@media (max-width: 760px) {
-  .dl-module-page {
-    padding: calc(var(--spacing-4) + var(--spacing-1)) var(--spacing-4)
-      calc(var(--spacing-4) + var(--spacing-2) + env(safe-area-inset-bottom));
-    overscroll-behavior: contain;
-  }
-
-  .dl-module-page > .dl-module-header {
-    margin-bottom: var(--spacing-4);
-  }
 }

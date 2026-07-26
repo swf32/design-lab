@@ -1,6 +1,6 @@
 .design-lab {
-  --sidebar-width: var(--size-sidebar-collapsed);
-  --navigation-width: var(--size-navigation);
+  --sidebar-width: var(--shell-sidebar-collapsed);
+  --navigation-width: var(--shell-navigation-width);
   width: 100%;
   height: 100dvh;
   min-height: 100svh;
@@ -34,7 +34,7 @@
 }
 .design-lab:has(.app-sidebar:hover, .app-sidebar--expanded) .navigation-shell__panes,
 .design-lab--sidebar-expanded .navigation-shell__panes {
-  --sidebar-width: var(--size-sidebar-expanded);
+  --sidebar-width: var(--shell-sidebar-expanded);
 }
 .design-lab--resizing {
   transition: none;
@@ -141,7 +141,7 @@
     min-height: 44px;
     padding: 0 12px;
     border: 0;
-    border-radius: var(--radius-small);
+    border-radius: var(--corner-control);
     background: transparent;
     color: var(--color-text-muted);
     font-size: 11px;
@@ -162,19 +162,6 @@
 
   .navigation-shell .app-sidebar {
     min-height: 0;
-  }
-
-  .navigation-shell .sidebar-tab {
-    min-height: 48px;
-    flex-basis: 48px;
-  }
-
-  .navigation-shell .project-select {
-    min-height: 44px;
-  }
-
-  .navigation-shell .dl-input__control {
-    font-size: 16px;
   }
 
   .navigation-shell .directory-panel__resizer {

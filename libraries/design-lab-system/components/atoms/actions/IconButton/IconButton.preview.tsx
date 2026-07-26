@@ -10,7 +10,7 @@ const previewStyles = String.raw`
   width: 28px;
   height: 28px;
   border: 1px solid var(--color-border-default);
-  border-radius: var(--radius-small);
+  border-radius: var(--corner-control);
   display: grid;
   place-items: center;
   color: var(--color-text-muted);

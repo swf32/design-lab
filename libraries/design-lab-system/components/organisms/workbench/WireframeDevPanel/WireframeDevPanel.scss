@@ -2,31 +2,31 @@
   position: absolute;
   z-index: 40;
   inset-block-start: 50%;
-  inset-inline-start: max(var(--spacing-4), env(safe-area-inset-left));
+  inset-inline-start: max(var(--space-16), env(safe-area-inset-left));
   transform: translateY(-50%);
 }
 .dl-wireframe-dev-panel__surface {
   width: min(360px, calc(100vw - 96px));
   max-height: min(720px, calc(100dvh - 32px));
   border: 1px solid var(--color-border-default);
-  border-radius: var(--radius-card);
+  border-radius: var(--corner-card);
   background: var(--color-surface-primary);
   box-shadow: 0 24px 64px color-mix(in srgb, var(--color-overlay-scrim) 62%, transparent);
   overflow: hidden;
   position: absolute;
   inset-block-start: 50%;
-  inset-inline-start: calc(100% + var(--spacing-2));
+  inset-inline-start: calc(100% + var(--space-8));
   transform: translateY(-50%);
   display: grid;
   grid-template-rows: auto minmax(0, 1fr) auto;
 }
 .dl-wireframe-dev-panel__surface > header {
-  padding: var(--spacing-4);
+  padding: var(--space-16);
   border-bottom: 1px solid var(--color-border-subtle);
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
-  gap: var(--spacing-3);
+  gap: var(--space-12);
 }
 .dl-wireframe-dev-panel__surface h2 {
   margin: 0;
@@ -37,7 +37,7 @@
   outline: 0;
 }
 .dl-wireframe-dev-panel__surface p {
-  margin: var(--spacing-1) 0 0;
+  margin: var(--space-4) 0 0;
   color: var(--color-text-muted);
   font-size: 10px;
   line-height: 1.5;
@@ -55,32 +55,29 @@
 }
 .dl-wireframe-dev-panel__body {
   min-height: 0;
-  padding: var(--spacing-4);
+  padding: var(--space-16);
   overflow: auto;
   overscroll-behavior: contain;
 }
 .dl-wireframe-dev-panel__surface > footer {
-  padding: var(--spacing-3) var(--spacing-4);
+  padding: var(--space-12) var(--space-16);
   border-top: 1px solid var(--color-border-subtle);
   background: var(--color-surface-secondary);
 }
 @media (max-width: 760px) {
   .dl-wireframe-dev-panel {
-    inset-block: auto max(calc(var(--spacing-3) + env(safe-area-inset-bottom)), var(--spacing-3));
-    inset-inline-start: max(calc(var(--spacing-3) + env(safe-area-inset-left)), var(--spacing-3));
+    inset-block: auto max(calc(var(--space-12) + env(safe-area-inset-bottom)), var(--space-12));
+    inset-inline-start: max(calc(var(--space-12) + env(safe-area-inset-left)), var(--space-12));
     transform: none;
   }
   .dl-wireframe-dev-panel__surface {
     width: auto;
     max-height: calc(100dvh - 96px - env(safe-area-inset-top));
     position: fixed;
-    inset-block: max(calc(var(--spacing-3) + env(safe-area-inset-top)), var(--spacing-3))
+    inset-block: max(calc(var(--space-12) + env(safe-area-inset-top)), var(--space-12))
       calc(72px + env(safe-area-inset-bottom));
-    inset-inline: max(calc(var(--spacing-3) + env(safe-area-inset-left)), var(--spacing-3))
-      max(calc(var(--spacing-3) + env(safe-area-inset-right)), var(--spacing-3));
+    inset-inline: max(calc(var(--space-12) + env(safe-area-inset-left)), var(--space-12))
+      max(calc(var(--space-12) + env(safe-area-inset-right)), var(--space-12));
     transform: none;
-  }
-  .dl-wireframe-dev-panel__body {
-    padding: var(--spacing-4);
   }
 }

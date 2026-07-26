@@ -2,7 +2,7 @@ const previewStyles = String.raw`
 .preview-table {
   width: min(230px, 100%);
   border: 1px solid var(--color-border-subtle);
-  border-radius: var(--radius-medium);
+  border-radius: var(--corner-surface);
   overflow: hidden;
 }
 .preview-table div {

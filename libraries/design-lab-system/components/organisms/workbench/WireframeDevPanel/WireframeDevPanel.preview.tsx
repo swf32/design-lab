@@ -4,7 +4,7 @@ const previewStyles = String.raw`
   max-width: 260px;
   padding: 12px;
   border: 1px solid var(--color-border-default);
-  border-radius: var(--radius-medium);
+  border-radius: var(--corner-surface);
   background: var(--color-surface-primary);
   display: grid;
   gap: 10px;
@@ -39,7 +39,7 @@ const previewStyles = String.raw`
   height: 32px;
   padding: 0 9px;
   border: 1px solid var(--color-border-subtle);
-  border-radius: var(--radius-small);
+  border-radius: var(--corner-control);
   display: flex;
   align-items: center;
   gap: 8px;

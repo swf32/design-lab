@@ -29,10 +29,10 @@
   padding: 0;
 }
 .dl-workbench-playground__canvas--padding-compact .dl-workbench-playground__stage {
-  padding: 48px var(--spacing-3) var(--spacing-3);
+  padding: 48px var(--space-12) var(--space-12);
 }
 .dl-workbench-playground__canvas--padding-comfortable .dl-workbench-playground__stage {
-  padding: 56px clamp(var(--spacing-4), 4vw, 32px) 24px;
+  padding: 56px clamp(var(--space-16), 4vw, 32px) 24px;
 }
 .dl-workbench-playground__canvas--dark-grid {
   background-color: var(--color-canvas-grid-dark-a);
@@ -73,7 +73,7 @@
   right: 10px;
   display: flex;
   align-items: center;
-  gap: var(--spacing-2);
+  gap: var(--space-8);
 }
 .dl-workbench-playground__tools > span {
   color: var(--color-text-disabled);
@@ -104,8 +104,8 @@
 }
 .dl-workbench-playground__event-log {
   position: absolute;
-  left: var(--spacing-3);
-  bottom: var(--spacing-3);
+  left: var(--space-12);
+  bottom: var(--space-12);
   padding: 5px 7px;
   border: 1px solid var(--color-border-subtle);
   border-radius: 4px;

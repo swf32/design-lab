@@ -4,7 +4,7 @@ const previewStyles = String.raw`
 .select-preview {
   width: min(220px, 100%);
   display: grid;
-  gap: var(--spacing-2);
+  gap: var(--space-8);
 }
 .select-preview span {
   color: var(--color-text-muted);
@@ -13,9 +13,9 @@ const previewStyles = String.raw`
 }
 .select-preview div {
   height: 40px;
-  padding: 0 var(--spacing-3);
+  padding: 0 var(--space-12);
   border: 1px solid var(--color-border-default);
-  border-radius: var(--radius-small);
+  border-radius: var(--corner-control);
   background: var(--color-surface-secondary);
   color: var(--color-text-primary);
   display: flex;

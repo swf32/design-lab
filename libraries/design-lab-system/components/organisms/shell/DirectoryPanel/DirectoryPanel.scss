@@ -34,6 +34,17 @@
   color: var(--color-text-muted);
   font-size: 16px;
 }
+.directory-panel__view-control {
+  flex: 0 0 auto;
+  padding: 0 7px 5px;
+}
+.directory-panel__view-control .dl-tab-switcher {
+  width: 100%;
+}
+.directory-panel__view-control .dl-tab-switcher button {
+  min-width: 0;
+  flex: 1 1 0;
+}
 .directory-panel__search {
   flex: 0 0 auto;
   padding: 2px 7px 5px;
@@ -121,43 +132,4 @@
 }
 .directory-panel__resizer:focus-visible {
   outline: 0;
-}
-
-@media (max-width: 760px) {
-  .directory-panel__header {
-    height: 64px;
-    flex-basis: 64px;
-    padding: 10px;
-  }
-
-  .directory-panel__toolbar {
-    height: 44px;
-    flex-basis: 44px;
-    padding-inline: 14px 8px;
-    font-size: 11px;
-  }
-
-  .directory-panel__toolbar button {
-    width: 44px;
-    height: 44px;
-    padding: 0;
-  }
-
-  .directory-panel__search {
-    padding: 6px 10px 8px;
-  }
-
-  .file-tree {
-    padding: 6px 8px 12px;
-  }
-
-  .file-tree__status {
-    font-size: 13px;
-  }
-
-  .directory-panel__footer {
-    height: 44px;
-    flex-basis: 44px;
-    font-size: 11px;
-  }
 }

@@ -3,7 +3,7 @@ const previewStyles = String.raw`
   width: min(220px, 100%);
   height: 110px;
   border: 1px solid var(--color-border-subtle);
-  border-radius: var(--radius-medium);
+  border-radius: var(--corner-surface);
   background-color: var(--color-surface-raised);
   background-image: radial-gradient(
     color-mix(in srgb, var(--color-text-primary) 8%, transparent) 0.7px,
@@ -17,7 +17,7 @@ const previewStyles = String.raw`
   width: 72%;
   height: 54%;
   border: 1px solid var(--color-border-subtle);
-  border-radius: var(--radius-card);
+  border-radius: var(--corner-card);
   background: var(--color-surface-secondary);
 }
 `

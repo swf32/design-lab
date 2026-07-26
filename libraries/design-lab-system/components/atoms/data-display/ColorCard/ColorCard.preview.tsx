@@ -13,7 +13,7 @@ const previewStyles = String.raw`
   box-sizing: border-box;
   overflow: hidden;
   border: 1px solid var(--color-border-default);
-  border-radius: var(--radius-small);
+  border-radius: var(--corner-control);
   background: var(--color-surface-secondary);
   display: flex;
   flex-direction: column;

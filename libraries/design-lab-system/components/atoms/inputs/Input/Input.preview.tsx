@@ -35,7 +35,7 @@ const previewStyles = String.raw`
   box-sizing: border-box;
   padding: 0 8px;
   border: 1px solid var(--color-border-default);
-  border-radius: var(--radius-small);
+  border-radius: var(--corner-control);
   background: var(--color-surface-secondary);
   display: flex;
   align-items: center;

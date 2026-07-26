@@ -69,6 +69,8 @@ function readContracts(librariesRoot) {
   const byImport = new Map()
   const byEntry = new Map()
   const assetByImport = new Map() // importRoot => Set<exportedSymbolName>
+  const assetByEntry = new Map()
+  const assetBySource = new Map()
   for (const manifestPath of filesNamed(librariesRoot, 'library.json')) {
     const sourceRoot = dirname(manifestPath)
     const library = JSON.parse(readFileSync(manifestPath, 'utf8'))
@@ -89,6 +91,17 @@ function readContracts(librariesRoot) {
       )
       const symbols = new Set(iconFiles.map((filePath) => basename(filePath, extname(filePath))))
       assetByImport.set(library.iconImport, symbols)
+      const sourceAssets = new Map()
+      for (const filePath of iconFiles) {
+        const symbol = basename(filePath, extname(filePath))
+        const contract = {
+          symbol,
+          statement: `import { ${symbol} } from '${library.iconImport}'`,
+        }
+        assetByEntry.set(resolve(filePath), contract)
+        sourceAssets.set(symbol, contract)
+      }
+      assetBySource.set(basename(sourceRoot), sourceAssets)
     }
 
     for (const componentPath of filesNamed(join(sourceRoot, 'components'), 'component.json')) {
@@ -97,6 +110,8 @@ function readContracts(librariesRoot) {
       const symbol = componentSymbol(component, dirname(componentPath))
       const contract = {
         name: componentDisplayName(component, dirname(componentPath)),
+        symbol,
+        statement: componentImport ? `import { ${symbol} } from '${componentImport}'` : null,
         slots: new Set(
           Object.entries(component.props ?? {})
             .filter(([, definition]) => definition?.type === 'slot' || definition?.slot === true)
@@ -112,7 +127,7 @@ function readContracts(librariesRoot) {
       }
     }
   }
-  return { byImport, byEntry, assetByImport }
+  return { byImport, byEntry, assetByImport, assetByEntry, assetBySource }
 }
 
 function importedName(specifier) {
@@ -212,11 +227,26 @@ function inspectionBabelPlugin({ types: t }, options) {
       Program: {
         enter(path, state) {
           state.imports = []
+          state.storyImports = []
           state.componentBindings = new Map()
           state.assetComponentBindings = new Map()
           state.assetImportByLocal = new Map() // local binding => exported symbol (best-effort)
           state.assetLiteralArrays = new Map() // arrayId => Map<propKey, { forcedLocals:Set, exportedSymbols:Set }>
           state.changed = false
+          const rememberStoryImport = (local, contract) => {
+            if (
+              !options.file.match(/\.stories\.[jt]sx?$/) ||
+              !contract?.symbol ||
+              !contract?.statement ||
+              state.storyImports.some((entry) => entry.local === local)
+            )
+              return
+            state.storyImports.push({
+              local,
+              symbol: contract.symbol,
+              statement: contract.statement,
+            })
+          }
           for (const statement of path.node.body) {
             if (statement.type !== 'ImportDeclaration' || statement.importKind === 'type') continue
             const statementSource = options.source.slice(statement.start, statement.end)
@@ -231,6 +261,7 @@ function inspectionBabelPlugin({ types: t }, options) {
                 .get(statement.source.value)
                 ?.get(symbol)
               if (packageContract) {
+                rememberStoryImport(specifier.local.name, packageContract)
                 state.componentBindings.set(specifier.local.name, packageContract)
                 continue
               }
@@ -240,6 +271,10 @@ function inspectionBabelPlugin({ types: t }, options) {
                 statement.source.value,
               )
               if (assetSymbolsForImport?.has(symbol)) {
+                rememberStoryImport(specifier.local.name, {
+                  symbol,
+                  statement: `import { ${symbol} } from '${statement.source.value}'`,
+                })
                 state.assetImportByLocal.set(specifier.local.name, symbol)
                 state.assetComponentBindings.set(specifier.local.name, {
                   exportedSymbols: new Set([symbol]),
@@ -250,10 +285,19 @@ function inspectionBabelPlugin({ types: t }, options) {
               const resolved = existingScript(resolve(dirname(options.id), statement.source.value))
               if (resolved) {
                 const ext = extname(resolved).toLowerCase()
+                const relativeAssetContract = resolved.includes(`${sep}assets${sep}icons${sep}`)
+                  ? options.contracts.assetBySource.get(options.sourceId)?.get(symbol)
+                  : null
+                if (relativeAssetContract)
+                  rememberStoryImport(specifier.local.name, relativeAssetContract)
                 const isIconTsxAsset =
                   ext === '.tsx' && resolved.includes(`${sep}assets${sep}icons${sep}`)
                 if (isIconTsxAsset) {
                   const inferredSymbol = basename(resolved, extname(resolved))
+                  rememberStoryImport(
+                    specifier.local.name,
+                    options.contracts.assetByEntry.get(resolved),
+                  )
                   state.assetImportByLocal.set(specifier.local.name, inferredSymbol)
                   state.assetComponentBindings.set(specifier.local.name, {
                     exportedSymbols: new Set([inferredSymbol]),
@@ -262,8 +306,10 @@ function inspectionBabelPlugin({ types: t }, options) {
                 }
 
                 const relativeContract = options.contracts.byEntry.get(resolved)
-                if (relativeContract)
+                if (relativeContract) {
+                  rememberStoryImport(specifier.local.name, relativeContract)
                   state.componentBindings.set(specifier.local.name, relativeContract)
+                }
               }
             }
           }
@@ -341,6 +387,31 @@ function inspectionBabelPlugin({ types: t }, options) {
           })
         },
         exit(path, state) {
+          if (state.storyImports.length) {
+            path.pushContainer(
+              'body',
+              t.exportNamedDeclaration(
+                t.variableDeclaration('const', [
+                  t.variableDeclarator(
+                    t.identifier('__designLabStoryImports'),
+                    t.arrayExpression(
+                      state.storyImports.map((entry) =>
+                        t.objectExpression([
+                          t.objectProperty(t.identifier('value'), t.identifier(entry.local)),
+                          t.objectProperty(t.identifier('symbol'), t.stringLiteral(entry.symbol)),
+                          t.objectProperty(
+                            t.identifier('statement'),
+                            t.stringLiteral(entry.statement),
+                          ),
+                        ]),
+                      ),
+                    ),
+                  ),
+                ]),
+                [],
+              ),
+            )
+          }
           if (!state.changed) return
           path.unshiftContainer(
             'body',
@@ -479,7 +550,7 @@ export function designLabInspectionPlugin(workspaceRoot) {
     enforce: 'pre',
     async transform(code, id) {
       const cleanId = id.split('?')[0]
-      if (!/\.[jt]sx$/.test(cleanId)) return null
+      if (!/\.[jt]sx$/.test(cleanId) && !/\.stories\.[jt]s$/.test(cleanId)) return null
       const source = sourceForFile(cleanId, librariesRoot)
       if (!source) return null
       const result = await transformAsync(code, {

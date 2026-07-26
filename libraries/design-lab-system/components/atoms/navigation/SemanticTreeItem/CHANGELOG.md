@@ -2,11 +2,12 @@
 
 ## Unreleased
 
+- Added: Distinct expandable `token-document` and `token-group` node kinds.
 - Added: Page entity kind with the shared Pages icon.
 - Added: Wireframe entity kind with the shared Wireframes icon.
 - Added: Independent `onExpandedChange` callback separates folder disclosure from label selection while preserving the previous fallback behavior.
 - Fixed: Folder disclosure no longer triggers navigation when the consumer provides the dedicated callback.
-- Accessibility: Mobile disclosure, color, label, and action targets now use a 44–48px touch geometry with larger row text.
+- Changed: Removed mobile-only 44–48px row/action enlargement and larger type; tree density is now viewport-invariant.
 - Changed: Added authored semantic retrieval metadata for MCP and CLI search.
 
 - Changed: Workbench stories now render automatically from the adjacent story module.

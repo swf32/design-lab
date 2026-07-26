@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- Visual: catalog preview now shows a canvas 16:9 viewport with abstract wireframe screen blocks instead of a tab-switcher silhouette.
 - Changed: component and screen-slot inspection is injected automatically from the manifest and TSX source.
 
 ## 0.2.0 — 2026-07-20

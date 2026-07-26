@@ -10,6 +10,7 @@ import {
 import { Input } from '../../../atoms/inputs/Input/Input'
 import {
   SemanticTreeItem,
+  semanticTreeNodeIsContainer,
   type SemanticTreeNode,
 } from '../../../atoms/navigation/SemanticTreeItem/SemanticTreeItem'
 import {
@@ -48,6 +49,7 @@ export type DirectoryPanelProps = {
   itemColors?: Record<string, string>
   onItemColorChange?: (item: DirectoryTreeItem, color: string | null) => void
   renderItemActions?: (item: DirectoryTreeItem) => ReactNode
+  viewControl?: ReactNode
 }
 
 function readStoredColors(key: string) {
@@ -87,6 +89,7 @@ export function DirectoryPanel({
   itemColors,
   onItemColorChange,
   renderItemActions,
+  viewControl,
 }: DirectoryPanelProps) {
   const { t } = useDesignLabI18n()
   const treeKey = tree.map((item) => `${item.kind}:${item.path}`).join('|')
@@ -94,7 +97,9 @@ export function DirectoryPanel({
     defaultCollapsed
       ? new Set()
       : new Set(
-          tree.filter((item) => item.kind === 'folder' && !item.virtual).map((item) => item.path),
+          tree
+            .filter((item) => semanticTreeNodeIsContainer(item) && !item.virtual)
+            .map((item) => item.path),
         ),
   )
   const [query, setQuery] = useState('')
@@ -108,12 +113,29 @@ export function DirectoryPanel({
           ? new Set()
           : new Set(
               tree
-                .filter((item) => item.kind === 'folder' && !item.virtual)
+                .filter((item) => semanticTreeNodeIsContainer(item) && !item.virtual)
                 .map((item) => item.path),
             ),
       ),
     [defaultCollapsed, treeKey, activeProject?.id],
   )
+  useEffect(() => {
+    if (!selectedFolderPath) return
+    const selectedContainers = tree
+      .filter(
+        (item) =>
+          semanticTreeNodeIsContainer(item) &&
+          !item.virtual &&
+          (item.path === selectedFolderPath || selectedFolderPath.startsWith(`${item.path}/`)),
+      )
+      .map((item) => item.path)
+    if (!selectedContainers.length) return
+    setExpanded((current) => {
+      const next = new Set(current)
+      for (const path of selectedContainers) next.add(path)
+      return next
+    })
+  }, [selectedFolderPath, tree, treeKey])
   useEffect(
     () => setStoredColors(persistItemColors ? readStoredColors(colorStorageKey) : {}),
     [colorStorageKey, persistItemColors],
@@ -132,7 +154,8 @@ export function DirectoryPanel({
     return tree.filter(
       (item) =>
         matches.includes(item) ||
-        (item.kind === 'folder' && matches.some((match) => match.path.startsWith(`${item.path}/`))),
+        (semanticTreeNodeIsContainer(item) &&
+          matches.some((match) => match.path.startsWith(`${item.path}/`))),
     )
   }, [normalizedQuery, tree])
   let hiddenBelowLevel: number | null = null
@@ -140,7 +163,7 @@ export function DirectoryPanel({
     if (normalizedQuery) return true
     if (hiddenBelowLevel !== null && item.level > hiddenBelowLevel) return false
     if (hiddenBelowLevel !== null && item.level <= hiddenBelowLevel) hiddenBelowLevel = null
-    if (item.kind === 'folder' && !item.virtual && !expanded.has(item.path))
+    if (semanticTreeNodeIsContainer(item) && !item.virtual && !expanded.has(item.path))
       hiddenBelowLevel = item.level
     return true
   })
@@ -175,6 +198,8 @@ export function DirectoryPanel({
           +
         </button>
       </div>
+
+      {viewControl && <div className="directory-panel__view-control">{viewControl}</div>}
 
       {searchEnabled && (
         <div className="directory-panel__search">
@@ -212,7 +237,7 @@ export function DirectoryPanel({
               key={`${item.kind}-${item.path}`}
               node={item}
               active={
-                item.kind === 'folder'
+                semanticTreeNodeIsContainer(item)
                   ? item.path === selectedFolderPath
                   : item.id === selectedEntityId
               }

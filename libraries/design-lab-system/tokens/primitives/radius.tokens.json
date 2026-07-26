@@ -1,0 +1,17 @@
+{
+  "schemaVersion": 1,
+  "name": "Radius primitives",
+  "tokens": {
+    "radius": {
+      "0": { "type": "radius", "value": "0px" },
+      "2": { "type": "radius", "value": "2px" },
+      "4": { "type": "radius", "value": "4px" },
+      "6": { "type": "radius", "value": "6px" },
+      "8": { "type": "radius", "value": "8px" },
+      "12": { "type": "radius", "value": "12px" },
+      "16": { "type": "radius", "value": "16px" },
+      "24": { "type": "radius", "value": "24px" },
+      "999": { "type": "radius", "value": "999px" }
+    }
+  }
+}

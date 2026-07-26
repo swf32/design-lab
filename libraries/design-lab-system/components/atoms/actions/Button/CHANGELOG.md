@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Changed: Story handoff examples now rely on automatic rendered-tree analysis, including composed `StarIcon` slots, instead of authored JSX strings.
+- Changed: Stories publish exact copy-ready Button usage, including canonical StarIcon composition.
 - Changed: removed authored Inspector attributes; build-time source analysis now discovers Button calls and manifest-declared slots automatically.
 - Added: typed Button Wireframe Playground with living mesh, solid, and outline directions.
 - Added: square, soft, and maximum pill corner controls plus size, width, disabled, and motion controls.

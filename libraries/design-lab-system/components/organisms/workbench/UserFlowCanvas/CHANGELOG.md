@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- Changed: Removed mobile-only tool-button enlargement; narrow tool rows scroll while preserving desktop geometry.
 - Changed: state cards now select on click and expose a separate Open screen action instead of leaving the graph immediately.
 - Added: keyboard navigation between state cards, initial pan to the selected state, and persisted pan/zoom when switching Screen ↔ User flow.
 - Fixed: vertical and reverse edges no longer draw sideways hooks inside the same column.

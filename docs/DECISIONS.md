@@ -221,11 +221,13 @@ Folders открывают отфильтрованный module view. Component
 
 Authored preview проектируется только после чтения реального implementation, styles/tokens, manifest и representative Workbench story или application consumer. Название компонента не является достаточным основанием для выбора силуэта: preview обязан сохранять фактическую orientation, icon asset, label relationship, control shape, border/surface hierarchy и defining state treatment.
 
-По умолчанию карточка показывает один крупный representative specimen. Дополнительный specimen допускается, только если без него нельзя объяснить одну главную ось контракта, например collapsed/expanded или unchecked/checked. Preview не превращается в миниатюрный экран: sidebar, dialog, toolbar, overflow controls, badges и другой context не добавляются, если они не принадлежат самому компоненту. Масштабировать anatomy можно, изобретать новую — нельзя.
+По умолчанию карточка показывает один крупный representative specimen. Небольшой набор из двух–четырёх specimens допускается по одной оси, когда siblings быстрее объясняют defining grammar семейства, например boolean states, collapsed/expanded или asset kinds. Preview не превращается в уменьшенную документационную копию: вторичная metadata, полный production content, alternate API axes и parent context опускаются, если они не помогают узнаванию. Масштабировать anatomy и абстрагировать несущественные детали можно, изобретать новую — нельзя.
+
+Optional preview motion объясняет одну defining state transition, которую static baseline не передаёт сам: selection handoff, focus movement, reveal, dismiss или media emphasis. Motion не служит декором, не меняет геометрию карточки, использует shared preview tokens и сохраняет статичный baseline при reduced motion. Tab Switcher и Input являются калибровкой этого контракта; Asset Card может показывать компактный ряд kind miniatures вместо полного filesystem identity layout.
 
 Геометрия считается частью качества preview. Повторяющиеся элементы используют общую alignment model; связанные labels, control edges и центры задаются явными guide lines. Заявленное выравнивание проверяется после рендера в настоящей Component Card в dark и light themes, при необходимости через bounding boxes или pixel inspection, а не только чтением CSS.
 
-Component Card владеет единым safe area для authored previews: `spacing.4` inline и `spacing.3` block. Preview root не отменяет этот inset отрицательными margins или переполненным `width: 100%`; full-width specimens включают собственные padding и border в геометрию через `border-box`. Edge-to-edge presentation требует явного shared modifier и допускается только когда касание края является defining behavior компонента.
+Component Card владеет единым safe area для authored previews: `space.16` inline и `space.12` block. Preview root не отменяет этот inset отрицательными margins или переполненным `width: 100%`; full-width specimens включают собственные padding и border в геометрию через `border-box`. Edge-to-edge presentation требует явного shared modifier и допускается только когда касание края является defining behavior компонента.
 
 Калибровочные примеры:
 
@@ -233,6 +235,10 @@ Component Card владеет единым safe area для authored previews: `
 - Input может складывать text и search в левую колонку, а textarea — в правую; первые labels и конечные нижние края совпадают.
 - Sidebar Tab показывает собственные collapsed/expanded silhouettes без изображения всего Sidebar.
 - Source Select и Semantic Tree Item остаются full-width specimens, но их внешние края показывают общий card safe area.
+- Tab Switcher показывает segmented silhouette; card hover может переносить selected segment, чтобы объяснить mutual exclusivity.
+- Asset Card может показывать компактный ряд kind miniatures с media band и extension label без полного filesystem identity layout.
+- Button и Chip достаточно показывают компактный набор defining variants или tones на одной оси.
+- Marketing blocks сохраняют section grammar через abstract bars и surfaces, а не уменьшенный marketing copy.
 
 ## D-025 — MCP и CLI являются adapters одного AI context gateway
 
@@ -264,7 +270,7 @@ Component Card больше не добавляет отдельный footer к
 
 Карточка не имеет border и визуального hover treatment: hover не меняет position, transform, fill, border или shadow. У opted-in animated preview тот же pointer hover остаётся только shared trigger для внутреннего illustrative motion. Keyboard focus сохраняет явный accent outline, а selected state меняет только цвет overlay title без изменения геометрии.
 
-Все углы Component Card используют semantic `radius.card = 12px`. Preview safe area остаётся `spacing.4` inline и `spacing.3` block. Component catalog использует `spacing.1` (`4px`) между карточками.
+Все углы Component Card используют semantic `corner.card = 12px`. Preview safe area остаётся `space.16` inline и `space.12` block. Component catalog использует `space.4` (`4px`) между карточками.
 
 ## D-028 — Стили имеют локального владельца
 
@@ -308,11 +314,13 @@ Package barrel `components/index.ts` остаётся для удобного `i
 
 Первое полное применение контракта — `RadioButton`, `Slider` и `Chip`. RadioButton сохраняет native radio semantics, Slider — native range semantics с HeroUI-подобной anatomy `label/output + track/fill/thumb`, Chip остаётся неинтерактивной metadata surface с вариантами `primary`, `secondary`, `tertiary` и `soft`. Все три автоматически обнаруживаются, публикуются generated barrel, имеют illustrative preview, интерактивный Playground, сфокусированные stories, README и append-only changelog.
 
+Информационный Chip дополнительно поддерживает категориальные `teal | cyan | violet | orange` tones из `color.category.*`. Они различают peer metadata families и не расширяют semantic control axis RadioButton/Slider. Category tones нельзя подменять `success | warning | danger`: цвет категории не сообщает статус.
+
 ## D-032 — Component Reference и Story runtime производны от соседних файлов
 
 **Статус:** принято, 2026-07-19.
 
-Component Workbench показывает Component Reference сразу после заголовка: канонический package import через production `CodeBlock`, полный discovered file inventory и четыре набора прямых связей. `Uses` / `Used by` строятся из static imports production entry, а `Examples use` / `Used in examples by` — из соседнего manifest-declared story module с вычитанием production dependencies. `import type` не создаёт runtime relationship. Связи ограничены активным Project/Library и не пытаются включать application consumers на этом этапе.
+Component Workbench показывает Component Reference сразу после заголовка: канонический package import через production `CodeBlock`, полный discovered file inventory и четыре набора прямых связей. `Uses` / `Used by` строятся из static imports production entry, а `Examples use` / `Used in examples by` — из соседнего manifest-declared story module с вычитанием production dependencies. `import type` не создаёт runtime relationship. Связи ограничены активным Project/Library и не пытаются включать application consumers на этом этапе. Последующее D-070 сохраняет те же scanner-derived данные, но переносит file inventory вниз detail и сворачивает relation graph по умолчанию.
 
 Preview imports production Components не считаются dependency graph: это нарушение non-interactive illustrative preview contract и отдельный scanner diagnostic. Relations остаются прямыми; transitive graph не подмешивается в detail.
 
@@ -332,7 +340,7 @@ Workbench Back восстанавливает предыдущее состоя�
 
 Workbench history action стабильно называется `Back` / `Назад`: его destination определяется предыдущим Design Lab history entry и не может правдиво называться `Components`, category или filesystem parent. Destination-specific label остаётся допустимым только для действий с неизменным назначением, например закрытия Settings обратно в workspace.
 
-`ModuleHeader` не изображает Back как текстовую ссылку. Он использует production `Button` и канонический `ArrowLeftIcon`, сохраняет минимум `size.control.medium` по высоте, видимый focus и отдельную structural navigation zone. Page identity остаётся главным визуальным слоем: semantic eyebrow объясняет scope, title называет текущую сущность, а count, source metadata и actions образуют тихую trailing utility zone. На узкой ширине utilities переносятся отдельным рядом, не уменьшая hit target и не скрывая название действия.
+`ModuleHeader` не изображает Back как текстовую ссылку. Он использует production `Button` и канонический `ArrowLeftIcon`, сохраняет минимум `control.size.m` по высоте, видимый focus и отдельную structural navigation zone. Page identity остаётся главным визуальным слоем: semantic eyebrow объясняет scope, title называет текущую сущность, а count, source metadata и actions образуют тихую trailing utility zone. На узкой ширине utilities переносятся отдельным рядом, не уменьшая hit target и не скрывая название действия.
 
 ## D-035 — AI semantics принадлежат каноническим сущностям
 
@@ -360,7 +368,7 @@ Dark и light modes сохраняют один layout contract. Motion drawer �
 
 **Статус:** принято, 2026-07-19.
 
-На ширине до `760px` компактные desktop-размеры не определяют размер touch target. Header и основной content получают минимум `16px` боковых gutters; поля ввода имеют высоту минимум `48px` и текст `16px`; Tab Switcher, tree disclosure и вторичные действия имеют интерактивную область минимум `44px`. Catalog groups разделяются увеличенным vertical rhythm и явным divider, чтобы filesystem categories не слипались визуально.
+На ширине до `760px` компактные desktop-размеры не определяют размер большинства touch targets. Header и основной content получают минимум `16px` боковых gutters; поля ввода имеют высоту минимум `48px` и текст `16px`; tree disclosure и вторичные действия имеют интерактивную область минимум `44px`. D-070 позже делает `TabSwitcher` осознанным исключением с ростом не более 4px. Catalog groups разделяются увеличенным vertical rhythm и явным divider, чтобы filesystem categories не слипались визуально.
 
 У реальной папки Directory Panel есть два независимых действия. Disclosure button только раскрывает или сворачивает потомков и не меняет URL, selection или состояние drawer. Label button выбирает folder scope и выполняет navigation. Это разделение действует для pointer, touch и keyboard и устраняет конфликт, при котором один tap одновременно раскрывал ветку, переходил в папку и закрывал мобильный drawer.
 
@@ -728,7 +736,7 @@ Klyp (или любая следующая внешняя Library) получи�
 - `Button.playground.tsx` / `MeshButton.playground.tsx` — новые файлы по конвенции
   `definePlayground`/`renderPlaygroundVariant` из `@design-lab/system/playground`, обнаруживаются
   автоматически (без поля в `component.json`, как и у `design-lab-system`);
-- eager Vite-glob в `ModuleView.tsx` / `ComponentPlaygroundView.tsx` теперь состоит из ДВУХ
+- eager Vite-glob в shared `componentRuntime.tsx` теперь состоит из ДВУХ
   раздельных `import.meta.glob()` вызовов на каждый тип артефакта: общий (со сплошной negation
   `!libraries/klyp/components/**`) + отдельный со списком ровно этих двух файлов. Это осознанно —
   glob-negation исключает совпадения из всего набора паттернов одного вызова независимо от порядка,
@@ -827,7 +835,7 @@ authored":
 
 Затронутые файлы: `design-lab/scripts/inspectionTransform.mjs` (+тесты),
 `libraries/design-lab-system/inspection/index.ts`, `WorkbenchInspector.tsx/.scss`,
-`InspectorCodePopover.tsx/.scss`, `tokens/base.tokens.json` (`color.inspection.asset`),
+`InspectorCodePopover.tsx/.scss`, `tokens/semantic/core.tokens.json` (`color.inspection.asset`),
 `design-lab/server/services/moduleEntities.mjs` (+ новая зависимость `image-size` в
 `design-lab/package.json`), `contextGateway.mjs` (asset description/tags).
 
@@ -1016,6 +1024,237 @@ errors, точной геометрией, bytes и SHA-256. Renderer испол
 канонического canvas/surface token. Независимость осей сохраняется: противоположный фон разрешён
 для намеренного contrast testing, но metadata явно предупреждает, что Component может стать
 неразличимым. Агент использует рекомендацию по умолчанию и отклоняется от неё только осознанно.
+
+## D-069 — Inline Playground controls, shared Story Canvas и compact source handoff (2026-07-25)
+
+**Статус:** частично заменено D-071, 2026-07-25.
+
+Inline Playground в Component Workbench изначально был переведён на тот же автоматически
+обнаруженный `*.playground.tsx`, что и fullscreen route. D-071 отменяет это смешение: adjacent
+Playground остаётся wireframing artifact отдельного route, а detail возвращается к production
+Component с controls из manifest props. Компактная информационная полоса при отсутствии
+редактируемого production-контракта сохраняется.
+
+Canvas background preference едина для inline Playground и всех Story Canvas на той же
+Component page. Каждый Story меняет эту общую preference плавающим control в правом верхнем углу
+самого stage, и все Canvas обновляются синхронно.
+
+Первоначальная реализация показывала под Story только canonical import из filesystem scanner.
+D-071 расширяет этот handoff до imports плюс реальный TSX всех examples. Headerless `CodeBlock`
+примыкает к stage без внешнего padding, по умолчанию ограничивает длинный фрагмент тремя строками и
+держит Copy вместе с expand/collapse внутри code surface. Copy всегда копирует полный source.
+
+## D-070 — Compact adaptive selectors и progressive Component reference (2026-07-25)
+
+**Статус:** selector density заменена D-073; progressive reference остаётся принято, 2026-07-26.
+
+`TabSwitcher` на phone viewport увеличивает визуальный control не более чем на 4px относительно
+desktop. Для наборов, не помещающихся по ширине, caller явно выбирает `overflow="wrap"` или
+`overflow="scroll"`; видимый scrollbar остаётся desktop-only. Выбранный segment перемещается
+анимированным measured indicator, включая строки после переноса, с отключением motion через
+`prefers-reduced-motion`.
+
+Component Reference показывает relation graph по disclosure и начинает в свёрнутом состоянии.
+Каждая relation group имеет фиксированную высоту примерно 2,5 карточки и собственный вертикальный
+scroll. File inventory больше не занимает верхний reference panel: отдельный
+`ComponentReferenceFiles` завершает Component detail после Changelog.
+
+## D-071 — Production Component Playground отделён от Wireframe Playground (2026-07-25)
+
+**Статус:** принято и реализовано, 2026-07-25.
+
+Component detail показывает production Component Playground: реальную реализацию через соседний
+Story renderer и общий набор редактируемых controls, производный от `component.json` props,
+defaults и representative Story values. Props rail находится справа. Реализация не содержит
+switch по component id и работает одинаково для автоматически обнаруженных Libraries.
+
+`ComponentName.playground.tsx` не участвует в inline detail. Это отдельный wireframing/ideation
+artifact и fullscreen route, поэтому действие явно называется Wireframe Playground. Отсутствие
+production Story или поддерживаемых editable props заменяет inline Canvas узкой информационной
+полосой, но не смешивает его с experimental renderer.
+
+Story handoff содержит не только canonical Component import, но и TSX каждого показанного example.
+Первоначальное требование вручную задавать `source` и дополнительные `imports` для slots, icons,
+composition и renderer transforms заменено автоматическим rendered-tree анализом в D-074.
+Story header больше не резервирует фиксированные 72px, а kind располагается рядом с названием.
+
+## D-072 — Canvas Background Control использует compact disclosure (2026-07-25)
+
+**Статус:** принято и реализовано, 2026-07-25.
+
+Canvas Background Control по умолчанию показывает только выбранный background mode. Hover на
+pointer-устройствах и keyboard focus раскрывают все варианты с коротким переходом; production
+`TabSwitcher` используется в размере `small`. Reduced motion сохраняет disclosure без анимации.
+На touch первый tap только раскрывает варианты, следующий выбирает mode или открывает picker, а tap
+за пределами control возвращает collapsed-состояние. Все выбранные swatches занимают одну и ту же
+позицию; gaps между скрытыми options не участвуют в collapsed layout.
+
+Контрол остаётся overlay в правом верхнем углу Canvas. Story Canvas и Playground не резервируют
+под него дополнительный top padding: содержимое Canvas сохраняет одинаковую safe area независимо
+от наличия background control.
+
+## D-073 — Production Component geometry не зависит от viewport (2026-07-26)
+
+**Статус:** принято и реализовано, 2026-07-26.
+
+Явный размер production Component означает одну и ту же геометрию на desktop и mobile. Viewport
+media queries не меняют control height, padding, typography, gaps, row density или внутренний touch
+target. Это отменяет mobile enlargement из прежних shell/input решений и ограничение роста
+`TabSwitcher` на `+4px` из D-070. `Input`, `Select`, `TabSwitcher`, `ColorPicker`, semantic tree,
+Canvas background control и shell controls используют собственный выбранный размер без phone
+remapping.
+
+Responsive composition сохраняется: узкая поверхность может менять колонки, переносить или
+скроллить набор, ограничивать popover visual viewport, переставлять overlay, скрывать вторичную
+metadata или превращать rail в drawer. Эти изменения не создают вторую density вложенных
+Components.
+
+Story source handoff намеренно остаётся тихим: `pre` внутри Story `CodeBlock` имеет opacity `0.2` в
+покое и `1` при hover, focus-within или раскрытом состоянии. Copy/disclosure actions остаются
+полностью видимыми, а `CodeBlock` экспонирует root state `dl-code-block--expanded`.
+
+## D-074 — Story handoff выводится из фактического renderer tree (2026-07-26)
+
+**Статус:** принято и реализовано, 2026-07-26; заменяет ручной source-контракт из D-071.
+
+Story handoff не требует дублировать JSX и imports в metadata каждого примера. Review-build transform
+для любого `*.stories.ts(x)` сопоставляет статически импортированные production Components и
+code-native icon assets с canonical public package imports. Поддерживаются как прямые относительные
+imports, так и library barrel imports; сопоставление выводится из `library.json`, `component.json` и
+файловой структуры, без switch по Component id или имени icon.
+
+Workbench один раз вызывает `renderStoryExample` для каждого примера. Тот же React node одновременно
+рендерится в Story stage и сериализуется в copy-ready TSX, поэтому resolved props, text children,
+ReactNode slots, вложенные icons, host composition и renderer transforms не расходятся с видимым
+примером. Внутренние review wrappers прозрачно разворачиваются. `source` и `imports` сохраняются как
+явный escape hatch для намеренно несериализуемых примеров, но обычная composition больше не обязана
+поддерживать параллельную строковую реализацию.
+
+## D-075 — Token formats нормализуются adapters, а retrieval раскрывается от общего к частному
+
+**Статус:** принято, adapter/retrieval foundation и миграция токенов реализованы, 2026-07-26.
+
+Design Lab не навязывает подключённым Projects и Libraries одну авторскую таксономию, разбиение по
+файлам или JSON leaf syntax. Канонической filesystem boundary остаётся `tokens/**`: произвольные
+внешние директории не конфигурируются, но поддерживаемая существующая token system переносится в
+эту boundary без обязательного переименования собственных paths и групп. Format adapters
+распознают Design Lab `value/type`, DTCG-style `$value/$type` и расширяемый набор legacy/plain JSON
+dialects и приводят их к одной производной `TokenEntity` model. Raw document, его dialect, paths,
+modes и reference expressions остаются source of truth; чтение никогда не конвертирует и не
+перезаписывает их молча. Явная миграция формата в будущем обязана показать diff до записи.
+
+Normalizer хранит stable ref, logical path, type, raw и resolved values, source format/location,
+modes, reference chain, semantic metadata и diagnostics. References разрешаются между файлами;
+broken links, cycles, duplicate identities и type mismatches изолируются до конкретного источника и
+не ломают весь Tokens module. UI, MCP, CLI и generated outputs являются adapters этого одного
+normalized catalog, а не отдельными scanners и registries.
+
+AI retrieval следует filesystem-first progressive disclosure:
+`source → folder/layer → document → group → token`. Browse промежуточного узла возвращает только
+структуру, counts, modes и diagnostics. Scoped search использует path/type/value и доступные
+`description`, `aliases`, `useWhen`, `avoidWhen`, `tags`, возвращает компактные refs, после чего
+полные token entities или reference chains загружаются только явным get/batch-get. Весь token catalog
+не передаётся модели одним контекстом. Semantic metadata остаётся необязательной ради совместимости:
+она ожидается у неоднозначных semantic/component roles, но self-explanatory primitive не обязан
+повторять literal value в description.
+
+Собственный `design-lab-system` использует рекомендуемые слои
+`primitives / semantic / components`. Это convention библиотеки, не обязательная структура для
+чужих sources: Directory Panel строит дерево из реально найденных каталогов и документов и не
+содержит списка названий слоёв. Primitive space token называется по фактическому значению в
+пикселях; одно значение хранится один раз. Padding, margin и gap не получают независимые числовые
+шкалы: назначение появляется в semantic layout roles и component tokens. Component token sizes
+используют `s | m | l`; миграция публичных Component props на расширяемый ряд
+`xs | s | m | l | xl | 2xl` остаётся отдельным совместимым изменением API.
+
+Первый read-only срез реализует adapter registry для Design Lab `value/type` и DTCG-style
+`$value/$type`, wrapped/unwrapped trees, inherited group type, `$root`, native theme overrides,
+raw/resolved mode maps и exact cross-file references. Parse errors, unsupported/mixed documents,
+duplicate paths, missing/ambiguous/circular references, reference type mismatch и orphan mode
+overrides возвращаются как scoped diagnostics. MCP/CLI получили `browse view=files|paths` и scoped
+`search --within`; существующий logical-path browse и token refs сохранены. Legacy/custom adapters,
+embedded/composite reference resolution, line/column locations, usage impact и любые write/build
+операции остаются следующими этапами.
+
+## D-076 — Token identity, storage и dialect разделены; UI имеет Tokens и Files projections
+
+**Статус:** принято и реализовано, 2026-07-26.
+
+Универсальность Tokens module не означает попытку угадать смысл любого JSON. Каждый format adapter
+явно извлекает три независимых факта: каноническое имя токена из правил исходного dialect,
+физический token document внутри `tokens/**` и сам dialect. Эти данные вычисляются из одного source
+и не образуют второй authored registry. Неизвестный dialect остаётся видимым diagnostic document,
+пока для него не появится adapter.
+
+Directory Panel больше не смешивает filesystem folder, token document, JSON group и token leaf под
+одной иконкой папки. Tokens module имеет две производные проекции одного normalized catalog:
+`Tokens` показывает только logical hierarchy и совпадает с именами в таблице; `Files` показывает
+реальные каталоги, полные имена `*.tokens.json`, typed groups и leaves. Таблица явно показывает
+`Stored in`. Названия слоёв и папок не перечислены ни в server, ни в application UI.
+
+Поддерживаемые layouts и будущий write contract подробно закреплены в
+`docs/14-token-architecture.md`. Создание токена не требует от пользователя понимать внутренний
+scanner: имя/type/value обязательны, target document опционален или предвыбран из Files view, а
+запись разрешена только через write adapter выбранного dialect с preview точного JSON diff.
+
+## D-077 — Table получает управляемую ширину колонок, Tokens — Comment и рабочий порядок
+
+**Статус:** принято и реализовано, 2026-07-26.
+
+Generic production Component `Table` остаётся data-agnostic, но его column contract теперь
+поддерживает authored width, min/max constraints и opt-out из resizing. По умолчанию divider между
+двумя колонками перераспределяет их общую ширину вместо роста всей таблицы. Pointer drag и
+keyboard Left/Right используют один алгоритм; double-click или Home возвращает authored layout.
+Optional width snapshots позволяют consumer сохранить раскладку без localStorage внутри Component.
+
+Tokens остаётся consumer-композицией этого общего контракта. Порядок колонок отражает рабочий
+приоритет: `Token → Type → Value → Stored in → Comment`; Comment выводится непосредственно из
+optional `TokenEntity.description`, поэтому новая колонка не создаёт второй metadata registry.
+
+## D-078 — Zebra остаётся возможностью Table, Copy — действием token cell
+
+**Статус:** принято и реализовано, 2026-07-26.
+
+Generic `Table` получает opt-in `striped`, а не скрытое чередование строк во всех consumers.
+Полоса намеренно слабее hover и selected state; Tokens включает её для длинного registry.
+
+Copy не встраивается в generic Table API: первая token cell сама резервирует компактный action slot
+слева от logical path, поэтому текст не прыгает при появлении действия. Иконка раскрывается при
+row hover и keyboard focus, остаётся доступной на touch-only устройствах и копирует ровно тот
+logical token path, который показан пользователю. Успешное действие получает визуальное состояние
+и объявляется через live region; filesystem path и storage layer в копируемую строку не входят.
+
+## D-079 — Все automatic Story handoff используют один structural source printer
+
+**Статус:** принято и реализовано, 2026-07-26.
+
+Форматирование handoff не зависит от пробелов и переносов в `*.stories.ts(x)` и не настраивается для
+отдельных Components. Один printer получает уже сериализованную структуру фактического React tree:
+короткий читаемый JSX остаётся в одной строке, а длинные tags, props, массивы, объекты и nested JSX
+раскладываются рекурсивно с двухпробельным отступом, trailing commas и границей строки 100 символов.
+Соседние examples разделяются пустой строкой. Поэтому простой Button не раздувается вертикально, а
+Table с rows/columns больше не превращается в несколько нечитаемых длинных строк.
+
+Явный `example.source` остаётся escape hatch и считается намеренно authored fragment. Обычные Story
+не должны использовать его только ради форматирования: automatic rendered-tree handoff уже получает
+единый readable output.
+
+## D-080 — Library хранит Dialog primitive, blocking Stories начинаются с launcher
+
+**Статус:** принято и реализовано, 2026-07-26.
+
+`CreateProjectDialog` больше не является entity дизайн-системы: проектные тексты, name field,
+validation и create action образуют product-specific application composition. Library экспортирует
+только generic `Dialog`, который владеет native modal semantics, backdrop, heading/description
+relations, sizes, content/footer slots, dismissal policy, focus entry и focus restoration. Приложение
+собирает создание проекта из `Dialog`, `Input` и `Button` без второго modal implementation.
+
+Любой Component, который открывает modal, fullscreen, top-layer или другую workspace-blocking
+поверхность, в Workbench сначала рендерит launcher и остаётся закрытым при входе на route. После
+открытия dismissible surface показывает Close и поддерживает заявленные Escape/backdrop paths.
+Required flow может запретить passive dismissal, но Story всё равно обязана дать явное действие,
+которое завершает fixture и возвращает пользователя к документации. Workbench Back никогда не
+считается допустимым единственным выходом из Component Story.
 
 ## D-081 — Один Design Lab поддерживает platform implementations через adapters и capabilities
 

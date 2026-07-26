@@ -2,7 +2,7 @@
   width: 280px;
   max-width: 100%;
   display: grid;
-  gap: var(--spacing-2);
+  gap: var(--space-8);
   color: var(--color-text-secondary);
   font-family: var(--typography-interface-family);
 }
@@ -30,10 +30,10 @@
 }
 
 .dl-select__frame {
-  min-height: var(--size-control-medium);
+  min-height: var(--control-size-m);
   position: relative;
   border: 1px solid var(--color-border-default);
-  border-radius: var(--radius-small);
+  border-radius: var(--corner-control);
   background: var(--color-surface-secondary);
   display: flex;
   align-items: center;
@@ -53,8 +53,8 @@
 
 .dl-select__frame select {
   width: 100%;
-  min-height: calc(var(--size-control-medium) - 2px);
-  padding: 0 38px 0 var(--spacing-3);
+  min-height: calc(var(--control-size-m) - 2px);
+  padding: 0 38px 0 var(--space-12);
   border: 0;
   outline: 0;
   appearance: none;
@@ -67,28 +67,28 @@
 
 .dl-select__frame svg {
   position: absolute;
-  right: var(--spacing-3);
+  right: var(--space-12);
   color: var(--color-text-muted);
   pointer-events: none;
 }
 
 .dl-select--small .dl-select__frame {
-  min-height: var(--size-control-small);
+  min-height: var(--control-size-s);
 }
 
 .dl-select--small .dl-select__frame select {
-  min-height: calc(var(--size-control-small) - 2px);
-  padding-left: var(--spacing-2);
+  min-height: calc(var(--control-size-s) - 2px);
+  padding-left: var(--space-8);
   font-size: 11px;
 }
 
 .dl-select--large .dl-select__frame {
-  min-height: var(--size-control-large);
+  min-height: var(--control-size-l);
 }
 
 .dl-select--large .dl-select__frame select {
-  min-height: calc(var(--size-control-large) - 2px);
-  padding-left: var(--spacing-4);
+  min-height: calc(var(--control-size-l) - 2px);
+  padding-left: var(--space-16);
   font-size: 13px;
 }
 
@@ -112,26 +112,4 @@
 
 .dl-select__message--error {
   color: var(--color-status-danger);
-}
-
-@media (max-width: 760px) {
-  .dl-select__label {
-    font-size: 13px;
-  }
-
-  .dl-select__frame,
-  .dl-select--small .dl-select__frame {
-    min-height: 48px;
-  }
-
-  .dl-select__frame select,
-  .dl-select--small .dl-select__frame select {
-    min-height: 46px;
-    padding-inline: 12px 44px;
-    font-size: 16px;
-  }
-
-  .dl-select__message {
-    font-size: 12px;
-  }
 }

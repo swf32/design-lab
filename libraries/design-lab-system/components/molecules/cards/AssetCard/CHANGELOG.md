@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+- Changed: Extension metadata now uses the shared soft Chip with category tones for code-native, vector, raster, and video families.
+- Changed: Fallback type icons use the same opaque category tones instead of translucent text colors.
+- Changed: Catalog preview keeps three kind miniatures with opaque category-colored icons and soft extension chips.
+- Added: Catalog preview motion emphasizes the image specimen on Component Card hover or focus.
 - Changed: Added authored semantic retrieval metadata for MCP and CLI search.
 
 - Changed: Workbench stories now render automatically from the adjacent story module.

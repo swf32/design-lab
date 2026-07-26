@@ -75,6 +75,12 @@ server.registerTool(
         .optional()
         .describe('Optional entity kinds. Use ["component"] before creating UI code.'),
       limit: z.number().int().min(1).max(25).default(8),
+      within: z
+        .string()
+        .optional()
+        .describe(
+          'Optional filesystem/document/group scope. For Tokens, use e.g. "semantic", "semantic/layout.tokens.json", or "semantic/layout.tokens.json#semantic.layout".',
+        ),
     },
     annotations: {
       readOnlyHint: true,
@@ -83,8 +89,8 @@ server.registerTool(
       openWorldHint: false,
     },
   },
-  async ({ query, sourceId, kinds, limit }) =>
-    text(await searchContext({ query, sourceId, kinds, limit })),
+  async ({ query, sourceId, kinds, limit, within }) =>
+    text(await searchContext({ query, sourceId, kinds, limit, within })),
 )
 
 server.registerTool(
@@ -153,6 +159,12 @@ server.registerTool(
         .max(4)
         .optional()
         .describe('How many additional path segments below "path" to include. Defaults to 1.'),
+      view: z
+        .enum(['files', 'paths'])
+        .optional()
+        .describe(
+          'Token-only view. "files" walks filesystem folders, documents, then groups via document.tokens.json#group.path. "paths" preserves the logical dotted token tree.',
+        ),
     },
     annotations: {
       readOnlyHint: true,
@@ -161,8 +173,8 @@ server.registerTool(
       openWorldHint: false,
     },
   },
-  async ({ sourceId, kind, path, depth }) =>
-    text(await browseSource({ sourceId, kind, path, depth })),
+  async ({ sourceId, kind, path, depth, view }) =>
+    text(await browseSource({ sourceId, kind, path, depth, view })),
 )
 
 server.registerTool(

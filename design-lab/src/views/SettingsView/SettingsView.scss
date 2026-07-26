@@ -11,7 +11,7 @@
 .settings-page__intro {
   padding: 18px;
   border: 1px solid var(--color-border-subtle);
-  border-radius: var(--radius-medium);
+  border-radius: var(--corner-surface);
   background: var(--color-surface-secondary);
   display: flex;
   align-items: flex-start;
@@ -62,7 +62,7 @@
   margin-top: 14px;
   padding: 18px;
   border: 1px solid var(--color-border-subtle);
-  border-radius: var(--radius-medium);
+  border-radius: var(--corner-surface);
   background: var(--color-surface-secondary);
 }
 .settings-section header h3 {
@@ -87,7 +87,7 @@
   min-height: 86px;
   padding: 12px;
   border: 1px solid var(--color-border-subtle);
-  border-radius: var(--radius-small);
+  border-radius: var(--corner-control);
   background: var(--color-surface-raised);
   color: var(--color-text-muted);
   font-size: 9px;
@@ -110,19 +110,19 @@
 
 @media (max-width: 760px) {
   .settings-page {
-    padding: calc(var(--spacing-4) + var(--spacing-1)) var(--spacing-4)
-      calc(var(--spacing-4) + var(--spacing-2) + env(safe-area-inset-bottom));
+    padding: calc(var(--space-16) + var(--space-4)) var(--space-16)
+      calc(var(--space-16) + var(--space-8) + env(safe-area-inset-bottom));
     overscroll-behavior: contain;
   }
 
   .settings-page > .dl-module-header {
-    margin-bottom: var(--spacing-4);
+    margin-bottom: var(--space-16);
   }
 
   .settings-page__intro {
-    padding: var(--spacing-4);
+    padding: var(--space-16);
     flex-direction: column;
-    gap: var(--spacing-3);
+    gap: var(--space-12);
   }
 
   .settings-page__intro h2 {
@@ -141,7 +141,7 @@
   }
 
   .settings-section {
-    padding: var(--spacing-4);
+    padding: var(--space-16);
   }
 
   .settings-section header h3 {

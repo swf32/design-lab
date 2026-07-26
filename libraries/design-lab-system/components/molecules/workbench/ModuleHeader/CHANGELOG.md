@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- Visual: catalog preview keeps the workbench header silhouette with smaller title and utility type for card density.
 - Changed: Added authored semantic retrieval metadata for MCP and CLI search.
 
 - Visual: Tightened the vertical rhythm, title scale, identity gap, navigation width, and Workbench inset after reviewing the header in its production context.

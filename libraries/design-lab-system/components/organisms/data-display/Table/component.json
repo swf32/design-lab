@@ -1,6 +1,6 @@
 {
   "id": "table",
-  "description": "Displays arbitrary typed row data in semantic columns with sorting, density, selection, and empty states.",
+  "description": "Displays arbitrary typed row data in semantic columns with sorting, resizing, density, selection, and empty states.",
   "aliases": ["data table", "sortable table", "registry table", "list view"],
   "useWhen": [
     "compare structured records",
@@ -18,8 +18,8 @@
   "docs": "README.md",
   "changelog": "CHANGELOG.md",
   "status": "ready",
-  "variants": ["comfortable", "compact"],
-  "states": ["default", "hover", "focus-visible", "selected", "sorted", "empty"],
+  "variants": ["comfortable", "compact", "striped"],
+  "states": ["default", "hover", "focus-visible", "selected", "sorted", "resizing", "empty"],
   "props": {
     "rows": { "type": "readonly Row[]", "required": true },
     "columns": { "type": "readonly TableColumn<Row>[]", "required": true },
@@ -35,6 +35,12 @@
     "defaultSort": { "type": "TableSort | null", "default": "null" },
     "sort": { "type": "TableSort | null" },
     "onSortChange": { "type": "(sort: TableSort | null) => void" },
+    "resizableColumns": { "type": "boolean", "default": true },
+    "defaultColumnWidths": { "type": "Readonly<Record<string, number>>" },
+    "onColumnWidthsChange": {
+      "type": "(widths: Readonly<Record<string, number>>) => void"
+    },
+    "striped": { "type": "boolean", "default": false },
     "emptyMessage": { "type": "ReactNode", "slot": true },
     "className": { "type": "string" }
   }

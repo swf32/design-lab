@@ -1,7 +1,8 @@
 import './Chip.scss'
 import type { HTMLAttributes, ReactNode } from 'react'
 
-export type ChipColor = 'default' | 'accent' | 'success' | 'warning' | 'danger'
+export type ChipColor =
+  'default' | 'accent' | 'success' | 'warning' | 'danger' | 'teal' | 'cyan' | 'violet' | 'orange'
 export type ChipVariant = 'primary' | 'secondary' | 'tertiary' | 'soft'
 export type ChipSize = 'small' | 'medium' | 'large'
 

@@ -12,6 +12,7 @@ import {
   AssetsIcon,
   CodeIcon,
   ComponentIcon,
+  ComponentsIcon,
   DirectoryIcon,
   MoreIcon,
   PagesIcon,
@@ -25,10 +26,20 @@ import { ColorPicker } from '../../../molecules/inputs/ColorPicker/ColorPicker'
 export type SemanticTreeNode = {
   name: string
   path: string
-  kind: 'folder' | 'file' | 'component' | 'token' | 'asset' | 'wireframe' | 'page'
+  kind:
+    | 'folder'
+    | 'file'
+    | 'component'
+    | 'token-document'
+    | 'token-group'
+    | 'token'
+    | 'asset'
+    | 'wireframe'
+    | 'page'
   level: number
   id?: string
   virtual?: boolean
+  diagnostics?: number
 }
 
 export type SemanticTreeItemProps = {
@@ -47,12 +58,18 @@ export type SemanticTreeItemProps = {
 
 function iconFor(kind: SemanticTreeNode['kind']): ComponentType<IconProps> {
   if (kind === 'folder') return DirectoryIcon
+  if (kind === 'token-document') return CodeIcon
+  if (kind === 'token-group') return ComponentsIcon
   if (kind === 'component') return ComponentIcon
   if (kind === 'token') return TokensIcon
   if (kind === 'asset') return AssetsIcon
   if (kind === 'wireframe') return WireframesIcon
   if (kind === 'page') return PagesIcon
   return CodeIcon
+}
+
+export function semanticTreeNodeIsContainer(node: SemanticTreeNode) {
+  return ['folder', 'token-document', 'token-group'].includes(node.kind)
 }
 
 export function SemanticTreeItem({
@@ -72,7 +89,7 @@ export function SemanticTreeItem({
   const [actionsOpen, setActionsOpen] = useState(false)
   const rootRef = useRef<HTMLDivElement>(null)
   const EntityIcon = iconFor(node.kind)
-  const canExpand = node.kind === 'folder' && !node.virtual
+  const canExpand = semanticTreeNodeIsContainer(node) && !node.virtual
   const canColor = coloringEnabled && !node.virtual
   const canAct = actionsEnabled && !node.virtual
 

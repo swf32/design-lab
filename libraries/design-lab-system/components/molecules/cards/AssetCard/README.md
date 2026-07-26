@@ -13,4 +13,6 @@ Asset Card does not move, rename, or mutate the source file. The filesystem rema
 
 If a preview is unsupported or fails validation, the card falls back to its type icon instead of displaying a broken image.
 
+The extension is rendered with the shared soft Chip. Code-native, vector, raster, and video families use violet, cyan, teal, and orange category tones respectively; unknown formats stay neutral. These colors distinguish file families and do not communicate status.
+
 The card is a native button so catalogs can use `onClick` for navigation. Set `selected` when its persistent route is active; the component exposes that state through `aria-current="page"`.

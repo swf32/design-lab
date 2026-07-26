@@ -36,9 +36,13 @@
 - [x] Добавлены semantic dark/light token modes и сохраняемый theme control на общем `TabSwitcher`.
 - [x] Product copy переведён на typed i18n dictionary; английский активен, русский подготовлен как следующий locale.
 - [x] Canvas mode и solid color сохраняются глобально и синхронно применяются к Playground и Stories.
+- [x] Inline Playground и fullscreen route читают один `*.playground.tsx`; typed controls рендерятся в Workbench, а Component без controls показывает только узкую informational strip.
+- [x] Каждый Story Canvas имеет compact shared background control поверх stage без дополнительного padding и copyable handoff из canonical imports + TSX всех examples; длинный code preview сворачивается до трёх строк.
+- [x] Automatic Story handoff форматируется единым structural printer: компактный JSX остаётся в строке, длинные props/arrays/objects/nested JSX получают стабильные отступы и separation (см. D-079).
+- [x] Product-specific `CreateProjectDialog` заменён Library primitive `Dialog` + application composition; modal/fullscreen/top-layer Stories стартуют с launcher и гарантируют выход без Workbench Back (см. D-080).
 - [x] Application Sidebar и Directory Panel синхронно анимируют разделение общей navigation width без изменения Workspace.
-- [x] Mobile shell объединяет Application Sidebar и Directory Panel в доступный drawer, сохраняет 44px touch targets, safe areas и одноколоночный Workspace без horizontal overflow.
-- [x] Mobile density сохраняет 16px gutters, 44–48px touch targets и раздельные действия disclosure/navigation в Directory Panel.
+- [x] Mobile shell объединяет Application Sidebar и Directory Panel в доступный drawer, сохраняет Component geometry, safe areas и одноколоночный Workspace без horizontal overflow.
+- [x] Production Components сохраняют одинаковые height, padding, typography, gaps и target geometry на desktop/mobile; responsive rules меняют только composition, overflow, clamping, visibility и placement по D-073.
 - [x] Workbench Back восстанавливает предыдущее session-history состояние, включая исходную папку и переходы между связанными Components; direct deep link возвращается в корень module.
 - [x] Module Header использует production Button для действия Back, сохраняет 40px hit target, явный keyboard focus и адаптивную иерархию title/source/actions.
 - [x] Workbench Playground вынесен в production-организм с Canvas padding policy, controls rail и shared background control.
@@ -58,7 +62,7 @@
 - [x] Preview geometry проверяется в фактической Component Card: общие guide lines, оптическое центрирование, dark/light themes и отсутствие invented anatomy.
 - [x] Component Card задаёт общий preview safe area; full-width specimens используют border-box и не прилипают к краям без явного edge-to-edge contract.
 - [x] Component Card является borderless preview surface с 12px radius, overlay title gradient, без визуального hover treatment и без filename/variant metadata.
-- [x] Component catalog использует `spacing.1` между карточками; card height совпадает с preview area.
+- [x] Component catalog использует `space.4` между карточками; card height совпадает с preview area.
 - [x] Optional `previewMotion` запускает authored state transition на card hover/focus и отключается при reduced motion.
 - [x] Убрать generic Workbench placeholder у всех текущих компонентов `design-lab-system`; playground и контекстные stories исполняют реальные production-компоненты.
 - [x] `DirectoryPanel` использует representative и dense content fixtures; дерево является единственным scroll owner, header/footer остаются фиксированными.
@@ -84,9 +88,9 @@
 
 ### P0 — Klyp migration follow-up (2026-07-21)
 
-- [x] Fix: `ComponentWorkbench`'s hand-maintained per-id demo switch (`realComponent` in `design-lab/src/views/ModuleView/ModuleView.tsx`) rendered `@design-lab/system`'s own production component whenever another Library's entity shared its id (Klyp collided on `button`, `checkbox`, `input`, `slider`, `asset-card`, `code-block`, `tab-switcher`). Every branch is now scoped to `component.sourceId === 'design-lab-system'`; other Libraries fall back to the honest `"Real playground controls are not defined yet."` placeholder instead of a wrong component.
+- [x] Fix: removed `ComponentWorkbench`'s hand-maintained per-id demo switch, which rendered `@design-lab/system`'s own production component whenever another Library shared its id. Inline Workbench now resolves the adjacent Playground by `sourceId + directory`; an unavailable or control-free module degrades to the compact no-controls strip instead of a wrong specimen.
 - [ ] High-priority open decision — see `D-056`: where third-party Library dependencies (`@klyp/icons`, `react-aria-components`, `motion`, `cmdk`, plus heavier `brand`-only deps like `@tiptap/*`/`shiki`/`ai`/`vaul`/`@dnd-kit/*`) should be installed and resolved as a general policy, before the rest of `libraries/klyp` (beyond the `Button`/`MeshButton` exception below) can get Stories/Playground.
-- [x] Scoped exception (2026-07-21, see `D-056`): `Button` and `MeshButton` now have real, contract-compliant Stories (`export const stories` + `renderStoryExample`) and Playground (`definePlayground`/`renderPlaygroundVariant`) and render for real in Workbench/Playground. Their runtime deps (`motion`, `react-aria-components`, `lottie-react`) are installed via `libraries/klyp/package.json`; `@klyp/icons` resolves through a `vite.config.ts` alias. The eager `import.meta.glob` calls in `ModuleView.tsx` / `ComponentPlaygroundView.tsx` gained a second, separate `glob()` call scoped to exactly these two files (a glob negation cannot be selectively re-included by a later positive pattern in the same call).
+- [x] Scoped exception (2026-07-21, see `D-056`): `Button` and `MeshButton` now have real, contract-compliant Stories (`export const stories` + `renderStoryExample`) and Playground (`definePlayground`/`renderPlaygroundVariant`) and render for real in Workbench/Playground. Their runtime deps (`motion`, `react-aria-components`, `lottie-react`) are installed via `libraries/klyp/package.json`; `@klyp/icons` resolves through a `vite.config.ts` alias. Shared `componentRuntime.tsx` owns the two eager glob calls per artifact type: the general Klyp-negated glob plus the exact two-file exception (a glob negation cannot be selectively re-included in the same call).
 - [x] Fixed a migration bug found while wiring the exception above: `copyShared()` in `scripts/migrate-klyp.mjs` mis-copied `packages/{ui,brand}/src/__shared` to `components/{ui,brand}/_shared` (wrong underscore count) and brand root files (`_brand-context.tsx`, `_mesh-keyframes.scss`, `vite-shims.d.ts`, `prompt-input/`) one level too deep — breaking every component's `'../__shared/...'` / `'../_brand-context'` relative import. Fixed in the script and physically in the already-migrated tree.
 - [ ] Once D-056 is resolved as a general policy: remove the remaining `libraries/klyp` exclusion from the eager `import.meta.glob` calls and re-author the rest of Klyp's Stories in the Design Lab contract (Klyp's original `*.stories.tsx` are Storybook CSF, which the generic Hero renderer cannot execute — Button/MeshButton's were rewritten, not reused as-is).
 - [ ] Author `*.playground.tsx` for the rest of Klyp's `ui/` primitives (none besides `Button` were migrated — Klyp had no equivalent artifact); this is manual per-component work, not scriptable from the source migration.
@@ -259,31 +263,44 @@ Tokens — первый полноценный модуль и базовая з
 
 ## 1.1 Канонический файловый контракт
 
-- [ ] Использовать JSON как рекомендуемый канонический формат для новых token sets.
-- [ ] Не хранить одно и то же значение одновременно как независимый JSON, SCSS и TypeScript source of truth.
-- [ ] Генерируемые CSS/SCSS/TS-представления считать output/cache.
+- [x] Использовать JSON как рекомендуемый канонический формат для новых token sets.
+- [x] Оставить `tokens/**` единственной discovery boundary, но не навязывать Libraries одну
+      таксономию, file split или token dialect внутри неё.
+- [x] Не хранить одно и то же значение одновременно как независимый JSON, SCSS и TypeScript source of truth.
+- [x] Генерируемые CSS/SCSS/TS-представления считать output/cache.
 - [ ] Поддержать категории: `color`, `dimension`, `spacing`, `radius`, `shadow`, `fontFamily`, `fontWeight`, `fontSize`, `lineHeight`, `letterSpacing`, `duration`, `number`, `boolean`, `string`.
-- [ ] Поддержать группы и вложенные token paths.
+- [x] Поддержать группы и вложенные token paths, включая DTCG `$root` рядом с дочерними токенами.
 - [ ] Поддержать `description`, `deprecated`, `extensions` и tags.
-- [ ] Поддержать ссылки одного токена на другой.
+- [x] Поддержать exact-ссылки одного токена на другой между документами.
 - [x] Поддержать modes/themes без дублирования дерева токенов.
 - [ ] Добавить schema version.
 
 ## 1.2 Parser и normalization
 
-- [ ] Найти `*.tokens.json` автоматически.
-- [ ] Прочитать legacy/plain JSON без падения всего модуля.
-- [ ] Нормализовать разные JSON-формы во внутренний `TokenEntity`.
-- [ ] Разрешать references и обнаруживать циклы.
+- [x] Найти `*.tokens.json` автоматически.
+- [x] Ввести adapter interface с безопасным format detection вместо одного parser, привязанного к
+      `base.tokens.json`.
+- [ ] Поддержать как минимум Design Lab `value/type`, DTCG-style `$value/$type` и обнаруживаемый
+      legacy/plain JSON без падения всего модуля.
+- [x] Нормализовать поддерживаемые JSON-формы во внутренний `TokenEntity`, сохраняя source format,
+      location, raw value, logical path, modes и diagnostics.
+- [x] Разрешать exact cross-file references, обнаруживать broken links и cycles и возвращать полную
+      reference chain.
 - [ ] Проверять соответствие value заявленному type.
-- [ ] Сохранять source location для ошибок.
+- [x] Сохранять document/path source location для токенов и diagnostics. Line/column mapping остаётся следующим этапом.
 - [ ] Возвращать warnings отдельно от errors.
-- [ ] Не скрывать невалидный файл: показывать его с diagnostics.
+- [x] Не скрывать невалидный файл в API/context catalog: возвращать document с diagnostics.
+- [x] Не переписывать исходный dialect при чтении; конвертация формата требует отдельного явного
+      migration action и preview diff.
 
 ## 1.3 Tokens API
 
 - [ ] `GET /api/tokens` — список и фильтры.
 - [ ] `GET /api/tokens/:id` — полная сущность и source location.
+- [x] Добавить hierarchical MCP/CLI browse `source → folder/layer → document → group → token` с counts,
+      modes и diagnostics на промежуточных узлах.
+- [x] Подключить UI reads, MCP и CLI к одному normalized token catalog; MCP/CLI search возвращает компактные refs,
+      а get/batch-get загружает только выбранные сущности и reference chains.
 - [ ] `POST /api/tokens` — создание token set/token.
 - [ ] `PATCH /api/tokens/:id` — изменение значения и metadata.
 - [ ] `DELETE /api/tokens/:id` — удаление с предварительным usage summary.
@@ -294,10 +311,18 @@ Tokens — первый полноценный модуль и базовая з
 ## 1.4 Tokens UI
 
 - [x] Реальная semantic tree token groups/tokens во второй панели.
+- [x] Directory tree строится автоматически из `tokens/**` и показывает произвольные filesystem
+      folders/documents без hardcoded layer names.
+- [x] Разделить Tokens и Files projections одного каталога: logical view совпадает с token identity,
+      filesystem view различает folder, token document, group и leaf и показывает `Stored in`.
+- [x] `design-lab-system` мигрирован на `primitives / semantic / components`; `space.<px>` хранит
+      точные значения, а layout/component roles ссылаются на primitives.
 - [ ] Переключение list/grid/table без потери фильтров.
 - [ ] Поиск по name, path, value, description и tags.
+- [ ] Scoped search по source, filesystem subtree, document, group/layer, type и mode без загрузки
+      всего token catalog в model context.
 - [ ] Фильтры по category, set, mode, deprecated и diagnostics.
-- [ ] Группировка по дереву token path.
+- [x] Группировка по дереву token path.
 - [ ] Preview для каждого поддерживаемого type. (Color swatch и явные resolved values готовы.)
 - [ ] Details panel с value, resolved value, reference chain и source.
 - [ ] Копирование name, CSS variable, raw value, reference и JSON fragment.
@@ -307,9 +332,9 @@ Tokens — первый полноценный модуль и базовая з
 
 ## 1.5 Tokens validation
 
-- [ ] Дубликаты token paths.
-- [ ] Broken references.
-- [ ] Circular references.
+- [x] Дубликаты token paths остаются видимыми и получают scoped diagnostics без выбора скрытого победителя.
+- [x] Broken references.
+- [x] Circular references.
 - [ ] Type/value mismatch.
 - [ ] Некорректные color/dimension/shadow values.
 - [ ] Отсутствующие theme/mode fallback.
@@ -317,8 +342,8 @@ Tokens — первый полноценный модуль и базовая з
 
 ## 1.6 Tokens tests
 
-- [ ] Unit tests parser/normalizer.
-- [ ] Unit tests reference resolver.
+- [x] Unit tests parser/normalizer для Design Lab и DTCG documents, invalid isolation и двух navigation projections.
+- [x] Unit tests reference resolver для cross-file resolution, missing и circular references.
 - [ ] Unit tests validator.
 - [ ] API integration tests на временном workspace.
 - [ ] Watcher test: изменение token-файла обновляет ответ API.
@@ -326,7 +351,9 @@ Tokens — первый полноценный модуль и базовая з
 
 ## Exit criteria Tokens
 
-- [ ] Пользователь добавляет `*.tokens.json` вручную — модуль подхватывает его автоматически.
+- [x] Пользователь добавляет `*.tokens.json` вручную — следующий API/UI read подхватывает его автоматически без регистрации.
+- [ ] Поддерживаемые разные token dialects дают эквивалентные нормализованные entities, navigation,
+      MCP/CLI search results и UI previews без предварительной ручной перекладки JSON leaves.
 - [ ] Тот же токен можно создать через UI без дополнительной регистрации.
 - [ ] Значения, aliases и modes корректно разрешаются.
 - [ ] Ошибки видны рядом с источником и не ломают весь workspace.
@@ -466,7 +493,7 @@ Components использует Tokens, Palette и Fonts и становится
 - [x] Зафиксировать implementation-first preview recipe: ground truth → defining property → один comparison axis → минимальный specimen.
 - [x] Запретить generic name-based compositions, лишний parent context и invented controls; масштабирование не меняет anatomy.
 - [x] Зафиксировать geometry QA в реальной карточке: shared alignment guides, optical centering, rendered coordinate check и dark/light review.
-- [x] Зафиксировать и реализовать shared preview safe area (`spacing.4` inline, `spacing.3` block) с явным contract для будущих edge-to-edge исключений.
+- [x] Зафиксировать и реализовать shared preview safe area (`space.16` inline, `space.12` block) с явным contract для будущих edge-to-edge исключений.
 - [x] Систематизировать optional animated preview: manifest capability, shared tokens, hover/focus reset и reduced-motion baseline.
 - [ ] Рендерить preview изолированно от shell приложения.
 - [ ] Использовать iframe или другой sandbox boundary.
@@ -482,10 +509,11 @@ Components использует Tokens, Palette и Fonts и становится
 - [x] Catalog показывает полный category path относительно текущей папки и не предполагает фиксированную глубину или известные имена групп.
 - [x] Radio Button, Slider и Chip реализованы как автоматически обнаруживаемые production Components с preview, Playground, focused stories, docs и changelog.
 - [x] Общий component color axis использует `default | accent | success | warning | danger`; warning добавлен в canonical dark/light tokens.
+- [x] Chip дополнительно поддерживает token-driven category tones для peer metadata, не перегружая status colors декоративным смыслом.
 - [ ] Поиск по name, aliases, description, props и назначению.
 - [ ] Filters: status, completeness, dependencies, diagnostics, tags.
 - [x] Карточка показывает name и lifecycle status; отсутствие или неизвестное значение не блокирует discovery.
-- [x] Typed `*.playground.tsx` автоматически создаёт multi-variant route без application registry.
+- [x] Typed `*.playground.tsx` автоматически создаёт отдельный Wireframe Playground route без application registry и не подменяет production Component Playground на detail.
 - [x] Playground route является отдельным fullscreen review mode: desktop controls rail + Canvas, mobile Canvas + dismissible Settings rail.
 - [x] Playground Inspector автоматически различает imported Components, manifest-declared slots и обычные DOM elements, показывает точный authored TSX или Node-resolved source SCSS/CSS, обводит Component roots 2px и slots, закрепляет selection без запуска product action и dismisses его первым повторным surface click.
 - [x] Review-build source instrumentation не требует authored `data-dl-*` markers или JSX strings; SCSS handoff сохраняет `$variables`, `@use`, mixins, nesting, percentages и CSS variables без CSSOM.
@@ -496,16 +524,18 @@ Components использует Tokens, Palette и Fonts и становится
 - [x] Playground popovers портальны и viewport-aware: открытие не увеличивает scroll area controls rail.
 - [x] Wireframe-only Component обнаруживается без production entry и не попадает в generated package barrel.
 - [ ] Completeness badge/action помимо lifecycle status.
-- [x] Detail view: Canvas, Playground, Docs, Code, Dependencies, Changelog; Component Reference показывает import, discovered files и прямые production/example relationships.
+- [x] Detail view: Canvas, Playground, Docs, Code, Dependencies, Changelog; Component Reference показывает import и сворачиваемые прямые production/example relationships с ограниченной высотой списков, а discovered files завершает detail ниже Changelog.
+- [x] Production Component Playground использует real Story renderer и generic manifest-prop controls справа; component-id switches отсутствуют.
 - [ ] Props controls для boolean, enum, string, number и slots. (Boolean, enum, string и slots реализованы для Button.)
 - [x] Самостоятельные полноширинные Stories для variants, sizes, fullWidth, loading и composition эталонного Button.
 - [x] Props API имеет подписанные Name, Type и Default columns.
 - [x] README и CHANGELOG отображаются как Markdown в Workbench.
 - [x] Theme, design-system mode и Canvas background используют единый `TabSwitcher` с разными visual variants.
-- [x] `TabSwitcher` проверен полной матрицей segmented/toggle × small/medium; toggle использует moving thumb.
+- [x] `TabSwitcher` проверен полной матрицей segmented/toggle × small/medium; geometry viewport-invariant, overflow настраивается как wrap/scroll, а selection использует moving indicator.
 - [x] Markdown fenced code рендерится через production `CodeBlock` с копированием и overflow.
 - [x] Dark Canvas grid использует нейтральные charcoal tokens.
 - [x] Canonical import показывается через production CodeBlock и копируется.
+- [x] Story handoff автоматически сериализует фактические React nodes всех examples и выводит canonical imports для статически импортированных Components/icons, включая barrel imports, slots, composition и renderer transforms; authored source/imports нужны только как escape hatch.
 - [ ] Copy JSX example, props и source path.
 
 ## 4.6 Completeness assistant
@@ -601,6 +631,11 @@ Components использует Tokens, Palette и Fonts и становится
 - [x] Self-audit follow-up: `TokenTable` заменён generic sortable `Table`, Components и Palette
       поддерживают Cards/List с Cards по умолчанию, root Inspector выключен, divider у
       `CatalogGroup` удалён (см. D-066).
+- [x] Generic `Table` поддерживает pointer/keyboard resize соседних колонок с min/max constraints,
+      reset и width snapshots; Tokens показывает `description` как Comment после приоритетных
+      Type/Value и оставляет Stored in четвёртой колонкой (см. D-077).
+- [x] Generic `Table` имеет opt-in zebra banding; Tokens включает его и показывает слева от logical
+      path зарезервированное hover/focus/touch Copy-действие с accessible feedback (см. D-078).
 - [x] `TabSwitcher` поддерживает text, icon+text и accessible icon-only options; Cards/List
       использует segmented, Light/Dark toggle — канонические theme icon Assets, а `iconSize`
       управляет SVG независимо от hit area (см. D-067).

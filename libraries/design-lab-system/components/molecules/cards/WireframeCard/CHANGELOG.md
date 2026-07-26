@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- Visual: Catalog preview mirrors Component Card grammar — one card with wireframe screen specimen, Pricing name, and Draft status chip.
 - Changed: removed authored Inspector attributes in favor of automatic source instrumentation.
 
 ## 0.1.0 — 2026-07-20

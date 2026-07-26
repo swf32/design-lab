@@ -87,10 +87,10 @@ const buttonWireframeStyles = String.raw`
 .button-wireframe-stage {
   width: min(560px, 100%);
   min-height: 280px;
-  padding: calc(var(--spacing-4) * 2);
+  padding: calc(var(--space-16) * 2);
   box-sizing: border-box;
   border: 1px solid color-mix(in srgb, var(--color-border-default) 72%, transparent);
-  border-radius: var(--radius-card);
+  border-radius: var(--corner-card);
   background:
     radial-gradient(
       circle at 50% 18%,
@@ -103,13 +103,13 @@ const buttonWireframeStyles = String.raw`
 }
 
 .button-wireframe {
-  --button-wireframe-height: var(--size-control-large);
-  --button-wireframe-radius: var(--radius-small);
+  --button-wireframe-height: var(--control-size-l);
+  --button-wireframe-radius: var(--corner-control);
 
   width: auto;
   min-width: 184px;
   min-height: var(--button-wireframe-height);
-  padding: 0 calc(var(--spacing-4) + var(--spacing-2));
+  padding: 0 calc(var(--space-16) + var(--space-8));
   box-sizing: border-box;
   position: relative;
   border: 1px solid transparent;
@@ -122,7 +122,7 @@ const buttonWireframeStyles = String.raw`
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: var(--spacing-2);
+  gap: var(--space-8);
   isolation: isolate;
   overflow: hidden;
   cursor: pointer;
@@ -139,23 +139,23 @@ const buttonWireframeStyles = String.raw`
   --button-wireframe-radius: 0;
 }
 
-.button-wireframe--radius-pill {
-  --button-wireframe-radius: calc(var(--size-control-large) * 2);
+.button-wireframe--corner-full {
+  --button-wireframe-radius: calc(var(--control-size-l) * 2);
 }
 
 .button-wireframe--size-compact {
-  --button-wireframe-height: var(--size-control-medium);
+  --button-wireframe-height: var(--control-size-m);
 
   min-width: 164px;
-  padding-inline: var(--spacing-4);
+  padding-inline: var(--space-16);
   font-size: var(--typography-body-size);
 }
 
 .button-wireframe--size-large {
-  --button-wireframe-height: calc(var(--size-control-large) + var(--spacing-2));
+  --button-wireframe-height: calc(var(--control-size-l) + var(--space-8));
 
   min-width: 220px;
-  padding-inline: calc(var(--spacing-4) * 2);
+  padding-inline: calc(var(--space-16) * 2);
   font-size: calc(var(--typography-body-size) + 3px);
 }
 
@@ -318,7 +318,7 @@ const buttonWireframeStyles = String.raw`
 @media (max-width: 760px) {
   .button-wireframe-stage {
     min-height: 240px;
-    padding: calc(var(--spacing-4) * 1.5);
+    padding: calc(var(--space-16) * 1.5);
   }
 
   .button-wireframe {

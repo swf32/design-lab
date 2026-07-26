@@ -56,9 +56,9 @@ async function scanDirectory(rootPath, currentPath, level, result) {
   }
 }
 
-export async function getProjectTree(projectId, moduleId) {
+export async function getProjectTree(projectId, moduleId, { tokenView = 'tokens' } = {}) {
   const project = await getSource(projectId)
-  const semanticTree = await getModuleNavigation(projectId, moduleId)
+  const semanticTree = await getModuleNavigation(projectId, moduleId, { tokenView })
   if (semanticTree)
     return {
       projectId,

@@ -30,6 +30,18 @@
 .dl-chip--danger {
   --chip-color: var(--color-status-danger);
 }
+.dl-chip--teal {
+  --chip-color: var(--color-category-teal);
+}
+.dl-chip--cyan {
+  --chip-color: var(--color-category-cyan);
+}
+.dl-chip--violet {
+  --chip-color: var(--color-category-violet);
+}
+.dl-chip--orange {
+  --chip-color: var(--color-category-orange);
+}
 .dl-chip--primary {
   border-color: var(--chip-color);
   background: var(--chip-color);

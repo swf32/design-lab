@@ -6,7 +6,7 @@
   height: 42px;
   padding: 5px 7px;
   border: 1px solid transparent;
-  border-radius: var(--radius-medium);
+  border-radius: var(--corner-surface);
   background: transparent;
   color: var(--color-text-secondary);
   text-align: left;
@@ -59,7 +59,7 @@
   left: 0;
   padding: 5px;
   border: 1px solid var(--color-border-default);
-  border-radius: var(--radius-medium);
+  border-radius: var(--corner-surface);
   background: var(--color-surface-raised);
   box-shadow: 0 18px 48px var(--color-overlay-scrim);
 }
@@ -67,7 +67,7 @@
 .project-menu__create {
   width: 100%;
   border: 0;
-  border-radius: var(--radius-small);
+  border-radius: var(--corner-control);
   background: transparent;
   color: var(--color-text-muted);
   text-align: left;

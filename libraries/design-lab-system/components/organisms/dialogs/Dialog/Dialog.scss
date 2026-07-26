@@ -1,0 +1,120 @@
+.dl-dialog {
+  width: min(var(--dl-dialog-width), calc(100vw - var(--space-32)));
+  max-width: calc(100vw - var(--space-32));
+  max-height: calc(100dvh - var(--space-32));
+  position: fixed;
+  inset: 0;
+  padding: 0;
+  margin: auto;
+  border: 0;
+  overflow: visible;
+  background: transparent;
+  color: var(--color-text-primary);
+}
+
+.dl-dialog::backdrop {
+  background: var(--color-overlay-scrim);
+  backdrop-filter: blur(8px);
+}
+
+.dl-dialog--small {
+  --dl-dialog-width: 360px;
+}
+
+.dl-dialog--medium {
+  --dl-dialog-width: 480px;
+}
+
+.dl-dialog--large {
+  --dl-dialog-width: 640px;
+}
+
+.dl-dialog__surface {
+  width: 100%;
+  max-height: calc(100dvh - var(--space-32));
+  overflow: hidden;
+  border: 1px solid var(--color-border-default);
+  border-radius: var(--corner-surface);
+  background: var(--color-surface-raised);
+  box-shadow: 0 24px 80px var(--color-overlay-scrim);
+  display: grid;
+  grid-template-rows: auto auto minmax(0, auto) auto;
+}
+
+.dl-dialog__header {
+  padding: var(--space-20) var(--space-20) 0;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--space-16);
+}
+
+.dl-dialog__heading {
+  min-width: 0;
+  display: grid;
+  gap: var(--space-4);
+}
+
+.dl-dialog__eyebrow {
+  color: var(--color-accent-primary);
+  font-size: 8px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.dl-dialog__heading h2 {
+  margin: 0;
+  color: var(--color-text-primary);
+  font-size: 18px;
+  font-weight: 600;
+  line-height: 1.25;
+}
+
+.dl-dialog__close {
+  flex: 0 0 auto;
+}
+
+.dl-dialog__description {
+  margin: var(--space-12) var(--space-20) 0;
+  color: var(--color-text-muted);
+  font-size: 11px;
+  line-height: 1.55;
+}
+
+.dl-dialog__description code {
+  padding: 2px var(--space-4);
+  border-radius: var(--corner-control);
+  background: var(--color-surface-secondary);
+  color: var(--color-text-secondary);
+}
+
+.dl-dialog__body {
+  min-height: 0;
+  padding: var(--space-20);
+  overflow: auto;
+  color: var(--color-text-secondary);
+  font-size: 11px;
+  line-height: 1.55;
+}
+
+.dl-dialog__footer {
+  padding: 0 var(--space-20) var(--space-20);
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+  gap: var(--space-8);
+}
+
+@media (max-width: 480px) {
+  .dl-dialog {
+    width: calc(100vw - var(--space-16));
+    max-width: calc(100vw - var(--space-16));
+    max-height: calc(100dvh - var(--space-16));
+  }
+
+  .dl-dialog__surface {
+    max-height: calc(100dvh - var(--space-16));
+  }
+}

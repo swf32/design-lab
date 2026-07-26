@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "name": "Design Lab Base",
+  "name": "Design Lab Semantic Core",
   "defaultMode": "dark",
   "tokens": {
     "color": {
@@ -92,6 +92,36 @@
         "type": "color",
         "value": "#83c5b4",
         "description": "Foreground for source code, import statements, token values, and filesystem references."
+      },
+      "category": {
+        "teal": {
+          "type": "color",
+          "value": "#4fd1c5",
+          "description": "Categorical identity for raster media and peer metadata that needs a cool green distinction without success meaning.",
+          "useWhen": ["differentiate raster image formats or a comparable metadata family"],
+          "avoidWhen": ["communicate success or selected state"]
+        },
+        "cyan": {
+          "type": "color",
+          "value": "#56c7e8",
+          "description": "Categorical identity for vector media and peer metadata that needs a cool blue distinction without informational status meaning.",
+          "useWhen": ["differentiate vector asset formats or a comparable metadata family"],
+          "avoidWhen": ["communicate application status or inspection identity"]
+        },
+        "violet": {
+          "type": "color",
+          "value": "#b794f4",
+          "description": "Categorical identity for code-native files and peer metadata that needs a purple distinction without component-inspection meaning.",
+          "useWhen": ["differentiate code-native asset formats or a comparable metadata family"],
+          "avoidWhen": ["outline inspected Components or communicate product accent"]
+        },
+        "orange": {
+          "type": "color",
+          "value": "#f6ad55",
+          "description": "Categorical identity for time-based media and peer metadata that needs a warm distinction without warning meaning.",
+          "useWhen": ["differentiate video formats or a comparable metadata family"],
+          "avoidWhen": ["communicate warning, pending attention, or developer mode"]
+        }
       },
       "inspection": {
         "component": {
@@ -197,111 +227,6 @@
         }
       }
     },
-    "size": {
-      "icon": {
-        "type": "dimension",
-        "value": "24px",
-        "description": "Default square size for semantic interface icons."
-      },
-      "control": {
-        "small": {
-          "type": "dimension",
-          "value": "32px",
-          "description": "Compact control height for dense inspectors and constrained toolbars."
-        },
-        "medium": {
-          "type": "dimension",
-          "value": "40px",
-          "description": "Default control height and minimum target for standard interface actions."
-        },
-        "large": {
-          "type": "dimension",
-          "value": "48px",
-          "description": "Prominent or touch-friendly control height."
-        }
-      },
-      "sidebar": {
-        "collapsed": {
-          "type": "dimension",
-          "value": "48px",
-          "description": "Width of the icon-only Application Sidebar rail."
-        },
-        "expanded": {
-          "type": "dimension",
-          "value": "72px",
-          "description": "Width of the Application Sidebar while module labels are disclosed."
-        }
-      },
-      "navigation": {
-        "type": "dimension",
-        "value": "340px",
-        "description": "Combined width budget shared by Application Sidebar and Directory Panel."
-      },
-      "navigation-min": {
-        "type": "dimension",
-        "value": "260px",
-        "description": "Minimum combined navigation width before the workspace would become unusable."
-      },
-      "directory-panel-min": {
-        "type": "dimension",
-        "value": "188px",
-        "description": "Minimum readable width of the semantic Directory Panel."
-      },
-      "workspace-min": {
-        "type": "dimension",
-        "value": "360px",
-        "description": "Minimum width reserved for the main Design Lab workspace."
-      },
-      "tab-height": {
-        "type": "dimension",
-        "value": "52px",
-        "description": "Fixed row height for primary Sidebar Tab navigation items."
-      }
-    },
-    "spacing": {
-      "1": {
-        "type": "dimension",
-        "value": "4px",
-        "description": "Smallest spacing step for tight inline gaps and compact catalog grids."
-      },
-      "2": {
-        "type": "dimension",
-        "value": "8px",
-        "description": "Compact spacing step for related controls, labels, and dense content."
-      },
-      "3": {
-        "type": "dimension",
-        "value": "12px",
-        "description": "Default internal spacing for controls, panels, and grouped interface content."
-      },
-      "4": {
-        "type": "dimension",
-        "value": "16px",
-        "description": "Standard section inset and separation between distinct interface groups."
-      }
-    },
-    "radius": {
-      "small": {
-        "type": "radius",
-        "value": "6px",
-        "description": "Compact corner radius for buttons, fields, chips, and small controls."
-      },
-      "medium": {
-        "type": "radius",
-        "value": "8px",
-        "description": "Default corner radius for panels, popovers, and medium surfaces."
-      },
-      "card": {
-        "type": "radius",
-        "value": "12px",
-        "description": "Large stable corner radius reserved for catalog and content cards."
-      },
-      "pill": {
-        "type": "radius",
-        "value": "999px",
-        "description": "Maximum corner radius for pill-shaped controls whose silhouette must stay fully rounded."
-      }
-    },
     "transition": {
       "fast": {
         "type": "duration",
@@ -378,6 +303,12 @@
             "secondary": { "type": "color", "value": "#7651b8" }
           },
           "code": { "type": "color", "value": "#286f61" },
+          "category": {
+            "teal": { "type": "color", "value": "#177f77" },
+            "cyan": { "type": "color", "value": "#147d9e" },
+            "violet": { "type": "color", "value": "#7651b8" },
+            "orange": { "type": "color", "value": "#a85a16" }
+          },
           "status": {
             "success": { "type": "color", "value": "#23845c" },
             "warning": { "type": "color", "value": "#9a6700" },

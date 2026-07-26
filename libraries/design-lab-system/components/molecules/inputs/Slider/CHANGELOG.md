@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- Changed: Catalog preview matches production track, accent fill, and bordered thumb grammar with a visible unfilled rail.
 - Changed: Added authored semantic retrieval metadata for MCP and CLI search.
 
 - Changed: Workbench stories now render automatically from the adjacent story module.

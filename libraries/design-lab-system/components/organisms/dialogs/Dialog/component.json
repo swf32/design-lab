@@ -1,0 +1,39 @@
+{
+  "id": "dialog",
+  "description": "Presents consumer-supplied content in an accessible modal surface with focus management and controlled dismissal.",
+  "aliases": ["modal", "modal dialog", "overlay dialog"],
+  "useWhen": [
+    "require focused input before returning to the current screen",
+    "confirm or complete a bounded task",
+    "present a modal form supplied by a consumer"
+  ],
+  "avoidWhen": [
+    "encode one product-specific form as a reusable primitive",
+    "show passive information that does not require modality",
+    "navigate to a full page"
+  ],
+  "entry": "Dialog.tsx",
+  "preview": "Dialog.preview.tsx",
+  "stories": "Dialog.stories.tsx",
+  "docs": "README.md",
+  "changelog": "CHANGELOG.md",
+  "status": "ready",
+  "variants": ["small", "medium", "large"],
+  "states": ["closed", "open", "dismissible", "required"],
+  "props": {
+    "open": { "type": "boolean", "required": true },
+    "title": { "type": "ReactNode", "required": true },
+    "eyebrow": { "type": "ReactNode" },
+    "description": { "type": "ReactNode" },
+    "children": { "type": "ReactNode", "slot": true },
+    "footer": { "type": "ReactNode", "slot": true },
+    "size": {
+      "type": "DialogSize",
+      "values": ["small", "medium", "large"],
+      "default": "medium"
+    },
+    "dismissible": { "type": "boolean", "default": true },
+    "onClose": { "type": "() => void", "required": true },
+    "className": { "type": "string" }
+  }
+}

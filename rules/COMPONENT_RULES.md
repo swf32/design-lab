@@ -33,9 +33,9 @@ Use `wireframe`, `in-progress`, or `ready`:
 
 An absent or unknown status must not hide the entity or break discovery. Design Lab shows a completeness diagnostic and omits the status badge until the author chooses a supported value. `not-ready` is not a supported status because it does not distinguish ideation from implementation work.
 
-## Component Playground
+## Wireframe Playground
 
-`ComponentName.playground.tsx` is an optional, typed, automatically discovered ideation artifact. It is separate from Stories:
+`ComponentName.playground.tsx` is an optional, typed, automatically discovered wireframing and ideation artifact. It is separate from the production Component Playground and Stories:
 
 - Playground compares alternative directions and exposes reversible controls for discussion and approval;
 - Stories document focused behavior of an existing production implementation;
@@ -45,7 +45,11 @@ The Playground exports a definition created with `definePlayground` plus `render
 
 Playground variants have stable ids and names. Selected variant, design-system mode, and serializable control values are reflected in the route query so a copied URL restores the same review state. A Playground may render production Components, experimental compositions, or both. It does not require Stories and must not be counted as example usage.
 
-The route is derived from the Component path: `/components/<component-path>/playground` and renders as a standalone fullscreen review mode outside the normal Design Lab application, directory, and workspace shell. Desktop keeps one persistent typed-controls rail at the left and gives every remaining pixel to the Canvas. Mobile opens directly on the unobstructed Canvas; a translucent bottom-start Settings action reveals the controls as a dismissible overlay rail. The overlay supports an explicit close action, scrim dismissal, and Escape, and all touch targets are at least `44px`. Canvas Background Control floats at the Canvas top-end instead of consuming a controls-rail section. Design-system modes come from the active Project or Library token files and remain independent of the Design Lab interface theme.
+The adjacent Playground module belongs only to the separate fullscreen Wireframe Playground route. It must never replace the production Component Playground on a ready Component's detail page.
+
+The inline Component Playground on the detail page renders the real production implementation through the automatically discovered Story renderer. Its editable controls are derived generically from supported `component.json` props and their defaults or representative Story values; application code must not branch on component ids. The props rail stays at the Canvas end side. If there is no executable production Story or no editable production prop, the detail page replaces the large inline Canvas with one compact informational strip. A separate action is explicitly labelled as the Wireframe Playground when an executable `*.playground.tsx` exists.
+
+The route is derived from the Component path: `/components/<component-path>/playground` and renders as a standalone fullscreen review mode outside the normal Design Lab application, directory, and workspace shell. Desktop keeps one persistent typed-controls rail at the left and gives every remaining pixel to the Canvas. Mobile opens directly on the unobstructed Canvas; a translucent bottom-start Settings action reveals the controls as a dismissible overlay rail. The overlay supports an explicit close action, scrim dismissal, and Escape. Explicit Component sizes are viewport-invariant: a mobile layout must not remap control height, padding, typography, or touch geometry. Responsive rules may reflow, wrap, scroll, clamp, reposition, or hide layout regions without silently resizing their child Components. Canvas Background Control floats at the Canvas top-end instead of consuming a controls-rail section. It rests as the selected background only and reveals its small Tab Switcher options on hover or focus without reserving Canvas padding. On touch, the first tap reveals options, the next tap selects, and an outside tap collapses the control. Design-system modes come from the active Project or Library token files and remain independent of the Design Lab interface theme.
 
 ### Playground inspection
 
@@ -98,6 +102,7 @@ Do not embed new SVG path data directly in a component or preview, redraw a prod
 3. Use Design Lab semantic tokens for color, typography, spacing, radii, motion, and themes. Do not add one-off visual constants when an existing token expresses the role.
    Production styles belong in the adjacent `ComponentName.scss`, and `ComponentName.tsx` imports that file directly. Do not add component selectors to a package-wide stylesheet.
    Keep SCSS and preview `String.raw` CSS formatted with `npm run format:styles`; `npm run check:styles` is the repository guard against compressed one-line style sources and duplicate selectors in the same cascade context.
+   Component size variants are viewport-invariant. Do not use viewport media queries to change a Component's height, padding, font size, gap, or internal target geometry. Responsive composition may change columns, wrapping, scrolling, clamping, visibility, and overlay placement while preserving the selected Component size.
 4. Support both dark and light token modes. A component must not infer theme from hardcoded colors.
    Treat the Design Lab UI theme and the inspected design-system mode as separate state. Stories must respond to the selected design-system mode when their tokens have mode overrides.
 5. Keep product copy outside the component or obtain it through the i18n provider. English is the default product locale; new interface messages require a stable message key and English fallback.
@@ -106,26 +111,29 @@ Do not embed new SVG path data directly in a component or preview, redraw a prod
    Do not repeat the component name, category, manifest variants, or other metadata as a heading, badge, or legend inside the preview: the Component Card already owns that information. Text is appropriate only when it is intrinsic to the illustrated UI or necessary to make the component behavior recognizable.
    Follow the Preview quality contract below. A preview is not ready merely because it compiles or contains token-driven shapes.
    Preview motion is optional. It illustrates a recognizable state change but never turns the preview into a second interactive implementation.
+   Use motion only when it teaches defining behavior that the static baseline cannot explain alone, such as selection handoff, focus movement, reveal, dismiss, or media emphasis. Do not animate an already recognizable specimen only for decoration.
    - Declare motion with optional `previewMotion` metadata in `component.json`; without it the catalog keeps the preview static.
    - The shared trigger is Component Card pointer hover and keyboard focus. Leaving or blurring the card restores the deterministic baseline.
    - Use `transition.preview` and `easing.preview` tokens. Do not introduce component-specific durations or easing curves without adding semantic tokens first.
    - Supported motion kinds are `state-transition`, `reveal`, `dismiss`, and `sequence`. A Tooltip may deliberately use `dismiss` when its static baseline must show the open surface clearly.
    - Never autoplay or loop indefinitely. Motion must not change card geometry, capture pointer events, execute production logic, or depend on timers and network state.
    - Gate motion with `prefers-reduced-motion: no-preference`. Reduced-motion users see the declared static baseline without a hover transition.
-   The catalog must render the preview declared by the discovered component's `component.json`; it must not replace authored previews with a hand-maintained thumbnail switch. A generic fallback is allowed only when the declared preview is missing or cannot be loaded, and that fallback must be visibly distinguishable from an authored preview.
-   Before marking a component ready, verify its authored preview in the actual catalog card, not only as a source file.
+     The catalog must render the preview declared by the discovered component's `component.json`; it must not replace authored previews with a hand-maintained thumbnail switch. A generic fallback is allowed only when the declared preview is missing or cannot be loaded, and that fallback must be visibly distinguishable from an authored preview.
+     Before marking a component ready, verify its authored preview in the actual catalog card, not only as a source file.
 7. Build stories as separate full-width scenarios grouped by one axis or behavior: variants, sizes, layout, loading, states, composition, accessibility, and so on. Do not mix unrelated axes into one card matrix.
    The adjacent story module is the executable source of truth: export `stories` and `renderStoryExample(example, story)` from the manifest-declared `*.stories.ts(x)`. Design Lab discovers that module from the component directory and renders it automatically. Never add component ids, story JSX, or per-component story switches to an application view.
+   Components that create a modal, fullscreen, top-layer, or otherwise workspace-blocking surface must start closed in every Workbench Story. The Story renders a visible launcher that opens the real Component, then provides at least one reliable in-surface exit. Dismissible surfaces demonstrate Close plus their supported Escape/backdrop paths; required flows still provide an explicit completing action that closes the Story fixture. Never mount a blocking surface open on initial Component navigation or require Workbench Back as its only escape.
    When an axis such as size applies to multiple variants, cover the complete relevant `variant × axis` matrix in focused stories or explicitly document which combinations are unsupported. Never prove an API axis against only one visual variant and assume the rest.
    Give every story an explicit `kind`: `variant`, `state`, `behavior`, `context`, `integration`, or `accessibility`. A story name describes the scenario the user is evaluating; it must not call a composition a variant.
    - A `context` story places the subject component inside a representative parent so geometry, clipping, hover, focus, and responsive behavior can be evaluated where the component is actually used.
    - An `integration` story shows two or more production components whose shared contract is important, such as adjacent sidebars coordinating width. It must identify the subject component and the relationship under test.
-   Context and integration stories still render the real subject component. Surrounding fixtures may be purpose-built, but must be visibly scoped to the story and must not become a second production implementation.
-   Use plausible domain content whenever content affects layout or behavior. A sheet, modal, menu, tree, table, sidebar, or similar container must not be demonstrated only with empty boxes or uniformly short placeholder labels.
+     Context and integration stories still render the real subject component. Surrounding fixtures may be purpose-built, but must be visibly scoped to the story and must not become a second production implementation.
+     Every Story Canvas shares the Component Workbench Canvas background preference and may change it from a compact floating control at the stage top-end, never from the Story header. The control must not change stage padding. Story metadata stays beside the title and the compact header must not reserve a fixed height. When the subject has a canonical production import, the Story shows a complete handoff below its stage: canonical imports plus copy-ready TSX usage for every displayed example. Handoff is generated from the actual React node returned by `renderStoryExample`: the review transform maps statically imported Components and code-native assets to their canonical public imports, while the runtime serializer preserves the resolved props, children, slots, host composition, and transformed values that are genuinely rendered. One shared structural printer formats every generated Story: short readable JSX remains compact, while long tags, multiline props, arrays, objects, nested JSX, and sibling examples receive stable indentation and blank-line separation. This analysis and formatting must be generic and must not branch on a Component id or icon name. `source` and `imports` remain optional escape hatches only when an authored example intentionally cannot be represented by the rendered tree; ordinary slots, icons, composition, and renderer transforms must not require duplicated source strings. Never reduce Story handoff to a bare import. The headerless `CodeBlock` shows three lines by default with explicit expand and collapse actions inside the code surface, while Copy always uses the complete source.
+     Use plausible domain content whenever content affects layout or behavior. A sheet, modal, menu, tree, table, sidebar, or similar container must not be demonstrated only with empty boxes or uniformly short placeholder labels.
    - Include a representative-content scenario with realistic names, hierarchy, metadata, and item variety.
    - Add a separate content-stress context when density can reveal defects: enough items to force overflow, long and short labels, meaningful nesting, disabled or selected rows where relevant, and content near both the start and end of the scroll region.
    - The stress scenario must make scroll ownership observable. Verify fixed and scrolling regions, scrollbar styling, clipping, overlays, focus visibility, and whether opening nested content changes the correct container.
-   Fixtures should be deterministic and product-like, but they do not need to duplicate production data or connect to a live backend.
+     Fixtures should be deterministic and product-like, but they do not need to duplicate production data or connect to a live backend.
 8. Use the real production component in Workbench stories. Add interaction only when it explains real behavior. Wireframe-only Components may omit Stories until a production implementation exists.
    A component is not ready while its Workbench falls back to a generic placeholder or repeats the same specimen for manifest labels that the component does not actually implement.
 9. Write `README.md` in clear English for the default library. Documentation content in user libraries may use any language chosen by their authors.
@@ -138,27 +146,30 @@ Do not embed new SVG path data directly in a component or preview, redraw a prod
 
 A catalog preview is an identity specimen of the component itself. It is not a miniature product screen, a generic interpretation of the component name, or a place to enumerate every manifest variant.
 
+Optimize for recognition at catalog-card density, not for reproducing Workbench stories, README copy, or production content volume. A preview may use a scaled silhouette, a small representative set, or abstract visual grammar when that makes the component immediately recognizable without its Component Card footer. The manifest is not a thumbnail checklist.
+
 #### 1. Establish ground truth before drawing
 
 1. Read the production TSX, its styles and tokens, `component.json`, and at least one representative Workbench story or real application consumer.
 2. Identify the component's actual visual anatomy: orientation, shape, icon asset, label relationship, spacing, borders, surfaces, and defining state treatment.
 3. Write one sentence: “This preview is recognizable as `<Component>` because it shows `<defining property>`.” If the property came from the component name rather than the implementation, stop and inspect the real component again.
-4. Choose one comparison axis at most: for example checked state, collapsed/expanded disclosure, or text/search/textarea field shape. Do not mix unrelated variants, sizes, states, and context in one thumbnail.
+4. Choose at most one comparison axis: for example variant family, boolean state, collapsed/expanded disclosure, field shape, or asset kind. A small representative set, typically two to four specimens, is allowed when siblings on that axis make the component family immediately recognizable. Do not add a second axis such as size, unrelated state, or parent context in the same thumbnail.
 
 #### 2. Compose the smallest recognizable specimen
 
-- Default to one clear specimen in one representative state. Add another specimen only when the component's primary contract cannot be understood from one state, such as collapsed versus expanded or unchecked versus checked.
+- Prefer one clear specimen. Add a small representative set on the same axis when multiple siblings clarify the component's defining grammar faster than one state, such as boolean checkbox states or distinct asset kinds. Empty card space is preferable to specimens that do not improve recognition.
 - Make the component the largest and clearest object in the preview. Do not wrap it in a sidebar, dialog, card, toolbar, or other parent merely because that is where it is commonly used.
 - Context is allowed only when the component cannot be recognized without it. Keep that context visually quiet and make the subject component unambiguous.
 - Never invent controls, overflow dots, badges, edge indicators, copy, icons, or states that the real component does not own.
 - Preserve the production visual grammar even when preview dimensions are scaled: orientation, icon, label placement, control silhouette, radius, border hierarchy, surface, opacity, and active/focus treatment must still come from the real component. Scaling is allowed; invented anatomy is not.
-- Use intrinsic UI text only. Keep it legible at catalog density and remove any copy that does not help identify the component or the demonstrated state.
+- Omit non-defining production anatomy when it would shrink the subject or turn the preview into documentation. Preserve defining relationships and hierarchy, not necessarily every slot, metadata row, footer, or manifest-listed variant.
+- Use intrinsic UI text only. Prefer abstract placeholder geometry over copied Story or README text when copy would dominate without improving recognition. Keep control labels legible at catalog density and remove any copy that does not identify the component or demonstrated state.
 - Simple components should stay simple. Empty card space is preferable to decorative filler or a fake application composition.
 
 #### 3. Build geometry from explicit guide lines
 
 - Give the preview root a deliberate bounding box and center the composition optically in the Component Card unless off-center placement is itself characteristic of the component.
-- The shared Component Card preview area owns a visible safe area: `spacing.4` inline and `spacing.3` block. Authored previews must fit inside it, use `max-width: 100%`, and include their own padding and border in full-width geometry with `box-sizing: border-box`.
+- The shared Component Card preview area owns a visible safe area: `space.16` inline and `space.12` block. Authored previews must fit inside it, use `max-width: 100%`, and include their own padding and border in full-width geometry with `box-sizing: border-box`.
 - Do not cancel the shared safe area with negative margins or oversized `width: 100%` content. Edge-to-edge rendering is allowed only when touching or clipping the edge is the component's defining behavior; introduce an explicit shared modifier and document that reason instead of bypassing the inset locally.
 - Define shared guide lines before styling repeated specimens: label tops or baselines, control tops, centers, and intended bottom edges.
 - Elements that are presented as a row or column comparison must use the same alignment model. Do not center one group while stretching another group across the preview.
@@ -192,14 +203,28 @@ Use these calibration examples:
 - Input: related single-line fields may stack in one column while a textarea occupies the second column; first labels and final control bottoms must align.
 - Sidebar Tab: show the tab's real collapsed and expanded silhouettes, not a miniature sidebar or invented navigation.
 - Source Select and Semantic Tree Item: full-width preview specimens remain inside the shared card safe area; their own padding and borders must not consume or overflow that inset.
+- Tab Switcher: show the segmented icon-and-text silhouette; card hover may move the selected segment to explain mutual exclusivity. Alternate variants belong in Stories.
+- Asset Card: a small set of icon, image, and video miniatures may preserve the media-band and extension-label grammar without reproducing full filesystem identity copy.
+- Button and Chip: a compact set of defining variants or tones on one axis is sufficient when every specimen remains legible.
+- Marketing blocks: preserve section grammar with abstract bars and surfaces instead of shrinking full marketing copy into the card.
 
-Fast review question: if the Component Card footer were hidden, would someone familiar with the Library recognize the component from the preview without mistaking the surrounding context for the subject? If not, simplify or rebuild the preview.
+Fast review questions:
+
+1. If the Component Card footer were hidden, would someone familiar with the Library recognize the component from the preview without mistaking surrounding context for the subject?
+2. Does every extra specimen or animated step explain defining behavior or family grammar, or only repeat documentation the Workbench already owns?
 
 ## `component.json`
 
 The manifest always includes `id`, `status`, `variants`, `states`, `docs`, and `changelog`. `name` is optional display copy: when absent, Design Lab derives a human-readable label from the production `entry` filename or, for a wireframe-only Component, from its directory (`ComponentCard.tsx` → `Component Card`). The technical import/export symbol always comes from the `entry` filename and never from display copy, so `"Component Card"` and `"ComponentCard"` are both valid manifest labels for `ComponentCard.tsx`. A production Component also includes `entry`, `preview`, and `stories`; a wireframe-only Component instead requires the conventionally named typed Playground. Category is derived from the component directory and is never authored in the manifest. Describe public props when known, including type, required/default values, enum values, and slots. Paths are adjacent relative paths.
 
 `description`, `aliases`, `useWhen`, and `avoidWhen` are optional semantic retrieval fields, not registration fields. Prefer an authored `description`; without one the agent context gateway falls back to the first useful README paragraph.
+
+Cross-platform implementations may add an optional string `family` identifying one explicitly
+confirmed semantic Component Family. Equal filenames or display names never create a family by
+themselves. Optional `platform`, `technology`, and `adapter` fields may resolve ambiguous runtime
+evidence; omit them when Design Lab can derive the facts from the implementation. `previewUrl`
+declares an external browser-renderable surface. These fields enrich discovery and never require a
+second registry or a particular folder layout inside `components/`.
 
 Animated previews may add:
 

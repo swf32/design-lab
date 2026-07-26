@@ -3,7 +3,7 @@
   overflow: hidden;
   padding: 0;
   border: 1px solid var(--color-border-subtle);
-  border-radius: var(--radius-medium);
+  border-radius: var(--corner-surface);
   background: var(--color-surface-secondary);
   color: inherit;
   font: inherit;
@@ -33,9 +33,21 @@
   overflow: hidden;
   border-bottom: 1px solid var(--color-border-subtle);
   background: var(--color-surface-primary);
-  color: var(--color-text-disabled);
+  color: var(--color-text-secondary);
   display: grid;
   place-items: center;
+}
+.dl-asset-card--tone-teal .dl-asset-card__preview {
+  color: var(--color-category-teal);
+}
+.dl-asset-card--tone-cyan .dl-asset-card__preview {
+  color: var(--color-category-cyan);
+}
+.dl-asset-card--tone-violet .dl-asset-card__preview {
+  color: var(--color-category-violet);
+}
+.dl-asset-card--tone-orange .dl-asset-card__preview {
+  color: var(--color-category-orange);
 }
 .dl-asset-card__preview img {
   width: 100%;
@@ -92,13 +104,8 @@
   color: var(--color-text-disabled);
   font-size: 8px;
 }
-.dl-asset-card > small {
+.dl-asset-card__extension {
   align-self: start;
   margin: 10px 10px 0 4px;
-  padding: 3px 5px;
-  border: 1px solid var(--color-border-subtle);
-  border-radius: 3px;
-  color: var(--color-text-muted);
-  font-size: 7px;
   text-transform: uppercase;
 }

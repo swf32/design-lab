@@ -1,11 +1,17 @@
 .dl-code-block {
+  position: relative;
   width: 100%;
   min-width: 0;
   margin: 14px 0;
   overflow: hidden;
   border: 1px solid var(--color-border-default);
-  border-radius: var(--radius-medium);
+  border-radius: var(--corner-surface);
   background: var(--color-surface-secondary);
+}
+.dl-code-block--code-only {
+  margin: 0;
+  border: 0;
+  border-radius: 0;
 }
 .dl-code-block figcaption {
   min-height: 34px;
@@ -17,7 +23,7 @@
   justify-content: space-between;
   gap: 12px;
 }
-.dl-code-block figcaption > span {
+.dl-code-block__language {
   color: var(--color-text-disabled);
   font-size: 8px;
   font-weight: 700;
@@ -43,6 +49,50 @@
   font-size: 8px;
   cursor: pointer;
 }
+.dl-code-block__actions {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+}
+.dl-code-block__actions i {
+  display: grid;
+  place-items: center;
+  transition: transform var(--transition-fast);
+}
+.dl-code-block__actions i.is-expanded {
+  transform: rotate(180deg);
+}
+.dl-code-block__actions--overlay {
+  position: absolute;
+  z-index: 2;
+  top: 8px;
+  right: 8px;
+  padding: 2px;
+  border: 1px solid var(--color-border-subtle);
+  border-radius: var(--corner-control);
+  background: color-mix(in srgb, var(--color-surface-raised) 92%, transparent);
+  box-shadow: var(--shadow-small);
+}
+.dl-code-block__actions--overlay button {
+  width: 26px;
+  height: 26px;
+  padding: 0;
+  border: 0;
+  border-radius: 4px;
+  background: transparent;
+  color: var(--color-text-muted);
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+}
+.dl-code-block__actions--overlay button:hover {
+  background: var(--color-surface-hover);
+  color: var(--color-text-primary);
+}
+.dl-code-block__actions--overlay button:focus-visible {
+  outline: 2px solid var(--color-accent-primary);
+  outline-offset: 1px;
+}
 .dl-code-block figcaption button:hover {
   background: var(--color-surface-hover);
   color: var(--color-text-primary);
@@ -59,6 +109,25 @@
   margin: 0;
   padding: 14px 16px 16px;
   overflow: auto;
+}
+.dl-code-block--code-only pre {
+  padding-top: 14px;
+  padding-right: 84px;
+}
+.dl-code-block--collapsed pre {
+  max-height: calc(var(--code-block-collapsed-lines) * 1.65em + 30px);
+  overflow: hidden;
+  position: relative;
+}
+.dl-code-block--collapsed pre::after {
+  content: '';
+  height: 18px;
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  background: linear-gradient(to bottom, transparent, var(--color-surface-secondary));
+  pointer-events: none;
 }
 .dl-code-block pre code {
   padding: 0;

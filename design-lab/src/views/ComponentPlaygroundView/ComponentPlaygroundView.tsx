@@ -3,15 +3,8 @@ import { useEffect, useMemo, useRef, useState, type CSSProperties } from 'react'
 import {
   Button,
   CanvasBackgroundControl,
-  Checkbox,
   Chip,
-  ColorPicker,
-  ControlField,
-  Input,
   PlaygroundControlsRail,
-  RadioButton,
-  Select,
-  Slider,
   TabSwitcher,
   WorkbenchAction,
   WorkbenchInspector,
@@ -25,40 +18,12 @@ import type {
   PlaygroundValues,
 } from '@design-lab/system/playground'
 import type { ModuleData } from '../../api/projects'
+import { TypedPlaygroundControls } from '../../components/TypedPlaygroundControls/TypedPlaygroundControls'
+import { playgroundModuleFor } from '../../componentRuntime'
 import { designSystemModeStyle } from '../../designSystemMode'
 
 type ComponentsData = Extract<ModuleData, { kind: 'components' }>
 type ComponentEntity = ComponentsData['components'][number]
-
-const playgroundModules = {
-  ...import.meta.glob<ComponentPlaygroundModule>(
-    [
-      '../../../../libraries/*/components/**/*.playground.{ts,tsx}',
-      // Runtime-incomplete libraries stay discoverable via scanners, but must not enter the
-      // Vite graph. Note: a glob negation excludes matches from the whole pattern set — it
-      // cannot be selectively re-included by a later positive pattern in the SAME glob() call,
-      // which is why the klyp exception below is a second, separate glob() call instead.
-      '!../../../../libraries/klyp/components/**',
-    ],
-    { eager: true },
-  ),
-  // Scoped exception (see D-056 in docs/DECISIONS.md): Button and MeshButton are the only
-  // Klyp components whose runtime deps (motion, react-aria-components, @klyp/icons alias) are
-  // wired up.
-  ...import.meta.glob<ComponentPlaygroundModule>(
-    [
-      '../../../../libraries/klyp/components/ui/Button/Button.playground.tsx',
-      '../../../../libraries/klyp/components/brand/MeshButton/MeshButton.playground.tsx',
-    ],
-    { eager: true },
-  ),
-}
-
-function playgroundModule(component: ComponentEntity) {
-  if (!component.playground) return null
-  const suffix = `/libraries/${component.sourceId}/components/${component.directory}/${component.playground}`
-  return Object.entries(playgroundModules).find(([path]) => path.endsWith(suffix))?.[1] ?? null
-}
 
 function parseControlValue(control: PlaygroundControl, value: string | null) {
   if (value == null) return control.defaultValue
@@ -96,110 +61,6 @@ function statusPresentation(status?: string) {
   }
 }
 
-function PlaygroundControls({
-  component,
-  controls,
-  values,
-  onChange,
-}: {
-  component: ComponentEntity
-  controls: ComponentPlaygroundModule['playground']['controls']
-  values: PlaygroundValues
-  onChange: (key: string, value: string | number | boolean) => void
-}) {
-  return (
-    <div className="component-playground-controls">
-      <header>
-        <span>Typed controls</span>
-        <strong>{Object.keys(controls).length}</strong>
-      </header>
-      {Object.entries(controls).map(([key, definition]) => {
-        const value = values[key]
-        if (definition.kind === 'string')
-          return (
-            <Input
-              key={key}
-              label={definition.label}
-              helperText={definition.description}
-              placeholder={definition.placeholder}
-              value={String(value)}
-              size="small"
-              fullWidth
-              onChange={(event) => onChange(key, event.target.value)}
-            />
-          )
-        if (definition.kind === 'boolean')
-          return (
-            <Checkbox
-              key={key}
-              label={definition.label}
-              description={definition.description}
-              checked={Boolean(value)}
-              onChange={(event) => onChange(key, event.target.checked)}
-            />
-          )
-        if (definition.kind === 'enum')
-          return (
-            <Select
-              key={key}
-              label={definition.label}
-              helperText={definition.description}
-              options={definition.options}
-              value={String(value)}
-              size="small"
-              fullWidth
-              onChange={(event) => onChange(key, event.target.value)}
-            />
-          )
-        if (definition.kind === 'number')
-          return (
-            <Slider
-              key={key}
-              label={definition.label}
-              value={Number(value)}
-              minValue={definition.min}
-              maxValue={definition.max}
-              step={definition.step}
-              size="small"
-              onValueChange={(next) => onChange(key, next)}
-            />
-          )
-        if (definition.kind === 'choice')
-          return (
-            <fieldset
-              className="component-playground-controls__choice"
-              key={key}
-              aria-label={definition.label}
-            >
-              <legend>{definition.label}</legend>
-              {definition.options.map((option) => (
-                <RadioButton
-                  key={option.value}
-                  name={`${component.id}-${key}`}
-                  value={option.value}
-                  label={option.label}
-                  description={option.description}
-                  checked={value === option.value}
-                  onChange={() => onChange(key, option.value)}
-                  size="small"
-                />
-              ))}
-            </fieldset>
-          )
-        return (
-          <ControlField key={key} label={definition.label}>
-            <ColorPicker
-              label={definition.label}
-              value={String(value)}
-              onChange={(next) => onChange(key, next ?? definition.defaultValue)}
-            />
-          </ControlField>
-        )
-      })}
-    </div>
-  )
-}
-
 export function ComponentPlaygroundView({
   component,
   data,
@@ -217,7 +78,7 @@ export function ComponentPlaygroundView({
   onCanvasColorChange: (color: string) => void
   onClose: () => void
 }) {
-  const module = playgroundModule(component)
+  const module = playgroundModuleFor(component)
   if (!module) {
     return (
       <div className="module-state component-playground-missing">
@@ -401,6 +262,7 @@ function LoadedComponentPlayground({
             }))}
             value={variant}
             onChange={setVariant}
+            overflow="scroll"
           />
           <p>{selectedVariant?.description ?? module.playground.description}</p>
         </section>
@@ -414,11 +276,12 @@ function LoadedComponentPlayground({
               value={mode}
               onChange={setMode}
               size="small"
+              overflow="scroll"
             />
           </section>
         )}
 
-        <PlaygroundControls
+        <TypedPlaygroundControls
           component={component}
           controls={module.playground.controls}
           values={values}

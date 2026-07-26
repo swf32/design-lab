@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- Visual: Catalog preview shows one clear button-kind silhouette (Save / Edit) matching the production thumbnail grammar.
 - Changed: Added authored semantic retrieval metadata for MCP and CLI search.
 
 - Changed: Workbench stories now render automatically from the adjacent story module.

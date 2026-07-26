@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Added: Teal, cyan, violet, and orange category tones for peer metadata without status meaning.
+- Changed: Catalog preview and Workbench stories now distinguish semantic colors from categorical tones.
 - Changed: Added authored semantic retrieval metadata for MCP and CLI search.
 
 - Changed: Workbench stories now render automatically from the adjacent story module.

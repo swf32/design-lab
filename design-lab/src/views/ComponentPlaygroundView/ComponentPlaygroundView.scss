@@ -23,12 +23,12 @@
 
 .component-playground-panel > .dl-playground-controls-rail__header {
   flex: 0 0 auto;
-  padding: var(--spacing-3) var(--spacing-4) var(--spacing-4);
+  padding: var(--space-12) var(--space-16) var(--space-16);
   border-bottom: 1px solid var(--color-border-subtle);
 }
 
 .component-playground-panel > .dl-playground-controls-rail__header > .dl-button {
-  margin-left: calc(var(--spacing-2) * -1);
+  margin-left: calc(var(--space-8) * -1);
 }
 
 .component-playground-panel__done {
@@ -36,22 +36,20 @@
 }
 
 .component-playground-panel__identity {
-  padding-top: var(--spacing-4);
+  padding-top: var(--space-16);
   display: grid;
-  gap: var(--spacing-2);
+  gap: var(--space-8);
 }
 
 .component-playground-panel__identity > div {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: var(--spacing-3);
+  gap: var(--space-12);
 }
 
 .component-playground-panel__identity > div > span,
-.component-playground-panel__section > span,
-.component-playground-controls > header span,
-.component-playground-controls__choice legend {
+.component-playground-panel__section > span {
   color: var(--color-text-disabled);
   font-size: 9px;
   font-weight: 700;
@@ -84,14 +82,14 @@
 }
 
 .component-playground-panel__section,
-.component-playground-controls {
-  padding: var(--spacing-4);
+.component-playground-panel .typed-playground-controls {
+  padding: var(--space-16);
   border-bottom: 1px solid var(--color-border-subtle);
 }
 
 .component-playground-panel__section {
   display: grid;
-  gap: var(--spacing-3);
+  gap: var(--space-12);
 }
 
 .component-playground-panel__section .dl-tab-switcher {
@@ -114,41 +112,9 @@
   justify-self: start;
 }
 
-.component-playground-controls {
-  display: flex;
-  flex-direction: column;
-  gap: var(--spacing-4);
-}
-
-.component-playground-controls > header {
-  padding-bottom: var(--spacing-3);
-  border-bottom: 1px solid var(--color-border-subtle);
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-}
-
-.component-playground-controls > header strong {
-  color: var(--color-text-muted);
-  font-size: 11px;
-  font-weight: 500;
-}
-
-.component-playground-controls__choice {
-  min-width: 0;
-  padding: 0;
-  border: 0;
-  display: grid;
-  gap: var(--spacing-2);
-}
-
-.component-playground-controls__choice legend {
-  margin-bottom: var(--spacing-2);
-}
-
 .component-playground-panel > .dl-playground-controls-rail__footer {
   flex: 0 0 auto;
-  padding: var(--spacing-3) var(--spacing-4) calc(var(--spacing-3) + env(safe-area-inset-bottom));
+  padding: var(--space-12) var(--space-16) calc(var(--space-12) + env(safe-area-inset-bottom));
   border-top: 1px solid var(--color-border-subtle);
   background: var(--color-surface-primary);
 }
@@ -167,7 +133,7 @@
   right: max(16px, env(safe-area-inset-right));
   padding: 4px;
   border: 1px solid color-mix(in srgb, var(--color-text-primary) 16%, transparent);
-  border-radius: var(--radius-medium);
+  border-radius: var(--corner-surface);
   background: color-mix(in srgb, var(--color-surface-primary) 78%, transparent);
   box-shadow: 0 10px 32px color-mix(in srgb, var(--color-overlay-scrim) 48%, transparent);
   backdrop-filter: blur(16px) saturate(1.2);
@@ -236,7 +202,7 @@
 
 .component-playground-missing {
   min-height: 100dvh;
-  padding: var(--spacing-4);
+  padding: var(--space-16);
 }
 
 @media (max-width: 760px), (max-height: 560px) and (max-width: 960px) {
@@ -267,25 +233,18 @@
   }
 
   .component-playground-panel > .dl-playground-controls-rail__header {
-    padding-inline: var(--spacing-4);
+    padding-inline: var(--space-16);
     position: relative;
-  }
-
-  .component-playground-panel > .dl-playground-controls-rail__header > .dl-button,
-  .component-playground-panel__done,
-  .component-playground-panel > .dl-playground-controls-rail__footer .dl-button {
-    min-height: 44px;
-    font-size: 13px;
   }
 
   .component-playground-panel__done {
     min-width: 64px;
-    padding: 0 var(--spacing-3);
+    padding: 0 var(--space-12);
     position: absolute;
-    top: calc(var(--spacing-3) + env(safe-area-inset-top));
-    right: var(--spacing-2);
+    top: calc(var(--space-12) + env(safe-area-inset-top));
+    right: var(--space-8);
     border: 0;
-    border-radius: var(--radius-small);
+    border-radius: var(--corner-control);
     background: transparent;
     color: var(--color-text-secondary);
     display: block;
@@ -299,41 +258,8 @@
   }
 
   .component-playground-panel__section,
-  .component-playground-controls {
-    padding: var(--spacing-4);
-  }
-
-  .component-playground-panel__section .dl-tab-switcher {
-    overflow-x: auto;
-  }
-
-  .component-playground-panel__section .dl-tab-switcher button {
-    min-width: 72px;
-    flex: 1 0 auto;
-  }
-
-  .component-playground-controls {
-    gap: calc(var(--spacing-4) + var(--spacing-1));
-  }
-
-  .component-playground-controls .dl-color-picker__trigger {
-    width: 44px;
-    height: 44px;
-  }
-
-  .component-playground-controls .dl-checkbox {
-    width: 100%;
-    min-height: 44px;
-    align-items: center;
-  }
-
-  .component-playground-controls .dl-checkbox input {
-    width: 100%;
-    height: 100%;
-  }
-
-  .component-playground-controls .dl-checkbox__label {
-    font-size: 13px;
+  .component-playground-panel .typed-playground-controls {
+    padding: var(--space-16);
   }
 
   .component-playground-canvas {
