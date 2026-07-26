@@ -1,7 +1,7 @@
 # Web stack coupling audit: что на самом деле ещё привязано к React/TSX
 
-**Статус:** проверено по текущему source, 2026-07-26. Это gap audit, а не заявление о готовой
-Vue/Svelte support.
+**Статус:** обновлено после реальной Nuxt UI/Vue вертикали, 2026-07-26. Это gap audit, а не
+заявление о полной Vue/Svelte parity.
 
 ## Что было реально проверено
 
@@ -12,36 +12,35 @@ Vue/Svelte support.
 | Filesystem fixture | `.vue`/`.svelte` обнаруживаются, получают technology, mount identity и raw source handoff  | что framework compiler вообще запускался                         |
 | Profile fixture    | `.vue` entry связывается с ближайшим `package.json`/lockfile и отдельным runtime profile   | что Vue package/plugin совместимы и SFC собирается               |
 | Supervisor fixture | fake runtime handles проверяют coalesced start, loopback, crash isolation, restart/dispose | что реальный Vite child process стартует и корректно завершается |
-| Browser end-to-end | текущий React preview реально снят Playwright Chromium через новый capture descriptor      | что Vue/Svelte preview, Story, controls или capture работают     |
+| Browser end-to-end | React compatibility capture и реальный Nuxt UI/Vue preview/Story capture проверены Chromium | что вся Vue matrix или Svelte runtime уже готовы                 |
 
-Итого: **Vue/Svelte execution сегодня не проверялся и не работает**. Число unit/integration tests
-не является framework parity score. Framework получает статус supported только после browser E2E
-на настоящем package, compiler plugin и implementation.
+Итого: **Vue execution теперь реально работает, Svelte execution не начат**. Nuxt UI/Vue запускается
+с настоящими package/compiler plugin, SFC, controls, HMR и captures. Это всё равно не framework
+parity score: незакрытые capabilities перечислены ниже и не должны имитироваться.
 
-На момент audit workspace не содержит установленных `vue`, `@vitejs/plugin-vue`, `svelte` или
-`@sveltejs/vite-plugin-svelte`. Runtime-profile fixture намеренно получает
-`framework.available: false`; это проверка честной диагностики отсутствующей dependency, а не
-скрытая Vue установка.
+Committed `nuxt-ui-system` объявляет `vue`, `@vitejs/plugin-vue`, `@nuxt/ui` и собственный Vite.
+Launcher резолвит Vite из owning package environment; физический workspace hoist не превращает
+shell Vite в runtime dependency. `svelte` и `@sveltejs/vite-plugin-svelte` пока отсутствуют.
 
 ## Найденные stack-coupled поверхности
 
 | Поверхность                | Текущее состояние                                                                                  | Привязка                                                                       | Что обязательно сделать                                                    |
 | -------------------------- | -------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------ | -------------------------------------------------------------------------- |
 | Component discovery        | `.tsx`, `.vue`, `.svelte` strong-evidence files находятся                                          | public package exports, Vue/Svelte metadata и barrel semantics ещё не читаются | ecosystem-specific export/metadata analyzers + fixtures                    |
-| Catalog preview            | authored preview загружается через React `import.meta.glob`; Vue/Svelte получают generic thumbnail | `src/componentRuntime.tsx`, `*.preview.tsx`                                    | runtime preview capability; distinguish authored/generated/fallback        |
-| Component detail live view | только `react-manifest` и external iframe                                                          | `componentPresentation.ts`, `ModuleView.tsx`                                   | общий RuntimeSurface для managed/external adapters                         |
-| Stories                    | только Design Lab React `stories` + `renderStoryExample(): ReactNode`                              | `componentRuntime.tsx`, `ModuleView.tsx`                                       | normalized serializable Story model; Vue/Svelte/CSF ingestion              |
-| Component Playground       | React Story renderer и React playground module                                                     | `componentRuntime.tsx`, `ComponentPlaygroundView.tsx`                          | protocol render + args/state; framework adapter owns mount/update/unmount  |
-| Controls                   | выводятся из React Story props/manifest examples                                                   | `ModuleView.tsx`                                                               | normalized props/events/slots/snippets contract and adapter updates        |
+| Catalog preview            | React eager glob; Vue managed iframe рендерит `.preview.vue`; Svelte fallback                      | shell + managed Vue runtime                                                    | runtime provenance для React/Svelte                                        |
+| Component detail live view | React manifest и Vue managed runtime; external iframe escape hatch                                  | `componentPresentation.ts`, `ModuleView.tsx`                                   | тот же RuntimeSurface для Svelte                                            |
+| Stories                    | React modules; Vue normalized `.stories.json` enrichment                                            | React runtime + Vue runtime                                                    | CSF/ecosystem ingestion и event/state model                                |
+| Component Playground       | React modules; Vue production args + отдельный draft Playground                                     | обе route views                                                                | сохранить framework-neutral shell, добавить Svelte                        |
+| Controls                   | React props и Vue serializable args работают                                                        | `ModuleView.tsx`, managed runtime                                               | events/slots/snippets и URL persistence                                    |
 | Story source/copy          | сериализует React nodes в JSX/TSX                                                                  | `componentRuntime.tsx`, `storySourcePrinter.mjs`                               | adapter-owned canonical usage printer for Vue/Svelte; no fake JSX          |
 | Inspector                  | Babel transform instruments TS/TSX JSX callsites and React runtime registry                        | `scripts/inspectionTransform.mjs`, `@design-lab/system/inspection`             | Vue template/SFC and Svelte compiler analyzers; capability-specific depth  |
-| Relations/compositionUses  | static imports parsed only as JS/TS/JSX                                                            | `moduleEntities.mjs::parseComponentSourceImports`                              | parse Vue `<script>`/template and Svelte `<script>`/markup imports         |
-| Component capture          | real only for current React preview/story                                                          | `ComponentCaptureView.tsx`                                                     | real Vue/Svelte runtime surfaces and browser E2E                           |
+| Relations/compositionUses  | JS/TS и Vue `<script>` imports parsed; template semantics/Svelte ещё нет                            | `moduleEntities.mjs::parseComponentSourceImports`                              | Vue template и Svelte analyzers                                            |
+| Component capture          | real React и Vue preview/story                                                                     | shared capture service + runtime descriptor                                    | Svelte runtime surface/browser E2E                                         |
 | Wireframe runtime          | eager `*.wireframe.tsx` glob returning React nodes                                                 | `wireframes/registry.ts`, `WireframeView.tsx`                                  | runtime protocol renderer per framework                                    |
 | Page runtime               | eager `*.page.tsx` glob returning React nodes                                                      | `pages/registry.ts`, `PageView.tsx`                                            | runtime protocol renderer per framework                                    |
 | Wireframe/Page flows       | shell calls React renderer repeatedly and captures DOM clicks locally                              | `WireframeView`, `PageView`, `useFlowActionCapture`                            | action/event messages across iframe boundary; inert flow previews          |
-| HMR/watcher                | Library code lives in shell Vite graph; attached mounts are not runtime-watched                    | eager globs; no mounted runtime watcher                                        | child Vite HMR + targeted profile restart/invalidation                     |
-| Runtime errors             | React import failure может повредить общий shell graph                                             | eager globs                                                                    | iframe/process error boundary and readable adapter diagnostics             |
+| HMR/watcher                | React в shell graph; Vue child Vite HMR доказан                                                    | два временно разных runtime paths                                              | child baseline для React/Svelte и invalidation policy                      |
+| Runtime errors             | React import failure может повредить shell; Vue локализован iframe/process                         | eager React против isolated Vue                                                | automated compile/runtime error fixtures                                   |
 | External URL               | iframe exists, but no handshake, readiness, args, events, capture or inspection                    | `ModuleView.tsx` iframe                                                        | optional bridge negotiation; otherwise honest preview-only capability      |
 | MCP/CLI                    | search/get/browse generic; screenshot tool намеренно Component preview/story-only и React-executable | `server/mcp/index.mjs`, `scripts/designlab.mjs`                              | capability response + Component preview/story через каждый adapter         |
 | Rules/AI authoring         | Component rules and many diagnostics still require `.tsx`, ReactNode, JSX and React Story shape    | `rules/*`, `moduleEntities.mjs`                                                | adapter-neutral base contract plus framework-specific appendices           |
@@ -76,19 +75,20 @@ adapter-specific parsing/printing.
 
 ## Что было забыто в первом protocol slice
 
-1. Не было настоящей Vue dependency, Vue compiler plugin или Vue browser fixture. `.vue` в temp
-   directory проверял только filesystem/profile logic.
+1. Первоначально не было настоящей Vue dependency/compiler/browser fixture. Теперь это исправлено
+   committed Nuxt UI package; временная `.vue` fixture больше не выдаётся за runtime proof.
 2. Не был отдельно проаудирован authoring contract: `COMPONENT_RULES.md` и server diagnostics всё
    ещё считают TSX preview/story/playground стандартом готовности.
 3. Фраза «Assets общие» была слишком широкой: ordinary media общие, TSX icons — React code.
 4. Relations, copied source и Inspector были объединены словом handoff, хотя raw source handoff уже
    generic, а semantic/deep handoff всё ещё JSX-specific.
-5. Не была заведена настоящая framework fixture library, поэтому нельзя проверить dependency
-   resolution, plugin version, HMR, CSS leakage, token/font/asset loading и process cleanup вместе.
+5. Настоящая Nuxt UI Library теперь проверяет dependency resolution, plugin version, SFC, HMR,
+   token modes, capture и process cleanup. Fonts/assets, CSS leakage и error fixtures ещё открыты.
 
 ## Обязательные реальные fixtures
 
-Нужен committed test workspace, а не строки `.vue`/`.svelte` во временной папке:
+Nuxt UI System теперь является первым committed real-world fixture. Для React/Svelte ещё нужны
+симметричные packages, а Vue fixture необходимо расширить:
 
 - `fixtures/web-parity/react`, `vue`, `svelte` с реальными package manifests и framework versions;
 - одинаковая семантическая Button/Card implementation, минимум одна Story, props/state/event;
@@ -105,10 +105,9 @@ environment, не запускает настоящий compiler и не про�
 
 ## Исправленный порядок работ
 
-1. Создать реальный React fixture и перенести его на child runtime; это baseline регрессий.
-2. Подключить framework-aware Story/controls/events, Component preview/story capture и error/HMR
-   tests к React baseline.
-3. Создать настоящий Vue package/fixture и закрыть всю Component vertical.
+1. Закрыть оставшиеся Vue gaps: events/state, fonts/assets, errors, source printer/Inspector.
+2. Создать реальный React fixture и перенести его на child runtime; это baseline регрессий.
+3. Подключить framework-aware Story/controls/events и error/HMR tests к React baseline.
 4. Закрыть Vue Wireframe/Page web-rendering, relations, source printing и Inspector capability.
 5. Повторить без исключений для Svelte.
 6. Только после зелёной matrix удалить eager globs и назвать framework supported.

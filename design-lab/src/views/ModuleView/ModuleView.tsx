@@ -34,9 +34,15 @@ import {
   type TableColumn,
 } from '@design-lab/system/components'
 import { CardsViewIcon, CopyIcon, ListViewIcon } from '@design-lab/system/icons'
-import { getComponentHandoff, type ComponentHandoff, type ModuleData } from '../../api/projects'
+import {
+  getComponentHandoff,
+  type ComponentHandoff,
+  type ManagedComponentRuntime,
+  type ModuleData,
+} from '../../api/projects'
 import type { PlaygroundControls, PlaygroundValues } from '@design-lab/system/playground'
 import { TypedPlaygroundControls } from '../../components/TypedPlaygroundControls/TypedPlaygroundControls'
+import { ManagedRuntimeFrame } from '../../components/ManagedRuntimeFrame/ManagedRuntimeFrame'
 import {
   playgroundModuleFor,
   previewComponentFor,
@@ -131,6 +137,16 @@ function DiscoveredComponentPreview({
   component: ComponentEntity
   sourceId: string
 }) {
+  if (component.technology === 'vue')
+    return (
+      <ManagedRuntimeFrame
+        sourceId={sourceId}
+        componentId={component.id}
+        view="preview"
+        title={`${component.name} catalog preview`}
+        className="managed-runtime-frame--catalog"
+      />
+    )
   const Preview = previewComponentFor(component, sourceId)
   if (Preview) return <Preview />
   return <ComponentThumbnail kind={component.id} />
@@ -381,6 +397,177 @@ function LoadedProductionComponentPlayground({
         {module.renderStoryExample?.({ ...seed, label: exampleLabel, props: exampleProps }, story)}
       </div>
     </WorkbenchPlayground>
+  )
+}
+
+function ManagedComponentWorkbench({
+  component,
+  sourceId,
+  family,
+  onBack,
+  onOpenPlayground,
+  onSelectComponent,
+  canvasMode,
+  canvasColor,
+  onCanvasModeChange,
+  onCanvasColorChange,
+  productMode,
+}: {
+  component: ComponentEntity
+  sourceId: string
+  family?: ComponentFamily
+  onBack: () => void
+  onOpenPlayground: () => void
+  onSelectComponent: (id: string) => void
+  canvasMode: CanvasMode
+  canvasColor: string
+  onCanvasModeChange: (mode: CanvasMode) => void
+  onCanvasColorChange: (color: string) => void
+  productMode: string
+}) {
+  const { t } = useDesignLabI18n()
+  const [runtime, setRuntime] = useState<ManagedComponentRuntime | null>(null)
+  const story = runtime?.stories.find((item) => item.examples?.length)
+  const seed = story?.examples?.[0]
+  const setup = seed ? productionPlaygroundSetup(component, seed) : null
+  const [values, setValues] = useState<PlaygroundValues>({})
+  useEffect(() => {
+    if (setup) setValues(setup.values)
+  }, [component.id, runtime?.profile.id])
+  const canvasStyle = { '--canvas-solid': canvasColor } as CSSProperties
+
+  return (
+    <div className={`workbench workbench--canvas-${canvasMode}`} style={canvasStyle}>
+      <div className="workbench__top">
+        <ModuleHeader
+          eyebrow={component.directory}
+          title={component.name}
+          backLabel={t('workbench.back')}
+          onBack={onBack}
+          meta={`${component.entry} · Vue ${runtime?.profile.framework.version ?? ''}`}
+          actions={
+            runtime?.playground ? (
+              <Button type="button" variant="primary" size="small" onClick={onOpenPlayground}>
+                {t('workbench.openWireframePlayground')}
+              </Button>
+            ) : undefined
+          }
+        />
+      </div>
+      <ComponentFamilyNavigation
+        family={family}
+        activeId={component.id}
+        onSelect={onSelectComponent}
+      />
+      <ComponentReferencePanel
+        importStatement={component.import?.statement ?? ''}
+        uses={component.relations.uses}
+        usedBy={component.relations.usedBy}
+        examplesUse={component.relations.examplesUse}
+        usedInExamplesBy={component.relations.usedInExamplesBy}
+        diagnostics={component.relations.diagnostics}
+        onSelectRelation={(relation) => onSelectComponent(relation.id)}
+      />
+      <WorkbenchPlayground
+        mode={canvasMode}
+        color={canvasColor}
+        onModeChange={onCanvasModeChange}
+        onColorChange={onCanvasColorChange}
+        controlsPosition="end"
+        label={t('workbench.componentPlayground')}
+        controls={
+          setup && Object.keys(setup.controls).length ? (
+            <div className="inline-playground-controls">
+              <TypedPlaygroundControls
+                component={component}
+                controls={setup.controls}
+                values={values}
+                onChange={(key, value) => setValues((current) => ({ ...current, [key]: value }))}
+                heading={t('workbench.props')}
+              />
+            </div>
+          ) : undefined
+        }
+      >
+        <ManagedRuntimeFrame
+          sourceId={sourceId}
+          componentId={component.id}
+          view="playground"
+          mode={productMode}
+          args={values}
+          title={`${component.name} production Playground`}
+          className="managed-runtime-frame--playground"
+          onRuntime={setRuntime}
+        />
+      </WorkbenchPlayground>
+      <section className="workbench__rail">
+        {runtime?.stories.map((item) => (
+          <StoryCanvas
+            key={item.id}
+            title={item.name}
+            description={item.description}
+            meta={item.kind ?? 'context'}
+            canvasMode={canvasMode}
+            canvasColor={canvasColor}
+            onCanvasModeChange={onCanvasModeChange}
+            onCanvasColorChange={onCanvasColorChange}
+          >
+            <ManagedRuntimeFrame
+              sourceId={sourceId}
+              componentId={component.id}
+              view="story"
+              story={item.id}
+              mode={productMode}
+              title={`${component.name}: ${item.name}`}
+              className="managed-runtime-frame--story"
+            />
+          </StoryCanvas>
+        ))}
+        {component.props && (
+          <div className="workbench-section">
+            <span>{t('workbench.propsApi')}</span>
+            <div className="workbench__props-table">
+              <div className="workbench__props-head">
+                <strong>{t('workbench.name')}</strong>
+                <strong>{t('workbench.type')}</strong>
+                <strong>{t('workbench.default')}</strong>
+              </div>
+              {Object.entries(component.props).map(([name, definition]) => (
+                <div key={name}>
+                  <code>{name}</code>
+                  <span>
+                    {definition.type}
+                    {definition.values ? ` · ${definition.values.join(' | ')}` : ''}
+                  </span>
+                  <small>
+                    {definition.default === undefined ? '—' : String(definition.default)}
+                  </small>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+        <div className="workbench-section">
+          <span>{t('workbench.documentation')}</span>
+          <div className="workbench-markdown">
+            <ReactMarkdown components={markdownComponents}>
+              {component.documentation ?? 'Documentation has not been written yet.'}
+            </ReactMarkdown>
+          </div>
+        </div>
+        {component.changelogDocumentation && (
+          <div className="workbench-section">
+            <span>{t('workbench.changelog')}</span>
+            <div className="workbench-markdown workbench-markdown--changelog">
+              <ReactMarkdown components={markdownComponents}>
+                {component.changelogDocumentation}
+              </ReactMarkdown>
+            </div>
+          </div>
+        )}
+        <ComponentReferenceFiles files={component.files} />
+      </section>
+    </div>
   )
 }
 
@@ -1396,6 +1583,20 @@ export function ModuleView({
         onCanvasColorChange={onCanvasColorChange}
         productMode={previewMode}
         themeVariables={data.themeVariables}
+      />
+    ) : selected && presentation?.kind === 'managed' ? (
+      <ManagedComponentWorkbench
+        component={selected}
+        sourceId={sourceId}
+        family={selectedFamily}
+        onBack={onBack}
+        onOpenPlayground={onOpenPlayground}
+        onSelectComponent={onSelectEntity}
+        canvasMode={canvasMode}
+        canvasColor={canvasColor}
+        onCanvasModeChange={onCanvasModeChange}
+        onCanvasColorChange={onCanvasColorChange}
+        productMode={previewMode}
       />
     ) : selected ? (
       <ComponentConceptOverview

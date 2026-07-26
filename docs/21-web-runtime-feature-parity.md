@@ -1,7 +1,8 @@
 # Web runtime feature parity: что обязаны уметь React, Vue и Svelte
 
 **Статус:** обязательный Web Definition of Done, принят 2026-07-26. Первый protocol/capture
-bridge реализован для текущего React runtime; isolated React, Vue и Svelte runtimes ещё не готовы.
+bridge реализован для текущего React runtime. Настоящая Nuxt UI/Vue вертикаль доказала isolated
+runtime, но ещё не закрыла всю Vue matrix; Svelte runtime не начат.
 Полный source audit и точные границы уже проверенного находятся в
 `22-web-stack-coupling-audit.md`.
 
@@ -17,19 +18,21 @@ React fallback, чужой thumbnail или успешный ответ с не�
 
 ## Честное текущее состояние
 
-| Возможность                             | React сейчас               | Vue/Svelte сейчас       | Что должно стать общим                            |
-| --------------------------------------- | -------------------------- | ----------------------- | ------------------------------------------------- |
-| Discovery, Directory                    | да                         | basic file discovery да | exports/metadata analyzers ещё нужны              |
-| Catalog authored preview                | да через eager React glob  | нет, generic fallback   | runtime preview + provenance                      |
-| Raw source handoff, search, MCP get     | да                         | да при найденном source | canonical usage/relations ещё adapter-specific    |
-| Живой Component preview                 | eager React graph          | нет                     | isolated runtime `render`                         |
-| Stories                                 | React Story module         | нет                     | adapter читает/нормализует framework story source |
-| Props/state controls                    | React Story props          | нет                     | serializable args/state contract                  |
-| Preview/Story screenshot через CLI/MCP  | React compatibility bridge | нет                     | runtime-owned capture surface                     |
-| Wireframe/Page render, states и flow    | eager TSX registries       | нет                     | те же runtime messages, другой entity kind        |
-| Runtime errors и HMR                    | общий Vite graph           | нет                     | isolated diagnostics/HMR на runtime profile       |
-| Tokens, Palette, Fonts, ordinary Assets | общий source               | общий source            | runtime loading надо доказать E2E                 |
-| TSX code-native icons                   | да                         | нет                     | SVG source или framework-specific asset family    |
+| Возможность                             | React сейчас               | Vue сейчас                           | Svelte сейчас    |
+| --------------------------------------- | -------------------------- | ------------------------------------ | ---------------- |
+| Discovery, Directory                    | да                         | SFC + manifest enrichment            | basic discovery  |
+| Catalog authored preview                | eager React glob           | isolated real `.preview.vue`         | fallback         |
+| Raw source handoff, search, MCP get     | да                         | да                                   | basic source     |
+| Живой Component preview                 | eager React graph          | isolated real SFC                    | нет              |
+| Stories                                 | React Story module         | normalized JSON enrichment           | нет              |
+| Props/state controls                    | React Story props          | serializable args работают           | нет              |
+| Preview/Story screenshot через CLI/MCP  | compatibility bridge       | runtime-owned capture доказан        | нет              |
+| Wireframe/Page render, states и flow    | eager TSX registries       | нет                                  | нет              |
+| Runtime errors и HMR                    | общий Vite graph           | isolated iframe/process; HMR доказан | нет              |
+| Token modes                             | да                         | общие light/dark tokens доказаны     | не проверено     |
+| Fonts и ordinary Assets                 | да                         | discovery да, browser E2E ещё нет    | не проверено     |
+| Relations/source printer/Inspector      | React-specific             | partial imports/raw source only      | нет              |
+| TSX code-native icons                   | да                         | не исполняются                       | не исполняются   |
 
 В частности, arbitrary `previewUrl` сегодня даёт живой iframe, но не объявляет `capture`: без
 bridge Design Lab не может гарантировать readiness, выбранное состояние и точную поверхность.
@@ -67,8 +70,8 @@ MCP/CLI capture
 Descriptor принадлежит runtime, а не MCP: entity/view, opaque `selector`, CSS width/height и DPR.
 Поэтому capture service не должен знать React CSS-классы. Текущий React Component renderer уже
 отвечает для preview/story. Wireframe/Page не являются MCP capture targets в текущем продукте.
-Vue/Svelte должны вернуть тот же descriptor; отдельные `capture_vue` и `capture_svelte` команды
-запрещены.
+Vue уже возвращает тот же descriptor для Component preview/story; отдельной Vue-команды нет.
+Svelte должен пройти тот же путь, отдельные `capture_vue` и `capture_svelte` команды запрещены.
 
 Capture никогда не подменяется красивой заглушкой. Если Vue runtime не поддерживает Story capture,
 MCP возвращает capability error. Catalog всё равно может показать Component и исходники.
@@ -121,10 +124,11 @@ Deep Inspector может иметь разную глубину, но matrix п
 
 ## Порядок реализации
 
-1. Закончить protocol host и перенести React Components, Wireframes и Pages из eager globs без
-   регрессий.
-2. Подключить Vue Component adapter и прогнать всю Component matrix, включая MCP capture.
-3. Подключить Vue Wireframe/Page renderers.
+1. Довести Nuxt UI/Vue Component vertical: events/state, fonts/assets, error fixture, canonical
+   source printer и capability-gated Inspector.
+2. Перенести React Components на тот же child-runtime baseline без регрессий и удалить Component
+   eager globs.
+3. Подключить Vue Wireframe/Page renderers отдельной web-фазой.
 4. Повторить те же gates для Svelte.
 5. Добавить Custom Elements; external URL оставить escape hatch с capability negotiation.
 

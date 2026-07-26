@@ -661,9 +661,9 @@ Components использует Tokens, Palette и Fonts и становится
 - [ ] Phase 1: discovery без обязательного per-Component `component.json` (strong-evidence scanner
       для React/Vue/Svelte/Custom Elements/SwiftUI/Compose готов; package exports, CEM и framework
       metadata ещё не подключены).
-- [ ] Phase 2: isolated React/non-React browser runtimes и external preview (versioned JSON protocol
-      и React capture bridge, profile resolver и lifecycle supervisor готовы; child launcher и
-      isolated adapters ещё нет).
+- [ ] Phase 2: isolated React/non-React browser runtimes и external preview (versioned JSON protocol,
+      React capture bridge, profile resolver/supervisor и настоящий Vue child launcher готовы;
+      React child baseline и Svelte adapter ещё нет).
 - [ ] Phase 3: framework-neutral Workbench, capture, controls и Storybook CSF ingestion
       (capability-gated detail UI и runtime-owned capture surface готовы; shared runtime/controls/CSF
       ещё нет).
@@ -685,20 +685,23 @@ Web sequencing и границы shared/native modules: `docs/17-web-first-platf
 - [x] Отделить реально проверенные filesystem/profile/supervisor fixtures от browser E2E; `.vue`
       filename больше не считается доказательством Vue runtime.
 - [ ] Добавить committed React/Vue/Svelte fixture packages с настоящими framework/compiler
-      dependencies и чистой установкой.
+      dependencies и чистой установкой (real-world Nuxt UI/Vue Library готова; React/Svelte открыты).
 - [ ] Оставить MCP capture строго для Component preview/story и доказать одинаковый path в каждом
-      заявленном web adapter; Component Playground остаётся UI-only до отдельного продуктового решения.
+      заявленном web adapter (React и Vue готовы; Svelte открыт); Component Playground остаётся
+      UI-only до отдельного продуктового решения.
 - [ ] Убрать eager React globs из Catalog, Stories, Playground, Wireframes и Pages после переноса
       baseline на child runtime.
 - [ ] Нормализовать Story/args/state/events/slots/snippets без `ReactNode` в shell contract.
-- [ ] Добавить Vue/Svelte analyzers для imports/relations, canonical usage source и Inspector; depth
-      остаётся capability-gated.
+- [ ] Добавить Vue/Svelte analyzers для imports/relations, canonical usage source и Inspector
+      (Vue `<script>` imports готовы; template semantics/source printer/Inspector и Svelte открыты);
+      depth остаётся capability-gated.
 - [ ] Разделить ordinary shared Assets и framework-native code assets; TSX icon не считается
       исполняемым Vue/Svelte asset.
 - [ ] Переписать TSX-specific authoring/completeness rules как React adapter appendix, сохранив
       framework-neutral base contract.
 - [ ] Проверить token modes, fonts, SVG/raster assets, HMR, compile/runtime error isolation и clean
-      process shutdown в каждом настоящем browser fixture.
+      process shutdown в каждом настоящем browser fixture (Vue modes/HMR/capture/shutdown готовы;
+      Vue fonts/assets/error fixtures и остальные frameworks открыты).
 - [ ] Сохранять selected implementation/profile, mode, args/state и view в URL без port/PID details.
 
 ## Активный foundation gate: embedded installation и attach-first sources
@@ -741,7 +744,7 @@ where they are` и confirm-gated apply plan; ещё нужны post-apply self-c
 ## Ближайший конкретный шаг
 
 Source resolution, base runtime messages, Component preview/story capture bridge, package-aware
-profiles и supervisor закрыты. До child launcher сначала расширить protocol на все entity/view
-surfaces и создать настоящий React parity fixture. Затем перенести React без регрессий, подключить
-настоящий Vue fixture по полной matrix и только потом Svelte. Не называть temp `.vue` discovery
-runtime test, не расширять eager globs и не открывать native backlog до Web DoD.
+profiles/supervisor и первая настоящая Nuxt UI/Vue vertical закрыты. Следом надо завершить честные
+Vue gaps (events/state, fonts/assets, errors, source printer/Inspector), перенести React на child
+runtime без регрессий и только затем подключать Svelte. Не расширять eager globs и не открывать
+native backlog до Web DoD.

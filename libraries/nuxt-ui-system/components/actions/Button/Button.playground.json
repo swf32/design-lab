@@ -1,0 +1,22 @@
+{
+  "description": "Compare two tentative action directions before changing the production contract.",
+  "defaultVariant": "compact-action",
+  "variants": [
+    {
+      "id": "compact-action",
+      "name": "Compact action",
+      "description": "A quiet action for dense application surfaces.",
+      "props": { "variant": "soft", "size": "small" }
+    },
+    {
+      "id": "prominent-cta",
+      "name": "Prominent CTA",
+      "description": "A larger primary action for a focused decision.",
+      "props": { "variant": "primary", "size": "large" }
+    }
+  ],
+  "controls": {
+    "label": { "kind": "string", "label": "Label", "defaultValue": "Generate concept" },
+    "disabled": { "kind": "boolean", "label": "Disabled", "defaultValue": false }
+  }
+}

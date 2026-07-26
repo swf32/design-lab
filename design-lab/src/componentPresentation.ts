@@ -4,6 +4,7 @@ type ComponentEntity = Extract<ModuleData, { kind: 'components' }>['components']
 
 export type ComponentPresentation =
   | { kind: 'react'; implementation: ComponentImplementation }
+  | { kind: 'managed'; implementation: ComponentImplementation }
   | { kind: 'external'; implementation: ComponentImplementation; url: string }
   | { kind: 'catalog'; implementation: ComponentImplementation }
 
@@ -21,6 +22,12 @@ export function componentPresentation(component: ComponentEntity): ComponentPres
     componentHasCapability(component, 'live-preview')
   )
     return { kind: 'react', implementation: component.implementation }
+  if (
+    component.adapter === 'vue-sfc' &&
+    component.entry &&
+    componentHasCapability(component, 'live-preview')
+  )
+    return { kind: 'managed', implementation: component.implementation }
   if (
     component.implementation.locator.kind === 'external-url' &&
     componentHasCapability(component, 'live-preview')

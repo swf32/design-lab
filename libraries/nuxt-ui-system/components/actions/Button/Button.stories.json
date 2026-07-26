@@ -1,0 +1,26 @@
+{
+  "stories": [
+    {
+      "id": "variants",
+      "kind": "variant",
+      "name": "Action emphasis",
+      "description": "Compares the supported emphasis levels of the real Nuxt UI button wrapper.",
+      "examples": [
+        { "label": "Primary", "props": { "label": "Continue", "variant": "primary" } },
+        { "label": "Secondary", "props": { "label": "Review", "variant": "secondary" } },
+        { "label": "Soft", "props": { "label": "Save draft", "variant": "soft" } },
+        { "label": "Ghost", "props": { "label": "Cancel", "variant": "ghost" } }
+      ]
+    },
+    {
+      "id": "states",
+      "kind": "state",
+      "name": "Availability",
+      "description": "Shows the unavailable and pending states without replacing the production implementation.",
+      "examples": [
+        { "label": "Disabled", "props": { "label": "Unavailable", "disabled": true } },
+        { "label": "Loading", "props": { "label": "Saving", "loading": true } }
+      ]
+    }
+  ]
+}

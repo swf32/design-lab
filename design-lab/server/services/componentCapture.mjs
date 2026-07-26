@@ -9,6 +9,7 @@ import {
   getRuntimeCaptureDescriptor,
   parseRuntimeCaptureInfo,
 } from '../../shared/runtimeProtocol.mjs'
+import { closeComponentRuntimes, prepareComponentRuntime } from './componentRuntimeService.mjs'
 
 const APPLICATION_ROOT = resolve(fileURLToPath(new URL('../..', import.meta.url)))
 const API_ORIGIN = 'http://127.0.0.1:4173'
@@ -99,6 +100,19 @@ function captureUrl({ entity, capture, storyId, sourceMode, interfaceTheme }) {
   return `${UI_ORIGIN}/__capture/component?${params}`
 }
 
+async function resolvedCaptureUrl({ entity, capture, storyId, sourceMode, interfaceTheme }) {
+  if (entity.details?.technology === 'vue') {
+    const runtime = await prepareComponentRuntime(entity.source.id, entity.id, {
+      view: capture === 'info' ? 'info' : capture,
+      story: storyId,
+      mode: sourceMode,
+    })
+    return runtime.url
+  }
+  await ensureRuntime()
+  return captureUrl({ entity, capture, storyId, sourceMode, interfaceTheme })
+}
+
 async function readCaptureInfo(page) {
   const ready = page.locator('[data-designlab-capture-ready]')
   try {
@@ -127,7 +141,6 @@ export async function getComponentCaptureInfo(ref, interfaceTheme = 'dark') {
   if (entity.kind !== 'component')
     throw captureError('Capture requires a Component ref', 'CAPTURE_COMPONENT_REQUIRED')
 
-  await ensureRuntime()
   const browser = await getBrowser()
   const context = await browser.newContext({
     viewport: { width: 900, height: 600 },
@@ -138,7 +151,13 @@ export async function getComponentCaptureInfo(ref, interfaceTheme = 'dark') {
   const page = await context.newPage()
   try {
     await page.goto(
-      captureUrl({ entity, capture: 'info', storyId: null, sourceMode: null, interfaceTheme }),
+      await resolvedCaptureUrl({
+        entity,
+        capture: 'info',
+        storyId: null,
+        sourceMode: null,
+        interfaceTheme,
+      }),
       { waitUntil: 'networkidle' },
     )
     return await readCaptureInfo(page)
@@ -165,7 +184,6 @@ export async function renderComponentCapture({
   if (entity.kind !== 'component')
     throw captureError('Capture requires a Component ref', 'CAPTURE_COMPONENT_REQUIRED')
 
-  await ensureRuntime()
   const browser = await getBrowser()
   const context = await browser.newContext({
     viewport: { width: 1400, height: 700 },
@@ -180,9 +198,10 @@ export async function renderComponentCapture({
   })
 
   try {
-    await page.goto(captureUrl({ entity, capture, storyId, sourceMode, interfaceTheme }), {
-      waitUntil: 'networkidle',
-    })
+    await page.goto(
+      await resolvedCaptureUrl({ entity, capture, storyId, sourceMode, interfaceTheme }),
+      { waitUntil: 'networkidle' },
+    )
     const info = await readCaptureInfo(page)
     await page.evaluate(() => document.fonts.ready)
     let descriptor
@@ -270,6 +289,7 @@ export async function closeComponentCaptureRuntime() {
     if (child.exitCode === null && child.signalCode === null) child.kill('SIGTERM')
   managedProcesses.length = 0
   runtimePromise = null
+  await closeComponentRuntimes()
 }
 
 process.once('exit', () => {

@@ -18,6 +18,7 @@
     "check:styles": "node scripts/format-styles.mjs --check",
     "build": "npm run sync:components && npm run sync:assets && npm run check:code && npm run check:styles && npm run build --workspace=design-lab",
     "test": "npm run sync:components && npm run sync:assets && npm run check:code && npm run check:styles && npm run test --workspace=design-lab",
+    "test:runtime:vue": "npm run test:runtime:vue --workspace=design-lab",
     "mcp": "npm run mcp --workspace=design-lab",
     "designlab": "npm run designlab --workspace=design-lab --"
   },

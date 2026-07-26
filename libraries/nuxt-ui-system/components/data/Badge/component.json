@@ -1,0 +1,31 @@
+{
+  "id": "nuxt-badge",
+  "name": "Nuxt Badge",
+  "description": "A compact status label powered by the real Nuxt UI UBadge implementation.",
+  "aliases": ["Vue badge", "UBadge", "status chip"],
+  "useWhen": ["show compact status", "label an item with semantic emphasis"],
+  "avoidWhen": ["trigger an action", "display a long sentence"],
+  "entry": "Badge.vue",
+  "preview": "Badge.preview.vue",
+  "stories": "Badge.stories.json",
+  "docs": "README.md",
+  "changelog": "CHANGELOG.md",
+  "status": "ready",
+  "technology": "vue",
+  "adapter": "vue-sfc",
+  "states": ["default"],
+  "variants": ["soft", "subtle", "outline"],
+  "props": {
+    "label": { "type": "string", "default": "Ready" },
+    "color": {
+      "type": "enum",
+      "values": ["primary", "success", "warning", "error", "neutral"],
+      "default": "primary"
+    },
+    "variant": {
+      "type": "enum",
+      "values": ["soft", "subtle", "outline"],
+      "default": "soft"
+    }
+  }
+}

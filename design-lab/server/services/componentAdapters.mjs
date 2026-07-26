@@ -82,11 +82,16 @@ function implementationCapabilities(component, { platform, technology }) {
   const hasReactRuntime =
     technology === 'react' &&
     Boolean(component.preview || component.stories || component.playground)
+  const hasVueRuntime =
+    technology === 'vue' &&
+    Boolean(component.entry) &&
+    Boolean(component.preview || component.stories || component.playground)
   const hasExternalRuntime = Boolean(component.previewUrl)
-  const hasLivePreview = hasReactRuntime || hasExternalRuntime
+  const hasLivePreview = hasReactRuntime || hasVueRuntime || hasExternalRuntime
 
   if (hasContract) capabilities.push('contract')
-  if (hasStaticPreview || hasReactPreview) capabilities.push('static-preview')
+  if (hasStaticPreview || hasReactPreview || (technology === 'vue' && component.preview))
+    capabilities.push('static-preview')
   if (hasLivePreview) capabilities.push('live-preview')
   if (hasContract && (hasLivePreview || component.stories)) capabilities.push('controls')
   if (technology === 'react' && component.entry) capabilities.push('inspection')
@@ -94,7 +99,7 @@ function implementationCapabilities(component, { platform, technology }) {
   // Capture is granted only when the runtime adapter actually exposes a capture surface.
   // A static image or arbitrary external URL is visible, but the current capture protocol
   // cannot truthfully control or capture either one yet.
-  if (hasReactRuntime) capabilities.push('capture')
+  if (hasReactRuntime || hasVueRuntime) capabilities.push('capture')
   if (component.entry || component.sourcePath) capabilities.push('handoff')
   if (component.validationCommand) capabilities.push('native-validation')
   return uniqueCapabilities(capabilities)

@@ -864,14 +864,15 @@ function componentCompletenessDiagnostics(component) {
     })
 
   if (component.status === 'ready') {
-    for (const [field, value] of [
+    const required = [
       ['entry', component.entry],
-      ['styles', component.style],
       ['preview', component.preview],
       ['stories', component.stories],
       ['docs', component.docs],
       ['changelog', component.changelog],
-    ])
+    ]
+    if (component.technology === 'react') required.splice(1, 0, ['styles', component.style])
+    for (const [field, value] of required)
       if (!value)
         diagnostics.push({
           code: 'ready-component-incomplete',
@@ -935,6 +936,11 @@ export async function parseComponentSourceImports(filePath) {
   } catch {
     return { imports: [], diagnostics: [] }
   }
+  if (extname(filePath) === '.json') return { imports: [], diagnostics: [] }
+  if (extname(filePath) === '.vue') {
+    const scripts = [...source.matchAll(/<script(?:\s[^>]*)?>([\s\S]*?)<\/script>/gi)]
+    source = scripts.map((match) => match[1]).join('\n')
+  }
   let document
   try {
     document = parse(source, {
@@ -985,7 +991,7 @@ function relationItem(component) {
 }
 
 function isScriptSource(filePath) {
-  return ['.ts', '.tsx', '.js', '.jsx', '.mjs'].includes(extname(filePath))
+  return ['.ts', '.tsx', '.js', '.jsx', '.mjs', '.vue'].includes(extname(filePath))
 }
 
 async function componentRelations(source, sourceManifest, components) {

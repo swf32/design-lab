@@ -1,0 +1,108 @@
+{
+  "schemaVersion": 1,
+  "name": "Nuxt UI semantic tokens",
+  "defaultMode": "light",
+  "tokens": {
+    "color": {
+      "canvas": {
+        "type": "color",
+        "value": "#f4f7f6",
+        "description": "Quiet product canvas behind Nuxt UI component surfaces."
+      },
+      "surface": {
+        "primary": {
+          "type": "color",
+          "value": "#ffffff",
+          "description": "Primary component and content surface."
+        },
+        "raised": {
+          "type": "color",
+          "value": "#ffffff",
+          "description": "Elevated surface for floating or emphasized content."
+        }
+      },
+      "text": {
+        "primary": {
+          "type": "color",
+          "value": "#15201d",
+          "description": "Highest-emphasis readable text."
+        },
+        "secondary": {
+          "type": "color",
+          "value": "#5e6f69",
+          "description": "Supporting labels and descriptions."
+        }
+      },
+      "border": {
+        "default": {
+          "type": "color",
+          "value": "#d8e0dd",
+          "description": "Standard component and field boundary."
+        }
+      },
+      "accent": {
+        "primary": {
+          "type": "color",
+          "value": "#00a887",
+          "description": "Primary action, selection, and focus accent.",
+          "aliases": ["Nuxt green", "brand accent"],
+          "useWhen": ["emphasize a primary action", "show active selection"]
+        }
+      }
+    },
+    "corner": {
+      "control": {
+        "type": "dimension",
+        "value": "8px",
+        "description": "Shared radius for compact controls and fields."
+      }
+    },
+    "typography": {
+      "interface": {
+        "family": {
+          "type": "fontFamily",
+          "value": "Inter, ui-sans-serif, -apple-system, BlinkMacSystemFont, Segoe UI, sans-serif",
+          "description": "Neutral interface family shared by controls and product copy."
+        }
+      },
+      "body": {
+        "size": {
+          "type": "fontSize",
+          "value": "14px",
+          "description": "Default readable product body size."
+        },
+        "line-height": {
+          "type": "lineHeight",
+          "value": 1.5,
+          "description": "Default product body line height."
+        }
+      },
+      "heading": {
+        "weight": {
+          "type": "fontWeight",
+          "value": 600,
+          "description": "Default compact heading weight."
+        }
+      }
+    }
+  },
+  "themes": {
+    "dark": {
+      "tokens": {
+        "color": {
+          "canvas": { "type": "color", "value": "#0d1513" },
+          "surface": {
+            "primary": { "type": "color", "value": "#14201d" },
+            "raised": { "type": "color", "value": "#192925" }
+          },
+          "text": {
+            "primary": { "type": "color", "value": "#f2fbf8" },
+            "secondary": { "type": "color", "value": "#a7bab4" }
+          },
+          "border": { "default": { "type": "color", "value": "#31423d" } },
+          "accent": { "primary": { "type": "color", "value": "#2ee3bc" } }
+        }
+      }
+    }
+  }
+}

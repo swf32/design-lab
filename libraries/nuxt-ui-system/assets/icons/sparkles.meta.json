@@ -1,0 +1,8 @@
+{
+  "description": "Three outline sparkles used for AI-assisted or newly generated actions.",
+  "aliases": ["magic", "AI", "generate"],
+  "useWhen": ["label an AI-assisted action", "mark generated content"],
+  "avoidWhen": ["communicate a generic favorite or rating"],
+  "tags": ["action", "AI", "decorative"],
+  "license": "Authored for the Design Lab Nuxt UI integration fixture."
+}

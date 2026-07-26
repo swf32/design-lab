@@ -15,6 +15,10 @@ import { getAuthoredStyles } from './services/authoredStyles.mjs'
 import { patchEntityManifest } from './services/manifestWrite.mjs'
 import { getComponentHandoff } from './services/componentHandoff.mjs'
 import { applySetupPlan, createSetupPlan } from './services/setupService.mjs'
+import {
+  closeComponentRuntimes,
+  prepareComponentRuntime,
+} from './services/componentRuntimeService.mjs'
 
 let revision = 0
 const apiPort = Number.parseInt(process.env.DESIGN_LAB_API_PORT ?? '4173', 10)
@@ -117,6 +121,21 @@ createServer(async (request, response) => {
         ),
       )
     }
+    const componentRuntimeMatch = url.pathname.match(
+      /^\/api\/sources\/([^/]+)\/components\/(.+)\/runtime$/,
+    )
+    if (request.method === 'POST' && componentRuntimeMatch) {
+      const input = await readJson(request)
+      return sendJson(
+        response,
+        200,
+        await prepareComponentRuntime(
+          decodeURIComponent(componentRuntimeMatch[1]),
+          componentRuntimeMatch[2].split('/').map(decodeURIComponent).join('/'),
+          input,
+        ),
+      )
+    }
     const pageManifestMatch = url.pathname.match(/^\/api\/sources\/([^/]+)\/pages\/(.+)\/manifest$/)
     if (request.method === 'PATCH' && pageManifestMatch) {
       const result = await patchEntityManifest(
@@ -197,3 +216,6 @@ createServer(async (request, response) => {
 }).listen(apiPort, '127.0.0.1', () => {
   console.log(`Design Lab local API: http://127.0.0.1:${apiPort}`)
 })
+
+process.once('SIGINT', () => void closeComponentRuntimes().finally(() => process.exit(130)))
+process.once('SIGTERM', () => void closeComponentRuntimes().finally(() => process.exit(143)))

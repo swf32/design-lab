@@ -1,0 +1,32 @@
+{
+  "id": "nuxt-input",
+  "name": "Nuxt Input",
+  "description": "A labelled text field powered by the real Nuxt UI UInput implementation.",
+  "aliases": ["Vue input", "UInput", "text field"],
+  "useWhen": ["collect a short text value", "edit a name or email address"],
+  "avoidWhen": ["collect long multiline content", "choose from a fixed set of options"],
+  "entry": "Input.vue",
+  "preview": "Input.preview.vue",
+  "stories": "Input.stories.json",
+  "docs": "README.md",
+  "changelog": "CHANGELOG.md",
+  "status": "ready",
+  "technology": "vue",
+  "adapter": "vue-sfc",
+  "states": ["empty", "filled", "disabled"],
+  "variants": ["outline", "subtle"],
+  "props": {
+    "label": { "type": "string", "default": "Email" },
+    "modelValue": { "type": "string", "default": "" },
+    "placeholder": { "type": "string", "default": "you@example.com" },
+    "variant": {
+      "type": "enum",
+      "values": ["outline", "subtle"],
+      "default": "outline"
+    },
+    "disabled": { "type": "boolean", "default": false }
+  },
+  "events": {
+    "update:modelValue": { "description": "Emitted when the field value changes." }
+  }
+}

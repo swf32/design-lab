@@ -1,3 +1,5 @@
+import type { PlaygroundControls } from '@design-lab/system/playground'
+
 export type Project = {
   id: string
   name: string
@@ -223,6 +225,63 @@ export type ComponentHandoff = {
     generated: Record<string, unknown> | null
   }
   warnings: string[]
+}
+export type ManagedComponentRuntime = {
+  url: string
+  profile: {
+    id: string
+    technology: string
+    adapter: string
+    framework: { packageName: string; version: string; available: boolean }
+    packageEnvironment: { root: string; manifestName: string; packageManager: string }
+  }
+  runtime: { status: string; origin: string }
+  component: { id: string; name: string; directory: string }
+  modes: string[]
+  selectedMode: string
+  stories: Array<{
+    id: string
+    kind?: string
+    name: string
+    description?: string
+    examples?: Array<{ label: string; props: Record<string, unknown> }>
+  }>
+  playground: {
+    description?: string
+    defaultVariant: string
+    variants: Array<{
+      id: string
+      name: string
+      description?: string
+      props?: Record<string, unknown>
+    }>
+    controls: PlaygroundControls
+  } | null
+}
+
+export async function prepareComponentRuntime(
+  sourceId: string,
+  componentId: string,
+  input: {
+    view: 'info' | 'preview' | 'story' | 'playground' | 'draft'
+    story?: string
+    mode?: string
+    args?: Record<string, unknown>
+    variant?: string
+    values?: Record<string, unknown>
+  },
+) {
+  return request<ManagedComponentRuntime>(
+    `/api/sources/${encodeURIComponent(sourceId)}/components/${componentId
+      .split('/')
+      .map(encodeURIComponent)
+      .join('/')}/runtime`,
+    {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(input),
+    },
+  )
 }
 export type ModuleData =
   | {

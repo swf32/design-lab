@@ -1,0 +1,15 @@
+{
+  "stories": [
+    {
+      "id": "status",
+      "kind": "variant",
+      "name": "Semantic status",
+      "description": "Uses Nuxt UI semantic colors without treating every badge as an action.",
+      "examples": [
+        { "label": "Ready", "props": { "label": "Ready", "color": "success" } },
+        { "label": "Review", "props": { "label": "In review", "color": "warning" } },
+        { "label": "Blocked", "props": { "label": "Blocked", "color": "error" } }
+      ]
+    }
+  ]
+}

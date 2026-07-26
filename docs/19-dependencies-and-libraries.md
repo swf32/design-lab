@@ -250,6 +250,13 @@ utilities. Карточка отвечает: какая система испо
   физически hoist-ит их в общий root `node_modules`.
 - D-083 фиксирует общую dependency ownership и runtime environment policy.
 - `node_modules`, `.designlab` и runtime indexes уже ignored/derived.
+- `nuxt-ui-system` — первый real-world proof: source-local manifest объявляет Nuxt UI/Vue и свой
+  Vite config/setup, а child launcher резолвит Vite из owning package environment. В текущем npm
+  workspace пакеты физически hoist-ятся и попадают в общий lockfile, но runtime использует source
+  declaration и не импортирует Nuxt UI в React shell.
+- Большой Nuxt UI dependency graph намеренно видим в root lockfile этого dogfooding fixture. Это
+  подтверждает необходимость будущего Dependencies UI и managed adapter cache; для attached
+  пользовательского проекта нельзя копировать эти dependencies в Design Lab package.
 
 ## Открытые продуктовые решения
 

@@ -1,0 +1,17 @@
+{
+  "name": "@design-lab/nuxt-ui-system",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "dependencies": {
+    "@nuxt/ui": "^4.10.0",
+    "@unhead/vue": "^2.1.16",
+    "tailwindcss": "^4.3.2",
+    "vue": "^3.5.40",
+    "vue-router": "^5.2.0"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-vue": "^6.0.8",
+    "vite": "^7.3.6"
+  }
+}

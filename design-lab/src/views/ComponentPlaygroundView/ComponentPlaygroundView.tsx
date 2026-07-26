@@ -18,7 +18,9 @@ import type {
   PlaygroundValues,
 } from '@design-lab/system/playground'
 import type { ModuleData } from '../../api/projects'
+import type { ManagedComponentRuntime } from '../../api/projects'
 import { TypedPlaygroundControls } from '../../components/TypedPlaygroundControls/TypedPlaygroundControls'
+import { ManagedRuntimeFrame } from '../../components/ManagedRuntimeFrame/ManagedRuntimeFrame'
 import { playgroundModuleFor } from '../../componentRuntime'
 import { designSystemModeStyle } from '../../designSystemMode'
 
@@ -61,6 +63,142 @@ function statusPresentation(status?: string) {
   }
 }
 
+function ManagedVueDraftPlayground({
+  component,
+  data,
+  canvasMode,
+  canvasColor,
+  onCanvasModeChange,
+  onCanvasColorChange,
+  onClose,
+}: {
+  component: ComponentEntity
+  data: ComponentsData
+  canvasMode: CanvasMode
+  canvasColor: string
+  onCanvasModeChange: (mode: CanvasMode) => void
+  onCanvasColorChange: (color: string) => void
+  onClose: () => void
+}) {
+  const [runtime, setRuntime] = useState<ManagedComponentRuntime | null>(null)
+  const [variant, setVariant] = useState('')
+  const [mode, setMode] = useState(data.modes[0] ?? 'default')
+  const [values, setValues] = useState<PlaygroundValues>({})
+  const playground = runtime?.playground
+  useEffect(() => {
+    if (!playground) return
+    setVariant((current) => current || playground.defaultVariant)
+    setValues((current) =>
+      Object.keys(current).length
+        ? current
+        : Object.fromEntries(
+            Object.entries(playground.controls).map(([key, control]) => [
+              key,
+              control.defaultValue,
+            ]),
+          ),
+    )
+  }, [playground])
+  const selectedVariant = playground?.variants.find((item) => item.id === variant)
+  const shellStyle = { '--canvas-solid': canvasColor } as CSSProperties
+
+  return (
+    <main className="component-playground-page" style={shellStyle}>
+      <PlaygroundControlsRail
+        id="component-playground-settings"
+        className="component-playground-panel"
+        header={
+          <>
+            <Button
+              type="button"
+              variant="ghost"
+              size="small"
+              leading={<ArrowLeftIcon size={16} aria-hidden="true" />}
+              onClick={onClose}
+            >
+              Component
+            </Button>
+            <div className="component-playground-panel__identity">
+              <div>
+                <span>Draft Playground</span>
+                <Chip color="accent" variant="soft" size="small">
+                  Vue
+                </Chip>
+              </div>
+              <h1>{component.name}</h1>
+              <code>{component.directory}</code>
+            </div>
+          </>
+        }
+      >
+        {playground && (
+          <>
+            <section className="component-playground-panel__section">
+              <span>Direction</span>
+              <TabSwitcher
+                ariaLabel="Draft Playground direction"
+                options={playground.variants.map((item) => ({
+                  value: item.id,
+                  label: item.name,
+                }))}
+                value={variant || playground.defaultVariant}
+                onChange={setVariant}
+                overflow="scroll"
+              />
+              <p>{selectedVariant?.description ?? playground.description}</p>
+            </section>
+            {data.modes.length > 1 && (
+              <section className="component-playground-panel__section">
+                <span>Product theme</span>
+                <TabSwitcher
+                  ariaLabel="Product theme"
+                  options={data.modes.map((item) => ({ value: item, label: item }))}
+                  value={mode}
+                  onChange={setMode}
+                  size="small"
+                  overflow="scroll"
+                />
+              </section>
+            )}
+            <TypedPlaygroundControls
+              component={component}
+              controls={playground.controls}
+              values={values}
+              onChange={(key, value) => setValues((current) => ({ ...current, [key]: value }))}
+            />
+          </>
+        )}
+      </PlaygroundControlsRail>
+      <section
+        className={`component-playground-canvas component-playground-canvas--${canvasMode}`}
+        aria-label={`${component.name} draft Playground`}
+      >
+        <div className="component-playground-canvas__tools">
+          <CanvasBackgroundControl
+            mode={canvasMode}
+            color={canvasColor}
+            onModeChange={onCanvasModeChange}
+            onColorChange={onCanvasColorChange}
+          />
+        </div>
+        <div className="component-playground-canvas__stage">
+          <ManagedRuntimeFrame
+            sourceId={component.sourceId ?? ''}
+            componentId={component.id}
+            view="draft"
+            mode={mode}
+            variant={variant || playground?.defaultVariant}
+            values={values}
+            title={`${component.name} draft Playground`}
+            className="managed-runtime-frame--draft"
+            onRuntime={setRuntime}
+          />
+        </div>
+      </section>
+    </main>
+  )
+}
+
 export function ComponentPlaygroundView({
   component,
   data,
@@ -78,6 +216,18 @@ export function ComponentPlaygroundView({
   onCanvasColorChange: (color: string) => void
   onClose: () => void
 }) {
+  if (component.technology === 'vue')
+    return (
+      <ManagedVueDraftPlayground
+        component={component}
+        data={data}
+        canvasMode={canvasMode}
+        canvasColor={canvasColor}
+        onCanvasModeChange={onCanvasModeChange}
+        onCanvasColorChange={onCanvasColorChange}
+        onClose={onClose}
+      />
+    )
   const module = playgroundModuleFor(component)
   if (!module) {
     return (

@@ -52,6 +52,33 @@ test('native source remains useful without pretending to have a browser runtime'
   assert.deepEqual(implementation.capabilities, ['catalog', 'handoff'])
 })
 
+test('Vue SFC enrichment exposes the managed Component vertical without React capabilities', () => {
+  const implementation = resolveComponentImplementation({
+    id: 'vue-button',
+    file: 'Button/component.json',
+    entry: 'Button.vue',
+    preview: 'Button.preview.vue',
+    stories: 'Button.stories.json',
+    playground: 'Button.playground.json',
+    props: { label: { type: 'string' } },
+  })
+
+  assert.equal(implementation.platform, 'web')
+  assert.equal(implementation.technology, 'vue')
+  assert.equal(implementation.adapter, 'vue-sfc')
+  assert.deepEqual(implementation.capabilities, [
+    'catalog',
+    'contract',
+    'static-preview',
+    'live-preview',
+    'controls',
+    'composition',
+    'capture',
+    'handoff',
+  ])
+  assert.equal(implementation.capabilities.includes('inspection'), false)
+})
+
 test('external browser unlocks live preview without promising a capture bridge', () => {
   const external = resolveComponentImplementation({
     id: 'go-widget',

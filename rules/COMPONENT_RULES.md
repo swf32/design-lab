@@ -14,6 +14,13 @@ source/export contract. `component.json`, adjacent Design Lab Stories, previews,
 changelog are optional enrichment there; strong ecosystem evidence is sufficient for basic
 discovery. Missing React-only enrichment must reduce capabilities, not hide or migrate the source.
 
+The committed Nuxt UI Library demonstrates one Vue enrichment shape: a real `.vue` implementation,
+an illustrative `.preview.vue`, serializable `.stories.json`, and a separate `.playground.json`.
+Those JSON files are Design Lab metadata for that Library, not a requirement to rewrite every
+existing Vue project. A source may instead gain a future ecosystem adapter (for example Storybook
+CSF ingestion). Source `vite.config.*` and an optional Library `runtimeSetup` hook own ecosystem
+plugins; the React shell must not import a Vue package's configuration entry.
+
 ## Canonical component directory
 
 Every Design Lab-authored default Component is a directory under `libraries/design-lab-system/components/<category-path>/<ComponentName>/`. Attached sources use their configured Component mounts without relocation. Categories and nesting are semantic and may be changed by the library author. The default `design-lab-system` keeps Atomic Design as its top level (`atoms/`, `molecules/`, `organisms/`) and uses semantic subfolders such as `actions/`, `inputs/`, `navigation/`, `workbench/`, and `shell/`.

@@ -1,0 +1,21 @@
+{
+  "stories": [
+    {
+      "id": "content",
+      "kind": "state",
+      "name": "Field content",
+      "description": "Compares an empty prompt with a representative filled value.",
+      "examples": [
+        { "label": "Empty", "props": { "label": "Email", "placeholder": "you@example.com" } },
+        {
+          "label": "Filled",
+          "props": { "label": "Email", "modelValue": "maya@example.com" }
+        },
+        {
+          "label": "Disabled",
+          "props": { "label": "Workspace", "modelValue": "Design team", "disabled": true }
+        }
+      ]
+    }
+  ]
+}

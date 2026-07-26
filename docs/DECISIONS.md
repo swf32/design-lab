@@ -1377,15 +1377,15 @@ Playwright/MCP не знают React/Vue/Svelte DOM internals. Если bridge �
 `capture` отсутствует и пользователь получает понятное unsupported. Запрещено молча снимать fallback
 thumbnail, static image или arbitrary external URL как настоящую implementation.
 
-Текущий React capture переведён на этот descriptor как compatibility bridge. Vue/Svelte остаются
-неподдержанными в live runtime и capture до прохождения matrix из
-`docs/21-web-runtime-feature-parity.md`.
+Текущий React capture переведён на этот descriptor как compatibility bridge. Vue получил первую
+реальную isolated Component vertical в D-087; Svelte остаётся неподдержанным. Полный supported
+status всё равно зависит от matrix из `docs/21-web-runtime-feature-parity.md`.
 
 Уточнение после полного coupling audit: реализованный capture descriptor намеренно покрывает
-Component preview/story. Настоящий Vue/Svelte compiler fixture,
-framework-aware relations/source printing/Inspector и adapter-neutral authoring rules не
-реализованы. `.vue` file fixture проверяет discovery/profile resolution, но не является runtime
-test. Полный перечень доказательств и gaps закреплён в `docs/22-web-stack-coupling-audit.md`.
+Component preview/story. Настоящий Vue compiler fixture теперь реализован в D-087; Svelte compiler,
+framework-aware source printing/Inspector и полностью adapter-neutral authoring rules ещё не
+реализованы. Полный перечень доказательств и gaps закреплён в
+`docs/22-web-stack-coupling-audit.md`.
 
 Runtime profile имеет stable identity из source, technology и ближайшего owning package root.
 Framework package/version разрешается из существующего package environment, lockfile может
@@ -1393,3 +1393,27 @@ Framework package/version разрешается из существующего
 только loopback origin, локализует start/exit error, поддерживает restart/dispose и не меняет
 состояние соседнего profile. Первая lifetime policy держит готовый profile до закрытия Design Lab
 или явного dispose; automatic idle shutdown откладывается до измерения реального потребления.
+
+## D-087 — Nuxt UI доказывает один shell и source-owned Vue runtime без ложной parity
+
+**Статус:** принято и реализовано как первая Vue Component vertical, 2026-07-26.
+
+Design Lab остаётся одним React shell. Vue не получает отдельное приложение: managed child runtime
+запускает source `vite.config.*`, Vue plugin и optional `runtimeSetup` из owning package environment,
+а shell общается с ним через serializable URL/protocol и isolated iframe. Launcher резолвит Vite
+от source package, поэтому версия shell Vite не подменяет версию пользовательского проекта.
+
+Committed `nuxt-ui-system` использует настоящий Nuxt UI standalone Vue setup и три реальные SFC
+Components. Он доказывает Catalog preview, production Playground с props, отдельный draft
+Playground, Stories, light/dark token modes, HMR, raw handoff и Component preview/story captures
+через общий capture service. MCP scope остаётся только Component preview/story; Wireframe/Page MCP
+capture из этого решения не следует.
+
+`.stories.json` и `.playground.json` являются optional Design Lab enrichment конкретной fixture,
+а не новым обязательным контрактом для любого Vue repository. Существующая Vue implementation
+может оставаться на месте; будущий ecosystem adapter сможет читать её native/CSF metadata.
+
+Vue пока не объявляет `events`, `resize` или `inspection`: runtime ещё не передаёт event/state
+telemetry, не имеет Vue source printer/deep Inspector и не доказал fonts/ordinary Assets в browser
+E2E. Compile/runtime error fixtures и URL persistence также остаются открыты. Wireframes/Pages и
+Svelte — следующие отдельные web phases, а не обещания этой вертикали.

@@ -9,3 +9,5 @@ dist/
 !/libraries/design-lab-system/**
 .DS_Store
 *.log
+design-lab/runtime/vue/auto-imports.d.ts
+design-lab/runtime/vue/components.d.ts
