@@ -1,7 +1,7 @@
 # Dependencies and Libraries
 
-**Статус:** продуктово-архитектурный анализ, решение не принято. Продолжает открытый D-056 и
-runtime-анализ из `18-web-runtime-architecture-options.md`.
+**Статус:** основная ownership-модель принята 2026-07-26 (D-083). Открыты UX и install-policy
+детали. Продолжает D-056 и runtime-анализ из `18-web-runtime-architecture-options.md`.
 
 ## Зачем это отдельная поверхность
 
@@ -65,7 +65,8 @@ UI показывает:
 
 ### Semantic ownership
 
-Да: dependency должна быть объявлена в корне конкретной source:
+Да: dependency должна быть объявлена в реальном package root, который владеет source. Для
+canonical Library это может выглядеть так:
 
 ```text
 libraries/klyp/
@@ -76,6 +77,11 @@ libraries/klyp/
 ├── wireframes/
 └── pages/
 ```
+
+В attached repository package root не обязан совпадать с папкой Design Lab или logical source.
+Например, Components могут лежать в `packages/ui/src`, declaration — в `packages/ui/package.json`,
+а общий workspace lockfile — в корне monorepo. Design Lab использует существующую ownership, а не
+создаёт новый manifest/lockfile для формального соответствия собственной структуре.
 
 Нельзя записывать Vue dependency в `design-lab/package.json` только потому, что Design Lab должен
 показать Vue Component. И нельзя устанавливать package внутрь папки одного Component.
@@ -181,12 +187,15 @@ adapter/cache поверх authored manifest — допустим.
 
 ## Рекомендация
 
-**Source-local declaration + source-local lock + managed adapter cache.**
+**Source-owned declaration + existing lock/environment + managed adapter cache.** Решение принято
+пользователем 2026-07-26.
 
-- `package.json` конкретной Project/Library владеет product dependencies.
-- Ближайший supported lockfile определяет package manager и точные версии.
+- Ближайший реальный owning `package.json` владеет product dependencies.
+- Существующий supported lockfile/install root определяет package manager и точные версии. В
+  monorepo он может быть выше package root; Design Lab не создаёт второй lockfile.
 - User/third-party sources не должны автоматически делить общий root workspace environment.
-- `node_modules` остаётся derived и ignored; физически он может быть source-local.
+- `node_modules` остаётся derived и ignored; его physical path вычисляется package resolver'ом и не
+  вводится дизайнером вручную.
 - Design Lab-owned Vue/Svelte/inspection bridge packages живут в отдельном managed adapter cache и
   не записываются в product dependencies.
 - Local Design Lab Libraries связываются по `packageName`, а не через второй ручной registry.
@@ -245,14 +254,13 @@ utilities. Карточка отвечает: какая система испо
 
 ## Открытые продуктовые решения
 
-1. Принимаем ли source-local package environment как default для пользовательских sources?
-2. Называется ли основной sidebar module `Dependencies`, а `Packages` и `Libraries` становятся его
+1. Называется ли основной sidebar module `Dependencies`, а `Packages` и `Libraries` становятся его
    внутренними views, или это два top-level modules?
-3. Может ли дизайнер запускать `Prepare preview`, или installation actions доступны только AI/
+2. Может ли дизайнер запускать `Prepare preview`, или installation actions доступны только AI/
    Developer mode?
-4. Разрешаем ли install scripts после отдельного предупреждения или web runtimes по умолчанию
+3. Разрешаем ли install scripts после отдельного предупреждения или web runtimes по умолчанию
    устанавливаются с отключёнными scripts?
-5. Должен ли Project зависеть от нескольких Libraries одновременно, и как пользователь выбирает
+4. Должен ли Project зависеть от нескольких Libraries одновременно, и как пользователь выбирает
    primary design system для generation?
 
 ## Источники

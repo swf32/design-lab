@@ -1086,3 +1086,24 @@ Native roadmap открывается только после Web Definition of 
 
 Полная последовательность, границы shared modules и Web Definition of Done записаны в
 `docs/17-web-first-platform-strategy.md`.
+
+## D-083 — Dependencies принадлежат существующему package environment, adapters отделены
+
+**Статус:** принято, 2026-07-26; реализация не начата.
+
+Product dependencies Component/Wireframe/Page implementation объявляются ближайшим реальным
+`package.json`, который владеет source. Существующий lockfile и package-manager install root
+определяют resolved versions; в monorepo lockfile может находиться выше конкретного package. Design
+Lab не создаёт второй dependency manifest или lockfile только ради собственной logical Library и
+не просит дизайнера указывать путь к `node_modules`.
+
+Framework/runtime/inspection adapters, принадлежащие самому Design Lab, хранятся в отдельном
+rebuildable managed cache и не записываются в product dependencies. Никакого silent install при
+открытии Catalog нет. Подготовка preview является явным действием, а discovery и документация
+остаются доступны без готового runtime.
+
+В canonical greenfield source owning package root может совпадать с Project/Library root. В
+существующем attached repository ownership сохраняет фактическую package/workspace структуру.
+Подробная модель и оставшиеся UX/security вопросы закреплены в
+`docs/19-dependencies-and-libraries.md`; attach-first следствия — в
+`docs/20-embedded-install-and-attach-mode.md`.

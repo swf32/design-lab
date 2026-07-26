@@ -645,8 +645,36 @@ Components использует Tokens, Palette и Fonts и становится
 Детальные подзадачи и exit criteria: `docs/16-multiplatform-implementation-plan.md`.
 Web sequencing и границы shared/native modules: `docs/17-web-first-platform-strategy.md`.
 
+## Активный foundation gate: embedded installation и attach-first sources
+
+- [x] Проведён конфликт-аудит текущего canonical workspace и желаемой установки в существующий
+      repository; варианты и последствия записаны в
+      `docs/20-embedded-install-and-attach-mode.md`.
+- [x] Принята dependency ownership: реальный owning `package.json` + существующий lock/install
+      environment + отдельный managed adapter cache (D-083).
+- [ ] Принять install footprint: package/CLI + integration folder + tiny root hooks
+      (рекомендация), полностью self-contained folder или global/desktop app.
+- [ ] Принять имя и visibility integration folder: `design-lab/` или `.designlab/`.
+- [ ] Заменить обязательную migration-first политику в D-001/D-008 и product framework на
+      attach-in-place default для existing repositories; canonical layout оставить greenfield и
+      optional migration mode.
+- [ ] Ввести versioned `DesignLabInstallation`/`SourceMount`/`PackageEnvironment` schema; config
+      хранит только relative roots/globs и не перечисляет entities.
+- [ ] Реализовать единый mount/path resolver и containment policy для UI, scanners, watcher,
+      runtime, MCP, CLI и AI index.
+- [ ] Перевести fixed `source.path/<module>` scanners и build-time `libraries/*` globs на attached
+      roots/runtime adapter host.
+- [ ] Реализовать deterministic repository scan с evidence/confidence и designer-readable summary;
+      AI разбирает неоднозначности, но не является единственным scanner.
+- [ ] Реализовать onboarding `Connect existing` / `Start clean`, default `Use files where they
+      are`, optional managed migration, apply plan и self-check.
+- [ ] Реализовать package environment resolver без ручного `node_modules` path.
+- [ ] Реализовать managed root instruction pointers, integration status, repair и uninstall без
+      копирования полного rule set.
+
 ## Ближайший конкретный шаг
 
-Спроектировать и реализовать изолированный browser runtime protocol, затем перевести на него
-текущий React path без регрессий. После этого подключить Vue Component runtime и тем же protocol
-провести Vue Wireframes/Pages; следующий adapter — Svelte. Native backlog не открывать до Web DoD.
+Сначала принять install footprint и провести source resolution foundation с fixed canonical paths
+на attached mounts. Не строить новый browser runtime поверх `libraries/*` glob: после foundation
+спроектировать isolated protocol, перевести на него React без регрессий и затем подключить Vue для
+Components/Wireframes/Pages; следующий adapter — Svelte. Native backlog не открывать до Web DoD.
