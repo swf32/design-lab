@@ -1,4 +1,13 @@
-import { createApp, defineComponent, h, type App, type Component } from 'vue'
+import {
+  createApp,
+  defineComponent,
+  h,
+  nextTick,
+  reactive,
+  ref,
+  type App,
+  type Component,
+} from 'vue'
 import './runtime.css'
 
 type StoryExample = { label: string; props?: Record<string, unknown> }
@@ -13,6 +22,7 @@ type Story = {
 const params = new URLSearchParams(window.location.search)
 const view = params.get('view') ?? 'preview'
 const mode = params.get('mode') ?? 'default'
+const captureSurface = params.get('captureSurface') === 'true'
 
 function jsonParameter<T>(name: string, fallback: T): T {
   const value = params.get(name)
@@ -35,6 +45,10 @@ function moduleDefault(module: Record<string, unknown> | null) {
 
 function componentNode(component: Component, props: Record<string, unknown> = {}) {
   return h(component, props)
+}
+
+function surfaceClass(name: string) {
+  return `${name}${captureSurface ? ' designlab-vue-surface--capture' : ''}`
 }
 
 function captureInfo(stories: Story[]) {
@@ -109,16 +123,66 @@ async function start() {
   const variables = jsonParameter<Record<string, string | number>>('variables', {})
   for (const [name, value] of Object.entries(variables))
     document.documentElement.style.setProperty(name, String(value))
+  document.documentElement.style.setProperty('background', 'transparent', 'important')
+  document.body.style.setProperty('background', 'transparent', 'important')
+  document.documentElement.style.colorScheme = mode.toLowerCase().includes('dark')
+    ? 'dark'
+    : 'light'
   document.documentElement.dataset.sourceMode = mode
 
   if (!Entry && view !== 'preview') throw new Error('Vue runtime entry is unavailable.')
   const selectedStory = stories.find((story) => story.id === params.get('story')) ?? stories[0]
   const authoredArgs = jsonParameter<Record<string, unknown>>('args', {})
   const variantId = params.get('variant')
-  const draftVariant = (playground?.variants as Array<Record<string, unknown>> | undefined)?.find(
-    (variant) => variant.id === variantId,
-  )
   const draftValues = jsonParameter<Record<string, unknown>>('values', {})
+  const liveArgs = reactive({ ...authoredArgs })
+  const liveValues = reactive({ ...draftValues })
+  const liveVariant = ref(variantId)
+
+  const replaceRecord = (target: Record<string, unknown>, next: Record<string, unknown>) => {
+    for (const key of Object.keys(target)) delete target[key]
+    Object.assign(target, next)
+  }
+
+  window.addEventListener('message', (event) => {
+    if (event.source !== window.parent) return
+    const message = event.data as {
+      protocol?: string
+      version?: number
+      type?: string
+      runtimeId?: string
+      payload?: {
+        args?: Record<string, unknown>
+        values?: Record<string, unknown>
+        variant?: string
+      }
+    } | null
+    if (
+      message?.protocol !== 'designlab.runtime' ||
+      message.version !== 1 ||
+      message.runtimeId !== params.get('profileId')
+    )
+      return
+    if (message.type === 'setArgs' && message.payload?.args)
+      replaceRecord(liveArgs, message.payload.args)
+    if (message.type === 'setState') {
+      if (message.payload?.values) replaceRecord(liveValues, message.payload.values)
+      if (message.payload?.variant) liveVariant.value = message.payload.variant
+    }
+    if (message.type === 'setArgs' || message.type === 'setState')
+      void nextTick(() =>
+        window.parent.postMessage(
+          {
+            protocol: 'designlab.runtime',
+            version: 1,
+            type: 'rendered',
+            runtimeId: params.get('profileId'),
+            payload: { view },
+          },
+          '*',
+        ),
+      )
+  })
 
   const Root = defineComponent({
     name: 'DesignLabVueRuntimeRoot',
@@ -127,7 +191,7 @@ async function start() {
         return () =>
           h(
             'main',
-            { class: 'designlab-vue-preview', 'data-source-mode': mode },
+            { class: surfaceClass('designlab-vue-preview'), 'data-source-mode': mode },
             Preview
               ? h(Preview)
               : h('span', { class: 'designlab-vue-missing' }, 'Preview unavailable'),
@@ -136,7 +200,7 @@ async function start() {
         return () =>
           h(
             'main',
-            { class: 'designlab-vue-story', 'data-source-mode': mode },
+            { class: surfaceClass('designlab-vue-story'), 'data-source-mode': mode },
             (selectedStory?.examples ?? []).map((example) =>
               h('div', { class: 'designlab-vue-example' }, [
                 componentNode(Entry as Component, example.props ?? {}),
@@ -145,21 +209,25 @@ async function start() {
             ),
           )
       if (view === 'draft')
-        return () =>
-          h(
+        return () => {
+          const draftVariant = (
+            playground?.variants as Array<Record<string, unknown>> | undefined
+          )?.find((variant) => variant.id === liveVariant.value)
+          return h(
             'main',
-            { class: 'designlab-vue-playground', 'data-source-mode': mode },
+            { class: surfaceClass('designlab-vue-playground'), 'data-source-mode': mode },
             componentNode(Entry as Component, {
               ...((draftVariant?.props as Record<string, unknown> | undefined) ?? {}),
-              ...draftValues,
+              ...liveValues,
             }),
           )
+        }
       const seed = selectedStory?.examples?.[0]?.props ?? {}
       return () =>
         h(
           'main',
-          { class: 'designlab-vue-playground', 'data-source-mode': mode },
-          componentNode(Entry as Component, { ...seed, ...authoredArgs }),
+          { class: surfaceClass('designlab-vue-playground'), 'data-source-mode': mode },
+          componentNode(Entry as Component, { ...seed, ...liveArgs }),
         )
     },
   })
@@ -175,7 +243,7 @@ async function start() {
   )
   if (view === 'info') {
     const marker = document.createElement('main')
-    marker.className = 'designlab-vue-runtime-state'
+    marker.className = surfaceClass('designlab-vue-runtime-state')
     marker.textContent = 'Capture information ready'
     document.querySelector('#app')?.replaceChildren(marker)
   }

@@ -7,6 +7,9 @@ dist/
 /libraries/*
 !/libraries/design-lab-system/
 !/libraries/design-lab-system/**
+!/libraries/nuxt-ui-system/
+!/libraries/nuxt-ui-system/**
+/libraries/nuxt-ui-system/node_modules/
 .DS_Store
 *.log
 design-lab/runtime/vue/auto-imports.d.ts

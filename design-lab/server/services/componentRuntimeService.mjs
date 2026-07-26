@@ -56,7 +56,15 @@ function recommendedTheme(mode) {
 export async function prepareComponentRuntime(
   sourceId,
   componentId,
-  { view = 'preview', story = null, mode = null, args = {}, variant = null, values = {} } = {},
+  {
+    view = 'preview',
+    story = null,
+    mode = null,
+    args = {},
+    variant = null,
+    values = {},
+    captureSurface = false,
+  } = {},
 ) {
   if (!['info', 'preview', 'story', 'playground', 'draft'].includes(view))
     throw runtimeError('Runtime view must be info, preview, story, playground, or draft.')
@@ -115,6 +123,7 @@ export async function prepareComponentRuntime(
   if (variant) query.set('variant', variant)
   if (Object.keys(args).length) query.set('args', JSON.stringify(args))
   if (Object.keys(values).length) query.set('values', JSON.stringify(values))
+  if (captureSurface) query.set('captureSurface', 'true')
 
   return {
     url: `${state.origin}/?${query}`,

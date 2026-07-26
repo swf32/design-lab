@@ -693,8 +693,13 @@ Web sequencing и границы shared/native modules: `docs/17-web-first-platf
       baseline на child runtime.
 - [ ] Нормализовать Story/args/state/events/slots/snippets без `ReactNode` в shell contract.
 - [ ] Добавить Vue/Svelte analyzers для imports/relations, canonical usage source и Inspector
-      (Vue `<script>` imports готовы; template semantics/source printer/Inspector и Svelte открыты);
+      (Vue direct `<script>` graph и basic SFC usage printer готовы; template semantics,
+      slots/complex values, Inspector и Svelte открыты);
       depth остаётся capability-gated.
+- [x] Изолировать real-world Vue Library от root workspace: source-local lock/install, exact Vue
+      runtime resolution, прозрачные UI surfaces и opaque capture surface только для screenshots.
+- [x] Обновлять Vue args/state через versioned iframe messages без reload; catalog iframe не
+      перехватывает click/focus, runtime failure имеет bounded retry и честное конечное состояние.
 - [ ] Разделить ordinary shared Assets и framework-native code assets; TSX icon не считается
       исполняемым Vue/Svelte asset.
 - [ ] Переписать TSX-specific authoring/completeness rules как React adapter appendix, сохранив

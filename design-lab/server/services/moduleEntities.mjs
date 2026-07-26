@@ -815,13 +815,28 @@ async function readSourceManifest(source) {
 function componentImport(source, sourceManifest, component) {
   if (!component.entry) return null
   const symbol = componentSymbol(component, component.directory)
-  const from =
-    component.importFrom ??
-    sourceManifest.componentImport ??
-    (source.kind === 'library' && sourceManifest.packageName
-      ? `${sourceManifest.packageName}/components`
-      : `./components/${component.directory}/${symbol}`)
-  return { symbol, from, statement: `import { ${symbol} } from '${from}'` }
+  const directVuePackageImport =
+    component.technology === 'vue' &&
+    source.kind === 'library' &&
+    sourceManifest.packageName &&
+    !component.importFrom &&
+    !sourceManifest.componentImport
+  const from = directVuePackageImport
+    ? `${sourceManifest.packageName}/components/${component.directory}/${component.entry}`
+    : (component.importFrom ??
+      sourceManifest.componentImport ??
+      (source.kind === 'library' && sourceManifest.packageName
+        ? `${sourceManifest.packageName}/components`
+        : `./components/${component.directory}/${symbol}`))
+  const importStyle =
+    component.importStyle ??
+    sourceManifest.componentImportStyle ??
+    (directVuePackageImport ? 'default' : 'named')
+  const statement =
+    importStyle === 'default'
+      ? `import ${symbol} from '${from}'`
+      : `import { ${symbol} } from '${from}'`
+  return { symbol, from, style: importStyle, statement }
 }
 
 function componentFiles(component) {

@@ -11,7 +11,11 @@ const button = {
 export function renderStoryExample(example: StoryExample) {
   const fixture = example.props.fixture
   return createElement(ComponentReferencePanel, {
-    importStatement: "import { Button } from '@design-lab/design-lab-system/components'",
+    importStatement:
+      fixture === 'vue'
+        ? "import Button from './Button.vue'"
+        : "import { Button } from '@design-lab/design-lab-system/components'",
+    importLanguage: fixture === 'vue' ? 'vue' : undefined,
     usedBy: fixture === 'button' ? [{ ...button, id: 'dialog', name: 'Dialog' }] : [],
     usedInExamplesBy:
       fixture === 'button' ? [{ ...button, id: 'story-canvas', name: 'Story Canvas' }] : [],
@@ -28,6 +32,13 @@ export function renderStoryExample(example: StoryExample) {
 }
 
 export const stories = [
+  {
+    id: 'framework-language',
+    kind: 'context',
+    name: 'Framework-native import language',
+    description: 'The import code surface identifies a managed adapter without assuming TSX.',
+    examples: [{ label: 'Vue reference', props: { fixture: 'vue' } }],
+  },
   {
     id: 'complete-reference',
     kind: 'context',

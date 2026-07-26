@@ -26,6 +26,7 @@ export async function launchManagedRuntime(profile) {
       runtimeRoot: resolve(APPLICATION_ROOT, 'runtime/vue'),
       sourceRoot: profile.sourceRoot,
       packageRoot: profile.packageEnvironment.root,
+      frameworkPackage: profile.framework.packageName,
     }),
   ).toString('base64url')
   const child = spawn(process.execPath, [CHILD_PATH, payload], {

@@ -16,6 +16,7 @@ type StoryCanvasProps = {
   onCanvasModeChange?: (mode: CanvasMode) => void
   onCanvasColorChange?: (color: string) => void
   source?: string
+  sourceLanguage?: string
 }
 
 export function StoryCanvas({
@@ -28,6 +29,7 @@ export function StoryCanvas({
   onCanvasModeChange,
   onCanvasColorChange,
   source,
+  sourceLanguage = 'tsx',
 }: StoryCanvasProps) {
   const stageStyle = { '--canvas-solid': canvasColor } as CSSProperties
   return (
@@ -59,7 +61,12 @@ export function StoryCanvas({
       </div>
       {source && (
         <footer className="dl-story-canvas__source">
-          <CodeBlock code={source} variant="code-only" language="tsx" collapsedLines={3} />
+          <CodeBlock
+            code={source}
+            variant="code-only"
+            language={sourceLanguage}
+            collapsedLines={3}
+          />
         </footer>
       )}
     </article>

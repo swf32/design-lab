@@ -1,0 +1,23 @@
+{
+  "stories": [
+    {
+      "id": "submission",
+      "kind": "behavior",
+      "name": "Submission readiness",
+      "description": "The action becomes available when the composed Input contains a value.",
+      "examples": [
+        {
+          "label": "Empty",
+          "props": { "initialValue": "", "actionLabel": "Join waitlist" }
+        },
+        {
+          "label": "Ready",
+          "props": {
+            "initialValue": "designer@example.com",
+            "actionLabel": "Join waitlist"
+          }
+        }
+      ]
+    }
+  ]
+}

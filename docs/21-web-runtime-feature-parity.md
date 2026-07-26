@@ -31,7 +31,7 @@ React fallback, чужой thumbnail или успешный ответ с не�
 | Runtime errors и HMR                    | общий Vite graph           | isolated iframe/process; HMR доказан | нет              |
 | Token modes                             | да                         | общие light/dark tokens доказаны     | не проверено     |
 | Fonts и ordinary Assets                 | да                         | discovery да, browser E2E ещё нет    | не проверено     |
-| Relations/source printer/Inspector      | React-specific             | partial imports/raw source only      | нет              |
+| Relations/source printer/Inspector      | React-specific             | direct graph + basic Vue usage; deep Inspector нет | нет       |
 | TSX code-native icons                   | да                         | не исполняются                       | не исполняются   |
 
 В частности, arbitrary `previewUrl` сегодня даёт живой iframe, но не объявляет `capture`: без
@@ -124,8 +124,8 @@ Deep Inspector может иметь разную глубину, но matrix п
 
 ## Порядок реализации
 
-1. Довести Nuxt UI/Vue Component vertical: events/state, fonts/assets, error fixture, canonical
-   source printer и capability-gated Inspector.
+1. Довести Nuxt UI/Vue Component vertical: events/state, slots/complex-value source printing,
+   fonts/assets, error fixture и capability-gated Inspector.
 2. Перенести React Components на тот же child-runtime baseline без регрессий и удалить Component
    eager globs.
 3. Подключить Vue Wireframe/Page renderers отдельной web-фазой.

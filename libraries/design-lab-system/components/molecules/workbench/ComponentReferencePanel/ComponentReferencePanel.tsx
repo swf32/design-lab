@@ -17,6 +17,7 @@ export type ComponentReferenceRelation = {
 
 export type ComponentReferencePanelProps = {
   importStatement: string
+  importLanguage?: string
   uses?: ComponentReferenceRelation[]
   usedBy?: ComponentReferenceRelation[]
   examplesUse?: ComponentReferenceRelation[]
@@ -65,6 +66,7 @@ function RelationGroup({
 
 export function ComponentReferencePanel({
   importStatement,
+  importLanguage = 'tsx',
   uses = [],
   usedBy = [],
   examplesUse = [],
@@ -83,7 +85,7 @@ export function ComponentReferencePanel({
           <header>
             <strong>{t('reference.import')}</strong>
           </header>
-          <CodeBlock language="tsx" code={importStatement} />
+          <CodeBlock language={importLanguage} code={importStatement} />
         </section>
       </div>
       <div

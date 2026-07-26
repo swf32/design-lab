@@ -133,9 +133,11 @@ const componentListColumns: TableColumn<ComponentEntity>[] = [
 function DiscoveredComponentPreview({
   component,
   sourceId,
+  mode,
 }: {
   component: ComponentEntity
   sourceId: string
+  mode: string
 }) {
   if (component.technology === 'vue')
     return (
@@ -143,6 +145,7 @@ function DiscoveredComponentPreview({
         sourceId={sourceId}
         componentId={component.id}
         view="preview"
+        mode={mode}
         title={`${component.name} catalog preview`}
         className="managed-runtime-frame--catalog"
       />
@@ -286,6 +289,36 @@ function productionPlaygroundSetup(component: ComponentEntity, seed: StoryExampl
     }
   }
   return { controls, values }
+}
+
+function vuePropName(name: string) {
+  return name.replace(/[A-Z]/g, (letter) => `-${letter.toLowerCase()}`)
+}
+
+function vuePropSource(name: string, value: unknown) {
+  const attribute = vuePropName(name)
+  if (value === true) return attribute
+  if (typeof value === 'string' && !value.includes('\n'))
+    return `${attribute}=${JSON.stringify(value)}`
+  const expression = JSON.stringify(value ?? null).replaceAll("'", "\\'")
+  return `:${attribute}='${expression}'`
+}
+
+function vueStorySource(
+  component: ComponentEntity,
+  story: ManagedComponentRuntime['stories'][number],
+) {
+  const componentImport = component.import
+  if (!componentImport?.statement) return undefined
+  const symbol = componentImport.symbol
+  const examples = (story.examples ?? []).map((example) => {
+    const props = Object.entries(example.props ?? {}).map(([name, value]) =>
+      vuePropSource(name, value),
+    )
+    return `  <${symbol}${props.length ? ` ${props.join(' ')}` : ''} />`
+  })
+  if (!examples.length) return undefined
+  return `<script setup lang="ts">\n${componentImport.statement}\n</script>\n\n<template>\n${examples.join('\n')}\n</template>`
 }
 
 function ProductionComponentPlayground({
@@ -461,6 +494,7 @@ function ManagedComponentWorkbench({
       />
       <ComponentReferencePanel
         importStatement={component.import?.statement ?? ''}
+        importLanguage="vue"
         uses={component.relations.uses}
         usedBy={component.relations.usedBy}
         examplesUse={component.relations.examplesUse}
@@ -511,6 +545,8 @@ function ManagedComponentWorkbench({
             canvasColor={canvasColor}
             onCanvasModeChange={onCanvasModeChange}
             onCanvasColorChange={onCanvasColorChange}
+            source={vueStorySource(component, item)}
+            sourceLanguage="vue"
           >
             <ManagedRuntimeFrame
               sourceId={sourceId}
@@ -786,6 +822,7 @@ function CatalogLayoutToggle({
 function Catalog({
   data,
   sourceId,
+  interfaceTheme,
   folderPath,
   onSelectEntity,
   layout,
@@ -793,11 +830,13 @@ function Catalog({
 }: {
   data: Extract<ModuleData, { kind: 'components' }>
   sourceId: string
+  interfaceTheme: 'dark' | 'light'
   folderPath: string
   onSelectEntity: (id: string) => void
   layout: CatalogLayout
   onLayoutChange: (layout: CatalogLayout) => void
 }) {
+  const catalogMode = data.modes.includes(interfaceTheme) ? interfaceTheme : data.modes[0]
   const components =
     folderPath === '__all__'
       ? data.components
@@ -856,7 +895,11 @@ function Catalog({
                         meta={`${component.technology} · ${component.variants.length} variants`}
                         status={component.status}
                         preview={
-                          <DiscoveredComponentPreview component={component} sourceId={sourceId} />
+                          <DiscoveredComponentPreview
+                            component={component}
+                            sourceId={sourceId}
+                            mode={catalogMode}
+                          />
                         }
                         previewAnimated={Boolean(component.previewMotion)}
                         onClick={() => onSelectEntity(component.id)}
@@ -1611,6 +1654,7 @@ export function ModuleView({
       <Catalog
         data={data}
         sourceId={sourceId}
+        interfaceTheme={interfaceTheme}
         folderPath={selectedFolderPath}
         onSelectEntity={onSelectEntity}
         layout={catalogLayout}

@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- Added: import CodeBlock language is adapter-selectable; TSX remains the default.
 - Changed: relation graph is collapsed by default and each group scrolls within a fixed 2.5-card viewport.
 - Changed: file inventory is exported as `ComponentReferenceFiles` for placement below the Component changelog.
 - Visual: catalog preview keeps one panel silhouette; import is a single ellipsis line without a nested rounded code box.

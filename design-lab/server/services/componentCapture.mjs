@@ -106,6 +106,7 @@ async function resolvedCaptureUrl({ entity, capture, storyId, sourceMode, interf
       view: capture === 'info' ? 'info' : capture,
       story: storyId,
       mode: sourceMode,
+      captureSurface: true,
     })
     return runtime.url
   }

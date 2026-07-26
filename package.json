@@ -3,7 +3,7 @@
   "private": true,
   "workspaces": [
     "design-lab",
-    "libraries/*"
+    "libraries/design-lab-system"
   ],
   "scripts": {
     "dev": "npm run sync:components && npm run sync:assets && npm run dev --workspace=design-lab",

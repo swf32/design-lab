@@ -3,6 +3,9 @@
   "version": "0.1.0",
   "private": true,
   "type": "module",
+  "exports": {
+    "./components/*": "./components/*"
+  },
   "dependencies": {
     "@nuxt/ui": "^4.10.0",
     "@unhead/vue": "^2.1.16",

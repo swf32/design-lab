@@ -88,20 +88,21 @@ libraries/product-system/
 
 ### Physical installation
 
-Не обязательно. Текущий root `package.json` объявляет `workspaces: ["design-lab", "libraries/*"]`.
-npm workspaces связывает локальные packages и может размещать/hoist dependencies в общем root
-`node_modules`. Официальная npm documentation прямо описывает root workspace как единое управление
-несколькими nested packages и автоматическое linking при `npm install`.
+Не обязательно. Root `package.json` намеренно включает только приложение `design-lab` и внутренний
+`libraries/design-lab-system`. Пользовательские и real-world fixture Libraries не поглощаются
+wildcard workspace: их package dependencies устанавливаются в source-local environment.
 
 Поэтому сегодня:
 
 ```text
-libraries/product-system/package.json      ← ownership Library
-node_modules/motion/             ← файл физически может лежать в общем root
+libraries/product-system/package.json               ← ownership Library
+libraries/product-system/package-lock.json          ← точные версии Library
+libraries/product-system/node_modules/motion/       ← derived source-local environment
 ```
 
-Это удобно, но не является строгой dependency isolation. Две Libraries могут случайно видеть
-hoisted package, который они не объявили, а изменение общего lockfile затрагивает весь workspace.
+Так тяжёлая или конфликтующая dependency конкретной Library не загрязняет environment самого
+Design Lab. Root workspace остаётся осознанным исключением для собственного `design-lab-system`,
+который dogfood'ится приложением.
 
 ## Вариант A — общий root workspace
 
@@ -244,19 +245,21 @@ utilities. Карточка отвечает: какая система испо
 
 ## Что уже есть
 
-- Root npm workspace включает `libraries/*`.
-- Каждая текущая Library уже имеет `package.json`.
-- Каждая Library объявляет framework и runtime packages в собственном manifest, даже если npm
-  физически hoist-ит их в общий root `node_modules`.
+- Root npm workspace включает приложение и только специальный `libraries/design-lab-system`, а не
+  wildcard `libraries/*`.
+- Каждая текущая Library уже имеет `package.json`; `nuxt-ui-system` дополнительно имеет собственный
+  lockfile и source-local `node_modules`.
 - D-083 фиксирует общую dependency ownership и runtime environment policy.
 - `node_modules`, `.designlab` и runtime indexes уже ignored/derived.
 - `nuxt-ui-system` — первый real-world proof: source-local manifest объявляет Nuxt UI/Vue и свой
-  Vite config/setup, а child launcher резолвит Vite из owning package environment. В текущем npm
-  workspace пакеты физически hoist-ятся и попадают в общий lockfile, но runtime использует source
-  declaration и не импортирует Nuxt UI в React shell.
-- Большой Nuxt UI dependency graph намеренно видим в root lockfile этого dogfooding fixture. Это
-  подтверждает необходимость будущего Dependencies UI и managed adapter cache; для attached
-  пользовательского проекта нельзя копировать эти dependencies в Design Lab package.
+  Vite config/setup, а child launcher резолвит Vite, Vue и plugin из owning package environment.
+  В React shell эти packages не импортируются.
+- Полный пакет `nuxt` не установлен. Используется `@nuxt/ui`, потому что standalone Vue integration
+  официально всё равно требует сам package, Vite plugin и Vue plugin. Вычленять внутренний
+  `UButton.vue` небезопасно: это создаёт fork поверх его styles, composables и внутренних packages.
+- До разделения общий root `node_modules` занимал около 294 MB. После исключения fixture из root
+  workspace — около 151 MB; source-local environment `nuxt-ui-system` занимает около 177 MB.
+  Повторение части packages является осознанной ценой isolation, а не весом production build.
 
 ## Открытые продуктовые решения
 

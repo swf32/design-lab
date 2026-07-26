@@ -1,0 +1,28 @@
+{
+  "id": "nuxt-action-field",
+  "name": "Action Field",
+  "description": "Composes the Library Input and Button into a compact submission field.",
+  "aliases": ["email action", "input button composition", "waitlist field"],
+  "useWhen": ["collect one short value and submit it", "verify Vue component relations"],
+  "avoidWhen": ["collect multiple fields", "submit a long form"],
+  "entry": "ActionField.vue",
+  "preview": "ActionField.preview.vue",
+  "stories": "ActionField.stories.json",
+  "docs": "README.md",
+  "changelog": "CHANGELOG.md",
+  "status": "ready",
+  "technology": "vue",
+  "adapter": "vue-sfc",
+  "states": ["empty", "ready", "disabled"],
+  "variants": ["default"],
+  "props": {
+    "label": { "type": "string", "default": "Work email" },
+    "placeholder": { "type": "string", "default": "you@example.com" },
+    "actionLabel": { "type": "string", "default": "Join waitlist" },
+    "initialValue": { "type": "string", "default": "" },
+    "disabled": { "type": "boolean", "default": false }
+  },
+  "events": {
+    "submit": { "description": "Emits the current value after an enabled submission." }
+  }
+}

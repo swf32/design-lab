@@ -26,7 +26,7 @@
 }
 
 .nuxt-button-preview__primary {
-  color: #052d25;
+  color: var(--ds-color-canvas);
   background: var(--ds-color-accent-primary);
 }
 

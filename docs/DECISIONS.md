@@ -1403,9 +1403,10 @@ Design Lab остаётся одним React shell. Vue не получает о
 а shell общается с ним через serializable URL/protocol и isolated iframe. Launcher резолвит Vite
 от source package, поэтому версия shell Vite не подменяет версию пользовательского проекта.
 
-Committed `nuxt-ui-system` использует настоящий Nuxt UI standalone Vue setup и три реальные SFC
+Committed `nuxt-ui-system` использует настоящий Nuxt UI standalone Vue setup и четыре реальные SFC
 Components. Он доказывает Catalog preview, production Playground с props, отдельный draft
-Playground, Stories, light/dark token modes, HMR, raw handoff и Component preview/story captures
+Playground, Stories, light/dark token modes, HMR, basic Vue usage handoff, direct relations и
+Component preview/story captures
 через общий capture service. MCP scope остаётся только Component preview/story; Wireframe/Page MCP
 capture из этого решения не следует.
 
@@ -1414,6 +1415,37 @@ capture из этого решения не следует.
 может оставаться на месте; будущий ecosystem adapter сможет читать её native/CSF metadata.
 
 Vue пока не объявляет `events`, `resize` или `inspection`: runtime ещё не передаёт event/state
-telemetry, не имеет Vue source printer/deep Inspector и не доказал fonts/ordinary Assets в browser
-E2E. Compile/runtime error fixtures и URL persistence также остаются открыты. Wireframes/Pages и
-Svelte — следующие отдельные web phases, а не обещания этой вертикали.
+telemetry, basic SFC printer не покрывает slots/complex values, deep Inspector отсутствует, а
+fonts/ordinary Assets не доказаны в browser E2E. Compile/runtime error fixtures и URL persistence
+также остаются открыты. Wireframes/Pages и Svelte — следующие отдельные web phases, а не обещания
+этой вертикали.
+
+## D-088 — Vue surface остаётся частью одного Canvas, а runtime и dependencies изолированы
+
+**Статус:** принято и реализовано для Vue Component vertical, 2026-07-26.
+
+Managed iframe не рисует собственный фон в Catalog, Workbench Story или Playground: внешний shell
+остаётся владельцем Canvas и его grid/solid background. Product mode управляет token values и
+`color-scheme`, но не добавляет вторую зелёную/синюю поверхность. Только capture request передаёт
+`captureSurface=true` и получает непрозрачный token-driven фон, необходимый для стабильного PNG.
+Catalog preview принимает фактическую ширину карточки; capture geometry задаётся viewport снаружи,
+а не фиксированной шириной runtime root, которая могла обрезать композицию в узкой карточке.
+Поскольку Catalog не даёт пользователю product-mode control, его миниатюры выбирают одноимённый
+`light`/`dark` mode активной Library, когда он существует. Workbench сохраняет независимый product
+mode согласно D-011.
+
+Изменение serializable args/state отправляется в уже загруженный iframe versioned сообщениями
+`setArgs`/`setState`; URL и document не пересоздаются на каждый ввод. Managed runtime подтверждает
+`ready`/`rendered`, локализует ошибки и делает не более двух автоматических retry. Catalog preview
+является inert: iframe исключён из tab order и не перехватывает click карточки.
+
+`nuxt-ui-system` исключён из root wildcard workspace и владеет собственным manifest, lockfile и
+derived `node_modules`. Полный `nuxt` не устанавливается; настоящий `@nuxt/ui` сохраняется целиком,
+поскольку копирование отдельного внутреннего SFC превратило бы fixture в неподдерживаемый fork его
+styles, composables и transitive dependencies. Child runtime резолвит exact `vue` entry из source,
+не захватывая `vue-demi` широким alias.
+
+Basic Vue handoff использует реальный default import package export и генерирует SFC Story usage.
+`ActionField.vue` композиционно импортирует настоящие Button и Input, поэтому Workbench показывает
+проверяемые `Uses`/`Used by`, а не демонстрационную metadata-связь. Slots, complex values, native
+ecosystem metadata и deep Inspector остаются capability gaps.

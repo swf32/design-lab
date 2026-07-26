@@ -52,6 +52,10 @@
     },
     "source": {
       "type": "string"
+    },
+    "sourceLanguage": {
+      "type": "string",
+      "default": "tsx"
     }
   }
 }

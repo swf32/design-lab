@@ -5,7 +5,6 @@
   "schemaVersion": 1,
   "version": "0.1.0",
   "packageName": "@design-lab/nuxt-ui-system",
-  "componentImport": "@design-lab/nuxt-ui-system/components",
   "assetImport": "@design-lab/nuxt-ui-system/assets",
   "runtimeSetup": "runtime.setup.ts"
 }

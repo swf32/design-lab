@@ -6,6 +6,10 @@
   background: transparent;
 }
 
+.managed-runtime-frame--catalog {
+  pointer-events: none;
+}
+
 .managed-runtime-frame__state {
   display: grid;
   place-content: center;

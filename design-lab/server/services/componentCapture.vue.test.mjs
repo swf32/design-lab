@@ -1,10 +1,12 @@
 import assert from 'node:assert/strict'
 import test from 'node:test'
+import { chromium } from 'playwright'
 import {
   closeComponentCaptureRuntime,
   getComponentCaptureInfo,
   renderComponentCapture,
 } from './componentCapture.mjs'
+import { prepareComponentRuntime } from './componentRuntimeService.mjs'
 
 test('Vue preview and Story use the same Component capture path as React', async () => {
   const ref = 'nuxt-ui-system:component:nuxt-button'
@@ -42,6 +44,43 @@ test('Vue preview and Story use the same Component capture path as React', async
     assert.equal(story.metadata.overflow.horizontal, false)
     assert.deepEqual(story.metadata.consoleErrors, [])
     assert.ok(story.png.length > 1_000)
+
+    const runtime = await prepareComponentRuntime('nuxt-ui-system', 'nuxt-button', {
+      view: 'playground',
+      mode: 'light',
+      args: { label: 'Continue' },
+    })
+    const browser = await chromium.launch({ headless: true })
+    const page = await browser.newPage()
+    const consoleErrors = []
+    page.on('console', (message) => {
+      if (message.type() === 'error') consoleErrors.push(message.text())
+    })
+    try {
+      await page.goto(runtime.url, { waitUntil: 'networkidle' })
+      const initialUrl = page.url()
+      for (const label of ['L', 'La', 'Launch', 'Launch design'])
+        await page.evaluate(
+          ({ runtimeId, nextLabel }) =>
+            window.postMessage(
+              {
+                protocol: 'designlab.runtime',
+                version: 1,
+                type: 'setArgs',
+                runtimeId,
+                payload: { args: { label: nextLabel } },
+              },
+              '*',
+            ),
+          { runtimeId: runtime.profile.id, nextLabel: label },
+        )
+      await page.getByRole('button', { name: 'Launch design' }).waitFor()
+      assert.equal(page.url(), initialUrl)
+      assert.deepEqual(consoleErrors, [])
+      assert.doesNotMatch(await page.locator('body').innerText(), /could not start/i)
+    } finally {
+      await browser.close()
+    }
   } finally {
     await closeComponentCaptureRuntime()
   }

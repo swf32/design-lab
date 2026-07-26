@@ -19,8 +19,9 @@
 parity score: незакрытые capabilities перечислены ниже и не должны имитироваться.
 
 Committed `nuxt-ui-system` объявляет `vue`, `@vitejs/plugin-vue`, `@nuxt/ui` и собственный Vite.
-Launcher резолвит Vite из owning package environment; физический workspace hoist не превращает
-shell Vite в runtime dependency. `svelte` и `@sveltejs/vite-plugin-svelte` пока отсутствуют.
+Он исключён из root wildcard workspace, имеет собственный lockfile и source-local install. Launcher
+резолвит Vite и точный `vue` entry из owning package environment; shell Vite/Vue не становятся его
+runtime dependencies. `svelte` и `@sveltejs/vite-plugin-svelte` пока отсутствуют.
 
 ## Найденные stack-coupled поверхности
 
@@ -32,9 +33,9 @@ shell Vite в runtime dependency. `svelte` и `@sveltejs/vite-plugin-svelte` п�
 | Stories                    | React modules; Vue normalized `.stories.json` enrichment                                            | React runtime + Vue runtime                                                    | CSF/ecosystem ingestion и event/state model                                |
 | Component Playground       | React modules; Vue production args + отдельный draft Playground                                     | обе route views                                                                | сохранить framework-neutral shell, добавить Svelte                        |
 | Controls                   | React props и Vue serializable args работают                                                        | `ModuleView.tsx`, managed runtime                                               | events/slots/snippets и URL persistence                                    |
-| Story source/copy          | сериализует React nodes в JSX/TSX                                                                  | `componentRuntime.tsx`, `storySourcePrinter.mjs`                               | adapter-owned canonical usage printer for Vue/Svelte; no fake JSX          |
+| Story source/copy          | React structural printer; Vue печатает basic SFC usage из import + serializable props              | `componentRuntime.tsx`, `storySourcePrinter.mjs`, `ModuleView.tsx`              | slots/complex values для Vue и adapter-owned printer для Svelte             |
 | Inspector                  | Babel transform instruments TS/TSX JSX callsites and React runtime registry                        | `scripts/inspectionTransform.mjs`, `@design-lab/system/inspection`             | Vue template/SFC and Svelte compiler analyzers; capability-specific depth  |
-| Relations/compositionUses  | JS/TS и Vue `<script>` imports parsed; template semantics/Svelte ещё нет                            | `moduleEntities.mjs::parseComponentSourceImports`                              | Vue template и Svelte analyzers                                            |
+| Relations/compositionUses  | JS/TS и Vue `<script>` imports дают direct Uses/Used by; template semantics/Svelte ещё нет          | `moduleEntities.mjs::parseComponentSourceImports`                              | Vue template и Svelte analyzers для неявных/native metadata cases           |
 | Component capture          | real React и Vue preview/story                                                                     | shared capture service + runtime descriptor                                    | Svelte runtime surface/browser E2E                                         |
 | Wireframe runtime          | eager `*.wireframe.tsx` glob returning React nodes                                                 | `wireframes/registry.ts`, `WireframeView.tsx`                                  | runtime protocol renderer per framework                                    |
 | Page runtime               | eager `*.page.tsx` glob returning React nodes                                                      | `pages/registry.ts`, `PageView.tsx`                                            | runtime protocol renderer per framework                                    |
@@ -105,7 +106,7 @@ environment, не запускает настоящий compiler и не про�
 
 ## Исправленный порядок работ
 
-1. Закрыть оставшиеся Vue gaps: events/state, fonts/assets, errors, source printer/Inspector.
+1. Закрыть оставшиеся Vue gaps: events/state, fonts/assets, errors, slots/complex source и Inspector.
 2. Создать реальный React fixture и перенести его на child runtime; это baseline регрессий.
 3. Подключить framework-aware Story/controls/events и error/HMR tests к React baseline.
 4. Закрыть Vue Wireframe/Page web-rendering, relations, source printing и Inspector capability.

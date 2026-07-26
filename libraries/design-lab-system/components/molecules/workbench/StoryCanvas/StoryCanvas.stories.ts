@@ -27,8 +27,11 @@ export function renderStoryExample(example: StoryExample) {
     onCanvasModeChange: example.props.handoff ? () => undefined : undefined,
     onCanvasColorChange: example.props.handoff ? () => undefined : undefined,
     source: example.props.handoff
-      ? 'import { StoryCanvas, Button } from \'@design-lab/system/components\'\n\n<StoryCanvas title="Primary action">\n  <Button variant="primary">Continue</Button>\n</StoryCanvas>'
+      ? example.props.language === 'vue'
+        ? '<script setup lang="ts">\nimport Button from \'./Button.vue\'\n</script>\n\n<template>\n  <Button label="Continue" />\n</template>'
+        : 'import { StoryCanvas, Button } from \'@design-lab/system/components\'\n\n<StoryCanvas title="Primary action">\n  <Button variant="primary">Continue</Button>\n</StoryCanvas>'
       : undefined,
+    sourceLanguage: example.props.language === 'vue' ? 'vue' : undefined,
     children,
   })
 }
@@ -45,11 +48,18 @@ export const stories = [
     related: ['CanvasBackgroundControl', 'CodeBlock'],
     examples: [
       {
-        label: 'Handoff fixture',
+        label: 'React handoff',
         props: { handoff: true },
         source:
           'const source = "import { Button } from \'@design-lab/system/components\'"\n\n<StoryCanvas title="Primary action" source={source}>\n  <Button variant="primary">Continue</Button>\n</StoryCanvas>',
         imports: ["import { Button } from '@design-lab/system/components'"],
+      },
+      {
+        label: 'Vue handoff',
+        props: { handoff: true, language: 'vue' },
+        source:
+          '<script setup lang="ts">\nimport Button from \'./Button.vue\'\n</script>\n\n<template>\n  <Button label="Continue" />\n</template>',
+        imports: ["import Button from './Button.vue'"],
       },
     ],
   },

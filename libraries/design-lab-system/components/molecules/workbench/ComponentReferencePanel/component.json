@@ -27,6 +27,10 @@
       "type": "string",
       "required": true
     },
+    "importLanguage": {
+      "type": "string",
+      "default": "tsx"
+    },
     "uses": {
       "type": "ComponentReferenceRelation[]"
     },

@@ -6,6 +6,10 @@ import { pathToFileURL } from 'node:url'
 const input = JSON.parse(Buffer.from(process.argv[2], 'base64url').toString('utf8'))
 const require = createRequire(join(input.packageRoot, 'package.json'))
 const vitePath = require.resolve('vite')
+const frameworkPath =
+  input.frameworkPackage === 'vue'
+    ? require.resolve('vue/dist/vue.runtime.esm-bundler.js')
+    : require.resolve(input.frameworkPackage)
 const { createServer } = await import(pathToFileURL(vitePath).href)
 const runtimeRoot = resolve(input.runtimeRoot)
 const configCandidates = ['vite.config.ts', 'vite.config.mts', 'vite.config.js', 'vite.config.mjs']
@@ -28,6 +32,10 @@ try {
     configFile,
     appType: 'spa',
     clearScreen: false,
+    resolve: {
+      alias: [{ find: new RegExp(`^${input.frameworkPackage}$`), replacement: frameworkPath }],
+      dedupe: [input.frameworkPackage],
+    },
     server: {
       host: '127.0.0.1',
       port: 0,
@@ -49,7 +57,10 @@ try {
 }
 
 async function close() {
-  await server?.close()
+  await Promise.race([
+    server?.close(),
+    new Promise((resolveClose) => setTimeout(resolveClose, 1_500)),
+  ])
   process.exit(0)
 }
 
