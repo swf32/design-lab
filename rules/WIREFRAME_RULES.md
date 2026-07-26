@@ -16,6 +16,9 @@ Layout, state, and flow are independent axes. Do not encode a layout change as a
 ## Canonical hybrid directory
 
 Every Wireframe is a directory under `<project-or-library>/wireframes/<category-path>/<WireframeName>/`.
+The current adjacent TSX renderer is the React compatibility adapter, not a universal web format.
+Vue, Svelte, and browser-boundary renderers must preserve the same layout/state/control/flow
+semantics through the shared runtime protocol without requiring a duplicate Wireframe manifest.
 
 It starts with:
 

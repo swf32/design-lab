@@ -18,7 +18,7 @@ If a screen still needs layout comparison, it belongs in `wireframes/`, not `pag
 
 ## Canonical hybrid directory
 
-Every Page is a directory under `<project-or-library>/pages/<category-path>/<PageName>/`. Category and nesting are semantic filesystem folders above the Page directory, the same convention used by Components and Wireframes; category is never authored inside the manifest.
+Every Page is a directory under `<project-or-library>/pages/<category-path>/<PageName>/`. Category and nesting are semantic filesystem folders above the Page directory, the same convention used by Components and Wireframes; category is never authored inside the manifest. The current adjacent TSX renderer is the React compatibility adapter, not a universal web format. Vue, Svelte, and browser-boundary renderers must preserve the same route/state/control/flow semantics through the shared runtime protocol without requiring a duplicate Page manifest.
 
 It starts with:
 

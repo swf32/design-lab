@@ -70,6 +70,14 @@
 
 Даже если визуализация будет приблизительной, Design Lab должен уметь работать с такими компонентами как с сущностями дизайн-системы.
 
+Принятое направление D-081 сохраняет одно приложение Design Lab для всех platforms. Web
+implementations исполняются через framework adapters. Сначала React/Vue/Svelte/Custom Elements
+закрываются для Components, Wireframes и Pages. Native tracks открываются после web; дизайнер
+проверяет visual render и platform warnings, а source diff, validation logs и static-capture
+diagnostics остаются Developer-mode механизмами. Platform implementations могут объединяться в
+optional Component Family, но сохраняют собственные API и не подменяются общей искусственной
+props-схемой. Полный план находится в `16-multiplatform-implementation-plan.md`.
+
 ## Аналитика
 
 Wireframes и Pages должны быть удобны для передачи аналитикам.
