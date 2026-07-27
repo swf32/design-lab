@@ -148,6 +148,7 @@ function DiscoveredComponentPreview({
         componentId={component.id}
         view="preview"
         mode={mode}
+        modeVariables={themeVariables[mode] ?? {}}
         title={`${component.name} catalog preview`}
         className="managed-runtime-frame--catalog"
       />
@@ -481,6 +482,7 @@ function ManagedComponentWorkbench({
   productMode,
   productModes,
   onProductModeChange,
+  themeVariables,
 }: {
   component: ComponentEntity
   sourceId: string
@@ -495,6 +497,7 @@ function ManagedComponentWorkbench({
   productMode: string
   productModes: string[]
   onProductModeChange: (mode: string) => void
+  themeVariables: Record<string, Record<string, string | number>>
 }) {
   const { t } = useDesignLabI18n()
   const [runtime, setRuntime] = useState<ManagedComponentRuntime | null>(null)
@@ -574,6 +577,7 @@ function ManagedComponentWorkbench({
           componentId={component.id}
           view="playground"
           mode={productMode}
+          modeVariables={themeVariables[productMode] ?? {}}
           args={values}
           title={`${component.name} production Playground`}
           className="managed-runtime-frame--playground"
@@ -603,6 +607,7 @@ function ManagedComponentWorkbench({
               view="story"
               story={item.id}
               mode={productMode}
+              modeVariables={themeVariables[productMode] ?? {}}
               title={`${component.name}: ${item.name}`}
               className="managed-runtime-frame--story"
             />
@@ -1709,6 +1714,7 @@ export function ModuleView({
         productMode={previewMode}
         productModes={data.modes}
         onProductModeChange={setPreviewMode}
+        themeVariables={data.themeVariables}
       />
     ) : selected ? (
       <ComponentConceptOverview

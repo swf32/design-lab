@@ -7,6 +7,7 @@ function postRuntimeState(
   runtime: ManagedComponentRuntime | null,
   args: Record<string, unknown>,
   values: Record<string, unknown>,
+  variant?: string,
 ) {
   if (!frame?.contentWindow || !runtime) return
   const base = {
@@ -15,7 +16,26 @@ function postRuntimeState(
     runtimeId: runtime.profile.id,
   }
   frame.contentWindow.postMessage({ ...base, type: 'setArgs', payload: { args } }, '*')
-  frame.contentWindow.postMessage({ ...base, type: 'setState', payload: { values } }, '*')
+  frame.contentWindow.postMessage({ ...base, type: 'setState', payload: { values, variant } }, '*')
+}
+
+function postRuntimeMode(
+  frame: HTMLIFrameElement | null,
+  runtime: ManagedComponentRuntime | null,
+  mode: string | undefined,
+  variables: Record<string, string | number>,
+) {
+  if (!frame?.contentWindow || !runtime || !mode) return
+  frame.contentWindow.postMessage(
+    {
+      protocol: 'designlab.runtime',
+      version: 1,
+      runtimeId: runtime.profile.id,
+      type: 'setMode',
+      payload: { mode, variables },
+    },
+    '*',
+  )
 }
 
 export function ManagedRuntimeFrame({
@@ -24,6 +44,7 @@ export function ManagedRuntimeFrame({
   view,
   story,
   mode,
+  modeVariables,
   args,
   variant,
   values,
@@ -36,6 +57,7 @@ export function ManagedRuntimeFrame({
   view: 'info' | 'preview' | 'story' | 'playground' | 'draft'
   story?: string
   mode?: string
+  modeVariables?: Record<string, string | number>
   args?: Record<string, unknown>
   variant?: string
   values?: Record<string, unknown>
@@ -51,6 +73,10 @@ export function ManagedRuntimeFrame({
   const [attempt, setAttempt] = useState(0)
   const serializedArgs = useMemo(() => JSON.stringify(args ?? {}), [args])
   const serializedValues = useMemo(() => JSON.stringify(values ?? {}), [values])
+  const serializedModeVariables = useMemo(
+    () => JSON.stringify(modeVariables ?? {}),
+    [modeVariables],
+  )
 
   useEffect(() => {
     let cancelled = false
@@ -78,7 +104,7 @@ export function ManagedRuntimeFrame({
     return () => {
       cancelled = true
     }
-  }, [componentId, mode, sourceId, story, variant, view])
+  }, [componentId, sourceId, story, view])
 
   useEffect(() => {
     postRuntimeState(
@@ -86,8 +112,18 @@ export function ManagedRuntimeFrame({
       runtime,
       JSON.parse(serializedArgs) as Record<string, unknown>,
       JSON.parse(serializedValues) as Record<string, unknown>,
+      variant,
     )
-  }, [runtime, serializedArgs, serializedValues])
+  }, [runtime, serializedArgs, serializedValues, variant])
+
+  useEffect(() => {
+    postRuntimeMode(
+      frameRef.current,
+      runtime,
+      mode,
+      JSON.parse(serializedModeVariables) as Record<string, string | number>,
+    )
+  }, [mode, runtime, serializedModeVariables])
 
   useEffect(() => {
     if (!runtime) return
@@ -108,6 +144,13 @@ export function ManagedRuntimeFrame({
           runtime,
           JSON.parse(serializedArgs) as Record<string, unknown>,
           JSON.parse(serializedValues) as Record<string, unknown>,
+          variant,
+        )
+        postRuntimeMode(
+          frameRef.current,
+          runtime,
+          mode,
+          JSON.parse(serializedModeVariables) as Record<string, string | number>,
         )
         return
       }
@@ -129,7 +172,7 @@ export function ManagedRuntimeFrame({
       window.removeEventListener('message', handleRuntimeMessage)
       if (retryTimer !== null) window.clearTimeout(retryTimer)
     }
-  }, [attempt, runtime, serializedArgs, serializedValues])
+  }, [attempt, mode, runtime, serializedArgs, serializedModeVariables, serializedValues, variant])
 
   if (error)
     return (
@@ -157,14 +200,21 @@ export function ManagedRuntimeFrame({
       title={title}
       tabIndex={className.includes('managed-runtime-frame--catalog') ? -1 : undefined}
       sandbox="allow-same-origin allow-scripts allow-forms allow-modals allow-popups"
-      onLoad={() =>
+      onLoad={() => {
         postRuntimeState(
           frameRef.current,
           runtime,
           JSON.parse(serializedArgs) as Record<string, unknown>,
           JSON.parse(serializedValues) as Record<string, unknown>,
+          variant,
         )
-      }
+        postRuntimeMode(
+          frameRef.current,
+          runtime,
+          mode,
+          JSON.parse(serializedModeVariables) as Record<string, string | number>,
+        )
+      }}
     />
   )
 }

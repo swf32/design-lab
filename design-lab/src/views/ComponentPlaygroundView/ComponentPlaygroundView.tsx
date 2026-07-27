@@ -201,6 +201,7 @@ function ManagedVueDraftPlayground({
             componentId={component.id}
             view="draft"
             mode={mode}
+            modeVariables={data.themeVariables[mode] ?? {}}
             variant={variant || playground?.defaultVariant}
             values={values}
             title={`${component.name} draft Playground`}

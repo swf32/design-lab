@@ -712,6 +712,8 @@ Web sequencing и границы shared/native modules: `docs/17-web-first-platf
       Vue fonts/assets/error fixtures и остальные frameworks открыты).
 - [x] Связать source token modes с внутренними semantic variables Nuxt UI, включая реальную смену
       `UButton`/`UInput` и произвольную тему `Sunset Gray`, а не только Canvas вокруг iframe.
+- [x] Переключать Vue source theme и draft variant через `setMode`/`setState` в уже готовом iframe;
+      `Preparing Vue preview…` остаётся только initial/restart состоянием.
 - [ ] Сохранять selected implementation/profile, mode, args/state и view в URL без port/PID details.
 
 ## Активный foundation gate: embedded installation и attach-first sources

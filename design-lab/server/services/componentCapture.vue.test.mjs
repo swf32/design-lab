@@ -91,11 +91,38 @@ test('Vue preview and Story use the same Component capture path as React', async
         view: 'preview',
         mode: 'dark',
       })
-      await page.goto(darkRuntime.url, { waitUntil: 'networkidle' })
+      const darkVariables = JSON.parse(new URL(darkRuntime.url).searchParams.get('variables'))
+      await page.evaluate(
+        ({ runtimeId, variables }) =>
+          window.postMessage(
+            {
+              protocol: 'designlab.runtime',
+              version: 1,
+              type: 'setMode',
+              runtimeId,
+              payload: { mode: 'dark', variables },
+            },
+            '*',
+          ),
+        { runtimeId: runtime.profile.id, variables: darkVariables },
+      )
+      await page.locator('html.dark[data-source-mode="dark"]').waitFor()
+      await page.waitForFunction(
+        () =>
+          getComputedStyle(document.querySelector('button')).backgroundColor ===
+          'rgb(46, 227, 188)',
+      )
       assert.equal(
         await page.evaluate(() => document.documentElement.classList.contains('dark')),
         true,
       )
+      assert.equal(
+        await page
+          .getByRole('button', { name: 'Launch design' })
+          .evaluate((element) => getComputedStyle(element).backgroundColor),
+        'rgb(46, 227, 188)',
+      )
+      assert.equal(page.url(), initialUrl)
       assert.deepEqual(consoleErrors, [])
       assert.doesNotMatch(await page.locator('body').innerText(), /could not start/i)
     } finally {

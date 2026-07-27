@@ -24,8 +24,8 @@ const view = params.get('view') ?? 'preview'
 const mode = params.get('mode') ?? 'default'
 const captureSurface = params.get('captureSurface') === 'true'
 
-function applySourceModeClass() {
-  const normalizedMode = mode.trim().toLowerCase()
+function applySourceModeClass(sourceMode: string) {
+  const normalizedMode = sourceMode.trim().toLowerCase()
   document.documentElement.classList.toggle('light', normalizedMode === 'light')
   document.documentElement.classList.toggle('dark', normalizedMode === 'dark')
 }
@@ -125,10 +125,18 @@ async function start() {
     string,
     unknown
   > | null
-  const variables = jsonParameter<Record<string, string | number>>('variables', {})
-  for (const [name, value] of Object.entries(variables))
-    document.documentElement.style.setProperty(name, String(value))
-  applySourceModeClass()
+  const appliedVariableNames = new Set<string>()
+  const applyVariables = (variables: Record<string, string | number>) => {
+    for (const name of appliedVariableNames)
+      if (!(name in variables)) document.documentElement.style.removeProperty(name)
+    appliedVariableNames.clear()
+    for (const [name, value] of Object.entries(variables)) {
+      document.documentElement.style.setProperty(name, String(value))
+      appliedVariableNames.add(name)
+    }
+  }
+  applyVariables(jsonParameter<Record<string, string | number>>('variables', {}))
+  applySourceModeClass(mode)
   document.documentElement.style.setProperty('background', 'transparent', 'important')
   document.body.style.setProperty('background', 'transparent', 'important')
   document.documentElement.style.setProperty('color-scheme', 'normal', 'important')
@@ -142,6 +150,7 @@ async function start() {
   const liveArgs = reactive({ ...authoredArgs })
   const liveValues = reactive({ ...draftValues })
   const liveVariant = ref(variantId)
+  const liveMode = ref(mode)
 
   const replaceRecord = (target: Record<string, unknown>, next: Record<string, unknown>) => {
     for (const key of Object.keys(target)) delete target[key]
@@ -159,6 +168,8 @@ async function start() {
         args?: Record<string, unknown>
         values?: Record<string, unknown>
         variant?: string
+        mode?: string
+        variables?: Record<string, string | number>
       }
     } | null
     if (
@@ -173,7 +184,13 @@ async function start() {
       if (message.payload?.values) replaceRecord(liveValues, message.payload.values)
       if (message.payload?.variant) liveVariant.value = message.payload.variant
     }
-    if (message.type === 'setArgs' || message.type === 'setState')
+    if (message.type === 'setMode' && message.payload?.mode) {
+      liveMode.value = message.payload.mode
+      if (message.payload.variables) applyVariables(message.payload.variables)
+      applySourceModeClass(liveMode.value)
+      document.documentElement.dataset.sourceMode = liveMode.value
+    }
+    if (message.type === 'setArgs' || message.type === 'setState' || message.type === 'setMode')
       void nextTick(() =>
         window.parent.postMessage(
           {
@@ -195,7 +212,10 @@ async function start() {
         return () =>
           h(
             'main',
-            { class: surfaceClass('designlab-vue-preview'), 'data-source-mode': mode },
+            {
+              class: surfaceClass('designlab-vue-preview'),
+              'data-source-mode': liveMode.value,
+            },
             Preview
               ? h(Preview)
               : h('span', { class: 'designlab-vue-missing' }, 'Preview unavailable'),
@@ -204,7 +224,10 @@ async function start() {
         return () =>
           h(
             'main',
-            { class: surfaceClass('designlab-vue-story'), 'data-source-mode': mode },
+            {
+              class: surfaceClass('designlab-vue-story'),
+              'data-source-mode': liveMode.value,
+            },
             (selectedStory?.examples ?? []).map((example) =>
               h('div', { class: 'designlab-vue-example' }, [
                 componentNode(Entry as Component, example.props ?? {}),
@@ -219,7 +242,10 @@ async function start() {
           )?.find((variant) => variant.id === liveVariant.value)
           return h(
             'main',
-            { class: surfaceClass('designlab-vue-playground'), 'data-source-mode': mode },
+            {
+              class: surfaceClass('designlab-vue-playground'),
+              'data-source-mode': liveMode.value,
+            },
             componentNode(Entry as Component, {
               ...((draftVariant?.props as Record<string, unknown> | undefined) ?? {}),
               ...liveValues,
@@ -230,7 +256,10 @@ async function start() {
       return () =>
         h(
           'main',
-          { class: surfaceClass('designlab-vue-playground'), 'data-source-mode': mode },
+          {
+            class: surfaceClass('designlab-vue-playground'),
+            'data-source-mode': liveMode.value,
+          },
           componentNode(Entry as Component, { ...seed, ...liveArgs }),
         )
     },
@@ -241,7 +270,7 @@ async function start() {
   app.mount('#app')
   // Runtime plugins may initialize their own color-mode class during mount.
   // The selected source mode remains authoritative inside this isolated document.
-  applySourceModeClass()
+  applySourceModeClass(liveMode.value)
 
   const info = captureInfo(stories)
   document.body.dataset.designlabRuntimeReady = 'true'

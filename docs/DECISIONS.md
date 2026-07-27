@@ -1445,6 +1445,11 @@ default mode активной Library. Название interface theme не у�
 `ready`/`rendered`, локализует ошибки и делает не более двух автоматических retry. Catalog preview
 является inert: iframe исключён из tab order и не перехватывает click карточки.
 
+Смена source theme после первого `ready` аналогично отправляется через `setMode` вместе с resolved
+CSS variables. Она не сбрасывает runtime state, не запрашивает новый iframe URL и не показывает
+`Preparing Vue preview…`; этот initial state допустим только при первом запуске или настоящем
+перезапуске runtime. Та же live-state труба обновляет draft variant через `setState` без reload.
+
 `nuxt-ui-system` исключён из root wildcard workspace и владеет собственным manifest, lockfile и
 derived `node_modules`. Полный `nuxt` не устанавливается; настоящий `@nuxt/ui` сохраняется целиком,
 поскольку копирование отдельного внутреннего SFC превратило бы fixture в неподдерживаемый fork его
@@ -1474,6 +1479,10 @@ Theme строится из всех token modes активного Project/Libr
 Component. При переходе в fullscreen Playground текущий выбор переносится в route query и одинаково
 восстанавливается React и Vue runtime. Managed iframe остаётся прозрачным; opaque token canvas
 создаётся только capture contract, а не UI theme или source theme.
+
+После первого запуска Vue iframe source theme меняется in-place командой `setMode`. Стабильный iframe
+и Vue app сохраняются между переключениями; новый process, параллельный iframe и промежуточный
+loading state для этого не создаются.
 
 Framework library может иметь собственный слой semantic CSS variables (`--ui-*` у Nuxt UI), но он
 обязан ссылаться на resolved variables текущего source mode. Этот bridge является adapter code, а не
