@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- Added: the shared Canvas appearance control can switch arbitrary source token themes independently from its background.
 - Changed: `controls` is optional; when omitted the controls rail is not rendered and the Canvas fills the width.
 - Added: Configurable start/end controls rail for full-route typed Component Playgrounds.
 - Responsive: Canvas remains first and controls move below it on phone layouts.

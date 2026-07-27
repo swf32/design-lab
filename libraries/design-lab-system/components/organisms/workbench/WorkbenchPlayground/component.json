@@ -48,6 +48,15 @@
       "type": "(color: string) => void",
       "required": true
     },
+    "themes": {
+      "type": "string[]"
+    },
+    "theme": {
+      "type": "string"
+    },
+    "onThemeChange": {
+      "type": "(theme: string) => void"
+    },
     "label": {
       "type": "string",
       "default": "Playground"

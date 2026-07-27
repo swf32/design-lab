@@ -127,16 +127,18 @@
 }
 
 .component-playground-canvas__tools {
+  width: min(280px, calc(100% - 32px));
   position: absolute;
   z-index: 7;
   top: max(16px, env(safe-area-inset-top));
   right: max(16px, env(safe-area-inset-right));
-  padding: 4px;
-  border: 1px solid color-mix(in srgb, var(--color-text-primary) 16%, transparent);
-  border-radius: var(--corner-surface);
-  background: color-mix(in srgb, var(--color-surface-primary) 78%, transparent);
-  box-shadow: 0 10px 32px color-mix(in srgb, var(--color-overlay-scrim) 48%, transparent);
-  backdrop-filter: blur(16px) saturate(1.2);
+  display: flex;
+  justify-content: flex-end;
+  pointer-events: none;
+}
+
+.component-playground-canvas__tools > * {
+  pointer-events: auto;
 }
 
 .component-playground-canvas__stage {

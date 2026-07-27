@@ -80,25 +80,49 @@ function ManagedVueDraftPlayground({
   onCanvasColorChange: (color: string) => void
   onClose: () => void
 }) {
+  const params = useMemo(() => new URLSearchParams(window.location.search), [])
+  const availableModes = data.modes.length ? data.modes : ['default']
+  const initialMode = params.get('mode')
   const [runtime, setRuntime] = useState<ManagedComponentRuntime | null>(null)
   const [variant, setVariant] = useState('')
-  const [mode, setMode] = useState(data.modes[0] ?? 'default')
+  const [mode, setMode] = useState(
+    initialMode && availableModes.includes(initialMode) ? initialMode : data.defaultMode,
+  )
   const [values, setValues] = useState<PlaygroundValues>({})
   const playground = runtime?.playground
   useEffect(() => {
     if (!playground) return
-    setVariant((current) => current || playground.defaultVariant)
+    setVariant((current) => {
+      if (current) return current
+      const requested = params.get('variant')
+      return playground.variants.some((item) => item.id === requested)
+        ? String(requested)
+        : playground.defaultVariant
+    })
     setValues((current) =>
       Object.keys(current).length
         ? current
         : Object.fromEntries(
             Object.entries(playground.controls).map(([key, control]) => [
               key,
-              control.defaultValue,
+              parseControlValue(control, params.get(key)),
             ]),
           ),
     )
-  }, [playground])
+  }, [params, playground])
+  useEffect(() => {
+    if (!playground || !variant) return
+    const next = new URLSearchParams({ variant, mode })
+    for (const [key, definition] of Object.entries(playground.controls)) {
+      const value = values[key]
+      if (value !== undefined && value !== definition.defaultValue) next.set(key, String(value))
+    }
+    window.history.replaceState(
+      window.history.state,
+      '',
+      `${window.location.pathname}?${next.toString()}`,
+    )
+  }, [mode, playground, values, variant])
   const selectedVariant = playground?.variants.find((item) => item.id === variant)
   const shellStyle = { '--canvas-solid': canvasColor } as CSSProperties
 
@@ -147,19 +171,6 @@ function ManagedVueDraftPlayground({
               />
               <p>{selectedVariant?.description ?? playground.description}</p>
             </section>
-            {data.modes.length > 1 && (
-              <section className="component-playground-panel__section">
-                <span>Product theme</span>
-                <TabSwitcher
-                  ariaLabel="Product theme"
-                  options={data.modes.map((item) => ({ value: item, label: item }))}
-                  value={mode}
-                  onChange={setMode}
-                  size="small"
-                  overflow="scroll"
-                />
-              </section>
-            )}
             <TypedPlaygroundControls
               component={component}
               controls={playground.controls}
@@ -179,6 +190,9 @@ function ManagedVueDraftPlayground({
             color={canvasColor}
             onModeChange={onCanvasModeChange}
             onColorChange={onCanvasColorChange}
+            themes={data.modes}
+            theme={mode}
+            onThemeChange={setMode}
           />
         </div>
         <div className="component-playground-canvas__stage">
@@ -280,7 +294,7 @@ function LoadedComponentPlayground({
   )
   const initialMode = params.get('mode')
   const [mode, setMode] = useState(
-    initialMode && availableModes.includes(initialMode) ? initialMode : availableModes[0],
+    initialMode && availableModes.includes(initialMode) ? initialMode : data.defaultMode,
   )
   const [values, setValues] = useState<PlaygroundValues>(() => initialValues(module))
   const compactQuery = '(max-width: 760px), (max-height: 560px) and (max-width: 960px)'
@@ -417,20 +431,6 @@ function LoadedComponentPlayground({
           <p>{selectedVariant?.description ?? module.playground.description}</p>
         </section>
 
-        {availableModes.length > 1 && (
-          <section className="component-playground-panel__section">
-            <span>Product theme</span>
-            <TabSwitcher
-              ariaLabel="Product theme"
-              options={availableModes.map((item) => ({ value: item, label: item }))}
-              value={mode}
-              onChange={setMode}
-              size="small"
-              overflow="scroll"
-            />
-          </section>
-        )}
-
         <TypedPlaygroundControls
           component={component}
           controls={module.playground.controls}
@@ -452,6 +452,9 @@ function LoadedComponentPlayground({
             color={canvasColor}
             onModeChange={onCanvasModeChange}
             onColorChange={onCanvasColorChange}
+            themes={availableModes}
+            theme={mode}
+            onThemeChange={setMode}
           />
         </div>
         <div className="component-playground-canvas__stage">

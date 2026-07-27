@@ -1,16 +1,21 @@
 .dl-canvas-control {
   width: 90px;
   max-width: 34px;
+  max-height: 34px;
   box-sizing: border-box;
   overflow: hidden;
   padding: 3px;
   border: 1px solid var(--color-border-default);
   border-radius: var(--corner-control);
   background: var(--color-surface-secondary);
-  display: flex;
-  align-items: center;
+  display: grid;
   gap: 0;
-  transition: max-width var(--transition-fast) var(--easing-preview);
+  transition:
+    max-width var(--transition-fast) var(--easing-preview),
+    max-height var(--transition-fast) var(--easing-preview);
+}
+.dl-canvas-control--with-themes {
+  width: min(280px, calc(100vw - 32px));
 }
 .dl-canvas-control:hover,
 .dl-canvas-control:focus-within,
@@ -18,6 +23,88 @@
 .dl-canvas-control--touch-expanded {
   max-width: 90px;
   gap: 2px;
+}
+.dl-canvas-control--with-themes:hover,
+.dl-canvas-control--with-themes:focus-within,
+.dl-canvas-control--with-themes.dl-canvas-control--picker-open,
+.dl-canvas-control--with-themes.dl-canvas-control--touch-expanded {
+  max-width: min(280px, calc(100vw - 32px));
+  max-height: 72px;
+}
+.dl-canvas-control__row,
+.dl-canvas-control__background-options {
+  min-width: 0;
+  display: flex;
+  align-items: center;
+}
+.dl-canvas-control__row {
+  gap: 0;
+}
+.dl-canvas-control__background-options {
+  flex: 0 0 auto;
+  gap: 0;
+}
+.dl-canvas-control:hover .dl-canvas-control__background-options,
+.dl-canvas-control:focus-within .dl-canvas-control__background-options,
+.dl-canvas-control--picker-open .dl-canvas-control__background-options,
+.dl-canvas-control--touch-expanded .dl-canvas-control__background-options {
+  gap: 2px;
+}
+.dl-canvas-control__label {
+  width: 0;
+  flex: 0 0 0;
+  overflow: hidden;
+  color: var(--color-text-secondary);
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  opacity: 0;
+  text-transform: uppercase;
+  transition:
+    width var(--transition-fast) var(--easing-preview),
+    flex-basis var(--transition-fast) var(--easing-preview),
+    opacity var(--transition-fast);
+}
+.dl-canvas-control--with-themes:hover .dl-canvas-control__row,
+.dl-canvas-control--with-themes:focus-within .dl-canvas-control__row,
+.dl-canvas-control--with-themes.dl-canvas-control--picker-open .dl-canvas-control__row,
+.dl-canvas-control--with-themes.dl-canvas-control--touch-expanded .dl-canvas-control__row {
+  gap: 8px;
+}
+.dl-canvas-control--with-themes:hover .dl-canvas-control__label,
+.dl-canvas-control--with-themes:focus-within .dl-canvas-control__label,
+.dl-canvas-control--with-themes.dl-canvas-control--picker-open .dl-canvas-control__label,
+.dl-canvas-control--with-themes.dl-canvas-control--touch-expanded .dl-canvas-control__label {
+  width: 70px;
+  flex-basis: 70px;
+  opacity: 1;
+}
+.dl-canvas-control__theme-row {
+  height: 0;
+  visibility: hidden;
+  opacity: 0;
+  transition:
+    height var(--transition-fast) var(--easing-preview),
+    opacity var(--transition-fast);
+}
+.dl-canvas-control--with-themes:hover .dl-canvas-control__theme-row,
+.dl-canvas-control--with-themes:focus-within .dl-canvas-control__theme-row,
+.dl-canvas-control--with-themes.dl-canvas-control--picker-open .dl-canvas-control__theme-row,
+.dl-canvas-control--with-themes.dl-canvas-control--touch-expanded .dl-canvas-control__theme-row {
+  height: 30px;
+  visibility: visible;
+  opacity: 1;
+}
+.dl-canvas-control .dl-canvas-control__theme-options {
+  min-width: 0;
+  flex: 1 1 auto;
+  justify-content: flex-start;
+}
+.dl-canvas-control .dl-canvas-control__theme-options button {
+  min-height: 26px;
+  height: 26px;
+  padding-inline: 9px;
+  text-transform: none;
 }
 .dl-canvas-control .dl-canvas-control__grid-options {
   flex: 0 0 auto;
@@ -142,6 +229,8 @@
   .dl-canvas-control,
   .dl-canvas-control .dl-canvas-control__grid-options,
   .dl-canvas-control .dl-canvas-control__grid-options button,
+  .dl-canvas-control__label,
+  .dl-canvas-control__theme-row,
   .dl-canvas-control__solid,
   .dl-canvas-control__solid .dl-color-picker__trigger {
     transition: none;

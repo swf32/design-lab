@@ -1416,23 +1416,23 @@ capture из этого решения не следует.
 
 Vue пока не объявляет `events`, `resize` или `inspection`: runtime ещё не передаёт event/state
 telemetry, basic SFC printer не покрывает slots/complex values, deep Inspector отсутствует, а
-fonts/ordinary Assets не доказаны в browser E2E. Compile/runtime error fixtures и URL persistence
-также остаются открыты. Wireframes/Pages и Svelte — следующие отдельные web phases, а не обещания
-этой вертикали.
+fonts/ordinary Assets не доказаны в browser E2E. Fullscreen Playground уже сохраняет выбранные
+variant, source theme и изменённые controls в URL; более широкая URL persistence остальных runtime
+states и compile/runtime error fixtures остаются открыты. Wireframes/Pages и Svelte — следующие
+отдельные web phases, а не обещания этой вертикали.
 
 ## D-088 — Vue surface остаётся частью одного Canvas, а runtime и dependencies изолированы
 
 **Статус:** принято и реализовано для Vue Component vertical, 2026-07-26.
 
 Managed iframe не рисует собственный фон в Catalog, Workbench Story или Playground: внешний shell
-остаётся владельцем Canvas и его grid/solid background. Product mode управляет token values и
-`color-scheme`, но не добавляет вторую зелёную/синюю поверхность. Только capture request передаёт
+остаётся владельцем Canvas и его grid/solid background. Product mode управляет только token values
+и не выводится эвристически в browser `color-scheme`. Только capture request передаёт
 `captureSurface=true` и получает непрозрачный token-driven фон, необходимый для стабильного PNG.
 Catalog preview принимает фактическую ширину карточки; capture geometry задаётся viewport снаружи,
 а не фиксированной шириной runtime root, которая могла обрезать композицию в узкой карточке.
-Поскольку Catalog не даёт пользователю product-mode control, его миниатюры выбирают одноимённый
-`light`/`dark` mode активной Library, когда он существует. Workbench сохраняет независимый product
-mode согласно D-011.
+Поскольку Catalog не даёт пользователю product-mode control, его миниатюры используют token-declared
+default mode активной Library. Название interface theme не участвует в этом выборе.
 
 Изменение serializable args/state отправляется в уже загруженный iframe versioned сообщениями
 `setArgs`/`setState`; URL и document не пересоздаются на каждый ввод. Managed runtime подтверждает
@@ -1449,3 +1449,26 @@ Basic Vue handoff использует реальный default import package e
 `ActionField.vue` композиционно импортирует настоящие Button и Input, поэтому Workbench показывает
 проверяемые `Uses`/`Used by`, а не демонстрационную metadata-связь. Slots, complex values, native
 ecosystem metadata и deep Inspector остаются capability gaps.
+
+## D-089 — Interface theme, Canvas background и source theme являются тремя независимыми осями
+
+**Статус:** принято и реализовано для Component Workbench/Stories/Playground, 2026-07-26.
+
+Тема оболочки Design Lab стилизует только приложение. Она никогда не выбирает тему просматриваемой
+дизайн-системы, не меняет Canvas background и не интерпретирует имена вроде `dark`, `black` или
+`blue`. Исходная тема при открытии берётся из `defaultMode` token document активного source; при
+нескольких документах используется первый явно объявленный default в стабильном filesystem order.
+
+Canvas background остаётся отдельной визуальной проверкой: dark grid, light grid или custom solid.
+Раскрывающийся Canvas Background Control показывает две подписанные строки — Background и Theme.
+Theme строится из всех token modes активного Project/Library и не ограничена парой light/dark:
+`blue`, `red`, `white` и другие source-authored значения являются равноправными.
+
+Один выбранный source theme синхронно применяется к production Playground и всем Stories текущего
+Component. При переходе в fullscreen Playground текущий выбор переносится в route query и одинаково
+восстанавливается React и Vue runtime. Managed iframe остаётся прозрачным; opaque token canvas
+создаётся только capture contract, а не UI theme или source theme.
+
+Deep link сначала доверяет source id из URL, а не сохранённой ранее Library. Асинхронные ответы
+предыдущего source после переключения отбрасываются, поэтому React/Vue catalogs и Workbench не могут
+смешаться из-за гонки загрузки.

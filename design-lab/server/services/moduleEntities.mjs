@@ -478,6 +478,7 @@ async function wireframesFor(source, sourceId) {
   return {
     kind: 'wireframes',
     folders: [...new Set(folders)].sort(),
+    defaultMode: tokenData.defaultMode,
     modes: tokenData.modes,
     themeVariables: tokenVariablesByMode(tokenData),
     wireframes: wireframes.sort((a, b) => a.name.localeCompare(b.name)),
@@ -768,6 +769,7 @@ async function pagesFor(source, sourceId) {
   return {
     kind: 'pages',
     folders: [...new Set(folders)].sort(),
+    defaultMode: tokenData.defaultMode,
     modes: tokenData.modes,
     themeVariables: tokenVariablesByMode(tokenData),
     pages: pages.sort((a, b) => a.name.localeCompare(b.name)),
@@ -1154,6 +1156,7 @@ export async function getModuleEntities(sourceId, moduleId) {
     const tokenData = await tokensFor(source)
     return {
       kind: 'palette',
+      defaultMode: tokenData.defaultMode,
       modes: tokenData.modes,
       colors: tokenData.tokens.filter((token) => token.type === 'color'),
     }
@@ -1179,6 +1182,7 @@ export async function getModuleEntities(sourceId, moduleId) {
     ])
     return {
       kind: 'fonts',
+      defaultMode: tokenData.defaultMode,
       modes: tokenData.modes,
       typography: tokenData.tokens.filter((token) =>
         ['fontFamily', 'fontWeight', 'fontSize', 'lineHeight', 'letterSpacing'].includes(
@@ -1316,6 +1320,7 @@ export async function getModuleEntities(sourceId, moduleId) {
     return {
       kind: 'components',
       folders: [...new Set(folders)].sort(),
+      defaultMode: tokenData.defaultMode,
       modes: tokenData.modes,
       themeVariables: tokenVariablesByMode(tokenData),
       families: buildComponentFamilies(relatedComponents),

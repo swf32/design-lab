@@ -50,6 +50,15 @@
     "onCanvasColorChange": {
       "type": "(color: string) => void"
     },
+    "themes": {
+      "type": "string[]"
+    },
+    "theme": {
+      "type": "string"
+    },
+    "onThemeChange": {
+      "type": "(theme: string) => void"
+    },
     "source": {
       "type": "string"
     },

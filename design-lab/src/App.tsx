@@ -102,13 +102,9 @@ const initialRoute = readAppRoute()
 function getInitialTheme(): ThemeMode {
   return localStorage.getItem(THEME_KEY) === 'light' ? 'light' : 'dark'
 }
-function getInitialCanvasMode(theme: ThemeMode): CanvasMode {
+function getInitialCanvasMode(): CanvasMode {
   const saved = localStorage.getItem(CANVAS_MODE_KEY)
-  return saved === 'dark-grid' || saved === 'light-grid' || saved === 'solid'
-    ? saved
-    : theme === 'light'
-      ? 'light-grid'
-      : 'dark-grid'
+  return saved === 'dark-grid' || saved === 'light-grid' || saved === 'solid' ? saved : 'dark-grid'
 }
 
 function clampNavigationWidth(value: number) {
@@ -141,9 +137,7 @@ function treeItemIsContainer(item: ProjectTreeItem) {
 export default function App() {
   const { t, locale } = useDesignLabI18n()
   const [theme, setTheme] = useState<ThemeMode>(getInitialTheme)
-  const [canvasMode, setCanvasMode] = useState<CanvasMode>(() =>
-    getInitialCanvasMode(getInitialTheme()),
-  )
+  const [canvasMode, setCanvasMode] = useState<CanvasMode>(getInitialCanvasMode)
   const [canvasColor, setCanvasColor] = useState(
     localStorage.getItem(CANVAS_COLOR_KEY) ?? '#264653',
   )
@@ -155,7 +149,7 @@ export default function App() {
   const [sidebarHovered, setSidebarHovered] = useState(false)
   const [projects, setProjects] = useState<Project[]>([])
   const [activeProjectId, setActiveProjectId] = useState(
-    localStorage.getItem(ACTIVE_PROJECT_KEY) ?? '',
+    initialRoute.sourceId || localStorage.getItem(ACTIVE_PROJECT_KEY) || '',
   )
   const [tree, setTree] = useState<ProjectTreeItem[]>([])
   const [treeLoading, setTreeLoading] = useState(false)
@@ -242,10 +236,11 @@ export default function App() {
   const navigate = (
     module: ModuleId,
     path = '',
-    options: { replace?: boolean; sourceId?: string } = {},
+    options: { replace?: boolean; sourceId?: string; search?: string } = {},
   ) => {
     const effectiveSourceId = options.sourceId ?? activeProjectId
-    const href = appRouteHref(module, effectiveSourceId, path)
+    const search = options.search?.replace(/^\?/, '')
+    const href = `${appRouteHref(module, effectiveSourceId, path)}${search ? `?${search}` : ''}`
     if (`${window.location.pathname}${window.location.search}${window.location.hash}` !== href) {
       const currentState = window.history.state as DesignLabHistoryState | null
       const state: DesignLabHistoryState = options.replace
@@ -323,22 +318,43 @@ export default function App() {
   }, [active, activeProjectId, routePath, routeSourceId])
 
   useEffect(() => {
+    let cancelled = false
     if (!activeProjectId) {
       setTree([])
-      return
+      setModuleData(null)
+      setTreeLoading(false)
+      setModuleLoading(false)
+      return () => {
+        cancelled = true
+      }
     }
     localStorage.setItem(ACTIVE_PROJECT_KEY, activeProjectId)
     setTree([])
     setTreeLoading(true)
     getProjectTree(activeProjectId, active, tokenNavigationView)
-      .then((result) => setTree(result.tree))
-      .catch(() => setTree([]))
-      .finally(() => setTreeLoading(false))
+      .then((result) => {
+        if (!cancelled) setTree(result.tree)
+      })
+      .catch(() => {
+        if (!cancelled) setTree([])
+      })
+      .finally(() => {
+        if (!cancelled) setTreeLoading(false)
+      })
     setModuleLoading(true)
     getModuleData(activeProjectId, active)
-      .then(setModuleData)
-      .catch(() => setModuleData(null))
-      .finally(() => setModuleLoading(false))
+      .then((result) => {
+        if (!cancelled) setModuleData(result)
+      })
+      .catch(() => {
+        if (!cancelled) setModuleData(null)
+      })
+      .finally(() => {
+        if (!cancelled) setModuleLoading(false)
+      })
+    return () => {
+      cancelled = true
+    }
   }, [active, activeProjectId, tokenNavigationView])
 
   useEffect(() => {
@@ -509,11 +525,6 @@ export default function App() {
     } finally {
       setProjectCreating(false)
     }
-  }
-
-  const changeTheme = (next: ThemeMode) => {
-    setTheme(next)
-    setCanvasMode(next === 'light' ? 'light-grid' : 'dark-grid')
   }
 
   if (playgroundOpen) {
@@ -778,7 +789,7 @@ export default function App() {
                   ] as const
                 }
                 value={theme}
-                onChange={changeTheme}
+                onChange={setTheme}
               />
               <IconButton
                 type="button"
@@ -823,13 +834,15 @@ export default function App() {
                 const item = tree.find((candidate) => candidate.id === id)
                 if (item) navigate(active, treeItemRoutePath(item))
               }}
-              interfaceTheme={theme}
               canvasMode={canvasMode}
               canvasColor={canvasColor}
               onCanvasModeChange={setCanvasMode}
               onCanvasColorChange={setCanvasColor}
-              onOpenPlayground={() => {
-                if (entityRoutePath) navigate('components', `${entityRoutePath}/playground`)
+              onOpenPlayground={(mode) => {
+                if (entityRoutePath)
+                  navigate('components', `${entityRoutePath}/playground`, {
+                    search: mode ? new URLSearchParams({ mode }).toString() : undefined,
+                  })
               }}
               onOpenPageReview={() => {
                 const page =

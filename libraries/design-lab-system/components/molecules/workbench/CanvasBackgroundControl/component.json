@@ -1,12 +1,13 @@
 {
   "id": "canvas-background-control",
   "name": "Canvas Background Control",
-  "description": "Controls the shared Workbench canvas background across dark grid, light grid, and custom solid color modes.",
+  "description": "Separately controls the shared Workbench canvas background and the active design-system theme discovered from source tokens.",
   "aliases": ["canvas mode control", "story background selector", "preview background"],
   "useWhen": [
     "change every workbench canvas background",
     "inspect a component on light or dark grid",
-    "set a custom story surface color"
+    "set a custom story surface color",
+    "switch among arbitrary themes declared by the active design system"
   ],
   "avoidWhen": [
     "change the application theme",
@@ -26,7 +27,15 @@
     "easingToken": "easing.preview",
     "reducedMotion": "static-baseline"
   },
-  "states": ["collapsed", "expanded", "dark-grid", "light-grid", "solid", "solid-picker-open"],
+  "states": [
+    "collapsed",
+    "expanded",
+    "dark-grid",
+    "light-grid",
+    "solid",
+    "solid-picker-open",
+    "source-themes"
+  ],
   "variants": ["default"],
   "props": {
     "mode": {
@@ -45,6 +54,15 @@
     "onColorChange": {
       "type": "(color: string) => void",
       "required": true
+    },
+    "themes": {
+      "type": "string[]"
+    },
+    "theme": {
+      "type": "string"
+    },
+    "onThemeChange": {
+      "type": "(theme: string) => void"
     }
   }
 }

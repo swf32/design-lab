@@ -15,6 +15,9 @@ type StoryCanvasProps = {
   canvasColor?: string
   onCanvasModeChange?: (mode: CanvasMode) => void
   onCanvasColorChange?: (color: string) => void
+  themes?: string[]
+  theme?: string
+  onThemeChange?: (theme: string) => void
   source?: string
   sourceLanguage?: string
 }
@@ -28,6 +31,9 @@ export function StoryCanvas({
   canvasColor = '#111111',
   onCanvasModeChange,
   onCanvasColorChange,
+  themes,
+  theme,
+  onThemeChange,
   source,
   sourceLanguage = 'tsx',
 }: StoryCanvasProps) {
@@ -54,6 +60,9 @@ export function StoryCanvas({
               color={canvasColor}
               onModeChange={onCanvasModeChange}
               onColorChange={onCanvasColorChange}
+              themes={themes}
+              theme={theme}
+              onThemeChange={onThemeChange}
             />
           </div>
         )}

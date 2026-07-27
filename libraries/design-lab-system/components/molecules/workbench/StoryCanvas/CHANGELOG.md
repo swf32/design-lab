@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- Added: Story Canvas can expose arbitrary source token themes through the shared Canvas appearance control without coupling them to its background.
 - Added: framework-native Story handoff may declare its CodeBlock language; TSX remains the default.
 - Changed: all automatic Story handoff uses one structural source printer that keeps short JSX compact and expands long props, arrays, objects, nested values, and sibling examples with stable indentation.
 - Fixed: Story handoff now analyzes the actual rendered React examples and their canonical Component and icon imports instead of depending on manually duplicated source strings.

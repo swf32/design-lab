@@ -15,6 +15,9 @@ export type WorkbenchPlaygroundProps = {
   color: string
   onModeChange: (mode: CanvasMode) => void
   onColorChange: (color: string) => void
+  themes?: string[]
+  theme?: string
+  onThemeChange?: (theme: string) => void
   label?: string
   padding?: WorkbenchPlaygroundPadding
   controlsPosition?: WorkbenchPlaygroundControlsPosition
@@ -29,6 +32,9 @@ export function WorkbenchPlayground({
   color,
   onModeChange,
   onColorChange,
+  themes,
+  theme,
+  onThemeChange,
   label = 'Playground',
   padding = 'comfortable',
   controlsPosition = 'end',
@@ -55,6 +61,9 @@ export function WorkbenchPlayground({
             color={color}
             onModeChange={onModeChange}
             onColorChange={onColorChange}
+            themes={themes}
+            theme={theme}
+            onThemeChange={onThemeChange}
           />
         </div>
         <div className="dl-workbench-playground__stage">{children}</div>

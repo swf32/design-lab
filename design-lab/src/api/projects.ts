@@ -296,13 +296,15 @@ export type ModuleData =
         tokenCount: number
         diagnostics: TokenDiagnostic[]
       }>
+      defaultMode: string
       modes: string[]
       tokens: TokenEntity[]
       diagnostics: TokenDiagnostic[]
     }
-  | { kind: 'palette'; modes: string[]; colors: TokenEntity[] }
+  | { kind: 'palette'; defaultMode: string; modes: string[]; colors: TokenEntity[] }
   | {
       kind: 'fonts'
+      defaultMode: string
       modes: string[]
       typography: TokenEntity[]
       families: Array<{
@@ -316,6 +318,7 @@ export type ModuleData =
   | {
       kind: 'components'
       folders: string[]
+      defaultMode: string
       modes: string[]
       themeVariables: Record<string, Record<string, string | number>>
       families: Array<{
@@ -383,6 +386,7 @@ export type ModuleData =
   | {
       kind: 'wireframes'
       folders: string[]
+      defaultMode: string
       modes: string[]
       themeVariables: Record<string, Record<string, string | number>>
       wireframes: Array<{
@@ -458,6 +462,7 @@ export type ModuleData =
   | {
       kind: 'pages'
       folders: string[]
+      defaultMode: string
       modes: string[]
       themeVariables: Record<string, Record<string, string | number>>
       pages: Array<{

@@ -9,7 +9,7 @@ Reusable component-detail playground that composes the live Canvas, global backg
 - The controls rail is caller-owned content so component-specific prop editors do not leak into this organism.
 - Omit `controls` (or pass `null`) to hide the rail and give the Canvas the full width; do not leave an empty controls column.
 - `controlsPosition="start"` supports the full Component Playground route; the existing Workbench detail keeps controls at the end.
-- Background mode and color are controlled preferences shared by all component workbenches.
+- Background mode/color and source theme are controlled but independent preferences shared by all component workbenches.
 
 On phones the Canvas remains first and the controls rail moves below it regardless of desktop rail position.
 
@@ -19,6 +19,9 @@ On phones the Canvas remains first and the controls rail moves below it regardle
   color={canvasColor}
   onModeChange={setCanvasMode}
   onColorChange={setCanvasColor}
+  themes={sourceThemes}
+  theme={sourceTheme}
+  onThemeChange={setSourceTheme}
   controls={<ButtonControls />}
 >
   <Button fullWidth>Continue</Button>

@@ -515,6 +515,8 @@ Components использует Tokens, Palette и Fonts и становится
 - [x] Review-build source instrumentation не требует authored `data-dl-*` markers или JSX strings; SCSS handoff сохраняет `$variables`, `@use`, mixins, nesting, percentages и CSS variables без CSSOM.
 - [x] Component outline использует стабильный inspection purple, slot outline — inspection pink; оба не зависят от interface accent.
 - [x] Fullscreen Playground использует production `PlaygroundControlsRail` и `InspectorCodePopover`; Canvas Background Control плавает сверху справа над Canvas.
+- [x] Canvas appearance разделяет interface theme, grid/custom background и произвольную source theme; Theme options выводятся из token modes, используют token-declared default и сохраняются при переходе в React/Vue fullscreen Playground.
+- [x] Source deep links приоритетнее сохранённой Library, а устаревшие async tree/module responses не могут смешать React и Vue catalogs после переключения.
 - [x] Shared `WorkbenchInspector` и `WorkbenchAction` заменяют application-local Inspector и разрозненные Settings/Inspect/Dev mode buttons.
 - [x] Button получил typed Wireframe Playground с mesh/solid/outline directions, управляемым radius и Safari-prefixed mask clipping.
 - [x] Playground popovers портальны и viewport-aware: открытие не увеличивает scroll area controls rail.

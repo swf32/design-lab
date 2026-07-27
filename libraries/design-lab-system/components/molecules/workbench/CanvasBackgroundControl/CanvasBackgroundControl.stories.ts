@@ -5,18 +5,26 @@ import { CanvasBackgroundControl, type CanvasMode } from './CanvasBackgroundCont
 function CanvasBackgroundControlFixture({
   mode: initialMode,
   color: initialColor,
+  themes,
+  initialTheme,
 }: {
   mode: CanvasMode
   color: string
+  themes?: string[]
+  initialTheme?: string
 }) {
   const [mode, setMode] = useState(initialMode)
   const [color, setColor] = useState(initialColor)
+  const [theme, setTheme] = useState(initialTheme ?? themes?.[0] ?? 'default')
 
   return createElement(CanvasBackgroundControl, {
     mode,
     color,
     onModeChange: setMode,
     onColorChange: setColor,
+    themes,
+    theme,
+    onThemeChange: setTheme,
   })
 }
 
@@ -24,6 +32,8 @@ export function renderStoryExample(example: StoryExample) {
   return createElement(CanvasBackgroundControlFixture, {
     mode: String(example.props.mode ?? 'dark-grid') as CanvasMode,
     color: String(example.props.color ?? '#264653'),
+    themes: example.props.themes ? ['blue', 'red', 'white'] : undefined,
+    initialTheme: String(example.props.theme ?? 'blue'),
   })
 }
 
@@ -40,6 +50,15 @@ export const stories = [
       { label: 'Light grid', props: { mode: 'light-grid' } },
       { label: 'Solid', props: { mode: 'solid', color: '#264653' } },
     ],
+  },
+  {
+    id: 'source-themes',
+    kind: 'behavior',
+    name: 'Source theme disclosure',
+    description:
+      'Hover or focus reveals arbitrary themes discovered from the active design system beside the independent Canvas background.',
+    interactive: true,
+    examples: [{ label: 'Blue, red, white', props: { themes: true, theme: 'blue' } }],
   },
   {
     id: 'picker',

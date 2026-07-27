@@ -1,18 +1,28 @@
 const previewStyles = String.raw`
 .preview-canvas-control {
-  width: 90px;
+  width: 210px;
   max-width: 34px;
+  max-height: 34px;
   box-sizing: border-box;
   overflow: hidden;
   padding: 3px;
   border: 1px solid var(--color-border-default);
   border-radius: var(--corner-control);
   background: var(--color-surface-secondary);
-  display: flex;
+  display: grid;
   gap: 0;
   transition:
     max-width var(--transition-preview) var(--easing-preview),
+    max-height var(--transition-preview) var(--easing-preview),
     gap var(--transition-preview) var(--easing-preview);
+}
+.preview-canvas-control__background,
+.preview-canvas-control__themes {
+  display: flex;
+  align-items: center;
+}
+.preview-canvas-control__background {
+  gap: 0;
 }
 .preview-canvas-control i {
   width: 26px;
@@ -82,9 +92,37 @@ const previewStyles = String.raw`
   opacity: 0;
   transform: scale(0.72);
 }
+.preview-canvas-control__themes {
+  height: 0;
+  gap: 3px;
+  overflow: hidden;
+  color: var(--color-text-secondary);
+  font: 600 8px/1 var(--typography-interface-family);
+  opacity: 0;
+}
+.preview-canvas-control__themes b {
+  width: 42px;
+  flex: 0 0 42px;
+  font: inherit;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+.preview-canvas-control__themes em {
+  padding: 5px 7px;
+  border-radius: 5px;
+  background: var(--color-surface-hover);
+  color: var(--color-text-primary);
+  font: inherit;
+  font-style: normal;
+}
 @media (prefers-reduced-motion: no-preference) {
   .dl-component-card--preview-animated:is(:hover, :focus-visible) .preview-canvas-control {
-    max-width: 90px;
+    max-width: 210px;
+    max-height: 68px;
+    gap: 2px;
+  }
+  .dl-component-card--preview-animated:is(:hover, :focus-visible)
+    .preview-canvas-control__background {
     gap: 2px;
   }
   .dl-component-card--preview-animated:is(:hover, :focus-visible)
@@ -95,6 +133,10 @@ const previewStyles = String.raw`
     padding-inline: 2px;
     opacity: 1;
     transform: none;
+  }
+  .dl-component-card--preview-animated:is(:hover, :focus-visible) .preview-canvas-control__themes {
+    height: 28px;
+    opacity: 1;
   }
 }
 `
@@ -107,11 +149,19 @@ export function CanvasBackgroundControlPreview() {
         className="preview-canvas-control"
         data-preview-motion="reveal"
         role="img"
-        aria-label="Collapsed canvas background selector revealing all modes"
+        aria-label="Collapsed canvas appearance selector revealing backgrounds and source themes"
       >
-        <i className="is-dark" />
-        <i className="is-light" />
-        <i className="is-solid" />
+        <span className="preview-canvas-control__background">
+          <i className="is-dark" />
+          <i className="is-light" />
+          <i className="is-solid" />
+        </span>
+        <span className="preview-canvas-control__themes">
+          <b>Theme</b>
+          <em>blue</em>
+          <em>red</em>
+          <em>white</em>
+        </span>
       </div>
     </>
   )

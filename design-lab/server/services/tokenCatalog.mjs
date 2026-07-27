@@ -382,6 +382,8 @@ export async function readTokenCatalogRoots(roots) {
 
   const modes = [...new Set(documents.flatMap((document) => document.modes).filter(Boolean))]
   if (!modes.length) modes.push('default')
+  const defaultMode =
+    documents.find((document) => document.explicitDefaultMode)?.defaultMode ?? modes[0]
   const tokens = resolveCatalogTokens(
     documents.flatMap((document) => document.tokens),
     modes,
@@ -404,6 +406,7 @@ export async function readTokenCatalogRoots(roots) {
     kind: 'tokens',
     files: publicDocuments.map((document) => document.file),
     documents: publicDocuments,
+    defaultMode,
     modes,
     tokens,
     diagnostics,

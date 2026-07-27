@@ -46,13 +46,6 @@ async function optionalJson(path) {
   return JSON.parse(await readFile(path, 'utf8'))
 }
 
-function recommendedTheme(mode) {
-  const normalized = mode.toLowerCase()
-  if (normalized.includes('dark') || normalized.includes('night')) return 'dark'
-  if (normalized.includes('light') || normalized.includes('day')) return 'light'
-  return null
-}
-
 export async function prepareComponentRuntime(
   sourceId,
   componentId,
@@ -100,7 +93,7 @@ export async function prepareComponentRuntime(
     optionalJson(storiesPath),
     optionalJson(playgroundPath),
   ])
-  const selectedMode = mode && data.modes.includes(mode) ? mode : (data.modes[0] ?? 'default')
+  const selectedMode = mode && data.modes.includes(mode) ? mode : data.defaultMode
   const query = new URLSearchParams({
     view,
     ref: `${sourceId}:component:${component.id}`,
@@ -111,7 +104,7 @@ export async function prepareComponentRuntime(
     mode: selectedMode,
     modes: JSON.stringify(data.modes),
     modeRecommendations: JSON.stringify(
-      data.modes.map((item) => ({ mode: item, interfaceTheme: recommendedTheme(item) })),
+      data.modes.map((item) => ({ mode: item, interfaceTheme: null })),
     ),
     variables: JSON.stringify(data.themeVariables[selectedMode] ?? {}),
   })

@@ -15,6 +15,9 @@ export function renderStoryExample(example: StoryExample) {
     color: '#264653',
     onModeChange: () => undefined,
     onColorChange: () => undefined,
+    themes: ['blue', 'red', 'white'],
+    theme: 'blue',
+    onThemeChange: () => undefined,
     padding: String(example.props.padding ?? 'comfortable') as WorkbenchPlaygroundPadding,
     controlsPosition: String(
       example.props.controlsPosition ?? 'end',

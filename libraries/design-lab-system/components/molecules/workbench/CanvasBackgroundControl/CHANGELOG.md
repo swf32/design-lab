@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Added: expanded disclosure now presents a separate Theme row populated by arbitrary token modes from the active design system.
+- Fixed: design-system theme selection no longer follows or infers the Design Lab interface theme.
 - Changed: Removed the mobile-only four-pixel growth; collapsed and expanded control geometry is now identical across viewport widths.
 - Changed: The control now rests as one selected background swatch and reveals all modes on pointer hover or keyboard focus using the small Tab Switcher geometry.
 - Fixed: Collapsed dark grid, light grid, and solid swatches now share one exact position; hidden flex gaps no longer offset later options.

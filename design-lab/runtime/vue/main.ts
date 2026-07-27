@@ -75,10 +75,9 @@ function captureInfo(stories: Story[]) {
       capabilities,
     },
     availableModes: jsonParameter<string[]>('modes', []),
-    modeRecommendations: jsonParameter<Array<{ mode: string; interfaceTheme: string }>>(
-      'modeRecommendations',
-      [],
-    ),
+    modeRecommendations: jsonParameter<
+      Array<{ mode: string; interfaceTheme: 'dark' | 'light' | null }>
+    >('modeRecommendations', []),
     availableStories: stories.map(({ id, name, kind }) => ({ id, name, kind })),
     interfaceThemes: ['dark', 'light'],
     captures: {
@@ -125,9 +124,7 @@ async function start() {
     document.documentElement.style.setProperty(name, String(value))
   document.documentElement.style.setProperty('background', 'transparent', 'important')
   document.body.style.setProperty('background', 'transparent', 'important')
-  document.documentElement.style.colorScheme = mode.toLowerCase().includes('dark')
-    ? 'dark'
-    : 'light'
+  document.documentElement.style.setProperty('color-scheme', 'normal', 'important')
   document.documentElement.dataset.sourceMode = mode
 
   if (!Entry && view !== 'preview') throw new Error('Vue runtime entry is unavailable.')

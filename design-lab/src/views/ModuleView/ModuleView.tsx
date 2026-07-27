@@ -134,10 +134,12 @@ function DiscoveredComponentPreview({
   component,
   sourceId,
   mode,
+  themeVariables,
 }: {
   component: ComponentEntity
   sourceId: string
   mode: string
+  themeVariables: Record<string, Record<string, string | number>>
 }) {
   if (component.technology === 'vue')
     return (
@@ -151,7 +153,12 @@ function DiscoveredComponentPreview({
       />
     )
   const Preview = previewComponentFor(component, sourceId)
-  if (Preview) return <Preview />
+  if (Preview)
+    return (
+      <div style={designSystemModeStyle(themeVariables, mode)}>
+        <Preview />
+      </div>
+    )
   return <ComponentThumbnail kind={component.id} />
 }
 
@@ -196,12 +203,20 @@ function DiscoveredComponentStories({
   canvasColor,
   onCanvasModeChange,
   onCanvasColorChange,
+  productModes,
+  productMode,
+  onProductModeChange,
+  themeVariables,
 }: {
   component: ComponentEntity
   canvasMode: CanvasMode
   canvasColor: string
   onCanvasModeChange: (mode: CanvasMode) => void
   onCanvasColorChange: (color: string) => void
+  productModes: string[]
+  productMode: string
+  onProductModeChange: (mode: string) => void
+  themeVariables: Record<string, Record<string, string | number>>
 }) {
   const module = storyModuleFor(component)
   if (!module?.stories?.length || !module.renderStoryExample) return null
@@ -228,6 +243,9 @@ function DiscoveredComponentStories({
           canvasColor={canvasColor}
           onCanvasModeChange={onCanvasModeChange}
           onCanvasColorChange={onCanvasColorChange}
+          themes={productModes}
+          theme={productMode}
+          onThemeChange={onProductModeChange}
           source={
             storySourceFor(
               component,
@@ -237,7 +255,10 @@ function DiscoveredComponentStories({
             ) ?? undefined
           }
         >
-          <div className="story-comparison">
+          <div
+            className="story-comparison"
+            style={designSystemModeStyle(themeVariables, productMode)}
+          >
             {examples.map(({ example, node }, index) => (
               <Specimen key={`${story.id}:${example.label}:${index}`} label={example.label}>
                 {node}
@@ -328,6 +349,8 @@ function ProductionComponentPlayground({
   onCanvasModeChange,
   onCanvasColorChange,
   productMode,
+  productModes,
+  onProductModeChange,
   themeVariables,
 }: {
   component: ComponentEntity
@@ -336,6 +359,8 @@ function ProductionComponentPlayground({
   onCanvasModeChange: (mode: CanvasMode) => void
   onCanvasColorChange: (color: string) => void
   productMode: string
+  productModes: string[]
+  onProductModeChange: (mode: string) => void
   themeVariables: Record<string, Record<string, string | number>>
 }) {
   const { t } = useDesignLabI18n()
@@ -370,6 +395,8 @@ function ProductionComponentPlayground({
       onCanvasModeChange={onCanvasModeChange}
       onCanvasColorChange={onCanvasColorChange}
       productMode={productMode}
+      productModes={productModes}
+      onProductModeChange={onProductModeChange}
       themeVariables={themeVariables}
     />
   )
@@ -386,6 +413,8 @@ function LoadedProductionComponentPlayground({
   onCanvasModeChange,
   onCanvasColorChange,
   productMode,
+  productModes,
+  onProductModeChange,
   themeVariables,
 }: {
   component: ComponentEntity
@@ -398,6 +427,8 @@ function LoadedProductionComponentPlayground({
   onCanvasModeChange: (mode: CanvasMode) => void
   onCanvasColorChange: (color: string) => void
   productMode: string
+  productModes: string[]
+  onProductModeChange: (mode: string) => void
   themeVariables: Record<string, Record<string, string | number>>
 }) {
   const { t } = useDesignLabI18n()
@@ -412,6 +443,9 @@ function LoadedProductionComponentPlayground({
       color={canvasColor}
       onModeChange={onCanvasModeChange}
       onColorChange={onCanvasColorChange}
+      themes={productModes}
+      theme={productMode}
+      onThemeChange={onProductModeChange}
       controlsPosition="end"
       label={t('workbench.componentPlayground')}
       controls={
@@ -445,18 +479,22 @@ function ManagedComponentWorkbench({
   onCanvasModeChange,
   onCanvasColorChange,
   productMode,
+  productModes,
+  onProductModeChange,
 }: {
   component: ComponentEntity
   sourceId: string
   family?: ComponentFamily
   onBack: () => void
-  onOpenPlayground: () => void
+  onOpenPlayground: (mode?: string) => void
   onSelectComponent: (id: string) => void
   canvasMode: CanvasMode
   canvasColor: string
   onCanvasModeChange: (mode: CanvasMode) => void
   onCanvasColorChange: (color: string) => void
   productMode: string
+  productModes: string[]
+  onProductModeChange: (mode: string) => void
 }) {
   const { t } = useDesignLabI18n()
   const [runtime, setRuntime] = useState<ManagedComponentRuntime | null>(null)
@@ -480,7 +518,12 @@ function ManagedComponentWorkbench({
           meta={`${component.entry} · Vue ${runtime?.profile.framework.version ?? ''}`}
           actions={
             runtime?.playground ? (
-              <Button type="button" variant="primary" size="small" onClick={onOpenPlayground}>
+              <Button
+                type="button"
+                variant="primary"
+                size="small"
+                onClick={() => onOpenPlayground(productMode)}
+              >
                 {t('workbench.openWireframePlayground')}
               </Button>
             ) : undefined
@@ -507,6 +550,9 @@ function ManagedComponentWorkbench({
         color={canvasColor}
         onModeChange={onCanvasModeChange}
         onColorChange={onCanvasColorChange}
+        themes={productModes}
+        theme={productMode}
+        onThemeChange={onProductModeChange}
         controlsPosition="end"
         label={t('workbench.componentPlayground')}
         controls={
@@ -545,6 +591,9 @@ function ManagedComponentWorkbench({
             canvasColor={canvasColor}
             onCanvasModeChange={onCanvasModeChange}
             onCanvasColorChange={onCanvasColorChange}
+            themes={productModes}
+            theme={productMode}
+            onThemeChange={onProductModeChange}
             source={vueStorySource(component, item)}
             sourceLanguage="vue"
           >
@@ -618,18 +667,22 @@ function ComponentWorkbench({
   onCanvasModeChange,
   onCanvasColorChange,
   productMode,
+  productModes,
+  onProductModeChange,
   themeVariables,
 }: {
   component: ComponentEntity
   family?: ComponentFamily
   onBack: () => void
-  onOpenPlayground: () => void
+  onOpenPlayground: (mode?: string) => void
   onSelectComponent: (id: string) => void
   canvasMode: CanvasMode
   canvasColor: string
   onCanvasModeChange: (mode: CanvasMode) => void
   onCanvasColorChange: (color: string) => void
   productMode: string
+  productModes: string[]
+  onProductModeChange: (mode: string) => void
   themeVariables: Record<string, Record<string, string | number>>
 }) {
   const { t } = useDesignLabI18n()
@@ -650,7 +703,12 @@ function ComponentWorkbench({
           meta={component.entry}
           actions={
             hasWireframePlayground ? (
-              <Button type="button" variant="primary" size="small" onClick={onOpenPlayground}>
+              <Button
+                type="button"
+                variant="primary"
+                size="small"
+                onClick={() => onOpenPlayground(productMode)}
+              >
                 {t('workbench.openWireframePlayground')}
               </Button>
             ) : undefined
@@ -678,6 +736,8 @@ function ComponentWorkbench({
         onCanvasModeChange={onCanvasModeChange}
         onCanvasColorChange={onCanvasColorChange}
         productMode={productMode}
+        productModes={productModes}
+        onProductModeChange={onProductModeChange}
         themeVariables={themeVariables}
       />
       <section className="workbench__rail">
@@ -687,6 +747,10 @@ function ComponentWorkbench({
           canvasColor={canvasColor}
           onCanvasModeChange={onCanvasModeChange}
           onCanvasColorChange={onCanvasColorChange}
+          productModes={productModes}
+          productMode={productMode}
+          onProductModeChange={onProductModeChange}
+          themeVariables={themeVariables}
         />
         {component.props && (
           <div className="workbench-section">
@@ -822,7 +886,7 @@ function CatalogLayoutToggle({
 function Catalog({
   data,
   sourceId,
-  interfaceTheme,
+  productMode,
   folderPath,
   onSelectEntity,
   layout,
@@ -830,13 +894,13 @@ function Catalog({
 }: {
   data: Extract<ModuleData, { kind: 'components' }>
   sourceId: string
-  interfaceTheme: 'dark' | 'light'
+  productMode: string
   folderPath: string
   onSelectEntity: (id: string) => void
   layout: CatalogLayout
   onLayoutChange: (layout: CatalogLayout) => void
 }) {
-  const catalogMode = data.modes.includes(interfaceTheme) ? interfaceTheme : data.modes[0]
+  const catalogMode = data.modes.includes(productMode) ? productMode : data.defaultMode
   const components =
     folderPath === '__all__'
       ? data.components
@@ -899,6 +963,7 @@ function Catalog({
                             component={component}
                             sourceId={sourceId}
                             mode={catalogMode}
+                            themeVariables={data.themeVariables}
                           />
                         }
                         previewAnimated={Boolean(component.previewMotion)}
@@ -943,7 +1008,7 @@ function ComponentConceptOverview({
   sourceId: string
   family?: ComponentFamily
   onBack: () => void
-  onOpenPlayground: () => void
+  onOpenPlayground: (mode?: string) => void
   onSelectComponent: (id: string) => void
 }) {
   const { t } = useDesignLabI18n()
@@ -981,7 +1046,7 @@ function ComponentConceptOverview({
           meta={`${component.technology} · ${component.platform}`}
           actions={
             hasPlaygroundControls ? (
-              <Button type="button" variant="primary" onClick={onOpenPlayground}>
+              <Button type="button" variant="primary" onClick={() => onOpenPlayground()}>
                 {t('workbench.openWireframePlayground')}
               </Button>
             ) : (
@@ -1126,7 +1191,6 @@ export function ModuleView({
   selectedFolderPath,
   onBack,
   onSelectEntity,
-  interfaceTheme,
   canvasMode,
   canvasColor,
   onCanvasModeChange,
@@ -1142,12 +1206,11 @@ export function ModuleView({
   selectedFolderPath: string
   onBack: () => void
   onSelectEntity: (id: string | null) => void
-  interfaceTheme: 'dark' | 'light'
   canvasMode: CanvasMode
   canvasColor: string
   onCanvasModeChange: (mode: CanvasMode) => void
   onCanvasColorChange: (color: string) => void
-  onOpenPlayground: () => void
+  onOpenPlayground: (mode?: string) => void
   onOpenPageReview: () => void
   onNavigateToPage?: (pageId: string) => void
 }) {
@@ -1157,10 +1220,12 @@ export function ModuleView({
   const [copiedTokenPath, setCopiedTokenPath] = useState<string | null>(null)
   const copiedTokenTimeout = useRef<number | null>(null)
   const modes = data && 'modes' in data ? data.modes : []
-  const [previewMode, setPreviewMode] = useState<string>(interfaceTheme)
+  const defaultMode = data && 'defaultMode' in data ? data.defaultMode : (modes[0] ?? 'default')
+  const [previewMode, setPreviewMode] = useState<string>('default')
+  useEffect(() => setPreviewMode(defaultMode), [sourceId, defaultMode])
   useEffect(() => {
-    if (modes.length && !modes.includes(previewMode)) setPreviewMode(modes[0])
-  }, [modes.join('|'), previewMode])
+    if (modes.length && !modes.includes(previewMode)) setPreviewMode(defaultMode)
+  }, [defaultMode, modes.join('|'), previewMode])
   useEffect(
     () => () => {
       if (copiedTokenTimeout.current !== null) window.clearTimeout(copiedTokenTimeout.current)
@@ -1625,6 +1690,8 @@ export function ModuleView({
         onCanvasModeChange={onCanvasModeChange}
         onCanvasColorChange={onCanvasColorChange}
         productMode={previewMode}
+        productModes={data.modes}
+        onProductModeChange={setPreviewMode}
         themeVariables={data.themeVariables}
       />
     ) : selected && presentation?.kind === 'managed' ? (
@@ -1640,6 +1707,8 @@ export function ModuleView({
         onCanvasModeChange={onCanvasModeChange}
         onCanvasColorChange={onCanvasColorChange}
         productMode={previewMode}
+        productModes={data.modes}
+        onProductModeChange={setPreviewMode}
       />
     ) : selected ? (
       <ComponentConceptOverview
@@ -1654,7 +1723,7 @@ export function ModuleView({
       <Catalog
         data={data}
         sourceId={sourceId}
-        interfaceTheme={interfaceTheme}
+        productMode={previewMode}
         folderPath={selectedFolderPath}
         onSelectEntity={onSelectEntity}
         layout={catalogLayout}

@@ -26,6 +26,9 @@ export function renderStoryExample(example: StoryExample) {
     canvasColor: '#111111',
     onCanvasModeChange: example.props.handoff ? () => undefined : undefined,
     onCanvasColorChange: example.props.handoff ? () => undefined : undefined,
+    themes: example.props.handoff ? ['blue', 'red', 'white'] : undefined,
+    theme: example.props.handoff ? 'blue' : undefined,
+    onThemeChange: example.props.handoff ? () => undefined : undefined,
     source: example.props.handoff
       ? example.props.language === 'vue'
         ? '<script setup lang="ts">\nimport Button from \'./Button.vue\'\n</script>\n\n<template>\n  <Button label="Continue" />\n</template>'

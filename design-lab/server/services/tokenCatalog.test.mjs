@@ -77,6 +77,7 @@ test('normalizes Design Lab and DTCG-style documents into one resolved catalog',
     },
     async (catalog) => {
       assert.deepEqual(catalog.files, ['primitives.tokens.json', 'semantic/layout.tokens.json'])
+      assert.equal(catalog.defaultMode, 'dark')
       assert.deepEqual(catalog.modes, ['dark', 'light'])
       assert.equal(catalog.documents[0].format, 'design-lab')
       assert.equal(catalog.documents[1].format, 'dtcg')
@@ -95,6 +96,27 @@ test('normalizes Design Lab and DTCG-style documents into one resolved catalog',
       assert.equal(foreground.values.light, '#eeeeee')
       assert.equal(radius.value, '8px')
       assert.deepEqual(catalog.diagnostics, [])
+    },
+  )
+})
+
+test('preserves arbitrary source-authored theme names and their declared default', async () => {
+  await withTokenFiles(
+    {
+      'brand.tokens.json': {
+        defaultMode: 'red',
+        tokens: {
+          color: { canvas: { type: 'color', value: '#7a1f2b' } },
+        },
+        themes: {
+          blue: { tokens: { color: { canvas: { value: '#183f73' } } } },
+          white: { tokens: { color: { canvas: { value: '#ffffff' } } } },
+        },
+      },
+    },
+    async (catalog) => {
+      assert.equal(catalog.defaultMode, 'red')
+      assert.deepEqual(catalog.modes, ['red', 'blue', 'white'])
     },
   )
 })
