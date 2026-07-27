@@ -1,0 +1,7 @@
+{
+  "description": "Plus icon for adding an item or marking an available insertion point.",
+  "aliases": ["add icon", "create icon", "insert icon", "plus sign"],
+  "useWhen": ["add an item", "create an entity", "show an available slot or insertion point"],
+  "avoidWhen": ["expand collapsed content", "communicate a positive status"],
+  "tags": ["action", "add", "create", "insert", "slot"]
+}

@@ -15,6 +15,9 @@ Button supports small, medium and large sizes, disabled and loading states, full
 optional `leading`/`trailing` composition slots. Plain text children remain Button content rather
 than being exposed as a slot. While loading it becomes disabled and exposes `aria-busy`.
 
+The focused `Slot` Story places `SlotPlaceholder` in `leading` and `trailing` so their actual
+composition boundaries remain visible without substituting fake Button markup.
+
 The illustrative catalog preview is deliberately separate from this implementation. Interactive validation happens in the Workbench Canvas.
 
 ## Wireframe Playground

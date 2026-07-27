@@ -1405,10 +1405,16 @@ Design Lab остаётся одним React shell. Vue не получает о
 
 Committed `nuxt-ui-system` использует настоящий Nuxt UI standalone Vue setup и четыре реальные SFC
 Components. Он доказывает Catalog preview, production Playground с props, отдельный draft
-Playground, Stories, light/dark token modes, HMR, basic Vue usage handoff, direct relations и
+Playground, Stories, arbitrary token modes, HMR, basic Vue usage handoff, direct relations и
 Component preview/story captures
 через общий capture service. MCP scope остаётся только Component preview/story; Wireframe/Page MCP
 capture из этого решения не следует.
+
+Source runtime обязан адаптировать общие semantic token roles к собственным переменным framework
+library, не копируя значения во второй authored theme registry. Для Nuxt UI fixture это явный bridge
+из `--ds-color-*` в `--ui-*`; Vue runtime также выставляет `.light`/`.dark` только для одноимённых
+source modes. Поэтому Nuxt internals действительно меняются вместе с выбранной темой, а произвольная
+`Sunset Gray` остаётся обычным source-authored mode с красно-оранжевым accent.
 
 `.stories.json` и `.playground.json` являются optional Design Lab enrichment конкретной fixture,
 а не новым обязательным контрактом для любого Vue repository. Существующая Vue implementation
@@ -1468,6 +1474,10 @@ Theme строится из всех token modes активного Project/Libr
 Component. При переходе в fullscreen Playground текущий выбор переносится в route query и одинаково
 восстанавливается React и Vue runtime. Managed iframe остаётся прозрачным; opaque token canvas
 создаётся только capture contract, а не UI theme или source theme.
+
+Framework library может иметь собственный слой semantic CSS variables (`--ui-*` у Nuxt UI), но он
+обязан ссылаться на resolved variables текущего source mode. Этот bridge является adapter code, а не
+второй палитрой и не причиной ограничивать Theme control значениями `light`/`dark`.
 
 Deep link сначала доверяет source id из URL, а не сохранённой ранее Library. Асинхронные ответы
 предыдущего source после переключения отбрасываются, поэтому React/Vue catalogs и Workbench не могут

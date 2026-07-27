@@ -1,0 +1,34 @@
+{
+  "id": "slot-placeholder",
+  "name": "Slot Placeholder",
+  "description": "Visualizes an available composition slot with the stable pink inspection identity and a centered insertion marker.",
+  "aliases": ["slot", "slot marker", "slot boundary", "content placeholder"],
+  "useWhen": [
+    "show the location of a named Component slot",
+    "document slot dimensions in a Story",
+    "visualize an empty composition region"
+  ],
+  "avoidWhen": [
+    "render real product content",
+    "show an application empty state",
+    "replace a loading skeleton"
+  ],
+  "entry": "SlotPlaceholder.tsx",
+  "preview": "SlotPlaceholder.preview.tsx",
+  "stories": "SlotPlaceholder.stories.ts",
+  "docs": "README.md",
+  "changelog": "CHANGELOG.md",
+  "status": "ready",
+  "variants": ["default"],
+  "states": ["default"],
+  "props": {
+    "width": {
+      "type": "string",
+      "default": "100%"
+    },
+    "height": {
+      "type": "string",
+      "default": "100%"
+    }
+  }
+}

@@ -24,6 +24,12 @@ const view = params.get('view') ?? 'preview'
 const mode = params.get('mode') ?? 'default'
 const captureSurface = params.get('captureSurface') === 'true'
 
+function applySourceModeClass() {
+  const normalizedMode = mode.trim().toLowerCase()
+  document.documentElement.classList.toggle('light', normalizedMode === 'light')
+  document.documentElement.classList.toggle('dark', normalizedMode === 'dark')
+}
+
 function jsonParameter<T>(name: string, fallback: T): T {
   const value = params.get(name)
   if (!value) return fallback
@@ -122,6 +128,7 @@ async function start() {
   const variables = jsonParameter<Record<string, string | number>>('variables', {})
   for (const [name, value] of Object.entries(variables))
     document.documentElement.style.setProperty(name, String(value))
+  applySourceModeClass()
   document.documentElement.style.setProperty('background', 'transparent', 'important')
   document.body.style.setProperty('background', 'transparent', 'important')
   document.documentElement.style.setProperty('color-scheme', 'normal', 'important')
@@ -232,6 +239,9 @@ async function start() {
   const app = createApp(Root)
   if (typeof setupModule?.setup === 'function') await setupModule.setup(app as App)
   app.mount('#app')
+  // Runtime plugins may initialize their own color-mode class during mount.
+  // The selected source mode remains authoritative inside this isolated document.
+  applySourceModeClass()
 
   const info = captureInfo(stories)
   document.body.dataset.designlabRuntimeReady = 'true'

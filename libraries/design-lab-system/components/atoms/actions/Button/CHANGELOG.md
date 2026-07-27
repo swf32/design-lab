@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Added: focused `Slot` Story visualizing the manifest-declared leading and trailing slots with the production Slot Placeholder.
+- Visual: catalog preview now uses the canonical PlusIcon Asset instead of a Unicode plus glyph.
 - Changed: Story handoff examples now rely on automatic rendered-tree analysis, including composed `StarIcon` slots, instead of authored JSX strings.
 - Changed: Stories publish exact copy-ready Button usage, including canonical StarIcon composition.
 - Changed: removed authored Inspector attributes; build-time source analysis now discovers Button calls and manifest-declared slots automatically.

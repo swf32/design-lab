@@ -14,7 +14,7 @@ test('Vue preview and Story use the same Component capture path as React', async
     const info = await getComponentCaptureInfo(ref, 'light')
     assert.equal(info.runtime.adapter, 'vue-sfc')
     assert.equal(info.runtime.technology, 'vue')
-    assert.deepEqual(info.availableModes, ['light', 'dark'])
+    assert.deepEqual(info.availableModes, ['light', 'dark', 'Sunset Gray'])
     assert.deepEqual(
       info.availableStories.map(({ id }) => id),
       ['variants', 'states'],
@@ -36,7 +36,7 @@ test('Vue preview and Story use the same Component capture path as React', async
       ref,
       capture: 'story',
       storyId: 'variants',
-      sourceMode: 'dark',
+      sourceMode: 'Sunset Gray',
       interfaceTheme: 'dark',
     })
     assert.equal(story.metadata.cssWidth, 600)
@@ -47,7 +47,7 @@ test('Vue preview and Story use the same Component capture path as React', async
 
     const runtime = await prepareComponentRuntime('nuxt-ui-system', 'nuxt-button', {
       view: 'playground',
-      mode: 'light',
+      mode: 'Sunset Gray',
       args: { label: 'Continue' },
     })
     const browser = await chromium.launch({ headless: true })
@@ -59,6 +59,16 @@ test('Vue preview and Story use the same Component capture path as React', async
     try {
       await page.goto(runtime.url, { waitUntil: 'networkidle' })
       const initialUrl = page.url()
+      assert.equal(
+        await page
+          .getByRole('button', { name: 'Continue' })
+          .evaluate((element) => getComputedStyle(element).backgroundColor),
+        'rgb(255, 90, 54)',
+      )
+      assert.equal(
+        await page.evaluate(() => document.documentElement.dataset.sourceMode),
+        'Sunset Gray',
+      )
       for (const label of ['L', 'La', 'Launch', 'Launch design'])
         await page.evaluate(
           ({ runtimeId, nextLabel }) =>
@@ -76,6 +86,16 @@ test('Vue preview and Story use the same Component capture path as React', async
         )
       await page.getByRole('button', { name: 'Launch design' }).waitFor()
       assert.equal(page.url(), initialUrl)
+
+      const darkRuntime = await prepareComponentRuntime('nuxt-ui-system', 'nuxt-button', {
+        view: 'preview',
+        mode: 'dark',
+      })
+      await page.goto(darkRuntime.url, { waitUntil: 'networkidle' })
+      assert.equal(
+        await page.evaluate(() => document.documentElement.classList.contains('dark')),
+        true,
+      )
       assert.deepEqual(consoleErrors, [])
       assert.doesNotMatch(await page.locator('body').innerText(), /could not start/i)
     } finally {

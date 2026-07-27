@@ -5,6 +5,45 @@
 :root {
   color-scheme: light dark;
   font-family: var(--ds-typography-interface-family, Inter, ui-sans-serif, sans-serif);
+
+  /* Keep Nuxt UI's internal semantic roles driven by the active source theme. */
+  --ui-primary: var(--ds-color-accent-primary);
+  --ui-radius: var(--ds-corner-control);
+  --ui-text-dimmed: color-mix(
+    in srgb,
+    var(--ds-color-text-secondary) 72%,
+    transparent
+  );
+  --ui-text-muted: var(--ds-color-text-secondary);
+  --ui-text-toned: color-mix(
+    in srgb,
+    var(--ds-color-text-primary) 76%,
+    var(--ds-color-text-secondary)
+  );
+  --ui-text: var(--ds-color-text-primary);
+  --ui-text-highlighted: var(--ds-color-text-primary);
+  --ui-text-inverted: var(--ds-color-surface-primary);
+  --ui-bg: var(--ds-color-surface-primary);
+  --ui-bg-muted: var(--ds-color-canvas);
+  --ui-bg-elevated: var(--ds-color-surface-raised);
+  --ui-bg-accented: color-mix(
+    in srgb,
+    var(--ds-color-surface-raised) 82%,
+    var(--ds-color-text-primary)
+  );
+  --ui-bg-inverted: var(--ds-color-text-primary);
+  --ui-border: var(--ds-color-border-default);
+  --ui-border-muted: color-mix(
+    in srgb,
+    var(--ds-color-border-default) 72%,
+    transparent
+  );
+  --ui-border-accented: color-mix(
+    in srgb,
+    var(--ds-color-border-default) 72%,
+    var(--ds-color-text-primary)
+  );
+  --ui-border-inverted: var(--ds-color-text-primary);
 }
 
 body {

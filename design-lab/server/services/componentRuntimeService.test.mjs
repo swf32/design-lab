@@ -6,7 +6,7 @@ import { closeComponentRuntimes, prepareComponentRuntime } from './componentRunt
 test('the committed Nuxt UI Library compiles through its own Vue package environment', async () => {
   try {
     const data = await getModuleEntities('nuxt-ui-system', 'components')
-    assert.deepEqual(data.modes, ['light', 'dark'])
+    assert.deepEqual(data.modes, ['light', 'dark', 'Sunset Gray'])
     assert.deepEqual(
       data.components.map(({ id }) => id),
       ['nuxt-button', 'nuxt-action-field', 'nuxt-badge', 'nuxt-input'],
@@ -29,9 +29,10 @@ test('the committed Nuxt UI Library compiles through its own Vue package environ
 
     const runtime = await prepareComponentRuntime('nuxt-ui-system', 'nuxt-button', {
       view: 'preview',
-      mode: 'dark',
+      mode: 'Sunset Gray',
       captureSurface: true,
     })
+    assert.equal(runtime.selectedMode, 'Sunset Gray')
     assert.equal(runtime.profile.technology, 'vue')
     assert.equal(runtime.profile.framework.version, '3.5.40')
     assert.equal(runtime.profile.packageEnvironment.manifestName, '@design-lab/nuxt-ui-system')

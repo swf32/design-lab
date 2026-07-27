@@ -103,6 +103,23 @@
           "accent": { "primary": { "type": "color", "value": "#2ee3bc" } }
         }
       }
+    },
+    "Sunset Gray": {
+      "tokens": {
+        "color": {
+          "canvas": { "type": "color", "value": "#242220" },
+          "surface": {
+            "primary": { "type": "color", "value": "#302d2a" },
+            "raised": { "type": "color", "value": "#3a3632" }
+          },
+          "text": {
+            "primary": { "type": "color", "value": "#fff7f0" },
+            "secondary": { "type": "color", "value": "#cdbdb1" }
+          },
+          "border": { "default": { "type": "color", "value": "#5a514b" } },
+          "accent": { "primary": { "type": "color", "value": "#ff5a36" } }
+        }
+      }
     }
   }
 }

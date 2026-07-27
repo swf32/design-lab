@@ -517,6 +517,7 @@ Components использует Tokens, Palette и Fonts и становится
 - [x] Fullscreen Playground использует production `PlaygroundControlsRail` и `InspectorCodePopover`; Canvas Background Control плавает сверху справа над Canvas.
 - [x] Canvas appearance разделяет interface theme, grid/custom background и произвольную source theme; Theme options выводятся из token modes, используют token-declared default и сохраняются при переходе в React/Vue fullscreen Playground.
 - [x] Source deep links приоритетнее сохранённой Library, а устаревшие async tree/module responses не могут смешать React и Vue catalogs после переключения.
+- [x] Production SlotPlaceholder визуализирует manifest-declared slots через inspection pink + PlusIcon; Button Story `Slot` доказывает реальные `leading`/`trailing` boundaries.
 - [x] Shared `WorkbenchInspector` и `WorkbenchAction` заменяют application-local Inspector и разрозненные Settings/Inspect/Dev mode buttons.
 - [x] Button получил typed Wireframe Playground с mesh/solid/outline directions, управляемым radius и Safari-prefixed mask clipping.
 - [x] Playground popovers портальны и viewport-aware: открытие не увеличивает scroll area controls rail.
@@ -709,6 +710,8 @@ Web sequencing и границы shared/native modules: `docs/17-web-first-platf
 - [ ] Проверить token modes, fonts, SVG/raster assets, HMR, compile/runtime error isolation и clean
       process shutdown в каждом настоящем browser fixture (Vue modes/HMR/capture/shutdown готовы;
       Vue fonts/assets/error fixtures и остальные frameworks открыты).
+- [x] Связать source token modes с внутренними semantic variables Nuxt UI, включая реальную смену
+      `UButton`/`UInput` и произвольную тему `Sunset Gray`, а не только Canvas вокруг iframe.
 - [ ] Сохранять selected implementation/profile, mode, args/state и view в URL без port/PID details.
 
 ## Активный foundation gate: embedded installation и attach-first sources

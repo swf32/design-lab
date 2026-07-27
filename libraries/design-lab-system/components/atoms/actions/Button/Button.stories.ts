@@ -1,14 +1,26 @@
 import { createElement } from 'react'
 import type { StoryExample } from '../../../storyContract'
 import { StarIcon } from '../../../../assets/icons'
+import { SlotPlaceholder } from '../../data-display/SlotPlaceholder/SlotPlaceholder'
 import { Button, type ButtonProps } from './Button'
 
 export function renderStoryExample(example: StoryExample) {
   const props = example.props as unknown as Omit<ButtonProps, 'children'>
+  const slotPlaceholder = () => createElement(SlotPlaceholder, { width: '14px', height: '14px' })
   return createElement(Button, {
     ...props,
-    leading: props.leading === 'star' ? createElement(StarIcon, { size: 14 }) : props.leading,
-    trailing: props.trailing === 'star' ? createElement(StarIcon, { size: 14 }) : props.trailing,
+    leading:
+      props.leading === 'star'
+        ? createElement(StarIcon, { size: 14 })
+        : props.leading === 'slot-placeholder'
+          ? slotPlaceholder()
+          : props.leading,
+    trailing:
+      props.trailing === 'star'
+        ? createElement(StarIcon, { size: 14 })
+        : props.trailing === 'slot-placeholder'
+          ? slotPlaceholder()
+          : props.trailing,
     children: example.label,
   })
 }
@@ -74,6 +86,21 @@ export const stories = [
     examples: [
       { label: 'Ready', props: {} },
       { label: 'Loading', props: { loading: true } },
+    ],
+  },
+  {
+    id: 'slot',
+    kind: 'integration',
+    name: 'Slot',
+    description:
+      'Pink placeholders reveal the real manifest-declared leading and trailing composition slots.',
+    examples: [
+      { label: 'Leading', props: { leading: 'slot-placeholder' } },
+      { label: 'Trailing', props: { trailing: 'slot-placeholder' } },
+      {
+        label: 'Both',
+        props: { leading: 'slot-placeholder', trailing: 'slot-placeholder' },
+      },
     ],
   },
   {

@@ -9,10 +9,12 @@ MIT license; the adjacent Design Lab manifests, previews, Stories, and draft Pla
 authored integration examples.
 
 The fixture proves Component discovery, transparent catalog preview, production Playground controls
-without iframe reload, separate draft Playground, Story rendering, light/dark token modes, HMR,
-preview/Story capture, basic Vue import/usage handoff, and direct relations through the composed
-`ActionField`. UI surfaces stay transparent while screenshot capture explicitly requests an opaque
-product surface.
+without iframe reload, separate draft Playground, Story rendering, arbitrary source token modes,
+HMR, preview/Story capture, basic Vue import/usage handoff, and direct relations through the composed
+`ActionField`. Its adapter stylesheet bridges Design Lab semantic tokens into Nuxt UI's `--ui-*`
+roles, so `light`, `dark`, and the authored `Sunset Gray` theme style the real `UButton`, `UInput`,
+and other package components instead of only changing the outer Canvas. UI surfaces stay transparent
+while screenshot capture explicitly requests an opaque product surface.
 
 It intentionally installs the supported `@nuxt/ui` standalone Vue package instead of copying an
 internal component and silently forking its styles/composables. The full `nuxt` package is not a

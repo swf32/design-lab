@@ -1,3 +1,5 @@
+import { PlusIcon } from '../../../../assets/icons/PlusIcon'
+
 const previewStyles = String.raw`
 .preview-button-sheet {
   width: 172px;
@@ -45,10 +47,8 @@ const previewStyles = String.raw`
   justify-content: center;
   letter-spacing: 0.08em;
 }
-.preview-button b {
-  font-size: 11px;
-  font-weight: 500;
-  line-height: 1;
+.preview-button svg {
+  flex: 0 0 auto;
 }
 `
 export function ButtonPreview() {
@@ -57,7 +57,8 @@ export function ButtonPreview() {
       <style>{previewStyles}</style>
       <div className="preview-button-sheet" role="img" aria-label="Button variants illustration">
         <span className="preview-button preview-button--primary">
-          <b>＋</b>Create
+          <PlusIcon size={11} aria-hidden="true" />
+          Create
         </span>
         <span className="preview-button preview-button--secondary">Cancel</span>
         <span className="preview-button preview-button--ghost" aria-hidden="true">
