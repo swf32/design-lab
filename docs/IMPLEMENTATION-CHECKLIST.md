@@ -790,3 +790,31 @@ native backlog до Web DoD.
       реальный Design Lab в light/dark interface themes.
 - [x] Добавить regression fixture для нового module descriptor: новая navigation item и её content
       наследуют существующие generic Component styles и tokens без id-specific CSS.
+
+## Community interface packs (D-091)
+
+- [x] Разделить безопасный CSS/token `Skin` и полную executable `System`; не вводить конфликтный
+      partial-patch package kind в первой версии.
+- [x] Добавить versioned `design-lab-pack.json` и machine-readable application System contract с
+      обязательными entrypoints/exports.
+- [x] Валидировать compatibility range, relative paths, symlink confinement, canonical imports и
+      полный export contract до активации.
+- [x] Реализовать transactional local/GitHub/npm/tarball install без npm lifecycle scripts и без
+      перезаписи unmanaged Library directories.
+- [x] Реализовать CLI `create / validate / install / use / list / doctor / reset` для Skin и System.
+- [x] Подключить активную System ко всем Vite aliases, а активный Skin — отдельным CSS layer после
+      System tokens; bundled default не является скрытым runtime fallback.
+- [x] Проверить fixtures для scaffold, Skin lifecycle, полного System contract, failed update,
+      incompatible range и escaping path.
+- [x] Добавить canonical `SKIN_RULES.md` и `SYSTEM_RULES.md` с designer-first границей, visual QA,
+      accessibility, geometry, compatibility и recovery workflow.
+- [x] Генерировать в каждом Skin/System package-local `AGENTS.md`, beginner README, screenshot
+      guidance и применимые локальные rule copies для самостоятельной работы вне monorepo.
+- [x] Заменить пустой Skin CSS scaffold на секционный шаблон реальных public shell, semantic,
+      typography, layout, control, motion, dark/light и inspection variables.
+- [x] Покрыть тестом идентичность scaffold rule copies canonical источникам и наличие ключевых
+      designer-facing файлов.
+- [ ] Создать отдельный `design-lab-gallery` repository, remote verification workers, immutable
+      checksums/signatures и generated screenshot publication flow.
+- [ ] Добавить gallery UI с status `community / validated / curated / incompatible` и установкой из
+      карточки после явного предупреждения для executable Systems.

@@ -1,0 +1,102 @@
+{
+  "schemaVersion": 1,
+  "apiVersion": "0.1.0",
+  "entrypoints": {
+    "components": {
+      "import": "@design-lab/system/components",
+      "requiredExports": [
+        "ApplicationFrame",
+        "AssetCard",
+        "Button",
+        "CanvasBackgroundControl",
+        "CanvasMode",
+        "CatalogGroup",
+        "Checkbox",
+        "Chip",
+        "ChipColor",
+        "CodeBlock",
+        "ColorCard",
+        "ComponentCard",
+        "ComponentReferenceFiles",
+        "ComponentReferencePanel",
+        "ComponentThumbnail",
+        "CreateProjectDialog",
+        "EmptyState",
+        "IconButton",
+        "ModuleHeader",
+        "ModuleId",
+        "ModulePage",
+        "PlaygroundControlsRail",
+        "RadioButton",
+        "RuntimeFrameSurface",
+        "Slider",
+        "StoryCanvas",
+        "TabSwitcher",
+        "Table",
+        "TableColumn",
+        "TypedPlaygroundControls",
+        "USER_FLOW_NODE_GAP",
+        "USER_FLOW_NODE_WIDTH",
+        "UserFlowCanvas",
+        "UserFlowCanvasEdge",
+        "UserFlowCanvasNode",
+        "UserFlowCanvasViewState",
+        "WireframeCard",
+        "WireframeDevPanel",
+        "WireframeScreenPreview",
+        "WorkbenchAction",
+        "WorkbenchInspector",
+        "WorkbenchPlayground"
+      ]
+    },
+    "icons": {
+      "import": "@design-lab/system/icons",
+      "requiredExports": [
+        "ArrowLeftIcon",
+        "CardsViewIcon",
+        "CodeIcon",
+        "CopyIcon",
+        "DarkThemeIcon",
+        "DirectoryIcon",
+        "LightThemeIcon",
+        "LinkIcon",
+        "ListViewIcon",
+        "SettingsIcon",
+        "StarIcon"
+      ]
+    },
+    "i18n": {
+      "import": "@design-lab/system/i18n",
+      "requiredExports": ["DesignLabI18nProvider", "MessageKey", "useDesignLabI18n"]
+    },
+    "inspection": {
+      "import": "@design-lab/system/inspection",
+      "requiredExports": ["InspectionBoundary", "InspectionHost"]
+    },
+    "playground": {
+      "import": "@design-lab/system/playground",
+      "requiredExports": [
+        "ComponentPlaygroundModule",
+        "PlaygroundControl",
+        "PlaygroundControls",
+        "PlaygroundValues"
+      ]
+    },
+    "pages": {
+      "import": "@design-lab/system/pages",
+      "requiredExports": ["PageAction", "PageModule", "WireframeValues"]
+    },
+    "wireframes": {
+      "import": "@design-lab/system/wireframes",
+      "requiredExports": ["WireframeAction", "WireframeModule", "WireframeValues"]
+    },
+    "tokens": {
+      "import": "@design-lab/system/tokens.css",
+      "requiredExports": []
+    },
+    "assets": {
+      "import": "@design-lab/system/assets/*",
+      "requiredExports": []
+    }
+  }
+}

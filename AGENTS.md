@@ -8,6 +8,8 @@ For every Page creation or modification, read and follow [`rules/PAGE_RULES.md`]
 
 For every token, asset, or font creation or modification, read and follow [`rules/TOKEN_RULES.md`](rules/TOKEN_RULES.md), [`rules/ASSET_RULES.md`](rules/ASSET_RULES.md), or [`rules/FONT_RULES.md`](rules/FONT_RULES.md) respectively. When a change crosses entity kinds, apply every relevant contract.
 
+For every Design Lab interface Skin creation or modification, read and follow [`rules/SKIN_RULES.md`](rules/SKIN_RULES.md). For every complete interface System package creation or modification, read and follow [`rules/SYSTEM_RULES.md`](rules/SYSTEM_RULES.md) plus every entity rule relevant to the files changed. Generated Skin and System packages must carry their own `AGENTS.md` and local rule copies so designers and agents can author them outside this repository.
+
 ## Product questions
 
 - Ask the user a focused question when the answer materially affects product architecture, filesystem contracts, entity semantics, UX behavior, data ownership, or an expensive implementation direction.

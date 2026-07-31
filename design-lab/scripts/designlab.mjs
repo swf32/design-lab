@@ -17,6 +17,15 @@ import {
   renderComponentCapture,
 } from '../server/services/componentCapture.mjs'
 import { applySetupPlan, createSetupPlan } from '../server/services/setupService.mjs'
+import {
+  createInterfacePack,
+  doctorInterfacePacks,
+  installInterfacePack,
+  listInterfacePacks,
+  resetInterfacePack,
+  useInterfacePack,
+  validateInterfacePack,
+} from '../server/services/interfacePacks.mjs'
 
 const args = process.argv.slice(2)
 const command = args[0] ?? 'help'
@@ -39,6 +48,8 @@ const VALUED_FLAGS = new Set([
   '--root',
   '--name',
   '--mode',
+  '--version',
+  '--id',
 ])
 
 function option(name) {
@@ -92,6 +103,16 @@ Usage:
   npm run designlab -- capture <component-ref> [--capture info|preview|story] [--story sizes]
     [--source-mode <mode>] [--interface-theme dark|light] [--output capture.png]
   npm run designlab -- index --source <source-id>
+  npm run designlab -- theme list|doctor|reset
+  npm run designlab -- theme install <local-path|github:owner/repo#tag|npm-package> [--no-use]
+  npm run designlab -- theme create <folder> [--name <name>] [--id <id>]
+  npm run designlab -- theme use <id> [--version <x.y.z>]
+  npm run designlab -- theme validate <folder>
+  npm run designlab -- system list|doctor|reset
+  npm run designlab -- system install <local-path|github:owner/repo#tag|npm-package> [--no-use]
+  npm run designlab -- system create <folder> [--name <name>] [--id <id>]
+  npm run designlab -- system use <id> [--version <x.y.z>]
+  npm run designlab -- system validate <folder>
 
 Search intentionally returns descriptions and opaque refs, not entity names.
 Call get with a ref to reveal the verified name, import, props, variants, docs, and paths; pass
@@ -104,6 +125,11 @@ group, or "document.tokens.json#logical.group".
 Setup is read-only unless both --apply and --confirm are present. Before using --confirm, explain
 the returned changes in plain language and ask the user to approve them. Setup never moves or
 deletes existing product files.
+
+Theme installs a CSS/token Skin over the active System. System installs a complete executable
+replacement for Design Lab's interface Library. Install validates compatibility and required
+entrypoints before an atomic activation; --no-use keeps the downloaded pack inactive. Reset selects
+the bundled default System or removes the active Skin without deleting installed community packs.
 `)
 }
 
@@ -237,6 +263,57 @@ try {
     }
   } else if (command === 'index') {
     print(await writeContextIndex({ sourceId: option('--source') }))
+  } else if (['theme', 'skin', 'system'].includes(command)) {
+    const kind = command === 'system' ? 'system' : 'skin'
+    const action = args[1] ?? 'list'
+    if (action === 'list') {
+      print({ kind, packs: await listInterfacePacks(kind) })
+    } else if (action === 'install') {
+      const spec = args[2]
+      if (!spec || spec.startsWith('--')) throw new Error(`${command} install requires a source`)
+      print(
+        await installInterfacePack(spec, {
+          kind,
+          activate: !args.includes('--no-use'),
+        }),
+      )
+    } else if (action === 'create') {
+      const path = args[2]
+      if (!path || path.startsWith('--')) throw new Error(`${command} create requires a folder`)
+      print(
+        await createInterfacePack(kind, path, {
+          name: option('--name') ?? undefined,
+          id: option('--id') ?? undefined,
+        }),
+      )
+    } else if (action === 'use') {
+      const id = args[2]
+      if (!id || id.startsWith('--')) throw new Error(`${command} use requires a pack id`)
+      print(await useInterfacePack(kind, id, { version: option('--version') ?? undefined }))
+    } else if (action === 'reset') {
+      print(await resetInterfacePack(kind))
+    } else if (action === 'doctor') {
+      const result = await doctorInterfacePacks()
+      print(result)
+      if (!result.ok) process.exitCode = 1
+    } else if (action === 'validate') {
+      const path = args[2]
+      if (!path || path.startsWith('--')) throw new Error(`${command} validate requires a folder`)
+      const result = await validateInterfacePack(resolve(path), {
+        expectedKind: kind,
+        typecheckSystem: true,
+      })
+      print({
+        valid: true,
+        kind,
+        id: result.manifest.id,
+        name: result.manifest.name,
+        version: result.manifest.version,
+        designLabVersion: result.designLabVersion,
+      })
+    } else {
+      throw new Error(`Unknown ${command} action "${action}"`)
+    }
   } else {
     help()
   }

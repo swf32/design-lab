@@ -1,0 +1,21 @@
+{
+  "schemaVersion": 1,
+  "id": "design-lab-system",
+  "name": "Design Lab System",
+  "version": "0.1.0",
+  "kind": "system",
+  "description": "The default complete interface system distributed with Design Lab.",
+  "designLab": ">=0.1.0 <0.2.0",
+  "license": "UNLICENSED",
+  "entrypoints": {
+    "components": "components/index.ts",
+    "icons": "assets/icons/index.ts",
+    "i18n": "i18n/index.ts",
+    "inspection": "inspection/index.ts",
+    "playground": "playground/index.ts",
+    "pages": "pages/index.ts",
+    "wireframes": "wireframes/index.ts",
+    "tokens": "tokens/generated/tokens.css",
+    "assets": "assets"
+  }
+}

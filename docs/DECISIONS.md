@@ -1552,3 +1552,49 @@ Ownership audit завершён: `TypedPlaygroundControls` и presentation `Cre
 в `design-lab-system`; `ManagedRuntimeFrame` сохраняет app-owned runtime controller, а его
 loading/error/frame presentation делегирован `RuntimeFrameSurface`. В `design-lab/src/components/`
 остаётся только этот технический controller, пустые остаточные directories удалены.
+
+## D-091 — Community customization разделяется на Skin и полную System
+
+**Статус:** принято и реализовано как local-first package contract, 2026-08-01.
+
+Skin является версионным CSS/token override-слоем поверх активной System и не заменяет Component
+code. System является полной исполняемой Library и обязана реализовать versioned application
+contract из `design-lab/interface-system-contract.json`. Частичные file patches не становятся
+публичным package kind первой версии: они остаются локальными fork/mod изменениями, пока не оформлены
+как цельный Skin или System.
+
+У каждого пакета есть `design-lab-pack.json` с kind, stable id, semver version, Design Lab
+compatibility range, entrypoints и optional repository/license/screenshots. Validator проверяет
+relative path confinement, symlink confinement, обязательные System exports, canonical Library
+imports и typecheck реального приложения против candidate entrypoints до активации. Успешная
+совместимость не объявляет чужой executable code безопасным.
+
+Skin хранится versioned под `design-lab/.designlab/interface-packs/skins/`. Community System
+устанавливается как обычная discoverable Library под `libraries/<id>/`; bundled
+`libraries/design-lab-system/` не перезаписывается. Активный выбор записывается атомарно в
+`design-lab/.designlab/interface.json` и применяется Vite resolver-ом ко всем System entrypoints и
+последующему Skin CSS layer. Явно повреждённая активная конфигурация не маскируется fallback UI;
+`system reset` возвращает selection к bundled default, а `theme reset` снимает Skin.
+
+Install принимает local directory/tarball, GitHub coordinate или npm package, сначала собирает
+staging copy и только после полной проверки атомарно меняет managed destination. Existing unmanaged
+Library с совпавшим id не перезаписывается. `create`, `validate`, `install`, `use`, `list`, `doctor`
+и `reset` являются CLI-контрактом первой версии. Смена требует restart dev/build, потому что
+entrypoint aliases выбираются при загрузке Vite config.
+
+Исходник каждого community pack остаётся в репозитории автора. Будущий центральный
+`design-lab-gallery` хранит только package coordinates, checksum, generated screenshots,
+compatibility result и status `community / validated / curated / incompatible`; installer и
+filesystem contract не зависят от доступности gallery service.
+
+### D-091 amendment — переносимый designer-first authoring contract
+
+**Статус:** принято и реализовано, 2026-08-01.
+
+Skin/System scaffolds обязаны быть понятны вне monorepo и поэтому получают package-local
+`AGENTS.md`, beginner README, `screenshots/` guidance и локальные копии применимых shared rules.
+Skin получает документированный `theme.css` с реальными public variables; безопасный community Skin
+использует только custom properties и публичные theme selectors, а private DOM/class overrides
+считаются локальным mod. System получает все entity contracts, потому что полная замена может менять
+Components, Tokens, Assets, Fonts, Wireframes и Pages. Root `rules/SKIN_RULES.md` и
+`rules/SYSTEM_RULES.md` остаются canonical templates, которые CLI копирует при создании пакета.

@@ -1,0 +1,144 @@
+/*
+ * Design Lab Skin
+ *
+ * Uncomment only the variables you want to override. Start with semantic colors and shell
+ * surfaces, then adjust geometry. See rules/SKIN_RULES.md before using private selectors.
+ */
+
+:root {
+  /* Application and navigation */
+  /* --shell-application-background: #0d0d0d; */
+  /* --shell-navigation-surface: #151515; */
+  /* --shell-workspace-background: #20201f; */
+  /* --shell-navigation-scrim: rgb(0 0 0 / 68%); */
+  /* --shell-navigation-drawer-shadow: 24px 0 72px rgb(0 0 0 / 68%); */
+
+  /* Shell geometry */
+  /* --shell-sidebar-collapsed: 48px; */
+  /* --shell-sidebar-expanded: 72px; */
+  /* --shell-navigation-width: 340px; */
+  /* --shell-navigation-min: 260px; */
+  /* --shell-navigation-drawer-max: 420px; */
+  /* --shell-navigation-mobile-gap: 12px; */
+  /* --shell-navigation-mobile-sidebar: 64px; */
+  /* --shell-navigation-mobile-header: 52px; */
+  /* --shell-directory-panel-min: 188px; */
+  /* --shell-workspace-min: 360px; */
+  /* --shell-empty-state-max: 360px; */
+  /* --shell-empty-state-mobile-max: 320px; */
+  /* --shell-tab-height: 52px; */
+
+  /* Typography */
+  /* --typography-interface-family: Inter, ui-sans-serif, sans-serif; */
+  /* --typography-body-size: 12px; */
+  /* --typography-body-line-height: 1.5; */
+  /* --typography-heading-weight: 560; */
+
+  /* Corners and semantic layout */
+  /* --corner-control: 6px; */
+  /* --corner-surface: 8px; */
+  /* --corner-card: 12px; */
+  /* --corner-full: 999px; */
+  /* --layout-gap-tight: 4px; */
+  /* --layout-gap-related: 8px; */
+  /* --layout-gap-group: 12px; */
+  /* --layout-gap-section: 16px; */
+  /* --layout-inset-control: 12px; */
+  /* --layout-inset-panel: 16px; */
+
+  /* Controls and motion */
+  /* --control-icon: 24px; */
+  /* --control-size-s: 32px; */
+  /* --control-size-m: 40px; */
+  /* --control-size-l: 48px; */
+  /* --transition-fast: 140ms; */
+  /* --transition-preview: 420ms; */
+  /* --easing-preview: cubic-bezier(0.22, 1, 0.36, 1); */
+
+  /* Stable category and review identities */
+  /* --color-category-teal: #4fd1c5; */
+  /* --color-category-cyan: #56c7e8; */
+  /* --color-category-violet: #b794f4; */
+  /* --color-category-orange: #f6ad55; */
+  /* --color-inspection-component: #9747ff; */
+  /* --color-inspection-slot: #f24eaa; */
+  /* --color-inspection-asset: #2fb8c6; */
+  /* --color-workbench-action-surface: rgb(127 127 127 / 10%); */
+  /* --color-workbench-action-neutral: #767676; */
+  /* --color-workbench-action-dev: #b66a16; */
+  /* --color-canvas-grid-dark-a: #111111; */
+  /* --color-canvas-grid-dark-b: #1c1c1c; */
+  /* --color-canvas-grid-light-a: #e8e8e3; */
+  /* --color-canvas-grid-light-b: #d8d8d2; */
+
+  /* Advanced global density primitives: changing these affects nearly every Component. */
+  /* --space-2: 2px; */
+  /* --space-4: 4px; */
+  /* --space-6: 6px; */
+  /* --space-8: 8px; */
+  /* --space-10: 10px; */
+  /* --space-12: 12px; */
+  /* --space-16: 16px; */
+  /* --space-20: 20px; */
+  /* --space-24: 24px; */
+  /* --space-32: 32px; */
+  /* --space-40: 40px; */
+  /* --space-48: 48px; */
+  /* --space-52: 52px; */
+  /* --space-64: 64px; */
+  /* --space-72: 72px; */
+  /* --radius-4: 4px; */
+  /* --radius-6: 6px; */
+  /* --radius-8: 8px; */
+  /* --radius-12: 12px; */
+  /* --radius-999: 999px; */
+}
+
+[data-theme='dark'] {
+  /* Core surfaces and text */
+  /* --color-canvas: #0d0d0d; */
+  /* --color-surface-primary: #1a1a19; */
+  /* --color-surface-secondary: #151515; */
+  /* --color-surface-raised: #20201f; */
+  /* --color-surface-hover: #252524; */
+  /* --color-border-subtle: rgb(255 255 255 / 8%); */
+  /* --color-border-default: rgb(255 255 255 / 14%); */
+  /* --color-border-strong: rgb(255 255 255 / 40%); */
+  /* --color-text-primary: #ffffff; */
+  /* --color-text-secondary: rgb(255 255 255 / 70%); */
+  /* --color-text-muted: rgb(255 255 255 / 50%); */
+  /* --color-text-disabled: rgb(255 255 255 / 30%); */
+
+  /* Accent, status, and code */
+  /* --color-accent-primary: #26d9c7; */
+  /* --color-accent-secondary: #ab31ee; */
+  /* --color-code: #83c5b4; */
+  /* --color-status-success: #52d89a; */
+  /* --color-status-warning: #f2c14e; */
+  /* --color-status-danger: #ff7b72; */
+  /* --color-overlay-scrim: rgb(0 0 0 / 68%); */
+
+}
+
+[data-theme='light'] {
+  /* Define the light equivalents for every mode-specific variable changed above. */
+  /* --color-canvas: #e8e8e4; */
+  /* --color-surface-primary: #f7f7f3; */
+  /* --color-surface-secondary: #eeeeea; */
+  /* --color-surface-raised: #fbfbf8; */
+  /* --color-surface-hover: #e2e2dc; */
+  /* --color-border-subtle: rgb(20 26 23 / 8%); */
+  /* --color-border-default: rgb(20 26 23 / 15%); */
+  /* --color-border-strong: rgb(20 26 23 / 36%); */
+  /* --color-text-primary: #171a18; */
+  /* --color-text-secondary: rgb(20 26 23 / 72%); */
+  /* --color-text-muted: rgb(20 26 23 / 55%); */
+  /* --color-text-disabled: rgb(20 26 23 / 36%); */
+  /* --color-accent-primary: #148f83; */
+  /* --color-accent-secondary: #7651b8; */
+  /* --color-code: #286f61; */
+  /* --color-status-success: #23845c; */
+  /* --color-status-warning: #9a6700; */
+  /* --color-status-danger: #c84f4a; */
+  /* --color-overlay-scrim: rgb(20 24 22 / 45%); */
+}

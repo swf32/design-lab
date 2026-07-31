@@ -28,12 +28,31 @@ npm run format
 
 `format:code` приводит к единому виду JSON, TS, TSX и MJS; `format:styles` форматирует SCSS и CSS внутри component preview. Соответствующие `check:*` автоматически выполняются перед root build/test.
 
+## Темы и альтернативные интерфейсные системы
+
+```bash
+npm run designlab -- theme create ../my-skin --name "My Skin"
+npm run designlab -- theme install ../my-skin
+npm run designlab -- system create ../my-system --name "My System"
+npm run designlab -- system install ../my-system
+npm run designlab -- system doctor
+npm run designlab -- theme reset
+npm run designlab -- system reset
+```
+
+`theme` управляет безопасным CSS/token Skin поверх активной системы. `system` управляет полной
+исполняемой заменой интерфейсной Library. Локальные папки, `github:owner/repo#tag`, npm packages и
+tarballs проходят compatibility/entrypoint validation до атомарной установки. Полный контракт и
+модель community gallery описаны в `docs/23-interface-skins-systems-and-gallery.md`. Оба `create`
+scaffold генерируют локальный `AGENTS.md`, понятный README, применимые rules и screenshot checklist;
+Skin также получает документированный шаблон реальных публичных CSS variables.
+
 ## Структура
 
 - `design-lab/src/views/` — route-level экраны приложения; переиспользуемых UI-компонентов внутри приложения нет.
 - `design-lab/server/` — локальный Node.js API, registry проектов и filesystem gateway.
 - `design-lab/scripts/dev.mjs` — запускает API и Vite вместе.
-- `libraries/design-lab-system/` — редактируемая дизайн-система самого приложения и её единственный source of truth.
+- `libraries/design-lab-system/` — редактируемая дефолтная дизайн-система приложения; активная альтернативная System выбирается через проверенный interface-pack resolver без зеркальной копии.
 - `libraries/design-lab-system/components/index.ts` — автоматически генерируемый package barrel из найденных `component.json`, а не ручной реестр.
 - `libraries/design-lab-system/assets/icons/index.ts` — автоматически генерируемый barrel code-native иконок.
 - `rules/COMPONENT_RULES.md`, `rules/WIREFRAME_RULES.md`, `rules/PAGE_RULES.md`, `rules/TOKEN_RULES.md`, `rules/ASSET_RULES.md`, `rules/FONT_RULES.md` — обязательные entity-authoring контракты для людей и агентов; `AGENTS.md`/`CLAUDE.md` в корне ссылаются на них и остаются входной точкой для агентов.
