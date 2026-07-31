@@ -78,13 +78,13 @@ async function writeSystem(
     name: id === 'design-lab-system' ? 'Design Lab System' : 'Community System',
     schemaVersion: 1,
     version,
-    packageName: `@community/${id}`,
+    packageName: '@design-lab/system',
     componentImport: '@design-lab/system/components',
     iconImport: '@design-lab/system/icons',
     assetImport: '@design-lab/system/assets',
   })
   await writeJson(join(root, 'package.json'), {
-    name: `@community/${id}`,
+    name: '@design-lab/system',
     version,
     private: true,
     type: 'module',
@@ -148,7 +148,7 @@ test('Skin authoring template documents only real generated System variables', a
   )
 })
 
-test('bundled System satisfies the static and typed application contract', async () => {
+test('the active System slot satisfies the static and typed application contract', async () => {
   const result = await validateInterfacePack(
     resolve(applicationRoot, '../libraries/design-lab-system'),
     {
@@ -158,7 +158,7 @@ test('bundled System satisfies the static and typed application contract', async
       typecheckSystem: true,
     },
   )
-  assert.equal(result.manifest.id, 'design-lab-system')
+  assert.equal(result.manifest.kind, 'system')
 })
 
 test('Skin and System scaffolds are immediately valid authoring packages', async () => {

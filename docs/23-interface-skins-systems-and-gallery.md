@@ -79,9 +79,11 @@ fields, with these entrypoints:
 All paths are relative and must exist inside the package. Symbolic links are rejected anywhere in
 an installable pack, so an entrypoint or a transitive source cannot escape the package root. A
 System's `library.json` id matches the pack id and publishes canonical consumer imports
-`@design-lab/system/components` and `@design-lab/system/icons`. The validator statically follows
-entrypoint exports, rejects a System missing any application contract symbol, and typechecks the
-actual Design Lab application against the candidate entrypoints before install/use succeeds.
+`@design-lab/system/components` and `@design-lab/system/icons`. Its `package.json.name` and
+`library.json.packageName` remain `@design-lab/system`: the pack id identifies the theme, while the
+package name identifies the stable executable slot. The validator statically follows entrypoint
+exports, rejects a System missing any application contract symbol, and typechecks the actual Design
+Lab application against the candidate entrypoints before install/use succeeds.
 
 ## Author and consumer workflow
 

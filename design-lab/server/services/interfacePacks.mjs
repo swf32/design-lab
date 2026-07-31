@@ -450,14 +450,20 @@ export async function validateInterfacePack(root, options = {}) {
     if (contract.schemaVersion !== 1)
       throw packError('Unsupported interface contract schema.', 'INTERFACE_CONTRACT_INVALID')
     const library = await readJson(join(packRoot, 'library.json'), 'INTERFACE_PACK_LIBRARY_MISSING')
+    const packageManifest = await readJson(
+      join(packRoot, 'package.json'),
+      'INTERFACE_PACK_PACKAGE_MISSING',
+    )
     if (library.id !== manifest.id)
       throw packError('library.json id must match the pack id.', 'INTERFACE_PACK_LIBRARY_INVALID')
     if (
       library.componentImport !== '@design-lab/system/components' ||
-      library.iconImport !== '@design-lab/system/icons'
+      library.iconImport !== '@design-lab/system/icons' ||
+      library.packageName !== '@design-lab/system' ||
+      packageManifest.name !== '@design-lab/system'
     )
       throw packError(
-        'A System library must publish the canonical Design Lab component and icon imports.',
+        'A System must publish from the canonical @design-lab/system package boundary.',
         'INTERFACE_PACK_LIBRARY_IMPORT_INVALID',
       )
     for (const [key, definition] of Object.entries(contract.entrypoints)) {
@@ -831,7 +837,7 @@ export async function createInterfacePack(kind, target, options = {}) {
         id,
         name,
         version: '0.1.0',
-        packageName: `@design-lab-community/${id}`,
+        packageName: '@design-lab/system',
       })
       await writeFile(join(staged, 'library.json'), `${JSON.stringify(library, null, 2)}\n`)
       const packageManifest = await readJson(
@@ -839,7 +845,7 @@ export async function createInterfacePack(kind, target, options = {}) {
         'INTERFACE_PACK_PACKAGE_MISSING',
       )
       Object.assign(packageManifest, {
-        name: `@design-lab-community/${id}`,
+        name: '@design-lab/system',
         version: '0.1.0',
         private: true,
       })

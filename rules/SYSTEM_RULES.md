@@ -20,6 +20,8 @@ then expose the smallest necessary System contract.
 - `design-lab-pack.json` owns System identity, compatibility, and entrypoints.
 - `library.json` must use the same id and the canonical imports
   `@design-lab/system/components` and `@design-lab/system/icons`.
+- `package.json.name` and `library.json.packageName` must remain `@design-lab/system`. The System id
+  identifies the theme; the package name identifies the stable executable slot consumed by the app.
 - Every entrypoint and named export required by the selected Design Lab
   `interface-system-contract.json` must exist and typecheck against the real application.
 - Do not remove, rename, or change a required public prop only because the current visual direction
