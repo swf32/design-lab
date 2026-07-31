@@ -1,0 +1,21 @@
+{
+  "id": "workspace-surface",
+  "name": "Workspace Surface",
+  "description": "Provides the token-driven application surface that stacks Workspace Header and the active module stage.",
+  "aliases": ["workspace canvas", "application content surface"],
+  "useWhen": ["host the persistent Design Lab header and active workspace content"],
+  "avoidWhen": ["render a component specimen Canvas", "render a product Page"],
+  "entry": "WorkspaceSurface.tsx",
+  "preview": "WorkspaceSurface.preview.tsx",
+  "stories": "WorkspaceSurface.stories.tsx",
+  "docs": "README.md",
+  "changelog": "CHANGELOG.md",
+  "status": "ready",
+  "states": ["active", "inert"],
+  "variants": ["default"],
+  "props": {
+    "headerProps": { "type": "WorkspaceHeaderProps", "required": true },
+    "stageProps": { "type": "WorkspaceStageProps" },
+    "children": { "type": "ReactNode", "required": true, "slot": true }
+  }
+}

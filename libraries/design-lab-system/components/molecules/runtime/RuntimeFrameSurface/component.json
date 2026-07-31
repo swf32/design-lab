@@ -1,0 +1,21 @@
+{
+  "id": "runtime-frame-surface",
+  "name": "Runtime Frame Surface",
+  "description": "Presents an isolated source runtime iframe and its consistent loading, refreshing, and error states.",
+  "aliases": ["runtime iframe", "managed preview frame", "source preview state"],
+  "useWhen": ["host an isolated framework runtime inside a Design Lab Canvas"],
+  "avoidWhen": ["embed an arbitrary external website", "implement runtime process supervision"],
+  "entry": "RuntimeFrameSurface.tsx",
+  "preview": "RuntimeFrameSurface.preview.tsx",
+  "stories": "RuntimeFrameSurface.stories.tsx",
+  "docs": "README.md",
+  "changelog": "CHANGELOG.md",
+  "status": "ready",
+  "states": ["ready", "loading", "refreshing", "error"],
+  "variants": ["default"],
+  "props": {
+    "state": { "type": "RuntimeFrameState", "default": "ready" },
+    "heading": { "type": "string" },
+    "message": { "type": "string" }
+  }
+}

@@ -1,4 +1,3 @@
-import './App.scss'
 import {
   useEffect,
   useRef,
@@ -8,11 +7,10 @@ import {
   type PointerEvent as ReactPointerEvent,
 } from 'react'
 import {
-  AppSidebar,
-  DirectoryPanel,
+  ApplicationFrame,
+  CreateProjectDialog,
+  EmptyState,
   TabSwitcher,
-  WorkspaceHeader,
-  WorkspaceStage,
   type CanvasMode,
   type ModuleId,
 } from '@design-lab/system/components'
@@ -46,7 +44,6 @@ import {
 } from './api/projects'
 import { appRouteHref, findRouteTreeItem, readAppRoute, treeItemRoutePath } from './navigation'
 import { ErrorBoundary } from './ErrorBoundary'
-import { CreateProjectDialog } from './components/CreateProjectDialog/CreateProjectDialog'
 
 const moduleMessageKeys: Record<ModuleId, MessageKey> = {
   home: 'module.home',
@@ -655,107 +652,89 @@ export default function App() {
   }
 
   return (
-    <main
-      className={`design-lab${isResizing ? ' design-lab--resizing' : ''}${sidebarHovered ? ' design-lab--sidebar-expanded' : ''}${mobileNavigationOpen ? ' design-lab--mobile-navigation-open' : ''}`}
-      style={{ '--navigation-width': `${navigationWidth}px` } as CSSProperties}
-    >
-      <div
-        className="navigation-shell"
-        id="design-lab-navigation"
-        aria-hidden={isMobileLayout && !mobileNavigationOpen}
-        inert={isMobileLayout && !mobileNavigationOpen ? true : undefined}
-      >
-        <header className="navigation-shell__mobile-header">
-          <strong>Browse Design Lab</strong>
-          <button
-            type="button"
-            id="design-lab-navigation-close"
-            onClick={() => setMobileNavigationOpen(false)}
-          >
-            Close
-          </button>
-        </header>
-        <div className="navigation-shell__panes">
-          <AppSidebar
-            active={active}
-            settingsActive={settingsOpen}
-            onChange={(module) => {
-              setSettingsOpen(false)
-              setMobileNavigationOpen(false)
-              navigate(module)
-            }}
-            onSettings={() => {
-              setSettingsOpen(true)
-              setMobileNavigationOpen(false)
-            }}
-            onExpandedChange={setSidebarHovered}
-          />
-          <DirectoryPanel
-            isResizing={isResizing}
-            navigationWidth={navigationWidth}
-            minNavigationWidth={MIN_NAVIGATION_WIDTH}
-            maxNavigationWidth={maxNavigationWidth}
-            onResizeStart={startResize}
-            onResizeKeyDown={resizeWithKeyboard}
-            projects={projects}
-            activeProject={activeProject}
-            activeModuleLabel={labels[active]}
-            tree={directoryTree}
-            treeLoading={treeLoading}
-            onProjectChange={(projectId) => {
-              setActiveProjectId(projectId)
-              setMobileNavigationOpen(false)
-              navigate(active, '', { sourceId: projectId })
-            }}
-            onCreateProject={() => {
-              setProjectError(null)
-              setMobileNavigationOpen(false)
-              setProjectDialogOpen(true)
-            }}
-            selectedEntityId={selectedEntityId}
-            selectedFolderPath={selectedFolderPath}
-            viewControl={
-              active === 'tokens' ? (
-                <TabSwitcher
-                  ariaLabel={t('tokens.navigation.label')}
-                  options={[
-                    { value: 'tokens', label: t('tokens.navigation.tokens') },
-                    { value: 'files', label: t('tokens.navigation.files') },
-                  ]}
-                  value={tokenNavigationView}
-                  onChange={(view) => {
-                    setTokenNavigationView(view)
-                    navigate('tokens')
-                  }}
-                  size="small"
-                  overflow="wrap"
-                />
-              ) : undefined
-            }
-            onTreeItemSelect={(item) => {
-              setMobileNavigationOpen(false)
-              navigate(active, treeItemRoutePath(item))
-            }}
-          />
-        </div>
-      </div>
-      <button
-        type="button"
-        className="navigation-scrim"
-        aria-label="Close navigation"
-        aria-hidden={!mobileNavigationOpen}
-        tabIndex={mobileNavigationOpen ? 0 : -1}
-        onClick={() => setMobileNavigationOpen(false)}
-      />
-      <section
-        className="workspace-canvas"
-        aria-hidden={isMobileLayout && mobileNavigationOpen}
-        inert={isMobileLayout && mobileNavigationOpen ? true : undefined}
-      >
-        <WorkspaceHeader
-          productName="Design Lab"
-          sectionName={settingsOpen ? 'Settings' : labels[active]}
-          navigation={
+    <ApplicationFrame<ModuleId>
+      navigationWidth={navigationWidth}
+      resizing={isResizing}
+      mobileNavigationOpen={mobileNavigationOpen}
+      navigationDismissLabel="Close navigation"
+      onNavigationDismiss={() => setMobileNavigationOpen(false)}
+      navigationProps={{
+        id: 'design-lab-navigation',
+        expanded: sidebarHovered,
+        mobileOpen: mobileNavigationOpen,
+        mobileTitle: 'Browse Design Lab',
+        mobileCloseLabel: 'Close',
+        onMobileClose: () => setMobileNavigationOpen(false),
+        'aria-hidden': isMobileLayout && !mobileNavigationOpen,
+        inert: isMobileLayout && !mobileNavigationOpen ? true : undefined,
+        sidebarProps: {
+          active,
+          settingsActive: settingsOpen,
+          onChange: (module: ModuleId) => {
+            setSettingsOpen(false)
+            setMobileNavigationOpen(false)
+            navigate(module)
+          },
+          onSettings: () => {
+            setSettingsOpen(true)
+            setMobileNavigationOpen(false)
+          },
+          onExpandedChange: setSidebarHovered,
+        },
+        directoryProps: {
+          isResizing,
+          navigationWidth,
+          minNavigationWidth: MIN_NAVIGATION_WIDTH,
+          maxNavigationWidth,
+          onResizeStart: startResize,
+          onResizeKeyDown: resizeWithKeyboard,
+          projects,
+          activeProject,
+          activeModuleLabel: labels[active],
+          tree: directoryTree,
+          treeLoading,
+          onProjectChange: (projectId) => {
+            setActiveProjectId(projectId)
+            setMobileNavigationOpen(false)
+            navigate(active, '', { sourceId: projectId })
+          },
+          onCreateProject: () => {
+            setProjectError(null)
+            setMobileNavigationOpen(false)
+            setProjectDialogOpen(true)
+          },
+          selectedEntityId,
+          selectedFolderPath,
+          viewControl:
+            active === 'tokens' ? (
+              <TabSwitcher
+                ariaLabel={t('tokens.navigation.label')}
+                options={[
+                  { value: 'tokens', label: t('tokens.navigation.tokens') },
+                  { value: 'files', label: t('tokens.navigation.files') },
+                ]}
+                value={tokenNavigationView}
+                onChange={(view) => {
+                  setTokenNavigationView(view)
+                  navigate('tokens')
+                }}
+                size="small"
+                overflow="wrap"
+              />
+            ) : undefined,
+          onTreeItemSelect: (item) => {
+            setMobileNavigationOpen(false)
+            navigate(active, treeItemRoutePath(item))
+          },
+        },
+      }}
+      workspaceProps={{
+        'aria-hidden': isMobileLayout && mobileNavigationOpen,
+        inert: isMobileLayout && mobileNavigationOpen ? true : undefined,
+        headerProps: {
+          productName: 'Design Lab',
+          sectionName: settingsOpen ? 'Settings' : labels[active],
+          navigation: (
             <IconButton
               type="button"
               id="design-lab-navigation-trigger"
@@ -766,8 +745,8 @@ export default function App() {
             >
               <DirectoryIcon size={20} />
             </IconButton>
-          }
-          actions={
+          ),
+          actions: (
             <>
               <TabSwitcher
                 ariaLabel="Interface theme"
@@ -802,91 +781,89 @@ export default function App() {
                 <CodeIcon size={18} />
               </IconButton>
             </>
-          }
-        />
-
-        <WorkspaceStage>
-          {settingsOpen ? (
-            <SettingsView onClose={() => setSettingsOpen(false)} />
-          ) : activeProject &&
-            ['tokens', 'palette', 'fonts', 'components', 'assets', 'wireframes', 'pages'].includes(
-              active,
-            ) ? (
-            <ModuleView
-              data={moduleData}
-              loading={moduleLoading}
-              sourceId={activeProject.id}
-              selectedEntityId={selectedEntityId}
-              selectedFolderPath={selectedFolderPath}
-              onBack={() => {
-                const state = window.history.state as DesignLabHistoryState | null
-                if (state?.designLab && state.canGoBack) {
-                  window.history.back()
-                  return
-                }
-                navigate(active)
-              }}
-              onSelectEntity={(id) => {
-                if (!id) {
-                  navigate(active, selectedFolderPath === ALL_FOLDER_PATH ? '' : selectedFolderPath)
-                  return
-                }
-                const item = tree.find((candidate) => candidate.id === id)
-                if (item) navigate(active, treeItemRoutePath(item))
-              }}
-              canvasMode={canvasMode}
-              canvasColor={canvasColor}
-              onCanvasModeChange={setCanvasMode}
-              onCanvasColorChange={setCanvasColor}
-              onOpenPlayground={(mode) => {
-                if (entityRoutePath)
-                  navigate('components', `${entityRoutePath}/playground`, {
-                    search: mode ? new URLSearchParams({ mode }).toString() : undefined,
-                  })
-              }}
-              onOpenPageReview={() => {
-                const page =
-                  moduleData?.kind === 'pages'
-                    ? moduleData.pages.find((item) => item.directory === entityRoutePath)
-                    : null
-                if (page) navigate('pages', pageReviewPath(page))
-              }}
-              onNavigateToPage={(pageId) => {
-                const page =
-                  moduleData?.kind === 'pages'
-                    ? moduleData.pages.find((item) => item.id === pageId)
-                    : null
-                if (page) navigate('pages', pageReviewPath(page))
-              }}
-            />
-          ) : (
-            <div className="workspace-stage__empty">
-              <StarIcon size={22} />
-              <h1>{activeProject ? labels[active] : t('empty.createFirst')}</h1>
-              <p>{activeProject ? t('empty.moduleDescription') : t('empty.projectDescription')}</p>
-              {!activeProject && (
-                <Button
-                  type="button"
-                  variant="primary"
-                  className="workspace-stage__action"
-                  onClick={() => setProjectDialogOpen(true)}
-                >
+          ),
+        },
+        children: settingsOpen ? (
+          <SettingsView onClose={() => setSettingsOpen(false)} />
+        ) : activeProject &&
+          ['tokens', 'palette', 'fonts', 'components', 'assets', 'wireframes', 'pages'].includes(
+            active,
+          ) ? (
+          <ModuleView
+            data={moduleData}
+            loading={moduleLoading}
+            sourceId={activeProject.id}
+            selectedEntityId={selectedEntityId}
+            selectedFolderPath={selectedFolderPath}
+            onBack={() => {
+              const state = window.history.state as DesignLabHistoryState | null
+              if (state?.designLab && state.canGoBack) {
+                window.history.back()
+                return
+              }
+              navigate(active)
+            }}
+            onSelectEntity={(id) => {
+              if (!id) {
+                navigate(active, selectedFolderPath === ALL_FOLDER_PATH ? '' : selectedFolderPath)
+                return
+              }
+              const item = tree.find((candidate) => candidate.id === id)
+              if (item) navigate(active, treeItemRoutePath(item))
+            }}
+            canvasMode={canvasMode}
+            canvasColor={canvasColor}
+            onCanvasModeChange={setCanvasMode}
+            onCanvasColorChange={setCanvasColor}
+            onOpenPlayground={(mode) => {
+              if (entityRoutePath)
+                navigate('components', `${entityRoutePath}/playground`, {
+                  search: mode ? new URLSearchParams({ mode }).toString() : undefined,
+                })
+            }}
+            onOpenPageReview={() => {
+              const page =
+                moduleData?.kind === 'pages'
+                  ? moduleData.pages.find((item) => item.directory === entityRoutePath)
+                  : null
+              if (page) navigate('pages', pageReviewPath(page))
+            }}
+            onNavigateToPage={(pageId) => {
+              const page =
+                moduleData?.kind === 'pages'
+                  ? moduleData.pages.find((item) => item.id === pageId)
+                  : null
+              if (page) navigate('pages', pageReviewPath(page))
+            }}
+          />
+        ) : (
+          <EmptyState
+            icon={<StarIcon size={22} />}
+            title={activeProject ? labels[active] : t('empty.createFirst')}
+            description={
+              activeProject ? t('empty.moduleDescription') : t('empty.projectDescription')
+            }
+            action={
+              !activeProject ? (
+                <Button type="button" variant="primary" onClick={() => setProjectDialogOpen(true)}>
                   {t('action.create')}
                 </Button>
-              )}
-            </div>
-          )}
-        </WorkspaceStage>
-      </section>
-      <CreateProjectDialog
-        open={projectDialogOpen}
-        busy={projectCreating}
-        error={projectError}
-        canClose={projects.length > 0}
-        onClose={() => setProjectDialogOpen(false)}
-        onScan={handleScanProject}
-        onCreate={handleCreateProject}
-      />
-    </main>
+              ) : undefined
+            }
+          />
+        ),
+      }}
+      overlays={
+        <CreateProjectDialog
+          open={projectDialogOpen}
+          busy={projectCreating}
+          error={projectError}
+          canClose={projects.length > 0}
+          onClose={() => setProjectDialogOpen(false)}
+          onScan={handleScanProject}
+          onCreate={handleCreateProject}
+        />
+      }
+    />
   )
 }

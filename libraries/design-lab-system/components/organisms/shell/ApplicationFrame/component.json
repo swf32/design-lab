@@ -1,0 +1,26 @@
+{
+  "id": "application-frame",
+  "name": "Application Frame",
+  "description": "Owns the token-driven viewport surface and stable navigation-to-workspace frame for Design Lab.",
+  "aliases": ["app root", "design lab background", "viewport shell"],
+  "useWhen": ["compose the outermost Design Lab application surface"],
+  "avoidWhen": ["render a product Page inside the Design Lab workspace"],
+  "entry": "ApplicationFrame.tsx",
+  "preview": "ApplicationFrame.preview.tsx",
+  "stories": "ApplicationFrame.stories.tsx",
+  "docs": "README.md",
+  "changelog": "CHANGELOG.md",
+  "status": "ready",
+  "states": ["default", "resizing", "mobile-navigation-open"],
+  "variants": ["default"],
+  "props": {
+    "navigationProps": { "type": "NavigationRegionProps", "required": true },
+    "workspaceProps": { "type": "WorkspaceSurfaceProps", "required": true },
+    "overlays": { "type": "ReactNode", "slot": true },
+    "navigationWidth": { "type": "number | string", "required": true },
+    "resizing": { "type": "boolean", "default": false },
+    "mobileNavigationOpen": { "type": "boolean", "default": false },
+    "navigationDismissLabel": { "type": "string", "required": true },
+    "onNavigationDismiss": { "type": "() => void", "required": true }
+  }
+}

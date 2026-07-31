@@ -48,7 +48,7 @@ test('default entities provide authored semantic context without separate regist
   })
   const byKind = Object.groupBy(catalog.entities, (entity) => entity.kind)
 
-  assert.equal(byKind.component.length, 45)
+  assert.equal(byKind.component.length, 52)
   assert.equal(
     byKind.component.every(
       (entity) =>

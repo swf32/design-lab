@@ -70,6 +70,13 @@ test('production and example relationships stay separate and direct', async () =
   const moduleHeader = components.get('module-header')
   const storyCanvas = components.get('story-canvas')
   const playground = components.get('workbench-playground')
+  const navigationRegion = components.get('navigation-region')
+  const appSidebar = components.get('app-sidebar')
+  const directoryPanel = components.get('directory-panel')
+  const applicationFrame = components.get('application-frame')
+  const workspaceSurface = components.get('workspace-surface')
+  const workspaceHeader = components.get('workspace-header')
+  const workspaceStage = components.get('workspace-stage')
 
   assert.deepEqual(
     dialog.relations.uses.map((relation) => relation.id),
@@ -88,8 +95,41 @@ test('production and example relationships stay separate and direct', async () =
     ['button'],
   )
   assert.deepEqual(
+    navigationRegion.relations.uses.map((relation) => relation.id),
+    ['app-sidebar', 'directory-panel'],
+  )
+  assert.deepEqual(navigationRegion.relations.examplesUse, [])
+  assert.deepEqual(
+    appSidebar.relations.usedBy.map((relation) => relation.id),
+    ['navigation-region'],
+  )
+  assert.deepEqual(
+    directoryPanel.relations.usedBy.map((relation) => relation.id),
+    ['navigation-region'],
+  )
+  assert.deepEqual(
+    applicationFrame.relations.uses.map((relation) => relation.id),
+    ['navigation-region', 'workspace-surface'],
+  )
+  assert.deepEqual(
+    navigationRegion.relations.usedBy.map((relation) => relation.id),
+    ['application-frame'],
+  )
+  assert.deepEqual(
+    workspaceSurface.relations.uses.map((relation) => relation.id),
+    ['workspace-header', 'workspace-stage'],
+  )
+  assert.deepEqual(
+    workspaceHeader.relations.usedBy.map((relation) => relation.id),
+    ['workspace-surface'],
+  )
+  assert.deepEqual(
+    workspaceStage.relations.usedBy.map((relation) => relation.id),
+    ['workspace-surface'],
+  )
+  assert.deepEqual(
     button.relations.usedBy.map((relation) => relation.id),
-    ['module-header'],
+    ['module-header', 'create-project-dialog'],
   )
   assert.deepEqual(
     storyCanvas.relations.examplesUse.map((relation) => relation.id),
@@ -105,6 +145,7 @@ test('production and example relationships stay separate and direct', async () =
       'marketing-hero',
       'marketing-nav',
       'marketing-story',
+      'empty-state',
       'story-canvas',
       'dialog',
       'workspace-header',

@@ -1,0 +1,25 @@
+{
+  "id": "navigation-region",
+  "name": "Navigation Region",
+  "description": "Coordinates Application Sidebar and Directory Panel widths, clipping, disclosure, and mobile drawer behavior.",
+  "aliases": ["navigation shell", "sidebar directory layout", "application drawer"],
+  "useWhen": ["compose the primary Design Lab navigation surfaces together"],
+  "avoidWhen": ["render a standalone sidebar specimen", "navigate within product Page content"],
+  "entry": "NavigationRegion.tsx",
+  "preview": "NavigationRegion.preview.tsx",
+  "stories": "NavigationRegion.stories.tsx",
+  "docs": "README.md",
+  "changelog": "CHANGELOG.md",
+  "status": "ready",
+  "states": ["collapsed", "expanded", "mobile-closed", "mobile-open"],
+  "variants": ["default"],
+  "props": {
+    "sidebarProps": { "type": "AppSidebarProps", "required": true },
+    "directoryProps": { "type": "DirectoryPanelProps", "required": true },
+    "expanded": { "type": "boolean", "default": false },
+    "mobileOpen": { "type": "boolean", "default": false },
+    "mobileTitle": { "type": "string", "required": true },
+    "mobileCloseLabel": { "type": "string", "required": true },
+    "onMobileClose": { "type": "() => void", "required": true }
+  }
+}

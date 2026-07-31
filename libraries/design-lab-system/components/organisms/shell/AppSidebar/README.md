@@ -8,6 +8,10 @@ The collapsed rail keeps icons visible. Expansion reveals labels while the adjac
 
 Application-level Settings stays in the fixed footer and does not become a project module. Use `settingsActive` and `onSettings` to expose that destination while preserving the selected module behind it.
 
+Pass `items` when the application owns an additive module registry. Every item supplies only stable
+identity, localized label, and icon; the Sidebar applies one generic visual contract, so a new module
+does not require id-specific CSS. Omitting `items` preserves the built-in Design Lab module set.
+
 ## Stories
 
 `Hover disclosure` is a behavior story. `Shared navigation width` is an integration story with the adjacent directory region; the composition validates the cross-component width contract and is not an `AppSidebar` variant. Application shells can use `onExpandedChange` to synchronise their layout tracks with pointer disclosure.

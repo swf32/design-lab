@@ -24,6 +24,7 @@ import {
   ModulePage,
   TabSwitcher,
   Table,
+  TypedPlaygroundControls,
   StoryCanvas,
   UserFlowCanvas,
   WireframeCard,
@@ -41,7 +42,6 @@ import {
   type ModuleData,
 } from '../../api/projects'
 import type { PlaygroundControls, PlaygroundValues } from '@design-lab/system/playground'
-import { TypedPlaygroundControls } from '../../components/TypedPlaygroundControls/TypedPlaygroundControls'
 import { ManagedRuntimeFrame } from '../../components/ManagedRuntimeFrame/ManagedRuntimeFrame'
 import {
   playgroundModuleFor,
@@ -452,7 +452,7 @@ function LoadedProductionComponentPlayground({
       controls={
         <div className="inline-playground-controls">
           <TypedPlaygroundControls
-            component={component}
+            componentId={component.id}
             controls={setup.controls}
             values={values}
             onChange={(key, value) => setValues((current) => ({ ...current, [key]: value }))}
@@ -562,7 +562,7 @@ function ManagedComponentWorkbench({
           setup && Object.keys(setup.controls).length ? (
             <div className="inline-playground-controls">
               <TypedPlaygroundControls
-                component={component}
+                componentId={component.id}
                 controls={setup.controls}
                 values={values}
                 onChange={(key, value) => setValues((current) => ({ ...current, [key]: value }))}

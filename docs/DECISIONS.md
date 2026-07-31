@@ -1491,3 +1491,64 @@ Framework library может иметь собственный слой semantic
 Deep link сначала доверяет source id из URL, а не сохранённой ранее Library. Асинхронные ответы
 предыдущего source после переключения отбрасываются, поэтому React/Vue catalogs и Workbench не могут
 смешаться из-за гонки загрузки.
+
+## D-090 — Визуальная кастомизация shell принадлежит `design-lab-system`, композиция остаётся в приложении
+
+**Статус:** принято и реализовано для application shell, 2026-07-31; route-specific composition
+остаётся в приложении по описанной ниже границе.
+
+Пользовательская кастомизация первой версии ограничена визуальной осью: tokens, typography, colors,
+surfaces, borders, shadows, spacing, dimensions и visual transitions. Перестановка product regions,
+изменение маршрутов и добавление функциональности не становятся декларативным customization API.
+Пользователь, которому нужна такая structural customization, редактирует приложение и принимает
+обычные обязанности по сопровождению fork. Live системная Page и replaceable layout contract в этот
+scope не входят.
+
+Это решение сужает разрешение D-028 на соседние owner-specific SCSS у `App` и route-level Views:
+такие файлы могут сохранять structural product composition и technical runtime geometry, но больше
+не являются владельцами самостоятельного визуального языка. D-029 по-прежнему оставляет Views в
+приложении как владельцев data/state/orchestration; их повторяемые presentation boundaries и стили
+извлекаются в Library Components.
+
+Вся поддерживаемая визуальная кастомизация собственного интерфейса Design Lab должна разрешаться из
+единственной Library `libraries/design-lab-system/`. В приложении остаются product composition,
+state, data loading, routing, callbacks и технические runtime boundaries, но оно не владеет
+самостоятельными цветами, типографикой, backgrounds, borders, radii, shadows, visual transitions или
+нетокенизированным spacing. Видимый фон viewport принадлежит семантическому Library Component, а не
+`body` или route-level stylesheet; глобальный app stylesheet сохраняет только reset, mount и
+необходимые browser-level rules.
+
+Стиль не превращается в искусственный Component `Background`. Library выделяет семантические
+surface/shell Components по реальным визуальным границам: top-level application surface, совместную
+navigation region для зависимых `AppSidebar` + `DirectoryPanel`, workspace surface и другие
+повторяемые оболочки. Если два блока имеют общий grid, width budget, clipping или coordinated
+transition, этот cross-component visual contract принадлежит одному составному shell Component с
+явными props. Составной Component сам импортирует и рендерит дочерние Library Components: только
+тогда автоматически выведенные `uses / usedBy` честно показывают композицию. Безымянные
+`ReactNode`-слоты для уже определённых частей shell не используются, потому что scanner не может
+вывести из них production dependency. Приложение по-прежнему передаёт state, data и callbacks,
+поэтому extraction не меняет информационную архитектуру и порядок модулей.
+
+Canonical shell graph фиксируется прямыми production edges:
+`ApplicationFrame → NavigationRegion + WorkspaceSurface`,
+`NavigationRegion → AppSidebar + DirectoryPanel` и
+`WorkspaceSurface → WorkspaceHeader + WorkspaceStage`. Slots сохраняются только для действительно
+неопределённого consumer content: активного module body, header actions, overlay, icon или footer.
+
+Каждый такой Component следует обычному `component.json` contract, импортирует соседний production
+SCSS, имеет Preview/Stories и отображается в Components с relations к вложенным Components. Его
+визуальные значения ссылаются на component/semantic tokens из `design-lab-system`; изменение токена
+должно одновременно менять Workbench specimen и настоящий shell. Отдельный package-wide stylesheet,
+дублирующая app theme и скрытый runtime fallback не создаются.
+
+Additive product updates обязаны наследовать customization автоматически: новые Pages и module
+content используют существующие surface Components и semantic tokens, а новый navigation module
+передаётся `AppSidebar` как данные или через единый module registry вместо id-specific CSS. Новый
+token всегда имеет default value; существующий пользовательский override не обязан перечислять его.
+Удаление или переименование публичного token/Component contract требует migration и не маскируется
+fallback UI.
+
+Ownership audit завершён: `TypedPlaygroundControls` и presentation `CreateProjectDialog` перенесены
+в `design-lab-system`; `ManagedRuntimeFrame` сохраняет app-owned runtime controller, а его
+loading/error/frame presentation делегирован `RuntimeFrameSurface`. В `design-lab/src/components/`
+остаётся только этот технический controller, пустые остаточные directories удалены.

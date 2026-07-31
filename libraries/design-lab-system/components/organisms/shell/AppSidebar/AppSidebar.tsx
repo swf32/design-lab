@@ -18,8 +18,8 @@ import { useDesignLabI18n, type MessageKey } from '../../../../i18n'
 export type ModuleId =
   'home' | 'components' | 'wireframes' | 'pages' | 'assets' | 'palette' | 'tokens' | 'fonts'
 
-type Module = { id: ModuleId; label: MessageKey; icon: ComponentType<IconProps> }
-const modules: Module[] = [
+type DefaultModule = { id: ModuleId; label: MessageKey; icon: ComponentType<IconProps> }
+const defaultModules: DefaultModule[] = [
   { id: 'home', label: 'module.home', icon: HomeIcon },
   { id: 'components', label: 'module.components', icon: ComponentsIcon },
   { id: 'wireframes', label: 'module.wireframes', icon: WireframesIcon },
@@ -30,24 +30,38 @@ const modules: Module[] = [
   { id: 'fonts', label: 'module.fonts', icon: FontsIcon },
 ]
 
-export type AppSidebarProps = {
-  active: ModuleId
+export type AppSidebarItem<Id extends string = string> = {
+  id: Id
+  label: string
+  icon: ComponentType<IconProps>
+}
+
+export type AppSidebarProps<Id extends string = ModuleId> = {
+  active: Id
+  items?: AppSidebarItem<Id>[]
   expanded?: boolean
   settingsActive?: boolean
-  onChange: (id: ModuleId) => void
+  onChange: (id: Id) => void
   onSettings?: () => void
   onExpandedChange?: (expanded: boolean) => void
 }
 
-export function AppSidebar({
+export function AppSidebar<Id extends string = ModuleId>({
   active,
+  items,
   expanded = false,
   settingsActive = false,
   onChange,
   onSettings,
   onExpandedChange,
-}: AppSidebarProps) {
+}: AppSidebarProps<Id>) {
   const { t } = useDesignLabI18n()
+  const resolvedItems =
+    items ??
+    defaultModules.map(
+      (module) =>
+        ({ ...module, id: module.id as Id, label: t(module.label) }) satisfies AppSidebarItem<Id>,
+    )
   return (
     <aside
       className={`app-sidebar${expanded ? ' app-sidebar--expanded' : ''}`}
@@ -59,11 +73,11 @@ export function AppSidebar({
         d
       </div>
       <nav className="app-sidebar__tabs">
-        {modules.map((module) => (
+        {resolvedItems.map((module) => (
           <SidebarTab
             key={module.id}
             {...module}
-            label={t(module.label)}
+            label={module.label}
             active={active === module.id}
             expanded={expanded}
             onClick={() => onChange(module.id)}

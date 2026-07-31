@@ -3,6 +3,15 @@
   "name": "Shell component tokens",
   "tokens": {
     "shell": {
+      "application": {
+        "background": {
+          "type": "color",
+          "value": "{color.canvas}",
+          "description": "Visible background of the outermost Design Lab application frame.",
+          "aliases": ["design lab background", "application canvas"],
+          "useWhen": ["paint the root Design Lab application surface"]
+        }
+      },
       "sidebar": {
         "collapsed": {
           "type": "dimension",
@@ -16,6 +25,16 @@
         }
       },
       "navigation": {
+        "surface": {
+          "type": "color",
+          "value": "{color.surface.secondary}",
+          "description": "Background behind the combined Sidebar and Directory Panel navigation region."
+        },
+        "scrim": {
+          "type": "color",
+          "value": "{color.overlay.scrim}",
+          "description": "Backdrop separating an open mobile navigation drawer from the workspace."
+        },
         "width": {
           "type": "dimension",
           "value": "340px",
@@ -25,6 +44,31 @@
           "type": "dimension",
           "value": "260px",
           "description": "Minimum combined navigation width before the workspace becomes unusable."
+        },
+        "drawer-max": {
+          "type": "dimension",
+          "value": "420px",
+          "description": "Maximum width of the combined navigation drawer on compact viewports."
+        },
+        "mobile-gap": {
+          "type": "dimension",
+          "value": "{space.12}",
+          "description": "Visible workspace edge left beside the open mobile navigation drawer."
+        },
+        "mobile-sidebar": {
+          "type": "dimension",
+          "value": "{space.64}",
+          "description": "Stable Sidebar width inside the compact navigation drawer."
+        },
+        "mobile-header": {
+          "type": "dimension",
+          "value": "{space.52}",
+          "description": "Minimum height of the compact navigation drawer header."
+        },
+        "drawer-shadow": {
+          "type": "shadow",
+          "value": "24px 0 72px rgba(0, 0, 0, 0.68)",
+          "description": "Directional separation shadow cast by the compact navigation drawer."
         }
       },
       "directory-panel": {
@@ -35,10 +79,27 @@
         }
       },
       "workspace": {
+        "background": {
+          "type": "color",
+          "value": "{color.surface.raised}",
+          "description": "Persistent background of the Design Lab workspace around active module content."
+        },
         "min": {
           "type": "dimension",
           "value": "360px",
           "description": "Minimum width reserved for the main Design Lab workspace."
+        }
+      },
+      "empty-state": {
+        "max": {
+          "type": "dimension",
+          "value": "360px",
+          "description": "Maximum readable width of a centered application empty state."
+        },
+        "mobile-max": {
+          "type": "dimension",
+          "value": "320px",
+          "description": "Maximum readable width of a centered empty state on a compact viewport."
         }
       },
       "tab": {

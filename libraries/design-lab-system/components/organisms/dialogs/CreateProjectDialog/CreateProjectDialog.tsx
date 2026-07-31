@@ -1,16 +1,32 @@
 import './CreateProjectDialog.scss'
 import { useEffect, useId, useState, type FormEvent } from 'react'
-import { Button, Dialog, Input, RadioButton } from '@design-lab/system/components'
-import { useDesignLabI18n, type MessageKey } from '@design-lab/system/i18n'
-import type { ProjectSetupMode, ProjectSetupPlan } from '../../api/projects'
+import { Button } from '../../../atoms/actions/Button/Button'
+import { Input } from '../../../atoms/inputs/Input/Input'
+import { RadioButton } from '../../../atoms/inputs/RadioButton/RadioButton'
+import { useDesignLabI18n, type MessageKey } from '../../../../i18n'
+import { Dialog } from '../Dialog/Dialog'
 
-type CreateProjectDialogProps = {
+export type ProjectSetupMode = 'attach' | 'managed'
+
+export type ProjectSetupSummary = {
+  name: string
+  scan: {
+    frameworks: string[]
+    found: Record<string, { files: number } | undefined>
+  }
+  changes: {
+    createFiles: string[]
+    updateFiles: string[]
+  }
+}
+
+export type CreateProjectDialogProps = {
   open: boolean
   busy: boolean
   error: string | null
   canClose: boolean
   onClose: () => void
-  onScan: (input: { name: string; mode: ProjectSetupMode }) => Promise<ProjectSetupPlan>
+  onScan: (input: { name: string; mode: ProjectSetupMode }) => Promise<ProjectSetupSummary>
   onCreate: (input: { name: string; mode: ProjectSetupMode }) => Promise<void>
 }
 
@@ -35,7 +51,7 @@ export function CreateProjectDialog({
   const { t } = useDesignLabI18n()
   const [name, setName] = useState('')
   const [mode, setMode] = useState<ProjectSetupMode>('attach')
-  const [plan, setPlan] = useState<ProjectSetupPlan | null>(null)
+  const [plan, setPlan] = useState<ProjectSetupSummary | null>(null)
   const formId = `create-project-form-${useId().replace(/:/g, '')}`
 
   useEffect(() => {
@@ -104,9 +120,9 @@ export function CreateProjectDialog({
         </>
       }
     >
-      <form id={formId} className="create-project-form" onSubmit={submit}>
+      <form id={formId} className="dl-create-project-form" onSubmit={submit}>
         {!reviewingExistingProject && (
-          <fieldset className="create-project-form__choices">
+          <fieldset className="dl-create-project-form__choices">
             <legend>{t('project.startQuestion')}</legend>
             <RadioButton
               name="project-setup-mode"
@@ -144,8 +160,8 @@ export function CreateProjectDialog({
         />
 
         {reviewingExistingProject && plan && (
-          <section className="setup-review" aria-live="polite">
-            <header className="setup-review__header">
+          <section className="dl-setup-review" aria-live="polite">
+            <header className="dl-setup-review__header">
               <strong>{t('project.foundTitle')}</strong>
               <span>
                 {plan.scan.frameworks.length
@@ -153,16 +169,16 @@ export function CreateProjectDialog({
                   : t('project.frameworkUnknown')}
               </span>
             </header>
-            <div className="setup-review__summary">
+            <div className="dl-setup-review__summary">
               {summaryKinds.map(({ kind, message }) => (
-                <div className="setup-review__item" key={kind}>
+                <div className="dl-setup-review__item" key={kind}>
                   <strong>{plan.scan.found[kind]?.files ?? 0}</strong>
                   <span>{t(message)}</span>
                 </div>
               ))}
             </div>
-            <p className="setup-review__promise">{t('project.noMovePromise')}</p>
-            <details className="setup-review__details">
+            <p className="dl-setup-review__promise">{t('project.noMovePromise')}</p>
+            <details className="dl-setup-review__details">
               <summary>{t('project.showDetails')}</summary>
               <ul>
                 {plan.changes.createFiles.map((file) => (

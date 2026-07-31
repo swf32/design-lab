@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
+import { RuntimeFrameSurface } from '@design-lab/system/components'
 import { prepareComponentRuntime, type ManagedComponentRuntime } from '../../api/projects'
-import './ManagedRuntimeFrame.scss'
 
 function postRuntimeState(
   frame: HTMLIFrameElement | null,
@@ -176,26 +176,46 @@ export function ManagedRuntimeFrame({
 
   if (error)
     return (
-      <div className={`managed-runtime-frame__state ${className}`} role="alert">
-        <strong>Vue preview unavailable</strong>
-        <span>{error}</span>
-      </div>
+      <RuntimeFrameSurface
+        state="error"
+        className={className}
+        heading="Vue preview unavailable"
+        message={error}
+        title={title}
+      />
     )
   if (!runtime)
-    return <div className={`managed-runtime-frame__state ${className}`}>Preparing Vue preview…</div>
+    return (
+      <RuntimeFrameSurface
+        state="loading"
+        className={className}
+        message="Preparing Vue preview…"
+        title={title}
+      />
+    )
   if (runtimeError)
     return (
-      <div className={`managed-runtime-frame__state ${className}`} role="alert">
-        <strong>Vue preview unavailable</strong>
-        <span>{runtimeError}</span>
-      </div>
+      <RuntimeFrameSurface
+        state="error"
+        className={className}
+        heading="Vue preview unavailable"
+        message={runtimeError}
+        title={title}
+      />
     )
   if (recovering)
-    return <div className={`managed-runtime-frame__state ${className}`}>Refreshing preview…</div>
+    return (
+      <RuntimeFrameSurface
+        state="refreshing"
+        className={className}
+        message="Refreshing preview…"
+        title={title}
+      />
+    )
   return (
-    <iframe
+    <RuntimeFrameSurface
       ref={frameRef}
-      className={`managed-runtime-frame ${className}`}
+      className={className}
       src={`${runtime.url}&attempt=${attempt}`}
       title={title}
       tabIndex={className.includes('managed-runtime-frame--catalog') ? -1 : undefined}

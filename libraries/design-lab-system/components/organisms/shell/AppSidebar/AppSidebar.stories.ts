@@ -1,7 +1,9 @@
 import { createElement } from 'react'
 import type { StoryExample, StoryDefinition } from '../../../storyContract'
 import { DirectoryPanel } from '../DirectoryPanel/DirectoryPanel'
-import { AppSidebar, type ModuleId } from './AppSidebar'
+import { ComponentsIcon } from '../../../../assets/icons/ComponentsIcon'
+import { PagesIcon } from '../../../../assets/icons/PagesIcon'
+import { AppSidebar, type AppSidebarItem, type ModuleId } from './AppSidebar'
 
 const sources = [
   {
@@ -15,8 +17,16 @@ const sources = [
 
 export function renderStoryExample(example: StoryExample, story: StoryDefinition) {
   const props = example.props
+  const additiveItems: AppSidebarItem<'components' | 'libraries'>[] = [
+    { id: 'components', label: 'Components', icon: ComponentsIcon },
+    { id: 'libraries', label: 'Libraries', icon: PagesIcon },
+  ]
   const sidebar = createElement(AppSidebar, {
-    active: String(props.active ?? 'components') as ModuleId,
+    active:
+      story.id === 'additive-modules'
+        ? ('libraries' as const)
+        : (String(props.active ?? 'components') as ModuleId),
+    items: story.id === 'additive-modules' ? additiveItems : undefined,
     expanded: Boolean(props.expanded),
     settingsActive: Boolean(props.settingsActive),
     onChange: () => undefined,
@@ -50,6 +60,14 @@ export function renderStoryExample(example: StoryExample, story: StoryDefinition
 }
 
 export const stories = [
+  {
+    id: 'additive-modules',
+    kind: 'integration',
+    name: 'Additive module descriptors',
+    description:
+      'A newly supplied module inherits the same tab geometry and states without id-specific CSS.',
+    examples: [{ label: 'Libraries added', props: {} }],
+  },
   {
     id: 'disclosure',
     kind: 'behavior',

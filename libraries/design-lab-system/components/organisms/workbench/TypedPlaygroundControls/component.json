@@ -1,0 +1,26 @@
+{
+  "id": "typed-playground-controls",
+  "name": "Typed Playground Controls",
+  "description": "Renders a Component Playground control registry with the matching production input Components.",
+  "aliases": ["playground props", "typed controls", "component controls"],
+  "useWhen": ["edit serializable Component Playground values from a typed registry"],
+  "avoidWhen": ["build a product form with authored business fields"],
+  "entry": "TypedPlaygroundControls.tsx",
+  "preview": "TypedPlaygroundControls.preview.tsx",
+  "stories": "TypedPlaygroundControls.stories.tsx",
+  "docs": "README.md",
+  "changelog": "CHANGELOG.md",
+  "status": "ready",
+  "states": ["empty", "populated"],
+  "variants": ["default"],
+  "props": {
+    "componentId": { "type": "string", "required": true },
+    "controls": { "type": "PlaygroundControls", "required": true },
+    "values": { "type": "PlaygroundValues", "required": true },
+    "onChange": {
+      "type": "(key: string, value: string | number | boolean) => void",
+      "required": true
+    },
+    "heading": { "type": "string", "default": "Typed controls" }
+  }
+}

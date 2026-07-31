@@ -1,0 +1,22 @@
+{
+  "id": "empty-state",
+  "name": "Empty State",
+  "description": "Explains an empty or unavailable surface and optionally provides one direct recovery action.",
+  "aliases": ["blank state", "no results", "first run prompt"],
+  "useWhen": ["explain why a content surface has no primary content", "offer one next action"],
+  "avoidWhen": ["report a transient loading state", "present multiple unrelated actions"],
+  "entry": "EmptyState.tsx",
+  "preview": "EmptyState.preview.tsx",
+  "stories": "EmptyState.stories.tsx",
+  "docs": "README.md",
+  "changelog": "CHANGELOG.md",
+  "status": "ready",
+  "states": ["informational", "actionable"],
+  "variants": ["default"],
+  "props": {
+    "icon": { "type": "ReactNode", "slot": true },
+    "title": { "type": "ReactNode", "required": true },
+    "description": { "type": "ReactNode" },
+    "action": { "type": "ReactNode", "slot": true }
+  }
+}

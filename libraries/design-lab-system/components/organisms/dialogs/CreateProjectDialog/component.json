@@ -1,0 +1,28 @@
+{
+  "id": "create-project-dialog",
+  "name": "Create Project Dialog",
+  "description": "Guides attach-existing and start-clean project onboarding while delegating scanning and creation to application callbacks.",
+  "aliases": ["project onboarding", "connect existing project", "start clean dialog"],
+  "useWhen": ["onboard a Design Lab project or library source"],
+  "avoidWhen": ["create a generic product record", "edit an existing project"],
+  "entry": "CreateProjectDialog.tsx",
+  "preview": "CreateProjectDialog.preview.tsx",
+  "stories": "CreateProjectDialog.stories.tsx",
+  "docs": "README.md",
+  "changelog": "CHANGELOG.md",
+  "status": "ready",
+  "states": ["choose-mode", "review-plan", "busy", "error"],
+  "variants": ["default"],
+  "props": {
+    "open": { "type": "boolean", "required": true },
+    "busy": { "type": "boolean", "required": true },
+    "error": { "type": "string | null", "required": true },
+    "canClose": { "type": "boolean", "required": true },
+    "onClose": { "type": "() => void", "required": true },
+    "onScan": {
+      "type": "(input: ProjectSetupInput) => Promise<ProjectSetupSummary>",
+      "required": true
+    },
+    "onCreate": { "type": "(input: ProjectSetupInput) => Promise<void>", "required": true }
+  }
+}

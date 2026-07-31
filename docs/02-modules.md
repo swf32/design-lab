@@ -263,6 +263,33 @@ Comment читается прямо из optional `description`; отсутст�
 Libraries. В primitives одно физическое значение хранится один раз; padding, margin и gap не
 дублируют числовые шкалы, а получают смысл на semantic или component layer.
 
+## Кастомизация интерфейса Design Lab
+
+Поддерживаемая кастомизация собственного shell в первой версии является визуальной, а не
+структурной. Пользователь меняет tokens и стили Components в `design-lab-system`: colors,
+typography, surfaces, spacing, dimensions, borders, shadows и transitions. Product composition,
+порядок regions, routing и data flow остаются в приложении; их изменение является обычной
+модификацией Design Lab, а не гарантированно совместимым customization contract.
+
+Видимые части shell представлены настоящими Library Components. Общая зависимая геометрия Sidebar
+и Directory Panel принадлежит одному составному navigation-region Component; viewport background —
+семантическому application surface; фон и clipping рабочего пространства — workspace surface.
+Абстрактный `Background` без собственной семантики не создаётся. `NavigationRegion` напрямую
+рендерит `AppSidebar` и `DirectoryPanel` из переданных props, поэтому автоматический граф Components
+показывает их в `uses / usedBy`; безымянные slots не скрывают реальную композицию. Каждый surface
+виден в Components, имеет Preview/Stories и использует component/semantic tokens, поэтому одно
+изменение token source одинаково проявляется в Workbench и в запущенном Design Lab.
+
+Полная фиксированная цепочка shell также видна в графе:
+`ApplicationFrame → NavigationRegion + WorkspaceSurface`, а `WorkspaceSurface` напрямую использует
+`WorkspaceHeader + WorkspaceStage`. Произвольный active module content остаётся slot, потому что его
+конкретный Component определяется маршрутом, а не контрактом shell.
+
+Новые модули и Pages обязаны использовать generic shell Components и semantic tokens. Additive
+module descriptor автоматически получает существующий вид Sidebar Tab и surface styling; для него
+не добавляется CSS по конкретному module id. Полный fork Component или application composition
+остаётся возможен на уровне исходников, но не получает обещание бесконфликтного обновления.
+
 ## Fonts
 
 Раздел типографики.

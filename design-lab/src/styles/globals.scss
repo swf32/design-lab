@@ -10,15 +10,9 @@ body,
   min-height: 100%;
 }
 :root {
-  font-family:
-    Inter,
-    ui-sans-serif,
-    -apple-system,
-    BlinkMacSystemFont,
-    'Segoe UI',
-    sans-serif;
+  font-family: var(--typography-interface-family);
   color: var(--color-text-primary);
-  background: var(--color-canvas);
+  background: transparent;
   font-synthesis: none;
 }
 body {
@@ -26,17 +20,10 @@ body {
   min-height: 100dvh;
   overflow: hidden;
   overscroll-behavior: none;
-  transition:
-    background-color var(--transition-fast),
-    color var(--transition-fast);
 }
 button {
   font: inherit;
   touch-action: manipulation;
-}
-button:focus-visible {
-  outline: 2px solid var(--color-accent-primary);
-  outline-offset: 2px;
 }
 @media (prefers-reduced-motion: reduce) {
   * {

@@ -1,31 +1,30 @@
 import './TypedPlaygroundControls.scss'
-import {
-  Checkbox,
-  ColorPicker,
-  ControlField,
-  Input,
-  RadioButton,
-  Select,
-  Slider,
-} from '@design-lab/system/components'
-import type { ComponentPlaygroundModule, PlaygroundValues } from '@design-lab/system/playground'
-import type { ComponentEntity } from '../../componentRuntime'
+import { Checkbox } from '../../../atoms/inputs/Checkbox/Checkbox'
+import { ControlField } from '../../../atoms/inputs/ControlField/ControlField'
+import { Input } from '../../../atoms/inputs/Input/Input'
+import { RadioButton } from '../../../atoms/inputs/RadioButton/RadioButton'
+import { Select } from '../../../atoms/inputs/Select/Select'
+import { ColorPicker } from '../../../molecules/inputs/ColorPicker/ColorPicker'
+import { Slider } from '../../../molecules/inputs/Slider/Slider'
+import type { ComponentPlaygroundModule, PlaygroundValues } from '../../../../playground'
 
-export function TypedPlaygroundControls({
-  component,
-  controls,
-  values,
-  onChange,
-  heading = 'Typed controls',
-}: {
-  component: ComponentEntity
+export type TypedPlaygroundControlsProps = {
+  componentId: string
   controls: ComponentPlaygroundModule['playground']['controls']
   values: PlaygroundValues
   onChange: (key: string, value: string | number | boolean) => void
   heading?: string
-}) {
+}
+
+export function TypedPlaygroundControls({
+  componentId,
+  controls,
+  values,
+  onChange,
+  heading = 'Typed controls',
+}: TypedPlaygroundControlsProps) {
   return (
-    <div className="typed-playground-controls">
+    <div className="dl-typed-playground-controls">
       <header>
         <span>{heading}</span>
         <strong>{Object.keys(controls).length}</strong>
@@ -84,7 +83,7 @@ export function TypedPlaygroundControls({
         if (definition.kind === 'choice')
           return (
             <fieldset
-              className="typed-playground-controls__choice"
+              className="dl-typed-playground-controls__choice"
               key={key}
               aria-label={definition.label}
             >
@@ -92,7 +91,7 @@ export function TypedPlaygroundControls({
               {definition.options.map((option) => (
                 <RadioButton
                   key={option.value}
-                  name={`${component.id}-${key}`}
+                  name={`${componentId}-${key}`}
                   value={option.value}
                   label={option.label}
                   description={option.description}

@@ -1,0 +1,25 @@
+.dl-runtime-frame-surface {
+  width: 100%;
+  min-width: 0;
+  border: 0;
+  background: transparent;
+  display: block;
+}
+
+.dl-runtime-frame-surface__state {
+  min-height: 150px;
+  padding: var(--space-12);
+  color: var(--color-text-secondary);
+  text-align: center;
+  display: grid;
+  place-content: center;
+  gap: var(--space-6);
+}
+
+.dl-runtime-frame-surface__state strong {
+  color: var(--color-text-primary);
+}
+
+.dl-runtime-frame-surface[tabindex='-1'] {
+  pointer-events: none;
+}

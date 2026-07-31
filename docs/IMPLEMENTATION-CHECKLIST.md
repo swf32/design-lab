@@ -760,3 +760,33 @@ profiles/supervisor и первая настоящая Nuxt UI/Vue vertical за
 Vue gaps (events/state, fonts/assets, errors, source printer/Inspector), перенести React на child
 runtime без регрессий и только затем подключать Svelte. Не расширять eager globs и не открывать
 native backlog до Web DoD.
+
+## Visual customization собственного shell (D-090)
+
+- [x] Зафиксировать границу первой версии: поддерживаемая кастомизация меняет визуал, но не порядок
+      product regions, routing или feature composition.
+- [x] Инвентаризировать visual declarations в `App.scss`, route-level View SCSS и
+      `design-lab/src/components/`; классифицировать их как Library Component style, token,
+      app composition или technical runtime rule.
+- [x] Добавить token-driven top-level application surface Component, который владеет видимым
+      viewport background и theme transition; оставить `body` только reset/mount responsibility.
+- [x] Добавить составной navigation-region Component для общего grid/width/clipping/transition
+      контракта `AppSidebar` + `DirectoryPanel`, сохранив текущий порядок и поведение приложения;
+      прямые production imports обязаны давать честные `uses / usedBy` связи scanner-а.
+- [x] Зафиксировать regression-тестом весь прямой shell graph:
+      `ApplicationFrame → NavigationRegion + WorkspaceSurface`,
+      `NavigationRegion → AppSidebar + DirectoryPanel`,
+      `WorkspaceSurface → WorkspaceHeader + WorkspaceStage`; оставлять slots только для
+      действительно произвольного consumer content.
+- [x] Выделить token-driven workspace surface и повторяемые shell surfaces; каждый
+      Component получает `component.json`, adjacent SCSS, Preview, Stories, README и CHANGELOG.
+- [x] Перенести `TypedPlaygroundControls` в `design-lab-system`; разделить presentation и app/API
+      orchestration у `CreateProjectDialog` и `ManagedRuntimeFrame`; удалить пустые component dirs.
+- [ ] Запретить новые app-owned colors, typography, backgrounds, borders, radii, shadows и visual
+      transitions; app-local CSS допускает только доказуемую product composition или technical
+      runtime geometry.
+- [x] Проверить, что shell использует тот же сгенерированный token source, что Component specimens,
+      и что изменение shell/component tokens одновременно обновляет Workbench specimen и
+      реальный Design Lab в light/dark interface themes.
+- [x] Добавить regression fixture для нового module descriptor: новая navigation item и её content
+      наследуют существующие generic Component styles и tokens без id-specific CSS.

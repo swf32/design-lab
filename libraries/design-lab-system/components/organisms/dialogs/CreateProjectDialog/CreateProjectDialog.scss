@@ -1,9 +1,9 @@
-.create-project-form {
+.dl-create-project-form {
   display: grid;
   gap: var(--space-20);
 }
 
-.create-project-form__choices {
+.dl-create-project-form__choices {
   min-width: 0;
   margin: 0;
   padding: 0;
@@ -13,7 +13,7 @@
   gap: var(--space-8);
 }
 
-.create-project-form__choices legend {
+.dl-create-project-form__choices legend {
   grid-column: 1 / -1;
   margin-bottom: var(--space-4);
   color: var(--color-text-muted);
@@ -21,7 +21,7 @@
   line-height: 1.4;
 }
 
-.create-project-form__choices .dl-radio-button {
+.dl-create-project-form__choices .dl-radio-button {
   width: 100%;
   min-height: 76px;
   box-sizing: border-box;
@@ -31,23 +31,23 @@
   background: var(--color-surface-secondary);
 }
 
-.create-project-form__choices .dl-radio-button:has(input:checked) {
+.dl-create-project-form__choices .dl-radio-button:has(input:checked) {
   border-color: var(--color-accent-primary);
   background: color-mix(in srgb, var(--color-accent-primary) 8%, var(--color-surface-secondary));
 }
 
-.create-project-form__choices .dl-radio-button__description {
+.dl-create-project-form__choices .dl-radio-button__description {
   max-width: none;
 }
 
-.setup-review {
+.dl-setup-review {
   overflow: hidden;
   border: 1px solid var(--color-border-subtle);
   border-radius: var(--corner-surface);
   background: var(--color-surface-secondary);
 }
 
-.setup-review__header {
+.dl-setup-review__header {
   padding: var(--space-12) var(--space-16);
   border-bottom: 1px solid var(--color-border-subtle);
   display: flex;
@@ -56,24 +56,24 @@
   gap: var(--space-12);
 }
 
-.setup-review__header strong {
+.dl-setup-review__header strong {
   color: var(--color-text-primary);
   font-size: 11px;
   font-weight: 600;
 }
 
-.setup-review__header span {
+.dl-setup-review__header span {
   color: var(--color-text-muted);
   font-size: 9px;
   text-transform: capitalize;
 }
 
-.setup-review__summary {
+.dl-setup-review__summary {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
 }
 
-.setup-review__item {
+.dl-setup-review__item {
   min-width: 0;
   padding: var(--space-12) var(--space-16);
   border-right: 1px solid var(--color-border-subtle);
@@ -82,15 +82,15 @@
   gap: var(--space-4);
 }
 
-.setup-review__item:nth-child(3n) {
+.dl-setup-review__item:nth-child(3n) {
   border-right: 0;
 }
 
-.setup-review__item:nth-last-child(-n + 3) {
+.dl-setup-review__item:nth-last-child(-n + 3) {
   border-bottom: 0;
 }
 
-.setup-review__item strong {
+.dl-setup-review__item strong {
   color: var(--color-text-primary);
   font-size: 20px;
   font-weight: 520;
@@ -98,7 +98,7 @@
   font-variant-numeric: tabular-nums;
 }
 
-.setup-review__item span {
+.dl-setup-review__item span {
   overflow: hidden;
   color: var(--color-text-muted);
   font-size: 9px;
@@ -107,7 +107,7 @@
   white-space: nowrap;
 }
 
-.setup-review__promise {
+.dl-setup-review__promise {
   margin: 0;
   padding: var(--space-12) var(--space-16);
   border-top: 1px solid var(--color-border-subtle);
@@ -116,18 +116,18 @@
   line-height: 1.5;
 }
 
-.setup-review__details {
+.dl-setup-review__details {
   padding: 0 var(--space-16) var(--space-12);
   color: var(--color-text-muted);
   font-size: 9px;
 }
 
-.setup-review__details summary {
+.dl-setup-review__details summary {
   width: max-content;
   cursor: pointer;
 }
 
-.setup-review__details ul {
+.dl-setup-review__details ul {
   margin: var(--space-8) 0 0;
   padding-left: var(--space-16);
   display: grid;
@@ -136,27 +136,27 @@
 }
 
 @media (max-width: 560px) {
-  .create-project-form__choices {
+  .dl-create-project-form__choices {
     grid-template-columns: minmax(0, 1fr);
   }
 
-  .setup-review__summary {
+  .dl-setup-review__summary {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
-  .setup-review__item:nth-child(3n) {
+  .dl-setup-review__item:nth-child(3n) {
     border-right: 1px solid var(--color-border-subtle);
   }
 
-  .setup-review__item:nth-child(2n) {
+  .dl-setup-review__item:nth-child(2n) {
     border-right: 0;
   }
 
-  .setup-review__item:nth-last-child(-n + 3) {
+  .dl-setup-review__item:nth-last-child(-n + 3) {
     border-bottom: 1px solid var(--color-border-subtle);
   }
 
-  .setup-review__item:nth-last-child(-n + 2) {
+  .dl-setup-review__item:nth-last-child(-n + 2) {
     border-bottom: 0;
   }
 }

@@ -6,6 +6,7 @@ import {
   Chip,
   PlaygroundControlsRail,
   TabSwitcher,
+  TypedPlaygroundControls,
   WorkbenchAction,
   WorkbenchInspector,
   type CanvasMode,
@@ -19,7 +20,6 @@ import type {
 } from '@design-lab/system/playground'
 import type { ModuleData } from '../../api/projects'
 import type { ManagedComponentRuntime } from '../../api/projects'
-import { TypedPlaygroundControls } from '../../components/TypedPlaygroundControls/TypedPlaygroundControls'
 import { ManagedRuntimeFrame } from '../../components/ManagedRuntimeFrame/ManagedRuntimeFrame'
 import { playgroundModuleFor } from '../../componentRuntime'
 import { designSystemModeStyle } from '../../designSystemMode'
@@ -172,7 +172,7 @@ function ManagedVueDraftPlayground({
               <p>{selectedVariant?.description ?? playground.description}</p>
             </section>
             <TypedPlaygroundControls
-              component={component}
+              componentId={component.id}
               controls={playground.controls}
               values={values}
               onChange={(key, value) => setValues((current) => ({ ...current, [key]: value }))}
@@ -433,7 +433,7 @@ function LoadedComponentPlayground({
         </section>
 
         <TypedPlaygroundControls
-          component={component}
+          componentId={component.id}
           controls={module.playground.controls}
           values={values}
           onChange={(key, value) => setValues((current) => ({ ...current, [key]: value }))}

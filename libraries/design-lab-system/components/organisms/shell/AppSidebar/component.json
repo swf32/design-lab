@@ -26,6 +26,10 @@
       "type": "ModuleId",
       "required": true
     },
+    "items": {
+      "type": "AppSidebarItem[]",
+      "description": "Optional application-owned module descriptors. Additive modules inherit the same generic tab styling without id-specific CSS."
+    },
     "expanded": {
       "type": "boolean",
       "default": false

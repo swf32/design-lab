@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Added: optional generic module descriptors so additive application modules inherit Sidebar styling without id-specific CSS.
+
 - Changed: Added authored semantic retrieval metadata for MCP and CLI search.
 
 - Changed: Workbench stories now render automatically from the adjacent story module.
