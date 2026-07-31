@@ -261,6 +261,17 @@ test('System install requires the complete app contract and preserves the previo
     let active = await resolveActiveInterface(options)
     assert.equal(active.system.manifest.id, 'community-system')
     assert.equal(active.system.manifest.version, '1.0.0')
+    await assert.rejects(
+      readFile(join(librariesDirectory, 'community-system', 'design-lab-pack.json'), 'utf8'),
+      (error) => error.code === 'ENOENT',
+    )
+    assert.deepEqual(
+      (await listInterfacePacks('system', options)).map(({ id, active }) => ({ id, active })),
+      [
+        { id: 'community-system', active: true },
+        { id: 'design-lab-system', active: false },
+      ],
+    )
     assert.equal((await doctorInterfacePacks(options)).ok, true)
 
     const brokenSource = join(sources, 'community-system-v2-broken')
@@ -270,7 +281,7 @@ test('System install requires the complete app contract and preserves the previo
       (error) => error.code === 'INTERFACE_PACK_EXPORTS_MISSING',
     )
     const installedManifest = JSON.parse(
-      await readFile(join(librariesDirectory, 'community-system', 'design-lab-pack.json'), 'utf8'),
+      await readFile(join(librariesDirectory, 'design-lab-system', 'design-lab-pack.json'), 'utf8'),
     )
     assert.equal(installedManifest.version, '1.0.0')
     active = await resolveActiveInterface(options)
@@ -279,6 +290,15 @@ test('System install requires the complete app contract and preserves the previo
     await resetInterfacePack('system', options)
     active = await resolveActiveInterface(options)
     assert.equal(active.system.manifest.id, 'design-lab-system')
+    assert.equal(
+      JSON.parse(
+        await readFile(
+          join(librariesDirectory, 'design-lab-system', 'design-lab-pack.json'),
+          'utf8',
+        ),
+      ).id,
+      'design-lab-system',
+    )
   })
 })
 

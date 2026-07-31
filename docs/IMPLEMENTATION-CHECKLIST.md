@@ -814,6 +814,12 @@ native backlog до Web DoD.
       typography, layout, control, motion, dark/light и inspection variables.
 - [x] Покрыть тестом идентичность scaffold rule copies canonical источникам и наличие ключевых
       designer-facing файлов.
+- [x] Заменить multi-Library System activation одним физическим слотом
+      `libraries/design-lab-system`, versioned install cache и snapshot-based recovery (D-092).
+- [x] Не показывать inactive Systems как обычные Libraries и не загружать их Component SCSS в
+      application runtime.
+- [ ] Добавить `system diff`/sync report для missing, added и changed Components между default
+      System и отдельным theme repository.
 - [ ] Создать отдельный `design-lab-gallery` repository, remote verification workers, immutable
       checksums/signatures и generated screenshot publication flow.
 - [ ] Добавить gallery UI с status `community / validated / curated / incompatible` и установкой из

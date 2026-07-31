@@ -159,14 +159,19 @@ export function defaultInterfacePaths(options = {}) {
   const dataDirectory = resolve(
     options.dataDirectory ?? process.env.DESIGN_LAB_DATA_DIR ?? join(applicationRoot, '.designlab'),
   )
+  const librariesDirectory = resolve(
+    options.librariesDirectory ??
+      process.env.DESIGN_LAB_LIBRARIES_DIR ??
+      join(workspaceDirectory, 'libraries'),
+  )
   return {
     applicationRoot,
     workspaceDirectory,
     dataDirectory,
-    librariesDirectory: resolve(
-      options.librariesDirectory ??
-        process.env.DESIGN_LAB_LIBRARIES_DIR ??
-        join(workspaceDirectory, 'libraries'),
+    librariesDirectory,
+    systemSlot: resolve(options.systemSlot ?? join(librariesDirectory, DEFAULT_SYSTEM_ID)),
+    systemsDirectory: resolve(
+      options.systemsDirectory ?? join(dataDirectory, 'interface-packs', 'systems'),
     ),
     contractPath: resolve(
       options.contractPath ?? join(applicationRoot, 'interface-system-contract.json'),
@@ -204,9 +209,7 @@ function defaultSelection(paths) {
     system: {
       id: DEFAULT_SYSTEM_ID,
       version: null,
-      path: portablePath(
-        relative(paths.workspaceDirectory, join(paths.librariesDirectory, DEFAULT_SYSTEM_ID)),
-      ),
+      path: portablePath(relative(paths.workspaceDirectory, paths.systemSlot)),
     },
     skin: null,
   }
@@ -576,6 +579,72 @@ async function replaceDirectory(staged, destination) {
   if (hadDestination) await rm(backup, { recursive: true, force: true }).catch(() => undefined)
 }
 
+function installedSystemRoot(paths, id, version) {
+  return join(paths.systemsDirectory, id, version)
+}
+
+async function copySystemDirectory(source, destination) {
+  await cp(source, destination, {
+    recursive: true,
+    errorOnExist: true,
+    filter(path) {
+      return !['.git', '.designlab', 'node_modules', 'dist'].includes(basename(path))
+    },
+  })
+}
+
+async function currentSystemManifest(paths) {
+  try {
+    return await readJson(join(paths.systemSlot, PACK_MANIFEST), 'INTERFACE_PACK_MANIFEST_MISSING')
+  } catch (error) {
+    if (error.code === 'INTERFACE_PACK_MANIFEST_MISSING') return null
+    throw error
+  }
+}
+
+async function snapshotCurrentSystem(paths) {
+  const manifest = await currentSystemManifest(paths)
+  if (!manifest) return null
+  const destination = installedSystemRoot(paths, manifest.id, manifest.version)
+  await mkdir(dirname(destination), { recursive: true })
+  const staged = join(paths.systemsDirectory, `.snapshot-${randomUUID()}`)
+  try {
+    await copySystemDirectory(paths.systemSlot, staged)
+    await replaceDirectory(staged, destination)
+  } finally {
+    await rm(staged, { recursive: true, force: true })
+  }
+  return { root: destination, manifest }
+}
+
+async function activateInstalledSystem(selected, options = {}) {
+  const paths = defaultInterfacePaths(options)
+  const current = await currentSystemManifest(paths)
+  if (
+    !options.force &&
+    current?.id === selected.manifest.id &&
+    current?.version === selected.manifest.version
+  )
+    return { changed: false, manifest: current }
+  if (options.snapshot !== false) await snapshotCurrentSystem(paths)
+  await mkdir(dirname(paths.systemSlot), { recursive: true })
+  const staged = join(paths.librariesDirectory, `.system-slot-${randomUUID()}`)
+  try {
+    await copySystemDirectory(selected.root, staged)
+    await replaceDirectory(staged, paths.systemSlot)
+  } finally {
+    await rm(staged, { recursive: true, force: true })
+  }
+  const selection = await readInterfaceSelection(options)
+  selection.system = {
+    id: selected.manifest.id,
+    version: selected.manifest.version,
+    path: portablePath(relative(paths.workspaceDirectory, paths.systemSlot)),
+  }
+  await writeInterfaceSelection(selection, options)
+  return { changed: true, manifest: selected.manifest }
+}
+
 function authoringAgents(kind) {
   if (kind === 'skin')
     return `# Skin authoring instructions
@@ -635,7 +704,9 @@ parts of Design Lab that should feel intentionally different.
 ## Recovery
 
 Use \`npm run designlab -- ${command} reset\` to return to ${
-    kind === 'skin' ? 'the active System without this Skin' : 'the bundled default System'
+    kind === 'skin'
+      ? 'the active System without this Skin'
+      : 'the snapshotted default System in the canonical installation slot'
   }. Installed packages are retained for later use.
 `
 }
@@ -660,7 +731,7 @@ export async function installInterfacePack(spec, options = {}) {
   const paths = defaultInterfacePaths(options)
   const parent =
     kind === 'system'
-      ? paths.librariesDirectory
+      ? paths.systemsDirectory
       : join(paths.dataDirectory, 'interface-packs', 'skins')
   await mkdir(parent, { recursive: true })
   const staged = join(parent, `.staging-${randomUUID()}`)
@@ -682,43 +753,23 @@ export async function installInterfacePack(spec, options = {}) {
         'The bundled default System cannot be replaced by a community package.',
         'INTERFACE_PACK_DEFAULT_RESERVED',
       )
-    const destination =
-      kind === 'system'
-        ? join(paths.librariesDirectory, validated.manifest.id)
-        : join(parent, validated.manifest.id, validated.manifest.version)
+    const destination = join(parent, validated.manifest.id, validated.manifest.version)
     await mkdir(dirname(destination), { recursive: true })
-    if (kind === 'system') {
-      try {
-        const existing = await readJson(
-          join(destination, PACK_MANIFEST),
-          'INTERFACE_PACK_DESTINATION_UNMANAGED',
-        )
-        if (existing.kind !== 'system' || existing.id !== validated.manifest.id)
-          throw packError(
-            `libraries/${validated.manifest.id} is not managed by the matching System pack.`,
-            'INTERFACE_PACK_DESTINATION_UNMANAGED',
-          )
-      } catch (error) {
-        if (error.code === 'INTERFACE_PACK_DESTINATION_UNMANAGED') {
-          try {
-            await access(destination)
-            throw packError(
-              `libraries/${validated.manifest.id} already exists and is not a managed System pack.`,
-              'INTERFACE_PACK_DESTINATION_UNMANAGED',
-            )
-          } catch (accessError) {
-            if (accessError.code !== 'ENOENT') throw accessError
-          }
-        } else throw error
-      }
-    }
+    if (kind === 'system' && options.activate !== false) await snapshotCurrentSystem(paths)
     await replaceDirectory(staged, destination)
-    if (options.activate !== false)
-      await useInterfacePack(kind, validated.manifest.id, {
-        ...options,
-        version: validated.manifest.version,
-        typecheckSystem: false,
-      })
+    if (options.activate !== false) {
+      if (kind === 'system')
+        await activateInstalledSystem(
+          { root: destination, manifest: validated.manifest },
+          { ...options, force: true, snapshot: false },
+        )
+      else
+        await useInterfacePack(kind, validated.manifest.id, {
+          ...options,
+          version: validated.manifest.version,
+          typecheckSystem: false,
+        })
+    }
     return {
       installed: true,
       active: options.activate !== false,
@@ -728,7 +779,7 @@ export async function installInterfacePack(spec, options = {}) {
       version: validated.manifest.version,
       path:
         kind === 'system'
-          ? portablePath(relative(paths.workspaceDirectory, destination))
+          ? portablePath(relative(paths.workspaceDirectory, paths.systemSlot))
           : portablePath(relative(paths.dataDirectory, destination)),
     }
   } finally {
@@ -838,25 +889,34 @@ async function installedPacks(kind, options = {}) {
   const paths = defaultInterfacePaths(options)
   const results = []
   if (kind === 'system') {
-    let entries = []
+    let ids = []
     try {
-      entries = await readdir(paths.librariesDirectory, { withFileTypes: true })
+      ids = await readdir(paths.systemsDirectory, { withFileTypes: true })
     } catch (error) {
       if (error.code !== 'ENOENT') throw error
     }
-    for (const entry of entries) {
-      if (!entry.isDirectory() || entry.name.startsWith('.')) continue
-      const root = join(paths.librariesDirectory, entry.name)
-      try {
+    for (const id of ids) {
+      if (!id.isDirectory() || id.name.startsWith('.')) continue
+      const idRoot = join(paths.systemsDirectory, id.name)
+      for (const version of await readdir(idRoot, { withFileTypes: true })) {
+        if (!version.isDirectory() || version.name.startsWith('.')) continue
+        const root = join(idRoot, version.name)
         const manifest = await readJson(
           join(root, PACK_MANIFEST),
           'INTERFACE_PACK_MANIFEST_MISSING',
         )
         if (manifest.kind === 'system') results.push({ root, manifest })
-      } catch (error) {
-        if (error.code !== 'INTERFACE_PACK_MANIFEST_MISSING') throw error
       }
     }
+    const activeManifest = await currentSystemManifest(paths)
+    if (
+      activeManifest &&
+      !results.some(
+        ({ manifest }) =>
+          manifest.id === activeManifest.id && manifest.version === activeManifest.version,
+      )
+    )
+      results.push({ root: paths.systemSlot, manifest: activeManifest })
   } else {
     const root = join(paths.dataDirectory, 'interface-packs', 'skins')
     let ids = []
@@ -887,22 +947,26 @@ export async function listInterfacePacks(kind, options = {}) {
     throw packError('List requires kind skin or system.', 'INTERFACE_PACK_KIND_INVALID')
   const paths = defaultInterfacePaths(options)
   const selection = await readInterfaceSelection(options)
+  const activeSystem = kind === 'system' ? await currentSystemManifest(paths) : null
   const packs = await installedPacks(kind, options)
   return packs
-    .map(({ root, manifest }) => ({
-      id: manifest.id,
-      name: manifest.name,
-      version: manifest.version,
-      kind,
-      active:
+    .map(({ root, manifest }) => {
+      const active =
         kind === 'system'
-          ? selection.system?.id === manifest.id
-          : selection.skin?.id === manifest.id && selection.skin?.version === manifest.version,
-      path:
-        kind === 'system'
-          ? portablePath(relative(paths.workspaceDirectory, root))
-          : portablePath(relative(paths.dataDirectory, root)),
-    }))
+          ? activeSystem?.id === manifest.id && activeSystem?.version === manifest.version
+          : selection.skin?.id === manifest.id && selection.skin?.version === manifest.version
+      return {
+        id: manifest.id,
+        name: manifest.name,
+        version: manifest.version,
+        kind,
+        active,
+        path:
+          kind === 'system' && active
+            ? portablePath(relative(paths.workspaceDirectory, paths.systemSlot))
+            : portablePath(relative(paths.dataDirectory, root)),
+      }
+    })
     .sort(
       (left, right) =>
         left.name.localeCompare(right.name) || right.version.localeCompare(left.version),
@@ -932,28 +996,37 @@ export async function useInterfacePack(kind, id, options = {}) {
     contractPath: paths.contractPath,
     typecheckSystem: options.typecheckSystem ?? true,
   })
+  if (kind === 'system') {
+    await activateInstalledSystem(selected, options)
+    return { kind, id: selected.manifest.id, version: selected.manifest.version, active: true }
+  }
   const selection = await readInterfaceSelection(options)
-  if (kind === 'system')
-    selection.system = {
-      id: selected.manifest.id,
-      version: selected.manifest.version,
-      path: portablePath(relative(paths.workspaceDirectory, selected.root)),
-    }
-  else
-    selection.skin = {
-      id: selected.manifest.id,
-      version: selected.manifest.version,
-      path: portablePath(relative(paths.dataDirectory, selected.root)),
-    }
+  selection.skin = {
+    id: selected.manifest.id,
+    version: selected.manifest.version,
+    path: portablePath(relative(paths.dataDirectory, selected.root)),
+  }
   await writeInterfaceSelection(selection, options)
   return { kind, id: selected.manifest.id, version: selected.manifest.version, active: true }
 }
 
 export async function resetInterfacePack(kind, options = {}) {
   const paths = defaultInterfacePaths(options)
+  if (kind === 'system') {
+    const packs = await installedPacks('system', options)
+    const selected = packs
+      .filter(({ manifest }) => manifest.id === DEFAULT_SYSTEM_ID)
+      .sort((left, right) => right.manifest.version.localeCompare(left.manifest.version))[0]
+    if (!selected)
+      throw packError(
+        'The default System snapshot is unavailable. Reinstall the default System package.',
+        'INTERFACE_DEFAULT_SYSTEM_MISSING',
+      )
+    await activateInstalledSystem(selected, options)
+    return { kind, reset: true, active: DEFAULT_SYSTEM_ID }
+  }
   const selection = await readInterfaceSelection(options)
-  if (kind === 'system') selection.system = defaultSelection(paths).system
-  else if (kind === 'skin') selection.skin = null
+  if (kind === 'skin') selection.skin = null
   else throw packError('Reset requires kind skin or system.', 'INTERFACE_PACK_KIND_INVALID')
   await writeInterfaceSelection(selection, options)
   return { kind, reset: true, active: kind === 'system' ? DEFAULT_SYSTEM_ID : null }
@@ -962,7 +1035,7 @@ export async function resetInterfacePack(kind, options = {}) {
 function selectedRoot(selection, kind, paths) {
   const selected = selection[kind]
   if (!selected) return null
-  const base = kind === 'system' ? paths.workspaceDirectory : paths.dataDirectory
+  const base = paths.dataDirectory
   const root = resolve(base, normalizeRelativePath(selected.path, `${kind}.path`))
   if (!isInside(base, root))
     throw packError(
@@ -975,8 +1048,7 @@ function selectedRoot(selection, kind, paths) {
 export async function resolveActiveInterface(options = {}) {
   const paths = defaultInterfacePaths(options)
   const selection = await readInterfaceSelection(options)
-  const systemRoot = selectedRoot(selection, 'system', paths)
-  const system = await validateInterfacePack(systemRoot, {
+  const system = await validateInterfacePack(paths.systemSlot, {
     ...options,
     expectedKind: 'system',
     applicationRoot: paths.applicationRoot,

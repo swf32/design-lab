@@ -126,10 +126,10 @@ Setup is read-only unless both --apply and --confirm are present. Before using -
 the returned changes in plain language and ask the user to approve them. Setup never moves or
 deletes existing product files.
 
-Theme installs a CSS/token Skin over the active System. System installs a complete executable
-replacement for Design Lab's interface Library. Install validates compatibility and required
-entrypoints before an atomic activation; --no-use keeps the downloaded pack inactive. Reset selects
-the bundled default System or removes the active Skin without deleting installed community packs.
+Theme installs a CSS/token Skin over the active System. System validates and caches a complete
+executable replacement, snapshots the current interface, and physically installs the selection in
+the one libraries/design-lab-system slot; --no-use keeps the downloaded package inactive. Reset
+restores the saved default System or removes the active Skin without deleting cached packages.
 `)
 }
 

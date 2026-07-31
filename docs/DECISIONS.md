@@ -1555,7 +1555,7 @@ loading/error/frame presentation делегирован `RuntimeFrameSurface`. �
 
 ## D-091 — Community customization разделяется на Skin и полную System
 
-**Статус:** принято и реализовано как local-first package contract, 2026-08-01.
+**Статус:** package contract сохранён; multi-Library installation заменена D-092, 2026-08-01.
 
 Skin является версионным CSS/token override-слоем поверх активной System и не заменяет Component
 code. System является полной исполняемой Library и обязана реализовать versioned application
@@ -1598,3 +1598,32 @@ Skin получает документированный `theme.css` с реал
 считаются локальным mod. System получает все entity contracts, потому что полная замена может менять
 Components, Tokens, Assets, Fonts, Wireframes и Pages. Root `rules/SKIN_RULES.md` и
 `rules/SYSTEM_RULES.md` остаются canonical templates, которые CLI копирует при создании пакета.
+
+## D-092 — System устанавливается в один физический слот
+
+**Статус:** принято, 2026-08-01; заменяет storage/activation часть D-091.
+
+Design Lab исполняет ровно одну интерфейсную System из `libraries/design-lab-system/`. Это
+стабильный физический слот и единственный System source, который видят application imports,
+discovery и eager React adapters. Community Systems не устанавливаются рядом как
+`libraries/<system-id>/` и не становятся параллельными Libraries.
+
+Исходник каждой альтернативной System принадлежит отдельному репозиторию автора. Installer
+валидирует пакет, сохраняет install copy под
+`design-lab/.designlab/interface-packs/systems/<id>/<version>/`, снимает snapshot текущего слота и
+атомарно копирует выбранную System в `libraries/design-lab-system/`. `system use` физически меняет
+содержимое того же слота; `system reset` восстанавливает сохранённый default snapshot. Vite aliases
+всегда разрешаются через слот и больше не выбирают одну из нескольких discoverable Libraries.
+
+Следствия:
+
+- одновременно установленными могут быть несколько пакетов, но в `libraries/` видна и исполняется
+  только одна System;
+- после переключения dev/build требуется restart, потому что executable source физически изменён;
+- локальные правки активной System snapshot-ятся перед переключением;
+- default и community System развиваются как отдельные Git repositories;
+- новый обязательный application export делает старую System несовместимой до обновления, а
+  обычный новый необязательный Component может быть перенесён из default repo и визуально
+  адаптирован автором темы;
+- перед обновлением Git-репозитория Design Lab в source checkout следует вернуть default System,
+  потому что физический слот входит в текущий monorepo development layout.

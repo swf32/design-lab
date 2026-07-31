@@ -27,6 +27,18 @@ then expose the smallest necessary System contract.
 - Generated barrels and token CSS are derived files. Change canonical Components, assets, and token
   JSON, then run their generators; do not maintain parallel registries.
 
+## One active installation slot
+
+Design Lab executes one System from `libraries/design-lab-system/`. Published Systems live in
+their own repositories; they are never authored as sibling Libraries inside the same Design Lab
+workspace. The installer validates and caches packages, snapshots the current slot, and then
+physically installs the selected package into that canonical path.
+
+Keep the package id in `design-lab-pack.json` and `library.json`; the slot folder name deliberately
+does not change with the selected package. Inactive Systems must not participate in discovery or
+load their Component styles. Before updating a Design Lab source checkout with Git, restore the
+default System so tracked default source is not mixed with an installed alternative.
+
 The validator proves compatibility, not security. A System contains executable code and must be
 reviewed with the same care as any source dependency.
 

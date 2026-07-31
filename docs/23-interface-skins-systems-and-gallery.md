@@ -112,15 +112,23 @@ npm run designlab -- system reset
 
 Install activates by default; `--no-use` only downloads and validates. Activation is persisted in
 `design-lab/.designlab/interface.json`. Skins are stored by id/version under
-`design-lab/.designlab/interface-packs/skins/`; Systems are installed as ordinary discoverable
-Libraries under `libraries/<id>/`. Both locations are ignored by the default Git configuration.
-Changing the active pack requires restarting dev/build because the aliases are resolved when Vite
-loads its configuration.
+`design-lab/.designlab/interface-packs/skins/`; System packages are cached by id/version under
+`design-lab/.designlab/interface-packs/systems/` and the selected package is physically installed
+into the one executable slot `libraries/design-lab-system/`. Inactive Systems are not Libraries,
+do not appear in the entity catalog, and cannot leak their Component styles into the active shell.
+Changing the active System requires restarting dev/build.
 
 Installation is transactional. A source is copied or downloaded into a staging directory,
-validated there, and only then renamed into its managed destination. An invalid update never
-replaces the installed version. An existing non-pack Library directory is not overwritten. Reset
-changes the active selection but deliberately keeps downloaded packs available for later use.
+validated there, and only then renamed into its managed cache destination. Before activation the
+current physical slot is snapshotted; an invalid update never replaces it. Reset restores the
+saved default package while retaining downloaded packs.
+
+System authors keep each visual direction in a separate Git repository. When Design Lab adds a
+required interface export, `system validate` reports the missing contract before installation.
+When the default System adds optional Components, a theme author may merge the default repository
+upstream or copy the new Component directories, then restyle them inside the theme repository. A
+future `system diff` command will summarize missing, added, and changed Components without making
+that merge automatic.
 
 The installer does not execute npm lifecycle scripts or automatically install a System's arbitrary
 dependencies. A community System should use the existing React peer/runtime or document additional

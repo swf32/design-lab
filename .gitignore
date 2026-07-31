@@ -9,6 +9,7 @@ dist/
 !/libraries/design-lab-system/**
 !/libraries/nuxt-ui-system/
 !/libraries/nuxt-ui-system/**
+/themes/*
 /libraries/nuxt-ui-system/node_modules/
 .DS_Store
 *.log

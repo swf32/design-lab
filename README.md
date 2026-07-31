@@ -40,8 +40,9 @@ npm run designlab -- theme reset
 npm run designlab -- system reset
 ```
 
-`theme` управляет безопасным CSS/token Skin поверх активной системы. `system` управляет полной
-исполняемой заменой интерфейсной Library. Локальные папки, `github:owner/repo#tag`, npm packages и
+`theme` управляет безопасным CSS/token Skin поверх активной системы. `system` физически устанавливает
+полную исполняемую Library в единственный слот `libraries/design-lab-system`. Локальные папки,
+`github:owner/repo#tag`, npm packages и
 tarballs проходят compatibility/entrypoint validation до атомарной установки. Полный контракт и
 модель community gallery описаны в `docs/23-interface-skins-systems-and-gallery.md`. Оба `create`
 scaffold генерируют локальный `AGENTS.md`, понятный README, применимые rules и screenshot checklist;
@@ -52,7 +53,7 @@ Skin также получает документированный шаблон
 - `design-lab/src/views/` — route-level экраны приложения; переиспользуемых UI-компонентов внутри приложения нет.
 - `design-lab/server/` — локальный Node.js API, registry проектов и filesystem gateway.
 - `design-lab/scripts/dev.mjs` — запускает API и Vite вместе.
-- `libraries/design-lab-system/` — редактируемая дефолтная дизайн-система приложения; активная альтернативная System выбирается через проверенный interface-pack resolver без зеркальной копии.
+- `libraries/design-lab-system/` — единственный исполняемый слот интерфейсной системы; default и community Systems хранят исходники в отдельных репозиториях, а installer валидирует, snapshot-ит и атомарно заменяет содержимое слота.
 - `libraries/design-lab-system/components/index.ts` — автоматически генерируемый package barrel из найденных `component.json`, а не ручной реестр.
 - `libraries/design-lab-system/assets/icons/index.ts` — автоматически генерируемый barrel code-native иконок.
 - `rules/COMPONENT_RULES.md`, `rules/WIREFRAME_RULES.md`, `rules/PAGE_RULES.md`, `rules/TOKEN_RULES.md`, `rules/ASSET_RULES.md`, `rules/FONT_RULES.md` — обязательные entity-authoring контракты для людей и агентов; `AGENTS.md`/`CLAUDE.md` в корне ссылаются на них и остаются входной точкой для агентов.
