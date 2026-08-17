@@ -1,0 +1,9 @@
+{
+  "schemaVersion": 1,
+  "system": {
+    "id": "design-lab-system",
+    "version": "0.1.2",
+    "path": "libraries/design-lab-system"
+  },
+  "skin": null
+}
