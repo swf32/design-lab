@@ -47,7 +47,7 @@ Design Lab shell + каталог/Workbench
 
 После установки в чужой проект активная **редактируемая** System живёт в одной видимой папке самого проекта. Пакет Design Lab поставляет default System как начальное содержимое, но runtime, каталог и Workbench читают **одну активную project-owned папку**. Её можно хранить в Git и заменить вручную; после ручной замены совместимость проверяется командой `system doctor`. Это [D-093](DECISIONS.md). Реализованный путь — `design-lab/system/` внутри integration folder: setup копирует туда default System, а resolver и каталог используют эту папку. Локальный tarball установлен и проверен в чистом внешнем Git-проекте. Публикация в registry, миграции версий и полноценное удаление интеграции ещё не сделаны.
 
-Установка новой версии tarball не перезаписывает пользовательские изменения этой папки: внешний fixture поднимает patch version инструмента, меняет его default template и проверяет, что активная System сохранила локальную правку. Default System хранится как template внутри пакета (`vendor/default-system/`) и используется для начального копирования и явного `system reset`. По-прежнему нужны сравнение с новой версией default, миграции и понятное обновление авторской System. При повреждении активной System recovery — явный `system reset`, без скрытого UI kernel. Эти требования согласуются с [D-006](DECISIONS.md), [D-090–D-092](DECISIONS.md) и [System rules](../rules/SYSTEM_RULES.md).
+Установка новой версии tarball не перезаписывает пользовательские изменения этой папки: внешний fixture поднимает patch version инструмента, меняет его default template и проверяет, что активная System сохранила локальную правку. Default System хранится как template внутри пакета (`vendor/default-system/`) и используется для начального копирования и явного `system reset`. Read-only `system diff` сравнивает активную System с template текущей версии пакета и показывает добавленные, отсутствующие и изменённые authored файлы и Components; `system diff <folder>` проверяет отдельную папку. Генерируемые barrels/token CSS и cache не входят в отчёт. Это двустороннее сравнение: оно не отличает локальную правку от upstream изменения и не выполняет merge. Миграции и понятное обновление авторской System всё ещё нужны. При повреждении активной System recovery — явный `system reset`, без скрытого UI kernel. Эти требования согласуются с [D-006](DECISIONS.md), [D-090–D-092](DECISIONS.md) и [System rules](../rules/SYSTEM_RULES.md).
 
 ## Отдельная установка Design Lab
 
@@ -72,6 +72,7 @@ npm install /путь/к/design-lab-0.1.0.tgz
 npx designlab setup --name "My Project"         # read-only план
 npx designlab setup --name "My Project" --apply --confirm
 npx designlab system doctor
+npx designlab system diff                       # только отчёт, без записи
 npx designlab dev
 ```
 
@@ -81,9 +82,9 @@ npx designlab dev
 
 - Публикация и установка по имени из registry, включая release/version policy.
 - Проверка clean install на других ОС и package managers; текущая проверка проведена с npm на macOS.
-- Как обновление пакета показывает diff, сохраняет локальные правки и мигрирует versioned interface contract.
+- Как обновление пакета выполняет безопасный трёхсторонний merge и мигрирует versioned interface contract; текущий `system diff` только показывает двусторонние отличия.
 - Когда изменение Component требует HMR, reload или restart; пользователь должен видеть честный статус.
 - Как UI проводит install/validate/doctor и показывает ошибки понятным дизайнеру языком.
-- Как поддерживать полный System fork без принудительного ручного копирования каждого нового optional Component; `system diff` пока в backlog.
+- Как поддерживать полный System fork без принудительного ручного копирования каждого нового optional Component; текущий `system diff` даёт файловый отчёт, но не синхронизирует fork.
 
 Рабочие задачи для этих пунктов находятся в [приоритетном плане](26-vision-and-next-steps.md) и [checklist](IMPLEMENTATION-CHECKLIST.md).

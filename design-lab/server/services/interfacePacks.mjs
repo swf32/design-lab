@@ -1,6 +1,6 @@
 import { parse } from '@babel/parser'
 import { execFile } from 'node:child_process'
-import { randomUUID } from 'node:crypto'
+import { createHash, randomUUID } from 'node:crypto'
 import { existsSync, readFileSync } from 'node:fs'
 import {
   access,
@@ -39,6 +39,12 @@ const SYSTEM_AUTHORING_RULES = [
   'WIREFRAME_RULES.md',
   'PAGE_RULES.md',
 ]
+const DIFF_IGNORED_DIRECTORIES = new Set(['.git', '.designlab', 'node_modules', 'dist'])
+const DIFF_GENERATED_FILES = new Set([
+  'components/index.ts',
+  'assets/icons/index.ts',
+  'tokens/generated/tokens.css',
+])
 
 function packError(message, code, details = undefined) {
   return Object.assign(new Error(message), { code, details })
@@ -195,16 +201,17 @@ export function defaultInterfacePaths(options = {}) {
     systemSlot: resolve(
       options.systemSlot ?? embeddedSystemPath ?? join(librariesDirectory, DEFAULT_SYSTEM_ID),
     ),
-    defaultSystemSource: embeddedSystemPath
-      ? resolve(
-          options.defaultSystemSource ??
-            (existsSync(
+    defaultSystemSource: options.defaultSystemSource
+      ? resolve(options.defaultSystemSource)
+      : embeddedSystemPath
+        ? resolve(
+            existsSync(
               join(applicationRoot, '..', 'libraries', DEFAULT_SYSTEM_ID, 'design-lab-pack.json'),
             )
               ? join(applicationRoot, '..', 'libraries', DEFAULT_SYSTEM_ID)
-              : join(applicationRoot, 'vendor', 'default-system')),
-        )
-      : null,
+              : join(applicationRoot, 'vendor', 'default-system'),
+          )
+        : null,
     systemsDirectory: resolve(
       options.systemsDirectory ?? join(dataDirectory, 'interface-packs', 'systems'),
     ),
@@ -236,6 +243,84 @@ async function assertPackHasNoSymlinks(root, current = root) {
         'INTERFACE_PACK_SYMLINK_UNSUPPORTED',
       )
     if (entry.isDirectory()) await assertPackHasNoSymlinks(root, target)
+  }
+}
+
+async function authoredSystemFiles(root) {
+  const rootStat = await lstat(root)
+  if (!rootStat.isDirectory())
+    throw packError('A System diff target must be a directory.', 'INTERFACE_PACK_PATH_INVALID')
+  const files = new Map()
+  async function visit(directory) {
+    for (const entry of await readdir(directory, { withFileTypes: true })) {
+      const absolute = join(directory, entry.name)
+      const path = portablePath(relative(root, absolute))
+      if (entry.isSymbolicLink())
+        throw packError(
+          `System diff cannot follow a symbolic link: ${path}.`,
+          'INTERFACE_PACK_SYMLINK_UNSUPPORTED',
+        )
+      if (entry.isDirectory()) {
+        if (!DIFF_IGNORED_DIRECTORIES.has(entry.name)) await visit(absolute)
+      } else if (entry.isFile()) {
+        if (DIFF_GENERATED_FILES.has(path)) continue
+        const digest = createHash('sha256')
+          .update(await readFile(absolute))
+          .digest('hex')
+        files.set(path, digest)
+      } else {
+        throw packError(
+          `System diff cannot read a special file: ${path}.`,
+          'INTERFACE_PACK_PATH_INVALID',
+        )
+      }
+    }
+  }
+  await visit(root)
+  return files
+}
+
+export async function diffInterfaceSystem(options = {}) {
+  const paths = defaultInterfacePaths(options)
+  const baseline = paths.defaultSystemSource ?? paths.systemSlot
+  const target = resolve(options.target ?? paths.systemSlot)
+  const [defaultFiles, targetFiles] = await Promise.all([
+    authoredSystemFiles(baseline),
+    authoredSystemFiles(target),
+  ])
+  const files = { added: [], missing: [], changed: [] }
+  for (const [path, digest] of targetFiles) {
+    if (!defaultFiles.has(path)) files.added.push(path)
+    else if (defaultFiles.get(path) !== digest) files.changed.push(path)
+  }
+  for (const path of defaultFiles.keys()) if (!targetFiles.has(path)) files.missing.push(path)
+  for (const paths of Object.values(files)) paths.sort()
+
+  const componentPaths = (fileMap) =>
+    new Set(
+      [...fileMap.keys()]
+        .filter((path) => /^components\/.+\/component\.json$/.test(path))
+        .map((path) => path.slice(0, -'/component.json'.length)),
+    )
+  const defaultComponents = componentPaths(defaultFiles)
+  const targetComponents = componentPaths(targetFiles)
+  const components = { added: [], missing: [], changed: [] }
+  for (const path of targetComponents) {
+    if (!defaultComponents.has(path)) components.added.push(path)
+    else if (
+      Object.values(files).some((paths) => paths.some((file) => file.startsWith(`${path}/`)))
+    )
+      components.changed.push(path)
+  }
+  for (const path of defaultComponents)
+    if (!targetComponents.has(path)) components.missing.push(path)
+  for (const paths of Object.values(components)) paths.sort()
+  return {
+    baseline,
+    target,
+    files,
+    components,
+    identical: Object.values(files).every((paths) => paths.length === 0),
   }
 }
 

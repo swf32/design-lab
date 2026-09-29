@@ -55,6 +55,7 @@ npm run designlab -- theme install ../my-skin
 npm run designlab -- system create ../my-system --name "My System"
 npm run designlab -- system install ../my-system
 npm run designlab -- system doctor
+npm run designlab -- system diff
 npm run designlab -- theme reset
 npm run designlab -- system reset
 ```

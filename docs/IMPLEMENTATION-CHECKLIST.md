@@ -24,6 +24,9 @@
       и recovery уже проверена; UI для этого пока отсутствует.
 - [ ] Сделать `system diff`/upgrade flow, который показывает изменения default и сохраняет локальные
       правки при обновлении инструмента.
+- [x] Первый read-only `system diff` показывает added/missing/changed authored файлы и Components
+      между активной System и bundled default; внешний fixture проверяет результат после patch upgrade.
+      Пока нет трёхсторонней базы или применения изменений.
 - [x] Удалить эксперимент Glass System и вернуть прежний default look, не меняя архитектуру единой активной System.
 - [x] Проверить полный System fork с изменённой структурой Button и собственным SVG asset в shell и Workbench: внешний browser fixture создаёт fork, валидирует, устанавливает и проверяет обе поверхности.
 - [ ] В будущем провести визуальный редизайн как отдельную задачу, когда workflow создания и замены System будет удобен.
@@ -796,6 +799,8 @@ where they are` и confirm-gated apply plan; ещё нужны post-apply self-c
       style обоих потребителей через HMR и восстанавливает файл.
 - [ ] Добавить версионированное сравнение default template с активной System и явный upgrade flow,
       который сохраняет пользовательские изменения.
+- [x] Добавить двусторонний read-only `system diff` против default template текущего пакета;
+      скрытые cache/derived barrels/token CSS исключены, symlink отклоняется.
 - [ ] Добавить post-apply self-check, repair и uninstall, сохраняющий исходники пользователя.
 - [ ] Подготовить registry release, проверить установку на других ОС и package managers.
 
@@ -864,8 +869,8 @@ native backlog до Web DoD.
       `libraries/design-lab-system`, versioned install cache и snapshot-based recovery (D-092).
 - [x] Не показывать inactive Systems как обычные Libraries и не загружать их Component SCSS в
       application runtime.
-- [ ] Добавить `system diff`/sync report для missing, added и changed Components между default
-      System и отдельным theme repository.
+- [x] Добавить `system diff` report для missing, added и changed Components между default System
+      и активной System или переданной папкой. Sync/merge остаётся открытым.
 - [ ] Создать отдельный `design-lab-gallery` repository, remote verification workers, immutable
       checksums/signatures и generated screenshot publication flow.
 - [ ] Добавить gallery UI с status `community / validated / curated / incompatible` и установкой из

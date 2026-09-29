@@ -243,6 +243,9 @@ try {
     templateMarker,
   )
   await assert.rejects(readFile(join(systemRoot, 'upgrade-smoke-marker.txt'), 'utf8'))
+  const upgradeDiff = parse(await run(cli, ['system', 'diff'], projectRoot))
+  assert(upgradeDiff.files.added.includes('local-smoke-marker.txt'))
+  assert(upgradeDiff.files.missing.includes('upgrade-smoke-marker.txt'))
   if (process.argv.includes('--browser')) await browserSmoke(cli)
 
   const created = parse(

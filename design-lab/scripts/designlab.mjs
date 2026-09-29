@@ -20,6 +20,7 @@ import {
 import { applySetupPlan, createSetupPlan } from '../server/services/setupService.mjs'
 import {
   createInterfacePack,
+  diffInterfaceSystem,
   doctorInterfacePacks,
   installInterfacePack,
   listInterfacePacks,
@@ -117,7 +118,7 @@ Usage:
   npm run designlab -- theme create <folder> [--name <name>] [--id <id>]
   npm run designlab -- theme use <id> [--version <x.y.z>]
   npm run designlab -- theme validate <folder>
-  npm run designlab -- system list|doctor|reset
+  npm run designlab -- system list|doctor|reset|diff [folder]
   npm run designlab -- system install <local-path|github:owner/repo#tag|npm-package> [--no-use]
   npm run designlab -- system create <folder> [--name <name>] [--id <id>]
   npm run designlab -- system use <id> [--version <x.y.z>]
@@ -135,7 +136,10 @@ Setup is read-only unless both --apply and --confirm are present. Before using -
 the returned changes in plain language and ask the user to approve them. Setup never moves or
 deletes existing product files.
 
-Theme installs a CSS/token Skin over the active System. System validates and caches a complete
+Theme installs a CSS/token Skin over the active System. System diff compares authored files in the
+active or named System with the bundled default without writing anything; added/missing directions
+are relative to that default. It is not a three-way merge or an upgrade command.
+System validates and caches a complete
 executable replacement, snapshots the current interface, and physically installs the selection in
 the one libraries/design-lab-system slot; --no-use keeps the downloaded package inactive. Reset
 restores the saved default System or removes the active Skin without deleting cached packages.
@@ -309,6 +313,13 @@ try {
       const result = await doctorInterfacePacks()
       print(result)
       if (!result.ok) process.exitCode = 1
+    } else if (action === 'diff' && kind === 'system') {
+      const target = args[2]
+      print(
+        await diffInterfaceSystem({
+          target: target && !target.startsWith('--') ? target : undefined,
+        }),
+      )
     } else if (action === 'validate') {
       const path = args[2]
       if (!path || path.startsWith('--')) throw new Error(`${command} validate requires a folder`)

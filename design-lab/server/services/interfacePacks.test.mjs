@@ -1,11 +1,12 @@
 import assert from 'node:assert/strict'
-import { mkdir, mkdtemp, readFile, rm, symlink, writeFile } from 'node:fs/promises'
+import { cp, mkdir, mkdtemp, readFile, rm, symlink, writeFile } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { dirname, join, resolve } from 'node:path'
 import test from 'node:test'
 import {
   createInterfacePack,
   defaultInterfacePaths,
+  diffInterfaceSystem,
   doctorInterfacePacks,
   installInterfacePack,
   listInterfacePacks,
@@ -126,6 +127,43 @@ test('compatibility ranges support exact, comparator, caret, and tilde forms', (
   assert.equal(versionSatisfies('0.2.0', '^0.1.0'), false)
   assert.equal(versionSatisfies('1.3.1', '~1.3.0'), true)
   assert.equal(versionSatisfies('1.4.0', '~1.3.0'), false)
+})
+
+test('system diff reports authored file and Component changes without generated files', async () => {
+  await withPackWorkspace(async ({ root, options, librariesDirectory }) => {
+    const active = join(librariesDirectory, 'design-lab-system')
+    const baseline = join(root, 'package-default')
+    await cp(active, baseline, { recursive: true })
+    for (const system of [active, baseline]) {
+      await writeJson(join(system, 'components/atoms/Button/component.json'), { id: 'button' })
+      await writeFile(
+        join(system, 'components/atoms/Button/Button.tsx'),
+        'export const Button = 1\n',
+      )
+      await writeJson(join(system, 'components/atoms/Old/component.json'), { id: 'old' })
+      await writeFile(join(system, 'components/index.ts'), 'generated barrel\n')
+    }
+    await writeFile(join(active, 'components/atoms/Button/Button.tsx'), 'export const Button = 2\n')
+    await rm(join(active, 'components/atoms/Old'), { recursive: true })
+    await writeJson(join(active, 'components/atoms/New/component.json'), { id: 'new' })
+    await writeFile(join(active, 'assets/new.svg'), '<svg xmlns="http://www.w3.org/2000/svg"/>\n')
+    await writeFile(join(active, 'components/index.ts'), 'new generated barrel\n')
+    const diff = await diffInterfaceSystem({ ...options, defaultSystemSource: baseline })
+    assert.equal(diff.identical, false)
+    assert.deepEqual(diff.components, {
+      added: ['components/atoms/New'],
+      missing: ['components/atoms/Old'],
+      changed: ['components/atoms/Button'],
+    })
+    assert(diff.files.added.includes('assets/new.svg'))
+    assert(diff.files.changed.includes('components/atoms/Button/Button.tsx'))
+    assert(!diff.files.changed.includes('components/index.ts'))
+    assert(diff.files.missing.includes('components/atoms/Old/component.json'))
+    await symlink(join(root, 'outside'), join(active, 'assets', 'unsafe.svg'))
+    await assert.rejects(diffInterfaceSystem({ ...options, defaultSystemSource: baseline }), {
+      code: 'INTERFACE_PACK_SYMLINK_UNSUPPORTED',
+    })
+  })
 })
 
 test('embedded config selects one project-owned active System folder', async () => {
