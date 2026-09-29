@@ -43,7 +43,7 @@ async function freePort() {
   return port
 }
 
-async function browserSmoke(cli) {
+async function browserSmoke(cli, { customStructure = false } = {}) {
   const { chromium } = await import('playwright')
   const uiPort = await freePort()
   const apiPort = await freePort()
@@ -97,6 +97,27 @@ async function browserSmoke(cli) {
     await page.locator('.story-comparison .dl-button').first().waitFor({ timeout: 20_000 })
     assert((await page.locator('.story-comparison .dl-button').count()) > 0)
     assert((await page.locator('.dl-button').count()) > 1)
+    if (customStructure) {
+      const decorations = page.locator('.dl-button [data-system-decoration="alternate-smoke"]')
+      const shellDecoration = page.locator(
+        '.dl-button:not(.story-comparison .dl-button) [data-system-decoration="alternate-smoke"]',
+      )
+      const specimenDecoration = page.locator(
+        '.story-comparison .dl-button [data-system-decoration="alternate-smoke"]',
+      )
+      await shellDecoration.first().waitFor()
+      await specimenDecoration.first().waitFor()
+      assert((await decorations.count()) > 1)
+      assert(
+        await page.evaluate(() =>
+          [
+            ...document.querySelectorAll(
+              '.dl-button [data-system-decoration="alternate-smoke"] img',
+            ),
+          ].every((image) => image.complete && image.naturalWidth > 0),
+        ),
+      )
+    }
     await writeFile(
       stylePath,
       `${originalStyle}\n.dl-button { outline: 3px solid rgb(12 34 56) !important; }\n`,
@@ -228,12 +249,30 @@ try {
     await run(cli, ['system', 'create', alternateSystem, '--name', 'Alternate Smoke'], projectRoot),
   )
   assert.equal(created.created, true)
+  const alternateButton = join(alternateSystem, 'components/atoms/actions/Button/Button.tsx')
+  const originalButton = await readFile(alternateButton, 'utf8')
+  assert(originalButton.includes('      {loading ? ('))
+  await mkdir(join(alternateSystem, 'assets/images'), { recursive: true })
+  await writeFile(
+    join(alternateSystem, 'assets/images/system-accent.svg'),
+    '<svg xmlns="http://www.w3.org/2000/svg" width="8" height="8" viewBox="0 0 8 8"><circle cx="4" cy="4" r="4" fill="#7544ee"/></svg>\n',
+  )
+  await writeFile(
+    alternateButton,
+    `import systemAccent from '../../../../assets/images/system-accent.svg'\n${originalButton.replace(
+      '      {loading ? (',
+      '      <span data-system-decoration="alternate-smoke"><img src={systemAccent} alt="" /></span>\n      {loading ? (',
+    )}`,
+  )
+  const validatedFork = parse(await run(cli, ['system', 'validate', alternateSystem], projectRoot))
+  assert.equal(validatedFork.valid, true)
   const installed = parse(await run(cli, ['system', 'install', alternateSystem], projectRoot))
   assert.equal(installed.path, 'design-lab/system')
   assert.equal(
     parse(await run(cli, ['system', 'doctor'], projectRoot)).system.id,
     'alternate-smoke',
   )
+  if (process.argv.includes('--browser')) await browserSmoke(cli, { customStructure: true })
   assert.equal(parse(await run(cli, ['system', 'reset'], projectRoot)).active, 'design-lab-system')
   assert.equal(parse(await run(cli, ['system', 'doctor'], projectRoot)).system.path, systemRoot)
   assert.equal(await readFile(join(systemRoot, 'upgrade-smoke-marker.txt'), 'utf8'), templateMarker)
@@ -248,7 +287,7 @@ try {
   assert.equal(parse(await run(cli, ['system', 'doctor'], projectRoot)).ok, true)
 
   process.stdout.write(
-    `Package smoke passed: pack, attach, one System, versioned upgrade preserving edits, switch, manual folder replacement, reset${process.argv.includes('--browser') ? ', browser Workbench HMR' : ''}.\n`,
+    `Package smoke passed: pack, attach, one System, versioned upgrade preserving edits, validated fork with Component anatomy and SVG asset, switch, manual folder replacement, reset${process.argv.includes('--browser') ? ', browser shell/Workbench fork and HMR' : ''}.\n`,
   )
 } finally {
   if (process.env.DESIGN_LAB_KEEP_SMOKE === '1')

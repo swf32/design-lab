@@ -46,7 +46,7 @@
 - [x] Убрать эксперимент Design Lab Glass System и вернуть прежнюю default System; визуальный редизайн пока не выполнять.
 - [ ] Дать автору понятный стартовый System template и диагностировать отсутствие обязательных экспортов, assets и несовместимость.
 - [ ] Проверить, что в `design-lab/src` не добавляются самостоятельные цвета, типографика, поверхности и visual spacing; новые значения принадлежат System tokens/Components.
-- [ ] Проверить полный System fork, меняющий структуру Component и добавляющий asset, в shell и Workbench; зафиксировать ограничения контракта.
+- [x] Проверить полный System fork, меняющий структуру Button и добавляющий SVG asset, в shell и Workbench; browser fixture подтверждает установку и общий executable source.
 - [ ] Добавить UI workflow для Skin/System create/validate/install/use/doctor с понятной диагностикой.
 - [x] Проверить изменение реального Component style одновременно в её Workbench specimen и shell; браузерная регрессия входит в `test:package:browser`.
 
