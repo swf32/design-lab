@@ -17,7 +17,8 @@
 - [ ] Закрыть полный внешний цикл install → attach/greenfield → dev → редактирование System в
       Catalog/Workbench и shell → restart → upgrade → recovery/uninstall. Clean attach, dev,
       браузерное редактирование, patch upgrade пакета с сохранением System, повторный dev и reset
-      доказаны автоматическим fixture; greenfield и repair/uninstall ещё открыты.
+      доказаны автоматическим fixture; greenfield managed setup/dev тоже проверен. Repair/uninstall
+      ещё открыты.
 - [x] Превратить текущий private monorepo application в устанавливаемый локальный CLI/tarball
       с независимыми портами и project-owned System; registry publication остаётся отдельной задачей.
 - [ ] Добавить UI install/doctor и понятные ошибки compatibility. Ручная замена папки с CLI doctor
@@ -794,6 +795,8 @@ where they are` и confirm-gated apply plan; ещё нужны post-apply self-c
       sources → новая patch version инструмента с изменённым default template без потери локальной
       правки → alternative System → ручная замена одной папки с doctor → reset. Автоматический
       fixture запускается через `npm run test:package --workspace=design-lab`.
+- [x] Отдельно проверить greenfield `setup --mode managed` во внешнем пустом Git-проекте: managed
+      mounts, project-owned System, doctor, sources и работающий UI/API на независимых портах.
 - [x] Проверить отдельные UI/API порты и открыть установленный UI в браузере; изменение токена в
       проектной System обновило реальный shell через Vite HMR.
 - [x] Проверить изменение реального Component style одновременно в Workbench specimen и shell:

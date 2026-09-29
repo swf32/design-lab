@@ -40,7 +40,7 @@
 - [x] Проверить единые imports/discovery и живое обновление shell и Workbench Canvas из активной папки в clean external repo.
 - [x] Сделать первый read-only `system diff` активной System против bundled default с отчётом по файлам и Components.
 - [ ] Добавить базовую версию для трёхстороннего сравнения и безопасный upgrade/recovery flow с локальными правками.
-- [ ] Доказать полный цикл clean install, restart, versioned upgrade и uninstall во внешнем fixture repo; clean install, dev, повторный запуск после patch upgrade инструмента с сохранением локальных правок System и reset проверены. Repair/uninstall остаются открытыми.
+- [ ] Доказать полный цикл clean install, restart, versioned upgrade и uninstall во внешнем fixture repo; attach и отдельный greenfield `Start clean` с dev проверены, как и patch upgrade с сохранением локальных правок System и reset. Repair/uninstall остаются открытыми.
 
 ### P1 — простое создание и замена System
 

@@ -43,6 +43,52 @@ async function freePort() {
   return port
 }
 
+async function cleanDevSmoke(cli, root) {
+  const uiPort = await freePort()
+  const apiPort = await freePort()
+  const logs = []
+  const server = spawn(cli, ['dev'], {
+    cwd: root,
+    env: {
+      ...process.env,
+      DESIGN_LAB_PORT: String(uiPort),
+      DESIGN_LAB_API_PORT: String(apiPort),
+    },
+    stdio: ['ignore', 'pipe', 'pipe'],
+  })
+  for (const stream of [server.stdout, server.stderr])
+    stream.on('data', (chunk) => logs.push(String(chunk)))
+  try {
+    let ready = false
+    for (let attempt = 0; attempt < 80; attempt += 1) {
+      if (server.exitCode !== null) break
+      try {
+        const page = await fetch(`http://localhost:${uiPort}/`)
+        const health = await fetch(`http://127.0.0.1:${apiPort}/api/health`)
+        if (page.ok && health.ok && (await page.text()).includes('Design Lab')) {
+          ready = true
+          break
+        }
+      } catch {
+        /* Wait for the installed UI and API. */
+      }
+      await delay(250)
+    }
+    assert(ready, `Clean managed dev server did not start:\n${logs.join('').slice(-3000)}`)
+    const response = await fetch(`http://127.0.0.1:${apiPort}/api/sources`)
+    assert.equal(response.ok, true)
+    const sources = await response.json()
+    assert(sources.sources.some((source) => source.id === 'design-lab-system'))
+    assert(sources.sources.some((source) => source.id === 'clean-smoke'))
+  } finally {
+    if (server.exitCode === null) {
+      server.kill('SIGINT')
+      await Promise.race([once(server, 'exit'), delay(5000)])
+      if (server.exitCode === null) server.kill('SIGKILL')
+    }
+  }
+}
+
 async function browserSmoke(cli, { customStructure = false } = {}) {
   const { chromium } = await import('playwright')
   const uiPort = await freePort()
@@ -203,6 +249,45 @@ try {
   assert.equal(sources.filter((source) => source.kind === 'library').length, 1)
   assert.equal(sources[0].id, 'design-lab-system')
 
+  const cleanRoot = join(temporary, 'clean-project')
+  await mkdir(cleanRoot)
+  await writeFile(
+    join(cleanRoot, 'package.json'),
+    `${JSON.stringify({ name: 'design-lab-clean-smoke', version: '1.0.0', private: true, type: 'module' })}\n`,
+  )
+  await run('git', ['init', '-q'], cleanRoot)
+  await run('npm', ['install', archive, '--ignore-scripts', '--no-audit', '--no-fund'], cleanRoot)
+  const cleanCli = join(cleanRoot, 'node_modules', '.bin', 'designlab')
+  const cleanPlan = parse(
+    await run(cleanCli, ['setup', '--mode', 'managed', '--name', 'Clean smoke'], cleanRoot),
+  )
+  assert.equal(cleanPlan.mode, 'managed')
+  assert.deepEqual(cleanPlan.changes.moveFiles, [])
+  assert.deepEqual(cleanPlan.changes.deleteFiles, [])
+  const cleanApplied = parse(
+    await run(
+      cleanCli,
+      ['setup', '--mode', 'managed', '--name', 'Clean smoke', '--apply', '--confirm'],
+      cleanRoot,
+    ),
+  )
+  assert.equal(cleanApplied.applied, true)
+  assert.deepEqual(cleanApplied.source.mounts.components, ['design-lab/components'])
+  assert.equal(parse(await run(cleanCli, ['system', 'doctor'], cleanRoot)).ok, true)
+  assert.equal(
+    parse(await readFile(join(cleanRoot, 'design-lab', 'designlab.config.json'), 'utf8')).mode,
+    'managed',
+  )
+  assert(existsSync(join(cleanRoot, 'design-lab', 'components')))
+  assert(existsSync(join(cleanRoot, 'design-lab', 'system', 'design-lab-pack.json')))
+  assert.deepEqual(
+    parse(await run(cleanCli, ['sources'], cleanRoot))
+      .filter((source) => source.kind === 'library')
+      .map((source) => source.id),
+    ['design-lab-system'],
+  )
+  await cleanDevSmoke(cleanCli, cleanRoot)
+
   const marker = `Local edit ${randomUUID()}`
   await writeFile(join(systemRoot, 'local-smoke-marker.txt'), marker)
   await run('npm', ['install', archive, '--ignore-scripts', '--no-audit', '--no-fund'], projectRoot)
@@ -298,7 +383,7 @@ try {
   assert.equal(parse(await run(cli, ['system', 'doctor'], projectRoot)).ok, true)
 
   process.stdout.write(
-    `Package smoke passed: pack, attach, one System, versioned upgrade preserving edits, validated fork with Component anatomy and SVG asset, switch, manual folder replacement, reset${process.argv.includes('--browser') ? ', browser shell/Workbench fork and HMR' : ''}.\n`,
+    `Package smoke passed: pack, attach, clean managed setup, one System, versioned upgrade preserving edits, validated fork with Component anatomy and SVG asset, switch, manual folder replacement, reset${process.argv.includes('--browser') ? ', browser shell/Workbench fork and HMR' : ''}.\n`,
   )
 } finally {
   if (process.env.DESIGN_LAB_KEEP_SMOKE === '1')

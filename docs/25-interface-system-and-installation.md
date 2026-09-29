@@ -78,7 +78,7 @@ npx designlab system diff                       # только отчёт, бе�
 npx designlab dev
 ```
 
-Порты меняются через `DESIGN_LAB_PORT` и `DESIGN_LAB_API_PORT`. Остановить оба процесса можно `Ctrl-C`. Для регрессии локальной установки используются `npm run test:package --workspace=design-lab` и браузерный `npm run test:package:browser --workspace=design-lab`. Последнему нужен Chromium для Playwright или Chrome на macOS; путь к своему браузеру можно передать через `DESIGN_LAB_BROWSER_PATH`.
+Порты меняются через `DESIGN_LAB_PORT` и `DESIGN_LAB_API_PORT`. Остановить оба процесса можно `Ctrl-C`. Для регрессии локальной установки используются `npm run test:package --workspace=design-lab` и браузерный `npm run test:package:browser --workspace=design-lab`. Первый fixture теперь включает отдельный пустой Git-проект: `setup --mode managed`, создание активной System, `doctor` и запуск UI/API. Браузерному fixture нужен Chromium для Playwright или Chrome на macOS; путь к своему браузеру можно передать через `DESIGN_LAB_BROWSER_PATH`.
 
 ## Открытые детали реализации
 
