@@ -619,3 +619,26 @@ export type McpIntegrationInfo = {
 export function getMcpIntegration() {
   return request<McpIntegrationInfo>('/api/integrations/mcp')
 }
+
+export type InterfaceSystemDoctor = {
+  ok: boolean
+  system: { id: string; version: string; path: string } | null
+  skin: { id: string; version: string; path: string } | null
+  diagnostics: Array<{ code: string; message: string }>
+}
+
+export type InterfaceSystemDiff = {
+  baseline: string
+  target: string
+  files: Record<'added' | 'missing' | 'changed', string[]>
+  components: Record<'added' | 'missing' | 'changed', string[]>
+  identical: boolean
+}
+
+export function getInterfaceSystemDoctor() {
+  return request<InterfaceSystemDoctor>('/api/interface/system/doctor')
+}
+
+export function getInterfaceSystemDiff() {
+  return request<InterfaceSystemDiff>('/api/interface/system/diff')
+}

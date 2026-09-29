@@ -112,6 +112,17 @@ A thin legacy-shaped wrapper: `{ revision, entities: <same tree as getProjectTre
 
 Static-ish info payload for the Settings page: the absolute Node executable path, absolute MCP server script path, a ready-to-paste `mcpServers` config block, and CLI usage examples (`getIntegrationInfo`, `server/services/integrationInfo.mjs`). Does not touch the filesystem beyond resolving `import.meta.url`; always returns `200`.
 
+### `GET /api/interface/system/doctor` and `GET /api/interface/system/diff`
+
+Read-only Settings diagnostics over the same services as `designlab system doctor` and `designlab system diff`.
+`doctor` returns `{ ok, system: { id, version, path } | null, skin, diagnostics[] }` and uses the
+real application typecheck; an invalid System is reported as `200` with `ok: false` and coded
+diagnostics. `diff` returns `{ baseline, target, files: { added[], missing[], changed[] },
+components: { added[], missing[], changed[] }, identical }`. Paths in each list are relative to
+the System root, and added/missing are relative to the bundled default. The endpoint compares
+authored files only; it does not write, merge, or distinguish local edits from upstream changes.
+If a folder cannot be read, the generic server error convention applies.
+
 ## What is intentionally not here
 
 - **MCP** (`designlab_sources`/`designlab_search`/`designlab_get` over stdio) and the **CLI** (`npm run designlab -- ...`) are separate adapters over the same `contextGateway`, not HTTP routes — see `09-ai-context-and-mcp.md`.

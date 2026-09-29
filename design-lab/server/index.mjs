@@ -15,6 +15,7 @@ import { getAuthoredStyles } from './services/authoredStyles.mjs'
 import { patchEntityManifest } from './services/manifestWrite.mjs'
 import { getComponentHandoff } from './services/componentHandoff.mjs'
 import { applySetupPlan, createSetupPlan } from './services/setupService.mjs'
+import { diffInterfaceSystem, doctorInterfacePacks } from './services/interfacePacks.mjs'
 import {
   closeComponentRuntimes,
   prepareComponentRuntime,
@@ -37,6 +38,12 @@ createServer(async (request, response) => {
     }
     if (request.method === 'GET' && url.pathname === '/api/integrations/mcp') {
       return sendJson(response, 200, getIntegrationInfo())
+    }
+    if (request.method === 'GET' && url.pathname === '/api/interface/system/doctor') {
+      return sendJson(response, 200, await doctorInterfacePacks())
+    }
+    if (request.method === 'GET' && url.pathname === '/api/interface/system/diff') {
+      return sendJson(response, 200, await diffInterfaceSystem())
     }
     if (request.method === 'GET' && url.pathname === '/api/onboarding/scan') {
       return sendJson(

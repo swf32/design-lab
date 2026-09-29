@@ -137,6 +137,14 @@ async function browserSmoke(cli, { customStructure = false } = {}) {
       null,
       { timeout: 15_000 },
     )
+    await page.locator('.app-sidebar__footer .sidebar-tab').click()
+    await page.getByRole('heading', { name: 'Active System' }).waitFor()
+    await page.getByText('Compatible', { exact: true }).waitFor()
+    await page.getByText('Authored files differ from the bundled default.').waitFor()
+    if (customStructure) {
+      await page.getByRole('heading', { name: 'Components' }).waitFor()
+      await page.getByText('alternate-smoke', { exact: true }).waitFor()
+    }
     assert.deepEqual(pageErrors, [])
   } finally {
     await writeFile(stylePath, originalStyle)

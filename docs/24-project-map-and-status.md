@@ -40,6 +40,7 @@ Design Lab — локальное, ориентированное на диза�
 - Vue не закрыла всю web feature matrix; Svelte runtime ещё не начат. React System Stories/Preview/Playground в embedded режиме берутся из project-owned папки, но остальные React sources и Wireframe/Page всё ещё используют build-time eager registries. См. [аудит](22-web-stack-coupling-audit.md).
 - UI для выбора/установки Skin и System не найден в текущем Settings: эти операции сейчас выполняются через CLI. [Галерея сообщества](23-interface-skins-systems-and-gallery.md#community-distribution-and-gallery) запланирована.
 - Read-only `system diff` показывает файловые и Component отличия от bundled default. Трёхсторонняя база и удобный путь синхронизации альтернативной System с обновлениями default ещё не реализованы. Полная System обязана удовлетворять [application contract](../design-lab/interface-system-contract.json).
+- Settings теперь показывает результат проверки активной System и раскрываемый read-only diff с bundled default через локальный API. Создание, установка и восстановление System из UI пока не реализованы.
 - Rules/Decisions/Prompts как полноценные UI-модули, embeddings, hosted collaboration, Figma integration и нативные платформы остаются следующими фазами; статус отдельных вертикалей смотрите в [checklist](IMPLEMENTATION-CHECKLIST.md).
 
 ## Как читать противоречия

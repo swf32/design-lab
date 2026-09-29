@@ -49,6 +49,7 @@
 - [ ] Проверить, что в `design-lab/src` не добавляются самостоятельные цвета, типографика, поверхности и visual spacing; новые значения принадлежат System tokens/Components.
 - [x] Проверить полный System fork, меняющий структуру Button и добавляющий SVG asset, в shell и Workbench; browser fixture подтверждает установку и общий executable source.
 - [ ] Добавить UI workflow для Skin/System create/validate/install/use/doctor с понятной диагностикой.
+- [x] Показать в Settings read-only doctor и diff активной System; визуальные действия создания, установки и восстановления остаются следующим этапом.
 - [x] Проверить изменение реального Component style одновременно в её Workbench specimen и shell; браузерная регрессия входит в `test:package:browser`.
 
 ### P2 — завершить attach и web adapters

@@ -9,6 +9,7 @@
   margin-bottom: 18px;
 }
 .settings-page__intro {
+  margin-top: 14px;
   padding: 18px;
   border: 1px solid var(--color-border-subtle);
   border-radius: var(--corner-surface);
@@ -17,6 +18,56 @@
   align-items: flex-start;
   justify-content: space-between;
   gap: 24px;
+}
+.settings-section--system {
+  margin-top: 0;
+}
+.settings-system__header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--space-16);
+}
+.settings-system__header .dl-button {
+  flex: none;
+}
+.settings-system__status {
+  margin-top: var(--space-16);
+}
+.settings-system__status p,
+.settings-system__diff p {
+  color: var(--color-text-muted);
+  overflow-wrap: anywhere;
+}
+.settings-system__status .settings-page__error {
+  color: var(--color-status-danger);
+}
+.settings-system__status code,
+.settings-system__diff code {
+  color: var(--color-text-secondary);
+}
+.settings-system__diff {
+  margin-top: var(--space-16);
+  border-top: 1px solid var(--color-border-subtle);
+}
+.settings-system__diff-groups {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-16);
+}
+.settings-system__diff-group h4 {
+  color: var(--color-text-secondary);
+}
+.settings-system__diff-group details {
+  margin-top: var(--space-8);
+  color: var(--color-text-muted);
+}
+.settings-system__diff-group summary {
+  cursor: pointer;
+}
+.settings-system__diff-group ul {
+  padding-left: var(--space-16);
+  overflow-wrap: anywhere;
 }
 .settings-page__intro span,
 .settings-section header > span {
@@ -109,6 +160,14 @@
 }
 
 @media (max-width: 760px) {
+  .settings-system__header {
+    flex-direction: column;
+  }
+
+  .settings-system__diff-groups {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
   .settings-page {
     padding: calc(var(--space-16) + var(--space-4)) var(--space-16)
       calc(var(--space-16) + var(--space-8) + env(safe-area-inset-bottom));
