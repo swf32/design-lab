@@ -626,6 +626,51 @@ export async function validateInterfacePack(root, options = {}) {
   return validated
 }
 
+async function localInterfaceDirectory(path, options = {}) {
+  if (typeof path !== 'string' || !path.trim())
+    throw packError('Choose a local System folder.', 'INTERFACE_PACK_SOURCE_REQUIRED')
+  const workspaceDirectory = defaultInterfacePaths(options).workspaceDirectory
+  const root = resolve(options.cwd ?? workspaceDirectory, path.trim())
+  let info
+  try {
+    info = await lstat(root)
+  } catch (error) {
+    if (error.code === 'ENOENT')
+      throw packError('The System folder does not exist.', 'INTERFACE_PACK_SOURCE_NOT_FOUND')
+    throw error
+  }
+  if (!info.isDirectory())
+    throw packError('Choose a local System directory.', 'INTERFACE_PACK_SOURCE_NOT_DIRECTORY')
+  return root
+}
+
+export async function inspectLocalInterfaceSystem(path, options = {}) {
+  const root = await localInterfaceDirectory(path, options)
+  const validated = await validateInterfacePack(root, {
+    ...options,
+    expectedKind: 'system',
+    typecheckSystem: options.typecheckSystem ?? true,
+  })
+  return {
+    valid: true,
+    path: root,
+    id: validated.manifest.id,
+    name: validated.manifest.name,
+    version: validated.manifest.version,
+    description: validated.manifest.description ?? '',
+    canInstall: validated.manifest.id !== DEFAULT_SYSTEM_ID,
+  }
+}
+
+export async function installLocalInterfaceSystem(path, options = {}) {
+  const root = await localInterfaceDirectory(path, options)
+  return installInterfacePack(root, {
+    ...options,
+    kind: 'system',
+    activate: true,
+  })
+}
+
 function parseGithubSource(spec) {
   if (!spec.startsWith('github:')) return null
   const value = spec.slice('github:'.length)
@@ -1177,6 +1222,23 @@ export async function resetInterfacePack(kind, options = {}) {
   else throw packError('Reset requires kind skin or system.', 'INTERFACE_PACK_KIND_INVALID')
   await writeInterfaceSelection(selection, options)
   return { kind, reset: true, active: kind === 'system' ? DEFAULT_SYSTEM_ID : null }
+}
+
+export async function defaultSystemRecovery(options = {}) {
+  const paths = defaultInterfacePaths(options)
+  if (paths.defaultSystemSource && existsSync(join(paths.defaultSystemSource, PACK_MANIFEST))) {
+    const manifest = await readJson(
+      join(paths.defaultSystemSource, PACK_MANIFEST),
+      'INTERFACE_DEFAULT_SYSTEM_MISSING',
+    )
+    return { available: true, source: 'bundled', version: manifest.version }
+  }
+  const snapshots = (await installedPacks('system', options))
+    .filter(({ root, manifest }) => root !== paths.systemSlot && manifest.id === DEFAULT_SYSTEM_ID)
+    .sort((left, right) => right.manifest.version.localeCompare(left.manifest.version))
+  return snapshots.length
+    ? { available: true, source: 'snapshot', version: snapshots[0].manifest.version }
+    : { available: false, source: null, version: null }
 }
 
 function selectedRoot(selection, kind, paths) {

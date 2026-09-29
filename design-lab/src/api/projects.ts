@@ -642,3 +642,56 @@ export function getInterfaceSystemDoctor() {
 export function getInterfaceSystemDiff() {
   return request<InterfaceSystemDiff>('/api/interface/system/diff')
 }
+
+export type InterfaceSystemRecovery = {
+  available: boolean
+  source: 'bundled' | 'snapshot' | null
+  version: string | null
+}
+
+export function getInterfaceSystemRecovery() {
+  return request<InterfaceSystemRecovery>('/api/interface/system/recovery')
+}
+
+export type LocalInterfaceSystemInspection = {
+  valid: true
+  path: string
+  id: string
+  name: string
+  version: string
+  description: string
+  canInstall: boolean
+}
+
+export function inspectLocalInterfaceSystem(path: string) {
+  return request<LocalInterfaceSystemInspection>('/api/interface/system/inspect', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', 'X-Design-Lab-UI': '1' },
+    body: JSON.stringify({ path }),
+  })
+}
+
+export function installLocalInterfaceSystem(path: string) {
+  return request<{
+    installed: true
+    id: string
+    name: string
+    version: string
+    restartRequired: true
+  }>('/api/interface/system/install', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', 'X-Design-Lab-UI': '1' },
+    body: JSON.stringify({ path, confirmed: true }),
+  })
+}
+
+export function resetInterfaceSystem() {
+  return request<{ reset: true; active: string; restartRequired: true }>(
+    '/api/interface/system/reset',
+    {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'X-Design-Lab-UI': '1' },
+      body: JSON.stringify({ confirmed: true }),
+    },
+  )
+}

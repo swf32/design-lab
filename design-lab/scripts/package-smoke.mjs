@@ -6,7 +6,7 @@ import { existsSync } from 'node:fs'
 import { cp, mkdtemp, mkdir, readFile, realpath, rm, writeFile } from 'node:fs/promises'
 import { createServer } from 'node:net'
 import { tmpdir } from 'node:os'
-import { join, resolve } from 'node:path'
+import { join, relative, resolve } from 'node:path'
 import { setTimeout as delay } from 'node:timers/promises'
 import { fileURLToPath } from 'node:url'
 import { promisify } from 'node:util'
@@ -89,7 +89,10 @@ async function cleanDevSmoke(cli, root) {
   }
 }
 
-async function browserSmoke(cli, { customStructure = false } = {}) {
+async function browserSmoke(
+  cli,
+  { customStructure = false, installCandidate = null, resetSystem = false } = {},
+) {
   const { chromium } = await import('playwright')
   const uiPort = await freePort()
   const apiPort = await freePort()
@@ -100,6 +103,7 @@ async function browserSmoke(cli, { customStructure = false } = {}) {
       : undefined)
   const stylePath = join(systemRoot, 'components/atoms/actions/Button/Button.scss')
   const originalStyle = await readFile(stylePath, 'utf8')
+  let styleChanged = false
   const logs = []
   const server = spawn(cli, ['dev'], {
     cwd: projectRoot,
@@ -168,6 +172,7 @@ async function browserSmoke(cli, { customStructure = false } = {}) {
       stylePath,
       `${originalStyle}\n.dl-button { outline: 3px solid rgb(12 34 56) !important; }\n`,
     )
+    styleChanged = true
     await page.waitForFunction(
       () => {
         const buttons = [...document.querySelectorAll('.dl-button')]
@@ -183,6 +188,8 @@ async function browserSmoke(cli, { customStructure = false } = {}) {
       null,
       { timeout: 15_000 },
     )
+    await writeFile(stylePath, originalStyle)
+    styleChanged = false
     await page.locator('.app-sidebar__footer .sidebar-tab').click()
     await page.getByRole('heading', { name: 'Active System' }).waitFor()
     await page.getByText('Compatible', { exact: true }).waitFor()
@@ -192,8 +199,31 @@ async function browserSmoke(cli, { customStructure = false } = {}) {
       await page.getByText('alternate-smoke', { exact: true }).waitFor()
     }
     assert.deepEqual(pageErrors, [])
+    if (installCandidate) {
+      await page
+        .getByRole('textbox', { name: 'System folder' })
+        .fill(relative(projectRoot, installCandidate))
+      await page.getByRole('button', { name: 'Check folder' }).click()
+      await page.getByRole('button', { name: 'Install this System' }).waitFor()
+      await page.getByRole('button', { name: 'Install this System' }).click()
+      const [response] = await Promise.all([
+        page.waitForResponse((result) => result.url().endsWith('/api/interface/system/install')),
+        page.getByRole('button', { name: 'Install System', exact: true }).click(),
+      ])
+      assert.equal(response.status(), 200)
+      assert.equal((await response.json()).id, 'alternate-smoke')
+    }
+    if (resetSystem) {
+      await page.getByRole('button', { name: 'Restore default' }).first().click()
+      const [response] = await Promise.all([
+        page.waitForResponse((result) => result.url().endsWith('/api/interface/system/reset')),
+        page.getByRole('dialog').getByRole('button', { name: 'Restore default' }).click(),
+      ])
+      assert.equal(response.status(), 200)
+      assert.equal((await response.json()).active, 'design-lab-system')
+    }
   } finally {
-    await writeFile(stylePath, originalStyle)
+    if (styleChanged) await writeFile(stylePath, originalStyle)
     await browser?.close()
     if (server.exitCode === null) {
       server.kill('SIGINT')
@@ -362,14 +392,23 @@ try {
   )
   const validatedFork = parse(await run(cli, ['system', 'validate', alternateSystem], projectRoot))
   assert.equal(validatedFork.valid, true)
-  const installed = parse(await run(cli, ['system', 'install', alternateSystem], projectRoot))
-  assert.equal(installed.path, 'design-lab/system')
+  if (process.argv.includes('--browser'))
+    await browserSmoke(cli, { installCandidate: alternateSystem })
+  else {
+    const installed = parse(await run(cli, ['system', 'install', alternateSystem], projectRoot))
+    assert.equal(installed.path, 'design-lab/system')
+  }
   assert.equal(
     parse(await run(cli, ['system', 'doctor'], projectRoot)).system.id,
     'alternate-smoke',
   )
-  if (process.argv.includes('--browser')) await browserSmoke(cli, { customStructure: true })
-  assert.equal(parse(await run(cli, ['system', 'reset'], projectRoot)).active, 'design-lab-system')
+  if (process.argv.includes('--browser'))
+    await browserSmoke(cli, { customStructure: true, resetSystem: true })
+  else
+    assert.equal(
+      parse(await run(cli, ['system', 'reset'], projectRoot)).active,
+      'design-lab-system',
+    )
   assert.equal(parse(await run(cli, ['system', 'doctor'], projectRoot)).system.path, systemRoot)
   assert.equal(await readFile(join(systemRoot, 'upgrade-smoke-marker.txt'), 'utf8'), templateMarker)
 

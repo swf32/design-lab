@@ -1,12 +1,18 @@
 import './SettingsView.scss'
-import { useCallback, useEffect, useState } from 'react'
-import { Button, CodeBlock, ModuleHeader } from '@design-lab/system/components'
+import { useCallback, useEffect, useRef, useState } from 'react'
+import { Button, CodeBlock, Dialog, Input, ModuleHeader } from '@design-lab/system/components'
 import {
   getInterfaceSystemDiff,
   getInterfaceSystemDoctor,
+  getInterfaceSystemRecovery,
   getMcpIntegration,
+  inspectLocalInterfaceSystem,
+  installLocalInterfaceSystem,
+  resetInterfaceSystem,
   type InterfaceSystemDiff,
   type InterfaceSystemDoctor,
+  type InterfaceSystemRecovery,
+  type LocalInterfaceSystemInspection,
   type McpIntegrationInfo,
 } from '../../api/projects'
 
@@ -49,25 +55,44 @@ export function SettingsView({ onClose }: { onClose: () => void }) {
   const [error, setError] = useState<string | null>(null)
   const [systemDoctor, setSystemDoctor] = useState<InterfaceSystemDoctor | null>(null)
   const [systemDiff, setSystemDiff] = useState<InterfaceSystemDiff | null>(null)
+  const [systemRecovery, setSystemRecovery] = useState<InterfaceSystemRecovery | null>(null)
   const [systemError, setSystemError] = useState<string | null>(null)
   const [systemLoading, setSystemLoading] = useState(false)
+  const [systemFolder, setSystemFolder] = useState('')
+  const [candidate, setCandidate] = useState<LocalInterfaceSystemInspection | null>(null)
+  const [candidateError, setCandidateError] = useState<string | null>(null)
+  const [candidateLoading, setCandidateLoading] = useState(false)
+  const candidateRequest = useRef(0)
+  const [installConfirmOpen, setInstallConfirmOpen] = useState(false)
+  const [installing, setInstalling] = useState(false)
+  const [installResult, setInstallResult] = useState<string | null>(null)
+  const [resetConfirmOpen, setResetConfirmOpen] = useState(false)
+  const [resetting, setResetting] = useState(false)
 
   const refreshSystem = useCallback(async () => {
     setSystemLoading(true)
     setSystemError(null)
-    const [doctor, diff] = await Promise.allSettled([
+    const [doctor, diff, recovery] = await Promise.allSettled([
       getInterfaceSystemDoctor(),
       getInterfaceSystemDiff(),
+      getInterfaceSystemRecovery(),
     ])
     setSystemDoctor(doctor.status === 'fulfilled' ? doctor.value : null)
     setSystemDiff(diff.status === 'fulfilled' ? diff.value : null)
-    if (doctor.status === 'rejected' || diff.status === 'rejected') {
+    setSystemRecovery(recovery.status === 'fulfilled' ? recovery.value : null)
+    if (
+      doctor.status === 'rejected' ||
+      diff.status === 'rejected' ||
+      recovery.status === 'rejected'
+    ) {
       const failure =
         doctor.status === 'rejected'
           ? doctor.reason
           : diff.status === 'rejected'
             ? diff.reason
-            : null
+            : recovery.status === 'rejected'
+              ? recovery.reason
+              : null
       setSystemError(failure instanceof Error ? failure.message : 'Could not check the System.')
     }
     setSystemLoading(false)
@@ -82,6 +107,63 @@ export function SettingsView({ onClose }: { onClose: () => void }) {
   useEffect(() => {
     void refreshSystem()
   }, [refreshSystem])
+
+  const inspectCandidate = async () => {
+    const request = ++candidateRequest.current
+    setCandidateLoading(true)
+    setCandidateError(null)
+    setInstallResult(null)
+    try {
+      const inspection = await inspectLocalInterfaceSystem(systemFolder.trim())
+      if (candidateRequest.current === request) setCandidate(inspection)
+    } catch (cause) {
+      if (candidateRequest.current === request) {
+        setCandidate(null)
+        setCandidateError(cause instanceof Error ? cause.message : 'Could not check the folder.')
+      }
+    } finally {
+      if (candidateRequest.current === request) setCandidateLoading(false)
+    }
+  }
+
+  const installCandidate = async () => {
+    if (!candidate) return
+    setInstalling(true)
+    setCandidateError(null)
+    try {
+      const result = await installLocalInterfaceSystem(candidate.path)
+      setInstallResult(
+        `${result.name} ${result.version} is installed. Restart Design Lab to load it.`,
+      )
+      setCandidate(null)
+      setInstallConfirmOpen(false)
+      void refreshSystem()
+    } catch (cause) {
+      setCandidateError(cause instanceof Error ? cause.message : 'Could not install the System.')
+      setInstallConfirmOpen(false)
+    } finally {
+      setInstalling(false)
+    }
+  }
+
+  const restoreDefaultSystem = async () => {
+    setResetting(true)
+    setSystemError(null)
+    try {
+      await resetInterfaceSystem()
+      setInstallResult('Bundled default System restored. Restart Design Lab to load it.')
+      setResetConfirmOpen(false)
+      setCandidate(null)
+      void refreshSystem()
+    } catch (cause) {
+      setSystemError(
+        cause instanceof Error ? cause.message : 'Could not restore the default System.',
+      )
+      setResetConfirmOpen(false)
+    } finally {
+      setResetting(false)
+    }
+  }
 
   return (
     <section className="settings-page">
@@ -153,7 +235,152 @@ export function SettingsView({ onClose }: { onClose: () => void }) {
             </div>
           </div>
         )}
+
+        <div className="settings-system__install">
+          <h4>Install a System from a folder</h4>
+          <p>
+            Choose a local folder containing a complete System. A relative path starts at the
+            project root. The app checks compatibility before you decide to replace the active
+            System.
+          </p>
+          <form
+            className="settings-system__install-form"
+            onSubmit={(event) => {
+              event.preventDefault()
+              void inspectCandidate()
+            }}
+          >
+            <Input
+              label="System folder"
+              value={systemFolder}
+              onChange={(event) => {
+                candidateRequest.current += 1
+                setSystemFolder(event.currentTarget.value)
+                setCandidate(null)
+                setCandidateError(null)
+                setCandidateLoading(false)
+              }}
+              placeholder="../my-system"
+              fullWidth
+            />
+            <Button
+              type="submit"
+              size="small"
+              loading={candidateLoading}
+              disabled={!systemFolder.trim()}
+            >
+              Check folder
+            </Button>
+          </form>
+          {candidateError && (
+            <p className="settings-page__error" role="alert">
+              {candidateError}
+            </p>
+          )}
+          {installResult && <p role="status">{installResult}</p>}
+          {candidate && (
+            <div className="settings-system__candidate" role="status">
+              <strong>
+                {candidate.name} · {candidate.version}
+              </strong>
+              <p>{candidate.description || 'Complete interface System'}</p>
+              <code>{candidate.path}</code>
+              {candidate.canInstall ? (
+                <Button type="button" size="small" onClick={() => setInstallConfirmOpen(true)}>
+                  Install this System
+                </Button>
+              ) : (
+                <p>This is the bundled default. Use System recovery to restore it.</p>
+              )}
+            </div>
+          )}
+        </div>
+        {systemRecovery?.available && (
+          <div className="settings-system__recovery">
+            <h4>Restore the default System</h4>
+            <p>
+              Replaces the active folder with the bundled default. Design Lab saves a snapshot of
+              the current System before restoring it. Restart afterward.
+            </p>
+            <Button
+              type="button"
+              size="small"
+              disabled={systemDoctor?.system?.id === 'design-lab-system' && systemDiff?.identical}
+              onClick={() => setResetConfirmOpen(true)}
+            >
+              Restore default
+            </Button>
+          </div>
+        )}
       </section>
+
+      <Dialog
+        open={installConfirmOpen}
+        title="Install interface System?"
+        eyebrow="Replace active System"
+        description="Design Lab will save a snapshot of the current System, validate the selected folder again, and install it into the one active slot. Restart Design Lab afterward."
+        onClose={() => setInstallConfirmOpen(false)}
+        dismissible={!installing}
+        footer={
+          <>
+            <Button
+              type="button"
+              variant="ghost"
+              disabled={installing}
+              onClick={() => setInstallConfirmOpen(false)}
+            >
+              Cancel
+            </Button>
+            <Button
+              type="button"
+              variant="primary"
+              loading={installing}
+              onClick={() => void installCandidate()}
+            >
+              Install System
+            </Button>
+          </>
+        }
+      >
+        {candidate && (
+          <p>
+            <strong>
+              {candidate.name} {candidate.version}
+            </strong>
+            <br />
+            <code>{candidate.path}</code>
+          </p>
+        )}
+      </Dialog>
+
+      <Dialog
+        open={resetConfirmOpen}
+        title="Restore default System?"
+        eyebrow="Replace active System"
+        description="This replaces the active project-owned System folder with the bundled default. A snapshot of the current folder is saved first. Restart Design Lab afterward."
+        onClose={() => setResetConfirmOpen(false)}
+        dismissible={!resetting}
+        footer={
+          <>
+            <Button
+              type="button"
+              variant="ghost"
+              disabled={resetting}
+              onClick={() => setResetConfirmOpen(false)}
+            >
+              Cancel
+            </Button>
+            <Button
+              type="button"
+              variant="primary"
+              loading={resetting}
+              onClick={() => void restoreDefaultSystem()}
+            >
+              Restore default
+            </Button>
+          </>
+        }
+      />
 
       <div className="settings-page__intro">
         <div>

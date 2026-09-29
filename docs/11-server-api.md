@@ -123,6 +123,33 @@ the System root, and added/missing are relative to the bundled default. The endp
 authored files only; it does not write, merge, or distinguish local edits from upstream changes.
 If a folder cannot be read, the generic server error convention applies.
 
+### `GET /api/interface/system/recovery`
+
+Reports whether the bundled default System can be restored: `{ available, source, version }`.
+The source is the package template in an embedded installation or a saved default snapshot in
+the development checkout. This endpoint does not change the active System.
+
+### `POST /api/interface/system/inspect`
+
+JSON body `{ "path": "../my-system" }`. A relative path starts at the product repository root.
+Validates a complete local System, including the application typecheck, and returns
+`{ valid, path, id, name, version, description, canInstall }`. The default System ID has
+`canInstall: false`; restore it with `reset`. This read operation uses the UI request guard below.
+
+### `POST /api/interface/system/install` and `POST /api/interface/system/reset`
+
+`install` accepts `{ "path": "../my-system", "confirmed": true }`; it revalidates the folder,
+saves a snapshot of the current active System, and installs into the one active project-owned slot.
+`reset` accepts `{ "confirmed": true }`; it saves a snapshot and restores the bundled default.
+Both return the corresponding CLI service result plus `restartRequired: true` and increment the
+API revision. The running UI must be restarted to load changed executable System code.
+
+All three POST routes require `Content-Type: application/json` and `X-Design-Lab-UI: 1`;
+otherwise they return `403` with `INTERFACE_UI_REQUEST_REQUIRED`. Missing confirmation returns
+`409` (`INTERFACE_INSTALL_CONFIRMATION_REQUIRED` or `INTERFACE_RESET_CONFIRMATION_REQUIRED`).
+System validation/path failures return `422` with their `INTERFACE_*` code and message. These
+routes are intended for the local Design Lab process and do not authorize remote System uploads.
+
 ## What is intentionally not here
 
 - **MCP** (`designlab_sources`/`designlab_search`/`designlab_get` over stdio) and the **CLI** (`npm run designlab -- ...`) are separate adapters over the same `contextGateway`, not HTTP routes — see `09-ai-context-and-mcp.md`.

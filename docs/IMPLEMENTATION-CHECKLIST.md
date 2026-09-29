@@ -21,10 +21,12 @@
       ещё открыты.
 - [x] Превратить текущий private monorepo application в устанавливаемый локальный CLI/tarball
       с независимыми портами и project-owned System; registry publication остаётся отдельной задачей.
-- [ ] Добавить UI install/doctor и понятные ошибки compatibility. Ручная замена папки с CLI doctor
-      и recovery уже проверена; UI для этого пока отсутствует.
-- [x] Вывести в Settings read-only System doctor и diff с кнопкой повторной проверки;
-      create/install/reset и безопасный upgrade через UI остаются открытыми.
+- [x] Добавить в Settings первый UI путь проверки и установки полной System из локальной папки:
+      relative path от корня проекта, contract/typecheck до установки, повторная проверка перед
+      активацией, подтверждение, snapshot прежней System и сообщение о необходимости restart.
+      Создание System, архивы и управление Skin через UI остаются открытыми.
+- [x] Вывести в Settings System doctor и read-only diff с кнопкой повторной проверки, а также
+      явное восстановление bundled default со snapshot; безопасный versioned upgrade остаётся открытым.
 - [ ] Сделать `system diff`/upgrade flow, который показывает изменения default и сохраняет локальные
       правки при обновлении инструмента.
 - [x] Первый read-only `system diff` показывает added/missing/changed authored файлы и Components

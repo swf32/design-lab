@@ -6,8 +6,11 @@ import test from 'node:test'
 import {
   createInterfacePack,
   defaultInterfacePaths,
+  defaultSystemRecovery,
   diffInterfaceSystem,
   doctorInterfacePacks,
+  inspectLocalInterfaceSystem,
+  installLocalInterfaceSystem,
   installInterfacePack,
   listInterfacePacks,
   readInterfaceSelection,
@@ -163,6 +166,58 @@ test('system diff reports authored file and Component changes without generated 
     await assert.rejects(diffInterfaceSystem({ ...options, defaultSystemSource: baseline }), {
       code: 'INTERFACE_PACK_SYMLINK_UNSUPPORTED',
     })
+  })
+})
+
+test('local System inspection and install share the validated one-slot installer', async () => {
+  await withPackWorkspace(async ({ root, options, sources, librariesDirectory }) => {
+    assert.equal((await defaultSystemRecovery(options)).available, false)
+    const candidate = join(sources, 'new-system')
+    await writeSystem(candidate, { id: 'new-system' })
+    await assert.rejects(inspectLocalInterfaceSystem('', options), {
+      code: 'INTERFACE_PACK_SOURCE_REQUIRED',
+    })
+    await assert.rejects(inspectLocalInterfaceSystem('missing-system', options), {
+      code: 'INTERFACE_PACK_SOURCE_NOT_FOUND',
+    })
+    const inspected = await inspectLocalInterfaceSystem('sources/new-system', options)
+    assert.equal(inspected.valid, true)
+    assert.equal(inspected.id, 'new-system')
+    assert.equal(inspected.canInstall, true)
+    const installed = await installLocalInterfaceSystem('sources/new-system', options)
+    assert.equal(installed.active, true)
+    assert.equal(installed.id, 'new-system')
+    assert.deepEqual(await defaultSystemRecovery(options), {
+      available: true,
+      source: 'snapshot',
+      version: '1.0.0',
+    })
+    assert.equal(
+      JSON.parse(
+        await readFile(
+          join(librariesDirectory, 'design-lab-system', 'design-lab-pack.json'),
+          'utf8',
+        ),
+      ).id,
+      'new-system',
+    )
+    assert.equal(
+      JSON.parse(
+        await readFile(
+          join(
+            root,
+            'data',
+            'interface-packs',
+            'systems',
+            'design-lab-system',
+            '1.0.0',
+            'design-lab-pack.json',
+          ),
+          'utf8',
+        ),
+      ).id,
+      'design-lab-system',
+    )
   })
 })
 

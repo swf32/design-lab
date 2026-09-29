@@ -15,7 +15,14 @@ import { getAuthoredStyles } from './services/authoredStyles.mjs'
 import { patchEntityManifest } from './services/manifestWrite.mjs'
 import { getComponentHandoff } from './services/componentHandoff.mjs'
 import { applySetupPlan, createSetupPlan } from './services/setupService.mjs'
-import { diffInterfaceSystem, doctorInterfacePacks } from './services/interfacePacks.mjs'
+import {
+  diffInterfaceSystem,
+  defaultSystemRecovery,
+  doctorInterfacePacks,
+  inspectLocalInterfaceSystem,
+  installLocalInterfaceSystem,
+  resetInterfacePack,
+} from './services/interfacePacks.mjs'
 import {
   closeComponentRuntimes,
   prepareComponentRuntime,
@@ -23,6 +30,17 @@ import {
 
 let revision = 0
 const apiPort = Number.parseInt(process.env.DESIGN_LAB_API_PORT ?? '4173', 10)
+
+function requireInterfaceUiRequest(request) {
+  if (
+    request.headers['x-design-lab-ui'] !== '1' ||
+    !/^application\/json(?:;|$)/i.test(request.headers['content-type'] ?? '')
+  )
+    throw Object.assign(new Error('Use the local Design Lab interface to manage Systems.'), {
+      code: 'INTERFACE_UI_REQUEST_REQUIRED',
+      status: 403,
+    })
+}
 
 createServer(async (request, response) => {
   const url = new URL(request.url ?? '/', 'http://localhost')
@@ -44,6 +62,38 @@ createServer(async (request, response) => {
     }
     if (request.method === 'GET' && url.pathname === '/api/interface/system/diff') {
       return sendJson(response, 200, await diffInterfaceSystem())
+    }
+    if (request.method === 'GET' && url.pathname === '/api/interface/system/recovery') {
+      return sendJson(response, 200, await defaultSystemRecovery())
+    }
+    if (request.method === 'POST' && url.pathname === '/api/interface/system/inspect') {
+      requireInterfaceUiRequest(request)
+      const input = await readJson(request)
+      return sendJson(response, 200, await inspectLocalInterfaceSystem(input.path))
+    }
+    if (request.method === 'POST' && url.pathname === '/api/interface/system/install') {
+      requireInterfaceUiRequest(request)
+      const input = await readJson(request)
+      if (input.confirmed !== true)
+        throw Object.assign(new Error('Review the System and confirm installation first.'), {
+          code: 'INTERFACE_INSTALL_CONFIRMATION_REQUIRED',
+          status: 409,
+        })
+      const installed = await installLocalInterfaceSystem(input.path)
+      revision += 1
+      return sendJson(response, 200, { ...installed, restartRequired: true })
+    }
+    if (request.method === 'POST' && url.pathname === '/api/interface/system/reset') {
+      requireInterfaceUiRequest(request)
+      const input = await readJson(request)
+      if (input.confirmed !== true)
+        throw Object.assign(new Error('Confirm recovery of the bundled default System first.'), {
+          code: 'INTERFACE_RESET_CONFIRMATION_REQUIRED',
+          status: 409,
+        })
+      const reset = await resetInterfacePack('system')
+      revision += 1
+      return sendJson(response, 200, { ...reset, restartRequired: true })
     }
     if (request.method === 'GET' && url.pathname === '/api/onboarding/scan') {
       return sendJson(
@@ -218,6 +268,8 @@ createServer(async (request, response) => {
       })
     return sendJson(response, 404, { error: { code: 'NOT_FOUND', message: 'Not found' } })
   } catch (error) {
+    if (typeof error.code === 'string' && error.code.startsWith('INTERFACE_') && !error.status)
+      error.status = 422
     return sendError(response, error)
   }
 }).listen(apiPort, '127.0.0.1', () => {
