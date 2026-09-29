@@ -1,5 +1,10 @@
 # Interface Skins, Systems, and community gallery
 
+> Этот документ описывает работающий Skin/System pack contract. При установке Design Lab из
+> локального tarball в чужой repository активная редактируемая System находится в
+> `design-lab/system/` проекта ([D-093](DECISIONS.md)); versioned migration ещё не реализована.
+> См. [инструкцию и границы](25-interface-system-and-installation.md).
+
 ## Product boundary
 
 Design Lab supports two intentionally different interface pack kinds:
@@ -116,7 +121,8 @@ Install activates by default; `--no-use` only downloads and validates. Activatio
 `design-lab/.designlab/interface.json`. Skins are stored by id/version under
 `design-lab/.designlab/interface-packs/skins/`; System packages are cached by id/version under
 `design-lab/.designlab/interface-packs/systems/` and the selected package is physically installed
-into the one executable slot `libraries/design-lab-system/`. Inactive Systems are not Libraries,
+into the one executable slot `libraries/design-lab-system/` in the development checkout or
+`design-lab/system/` in an embedded project. Inactive Systems are not Libraries,
 do not appear in the entity catalog, and cannot leak their Component styles into the active shell.
 Changing the active System requires restarting dev/build.
 

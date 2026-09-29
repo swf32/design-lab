@@ -1,6 +1,7 @@
 import { parse } from '@babel/parser'
 import { execFile } from 'node:child_process'
 import { randomUUID } from 'node:crypto'
+import { existsSync, readFileSync } from 'node:fs'
 import {
   access,
   cp,
@@ -156,8 +157,30 @@ export function defaultInterfacePaths(options = {}) {
   const workspaceDirectory = resolve(
     options.workspaceDirectory ?? process.env.DESIGN_LAB_WORKSPACE_DIR ?? DEFAULT_WORKSPACE_ROOT,
   )
+  let embeddedSystemPath = null
+  try {
+    const config = JSON.parse(
+      readFileSync(join(workspaceDirectory, 'design-lab', 'designlab.config.json'), 'utf8'),
+    )
+    if (config.schemaVersion === 1 && config.interfaceSystem?.path) {
+      const configured = normalizeRelativePath(config.interfaceSystem.path, 'interfaceSystem.path')
+      const candidate = resolve(workspaceDirectory, configured)
+      if (!isInside(workspaceDirectory, candidate))
+        throw packError(
+          'The active System path escapes the project.',
+          'INTERFACE_SELECTION_PATH_INVALID',
+        )
+      embeddedSystemPath = candidate
+    }
+  } catch (error) {
+    if (error.code !== 'ENOENT') throw error
+  }
   const dataDirectory = resolve(
-    options.dataDirectory ?? process.env.DESIGN_LAB_DATA_DIR ?? join(applicationRoot, '.designlab'),
+    options.dataDirectory ??
+      process.env.DESIGN_LAB_DATA_DIR ??
+      (embeddedSystemPath
+        ? join(workspaceDirectory, 'design-lab', '.cache')
+        : join(applicationRoot, '.designlab')),
   )
   const librariesDirectory = resolve(
     options.librariesDirectory ??
@@ -169,7 +192,19 @@ export function defaultInterfacePaths(options = {}) {
     workspaceDirectory,
     dataDirectory,
     librariesDirectory,
-    systemSlot: resolve(options.systemSlot ?? join(librariesDirectory, DEFAULT_SYSTEM_ID)),
+    systemSlot: resolve(
+      options.systemSlot ?? embeddedSystemPath ?? join(librariesDirectory, DEFAULT_SYSTEM_ID),
+    ),
+    defaultSystemSource: embeddedSystemPath
+      ? resolve(
+          options.defaultSystemSource ??
+            (existsSync(
+              join(applicationRoot, '..', 'libraries', DEFAULT_SYSTEM_ID, 'design-lab-pack.json'),
+            )
+              ? join(applicationRoot, '..', 'libraries', DEFAULT_SYSTEM_ID)
+              : join(applicationRoot, 'vendor', 'default-system')),
+        )
+      : null,
     systemsDirectory: resolve(
       options.systemsDirectory ?? join(dataDirectory, 'interface-packs', 'systems'),
     ),
@@ -179,7 +214,12 @@ export function defaultInterfacePaths(options = {}) {
     defaultSkinPath: resolve(
       options.defaultSkinPath ?? join(applicationRoot, 'src/styles/default-skin.css'),
     ),
-    rulesDirectory: resolve(options.rulesDirectory ?? join(applicationRoot, '..', 'rules')),
+    rulesDirectory: resolve(
+      options.rulesDirectory ??
+        (existsSync(join(applicationRoot, '..', 'rules', 'SYSTEM_RULES.md'))
+          ? join(applicationRoot, '..', 'rules')
+          : join(applicationRoot, 'vendor', 'rules')),
+    ),
     skinTemplatePath: resolve(
       options.skinTemplatePath ??
         join(applicationRoot, 'server/templates/interface-packs/skin/theme.css'),
@@ -354,6 +394,13 @@ export async function typecheckInterfaceSystem(validated, options = {}) {
     aliases[definition.import] =
       key === 'assets' ? [`${validated.entrypoints.assets}/*`] : [validated.entrypoints[key]]
   }
+  for (const packageName of ['react', 'react-dom']) {
+    const typesRoot = dirname(
+      fileURLToPath(import.meta.resolve(`@types/${packageName}/package.json`)),
+    )
+    aliases[packageName] = [join(typesRoot, 'index.d.ts')]
+    aliases[`${packageName}/*`] = [`${typesRoot}/*.d.ts`]
+  }
   const temporary = await mkdtemp(join(tmpdir(), 'design-lab-system-typecheck-'))
   const configPath = join(temporary, 'tsconfig.json')
   try {
@@ -364,13 +411,12 @@ export async function typecheckInterfaceSystem(validated, options = {}) {
           extends: join(paths.applicationRoot, 'tsconfig.app.json'),
           compilerOptions: {
             tsBuildInfoFile: join(temporary, 'system.tsbuildinfo'),
-            baseUrl: paths.workspaceDirectory,
-            ignoreDeprecations: '6.0',
             paths: aliases,
           },
           include: [
             join(paths.applicationRoot, 'src/**/*.ts'),
             join(paths.applicationRoot, 'src/**/*.tsx'),
+            join(paths.applicationRoot, 'shared/**/*.mjs'),
             join(validated.root, '**/*.ts'),
             join(validated.root, '**/*.tsx'),
           ],
@@ -634,7 +680,7 @@ async function activateInstalledSystem(selected, options = {}) {
     return { changed: false, manifest: current }
   if (options.snapshot !== false) await snapshotCurrentSystem(paths)
   await mkdir(dirname(paths.systemSlot), { recursive: true })
-  const staged = join(paths.librariesDirectory, `.system-slot-${randomUUID()}`)
+  const staged = join(dirname(paths.systemSlot), `.system-slot-${randomUUID()}`)
   try {
     await copySystemDirectory(selected.root, staged)
     await replaceDirectory(staged, paths.systemSlot)
@@ -816,7 +862,7 @@ export async function createInterfacePack(kind, target, options = {}) {
   const staged = join(dirname(destination), `.interface-pack-${randomUUID()}`)
   try {
     if (kind === 'system') {
-      await cp(join(paths.librariesDirectory, DEFAULT_SYSTEM_ID), staged, {
+      await cp(paths.systemSlot, staged, {
         recursive: true,
         errorOnExist: true,
       })
@@ -1019,16 +1065,26 @@ export async function useInterfacePack(kind, id, options = {}) {
 export async function resetInterfacePack(kind, options = {}) {
   const paths = defaultInterfacePaths(options)
   if (kind === 'system') {
-    const packs = await installedPacks('system', options)
-    const selected = packs
-      .filter(({ manifest }) => manifest.id === DEFAULT_SYSTEM_ID)
-      .sort((left, right) => right.manifest.version.localeCompare(left.manifest.version))[0]
+    let selected = null
+    if (paths.defaultSystemSource && existsSync(paths.defaultSystemSource)) {
+      const validated = await validateInterfacePack(paths.defaultSystemSource, {
+        ...options,
+        expectedKind: 'system',
+      })
+      selected = { root: validated.root, manifest: validated.manifest }
+    }
+    if (!selected) {
+      const packs = await installedPacks('system', options)
+      selected = packs
+        .filter(({ manifest }) => manifest.id === DEFAULT_SYSTEM_ID)
+        .sort((left, right) => right.manifest.version.localeCompare(left.manifest.version))[0]
+    }
     if (!selected)
       throw packError(
         'The default System snapshot is unavailable. Reinstall the default System package.',
         'INTERFACE_DEFAULT_SYSTEM_MISSING',
       )
-    await activateInstalledSystem(selected, options)
+    await activateInstalledSystem(selected, { ...options, force: true })
     return { kind, reset: true, active: DEFAULT_SYSTEM_ID }
   }
   const selection = await readInterfaceSelection(options)

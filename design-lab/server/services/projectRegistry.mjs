@@ -2,6 +2,7 @@ import { randomUUID } from 'node:crypto'
 import { access, mkdir, readFile, readdir, rename, writeFile } from 'node:fs/promises'
 import { dirname, join, relative, resolve, sep } from 'node:path'
 import { fileURLToPath } from 'node:url'
+import { defaultInterfacePaths } from './interfacePacks.mjs'
 
 const REGISTRY_VERSION = 1
 const APPLICATION_ROOT = resolve(fileURLToPath(new URL('../..', import.meta.url)))
@@ -12,7 +13,7 @@ export function getWorkspaceDirectory() {
 }
 
 export function getDataDirectory() {
-  return resolve(process.env.DESIGN_LAB_DATA_DIR ?? join(APPLICATION_ROOT, '.designlab'))
+  return defaultInterfacePaths().dataDirectory
 }
 
 export function getProjectsDirectory() {
@@ -127,6 +128,20 @@ export async function listSources() {
     try {
       const manifest = JSON.parse(await readFile(join(path, 'library.json'), 'utf8'))
       libraries.push({ ...manifest, path, available: true, createdAt: manifest.createdAt ?? null })
+    } catch (error) {
+      if (error.code !== 'ENOENT') throw error
+    }
+  }
+  const activeSystemPath = defaultInterfacePaths().systemSlot
+  if (!libraries.some((library) => resolve(library.path) === activeSystemPath)) {
+    try {
+      const manifest = JSON.parse(await readFile(join(activeSystemPath, 'library.json'), 'utf8'))
+      libraries.unshift({
+        ...manifest,
+        path: activeSystemPath,
+        available: true,
+        createdAt: manifest.createdAt ?? null,
+      })
     } catch (error) {
       if (error.code !== 'ENOENT') throw error
     }

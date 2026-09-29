@@ -31,13 +31,10 @@ then expose the smallest necessary System contract.
 
 ## One active installation slot
 
-In this development checkout, Design Lab executes one System from `libraries/design-lab-system/`.
-After embedded setup, the active editable slot is `design-lab/system/` in the product repository.
-Application imports and Library discovery resolve to that same folder; the installed tool package
-only carries the initial default source for setup and recovery. Published Systems live in
+Design Lab executes one System from `libraries/design-lab-system/`. Published Systems live in
 their own repositories; they are never authored as sibling Libraries inside the same Design Lab
 workspace. The installer validates and caches packages, snapshots the current slot, and then
-physically installs the selected package into the active slot.
+physically installs the selected package into that canonical path.
 
 Keep the package id in `design-lab-pack.json` and `library.json`; the slot folder name deliberately
 does not change with the selected package. Inactive Systems must not participate in discovery or

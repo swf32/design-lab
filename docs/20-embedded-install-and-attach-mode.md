@@ -1,5 +1,9 @@
 # Embedded installation and attach-first sources
 
+> Раздел про embedded setup описывает подключение **исходников проекта**. Ownership собственной
+> интерфейсной System установленного Design Lab уточнён позже в [D-093](DECISIONS.md): одна
+> project-owned редактируемая папка. См. [схему установки](25-interface-system-and-installation.md).
+
 **Статус:** направление принято 2026-07-26; setup и source-resolution foundation реализованы.
 Install footprint зафиксирован как package/CLI + видимая `design-lab/` integration folder +
 маленький управляемый блок в root `AGENTS.md`. Следующий gate — заменить build-time React
@@ -32,6 +36,8 @@ source of truth в своих реальных файлах. Маленький 
   `SETUP_CONFIRMATION_REQUIRED` и ничего не меняет.
 - Apply создаёт `design-lab/designlab.config.json`, managed folders/cache, локальную копию contracts
   и ограниченный marker-блок в существующем `AGENTS.md`, сохраняя остальное содержание файла.
+- Apply создаёт project-owned интерфейсную System в `design-lab/system/`. Локальный npm tarball
+  проверен в отдельном Git-проекте; повторная установка пакета сохраняет правки этой папки.
 - Setup plan всегда содержит пустые `moveFiles` и `deleteFiles`; существующий production source не
   переносится и не удаляется.
 - `Create Project` использует тот же plan: `Use my existing project` сначала только сканирует, затем
@@ -51,10 +57,11 @@ source of truth в своих реальных файлах. Маленький 
 - Derived AI index attached source записывается в `design-lab/.cache/index`, а не создаёт новый
   root-level store.
 
-Это всё ещё не обещание готового arbitrary framework runtime. Текущие React preview/story,
-Wireframe и Page registries используют build-time `libraries/*` globs. Catalog, handoff и AI уже
-mount-aware, но live execution станет mount-aware только через следующий isolated adapter host;
-расширять существующие globs на случайные directories запрещено.
+Это всё ещё не обещание готового arbitrary framework runtime. Активная интерфейсная System в
+embedded режиме подключена к React Preview/Story/Playground через отдельный Vite alias на
+project-owned папку. Остальные React sources, Wireframe и Page registries пока используют
+build-time `libraries/*` globs. Catalog, handoff и AI mount-aware, но общий live execution для
+attached roots требует isolated adapter host; расширять globs на случайные directories запрещено.
 
 ## Что подсказал Storybook, а что нельзя копировать буквально
 
@@ -346,7 +353,7 @@ chain от repository root до текущей working directory и читает
 - Rules, dependency ownership и runtime diagnostics входят в source context.
 - Arbitrary file read за пределами declared mounts не появляется.
 
-## Что конкретно не соответствует этой модели сейчас
+## Исторический аудит на момент принятия модели
 
 1. `projectRegistry.mjs` вычисляет один workspace с соседними `projects/` и `libraries/` и сканирует
    только `libraries/*/library.json`.

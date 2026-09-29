@@ -13,8 +13,12 @@ export default defineConfig(async () => {
 
   return {
     plugins: [designLabInspectionPlugin(resolve(import.meta.dirname, '..')), react()],
+    define: {
+      __DESIGN_LAB_ACTIVE_SYSTEM_ID__: JSON.stringify(activeInterface.system.manifest.id),
+    },
     resolve: {
       alias: [
+        { find: '@design-lab/active-system', replacement: activeInterface.system.root },
         { find: '@design-lab/system/components', replacement: entrypoints.components },
         { find: '@design-lab/system/icons', replacement: entrypoints.icons },
         { find: '@design-lab/system/i18n', replacement: entrypoints.i18n },
@@ -33,6 +37,9 @@ export default defineConfig(async () => {
     server: {
       port: designLabPort,
       strictPort: true,
+      fs: {
+        allow: [activeInterface.system.root, resolve(import.meta.dirname)],
+      },
       proxy: {
         '/api': `http://127.0.0.1:${designLabApiPort}`,
       },

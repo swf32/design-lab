@@ -1,10 +1,10 @@
 {
   "schemaVersion": 1,
   "id": "design-lab-system",
-  "name": "Design Lab Glass System",
-  "version": "0.1.2",
+  "name": "Design Lab System",
+  "version": "0.1.0",
   "kind": "system",
-  "description": "A restrained floating-glass shell for Design Lab with independent navigation panes and a dissolving workspace header.",
+  "description": "The default complete interface system distributed with Design Lab.",
   "designLab": ">=0.1.0 <0.2.0",
   "license": "UNLICENSED",
   "entrypoints": {

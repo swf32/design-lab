@@ -1,6 +1,8 @@
 import { randomUUID } from 'node:crypto'
+import { existsSync } from 'node:fs'
 import {
   access,
+  cp,
   copyFile,
   mkdir,
   readFile,
@@ -16,7 +18,16 @@ export const SETUP_SCHEMA_VERSION = 1
 export const DEFAULT_INTEGRATION_DIRECTORY = 'design-lab'
 
 const REPOSITORY_ROOT = resolve(fileURLToPath(new URL('../../..', import.meta.url)))
-const DEFAULT_RULES_SOURCE = join(REPOSITORY_ROOT, 'rules')
+const APPLICATION_ROOT = resolve(fileURLToPath(new URL('../..', import.meta.url)))
+const BUNDLED_ROOT = join(APPLICATION_ROOT, 'vendor')
+const DEFAULT_RULES_SOURCE = existsSync(join(REPOSITORY_ROOT, 'rules', 'SYSTEM_RULES.md'))
+  ? join(REPOSITORY_ROOT, 'rules')
+  : join(BUNDLED_ROOT, 'rules')
+const DEFAULT_SYSTEM_SOURCE = existsSync(
+  join(REPOSITORY_ROOT, 'libraries', 'design-lab-system', 'design-lab-pack.json'),
+)
+  ? join(REPOSITORY_ROOT, 'libraries', 'design-lab-system')
+  : join(BUNDLED_ROOT, 'default-system')
 const RULE_FILES = [
   'COMPONENT_RULES.md',
   'WIREFRAME_RULES.md',
@@ -347,6 +358,7 @@ export async function createSetupPlan({
       })),
     },
     runtime: { host: '127.0.0.1', port: 5317, applicationPort: null },
+    interfaceSystem: { path: `${integrationDirectory}/system` },
   }
   const createdDirectories = [
     integrationDirectory,
@@ -372,6 +384,7 @@ export async function createSetupPlan({
         ...RULE_FILES.map((file) => `${integrationDirectory}/rules/${file}`),
       ],
       updateFiles: ['AGENTS.md'],
+      copyDirectories: [`${integrationDirectory}/system`],
       moveFiles: [],
       deleteFiles: [],
     },
@@ -395,6 +408,8 @@ When a user asks to set up or import a design system:
 4. Do not move, rename, overwrite, or delete existing product files unless the user separately and
    explicitly approves those exact changes.
 5. Keep the product's dev server and port independent from Design Lab's local server.
+6. Design Lab's own editable interface System is in \`${integrationDirectory}/system/\`;
+   changes there are visible to Design Lab itself. The installed tool package is not the authoring source.
 ${MANAGED_AGENTS_END}`
 }
 
@@ -420,6 +435,7 @@ export async function applySetupPlan({
   confirmed = false,
   integrationDirectory = DEFAULT_INTEGRATION_DIRECTORY,
   rulesSource = DEFAULT_RULES_SOURCE,
+  defaultSystemSource = DEFAULT_SYSTEM_SOURCE,
 }) {
   if (!confirmed)
     throw setupError(
@@ -435,6 +451,15 @@ export async function applySetupPlan({
       'SETUP_PATH_OUTSIDE_ROOT',
     )
   const configPath = join(integrationRoot, 'designlab.config.json')
+  const systemSource = resolve(defaultSystemSource)
+  const systemTarget = resolve(plan.root, plan.config.interfaceSystem.path)
+  if (!isInside(systemTarget, plan.root))
+    throw setupError(
+      'The interface System must stay inside the project.',
+      'SETUP_SYSTEM_PATH_INVALID',
+    )
+  if (!(await exists(join(systemSource, 'design-lab-pack.json'))))
+    throw setupError('The default interface System is unavailable.', 'SETUP_SYSTEM_SOURCE_MISSING')
   const integrationExists = await exists(integrationRoot)
   if (integrationExists && !(await exists(configPath))) {
     const entries = await readdir(integrationRoot)
@@ -448,6 +473,19 @@ export async function applySetupPlan({
 
   for (const directory of plan.changes.createDirectories)
     await mkdir(resolve(plan.root, directory), { recursive: true })
+  if (await exists(systemTarget))
+    throw setupError(
+      'The active interface System folder already exists.',
+      'SETUP_SYSTEM_OCCUPIED',
+      409,
+    )
+  await cp(systemSource, systemTarget, {
+    recursive: true,
+    errorOnExist: true,
+    filter(path) {
+      return !['.git', '.designlab', 'node_modules', 'dist'].includes(basename(path))
+    },
+  })
   await writeJsonAtomic(configPath, plan.config)
   await writeFile(join(integrationRoot, '.gitignore'), '.cache/\n', 'utf8')
 

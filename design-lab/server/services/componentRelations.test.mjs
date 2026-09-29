@@ -176,7 +176,7 @@ test('page Wireframes expose hybrid renderer, layouts, states, and user-flow dia
   assert.equal(result.kind, 'wireframes')
   assert.deepEqual(result.folders, ['product'])
   assert.equal(result.defaultMode, 'dark')
-  assert.deepEqual(result.modes, ['dark', 'light'])
+  assert.deepEqual([...result.modes].sort(), ['dark', 'light'])
   assert.equal(result.themeVariables.light['--ds-color-surface-primary'], '#f7f7f3')
   assert.equal(pricing.entry, 'Pricing.wireframe.tsx')
   assert.deepEqual(

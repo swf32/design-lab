@@ -11,6 +11,7 @@ import {
 import { listSources } from '../server/services/projectRegistry.mjs'
 import { mkdir, writeFile } from 'node:fs/promises'
 import { dirname, resolve } from 'node:path'
+import { fileURLToPath } from 'node:url'
 import {
   closeComponentCaptureRuntime,
   getComponentCaptureInfo,
@@ -29,6 +30,12 @@ import {
 
 const args = process.argv.slice(2)
 const command = args[0] ?? 'help'
+const applicationRoot = resolve(fileURLToPath(new URL('..', import.meta.url)))
+const defaultWorkspaceRoot =
+  resolve(process.cwd()) === applicationRoot
+    ? resolve(applicationRoot, '..')
+    : resolve(process.cwd())
+process.env.DESIGN_LAB_WORKSPACE_DIR ??= defaultWorkspaceRoot
 
 const VALUED_FLAGS = new Set([
   '--source',
@@ -92,6 +99,8 @@ function help() {
   process.stdout.write(`Design Lab AI context CLI
 
 Usage:
+  designlab dev [--root <project-folder>]
+  designlab setup [--root <project-folder>] [--mode attach|managed] [--name <name>]
   npm run designlab -- setup [--root <project-folder>] [--mode attach|managed] [--name <name>]
   npm run designlab -- setup --apply --confirm [--root <project-folder>] [--mode attach|managed]
   npm run designlab -- sources
@@ -134,12 +143,16 @@ restores the saved default System or removes the active Skin without deleting ca
 }
 
 try {
-  if (command === 'setup') {
+  if (command === 'dev') {
+    process.env.DESIGN_LAB_WORKSPACE_DIR = resolve(option('--root') ?? defaultWorkspaceRoot)
+    await import('./dev.mjs')
+  } else if (command === 'setup') {
     const input = {
-      root: resolve(option('--root') ?? process.cwd()),
+      root: resolve(option('--root') ?? defaultWorkspaceRoot),
       name: option('--name'),
       mode: option('--mode') ?? 'attach',
     }
+    process.env.DESIGN_LAB_WORKSPACE_DIR = input.root
     if (args.includes('--apply')) {
       print(
         await applySetupPlan({

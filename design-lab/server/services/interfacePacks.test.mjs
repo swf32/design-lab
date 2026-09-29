@@ -5,6 +5,7 @@ import { dirname, join, resolve } from 'node:path'
 import test from 'node:test'
 import {
   createInterfacePack,
+  defaultInterfacePaths,
   doctorInterfacePacks,
   installInterfacePack,
   listInterfacePacks,
@@ -125,6 +126,51 @@ test('compatibility ranges support exact, comparator, caret, and tilde forms', (
   assert.equal(versionSatisfies('0.2.0', '^0.1.0'), false)
   assert.equal(versionSatisfies('1.3.1', '~1.3.0'), true)
   assert.equal(versionSatisfies('1.4.0', '~1.3.0'), false)
+})
+
+test('embedded config selects one project-owned active System folder', async () => {
+  const workspaceDirectory = await mkdtemp(join(tmpdir(), 'design-lab-embedded-system-'))
+  try {
+    await writeJson(join(workspaceDirectory, 'design-lab', 'designlab.config.json'), {
+      schemaVersion: 1,
+      interfaceSystem: { path: 'design-lab/system' },
+    })
+    const paths = defaultInterfacePaths({ workspaceDirectory })
+    assert.equal(paths.systemSlot, join(workspaceDirectory, 'design-lab', 'system'))
+    assert.equal(paths.dataDirectory, join(workspaceDirectory, 'design-lab', '.cache'))
+  } finally {
+    await rm(workspaceDirectory, { recursive: true, force: true })
+  }
+})
+
+test('embedded reset restores the package default without relying on a cache snapshot', async () => {
+  const workspaceDirectory = await mkdtemp(join(tmpdir(), 'design-lab-embedded-reset-'))
+  const systemSlot = join(workspaceDirectory, 'design-lab', 'system')
+  const defaultSystemSource = join(workspaceDirectory, 'package-default')
+  try {
+    await writeJson(join(workspaceDirectory, 'design-lab', 'designlab.config.json'), {
+      schemaVersion: 1,
+      interfaceSystem: { path: 'design-lab/system' },
+    })
+    await writeSystem(systemSlot, { id: 'design-lab-system' })
+    await writeSystem(defaultSystemSource, { id: 'design-lab-system' })
+    await writeFile(join(systemSlot, 'local-note.txt'), 'My edit\n')
+    const result = await resetInterfacePack('system', {
+      applicationRoot,
+      workspaceDirectory,
+      defaultSystemSource,
+      contractPath,
+      typecheckSystem: false,
+    })
+    assert.equal(result.active, 'design-lab-system')
+    await assert.rejects(readFile(join(systemSlot, 'local-note.txt')))
+    assert.equal(
+      (await readInterfaceSelection({ workspaceDirectory })).system.path,
+      'design-lab/system',
+    )
+  } finally {
+    await rm(workspaceDirectory, { recursive: true, force: true })
+  }
 })
 
 test('Skin authoring template documents only real generated System variables', async () => {

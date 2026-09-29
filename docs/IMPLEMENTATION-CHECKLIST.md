@@ -2,6 +2,32 @@
 
 Этот документ — рабочая карта реализации Design Lab. Он переводит Product Definition v0.2 в проверяемые инженерные задачи и обновляется по мере разработки.
 
+Для возвращения к проекту начните с [карты состояния](24-project-map-and-status.md),
+[объяснения собственной System](25-interface-system-and-installation.md) и
+[приоритетного плана](26-vision-and-next-steps.md). Старые отметки `[x]` ниже фиксируют
+достижения на момент записи, а не закрывают поздние уточнения и gaps.
+
+## Приоритет 2026-09-30: устанавливаемый инструмент и сменяемая System
+
+- [x] Принять D-093: после package installation активная System принадлежит одной папке проекта;
+      инструмент поставляет default, но не хранит пользовательские правки внутри обновляемого пакета.
+- [x] Первый relative path `design-lab/system/` подключён к setup, Library discovery и interface resolver.
+- [x] Упаковать default System как неактивный template/recovery source рядом с package,
+      не вводя второй активный source.
+- [ ] Закрыть полный внешний цикл install → attach/greenfield → dev → редактирование System в
+      Catalog/Workbench и shell → restart → upgrade → recovery/uninstall. Clean attach, dev,
+      браузерное редактирование, patch upgrade пакета с сохранением System, повторный dev и reset
+      доказаны автоматическим fixture; greenfield и repair/uninstall ещё открыты.
+- [x] Превратить текущий private monorepo application в устанавливаемый локальный CLI/tarball
+      с независимыми портами и project-owned System; registry publication остаётся отдельной задачей.
+- [ ] Добавить UI install/doctor и понятные ошибки compatibility. Ручная замена папки с CLI doctor
+      и recovery уже проверена; UI для этого пока отсутствует.
+- [ ] Сделать `system diff`/upgrade flow, который показывает изменения default и сохраняет локальные
+      правки при обновлении инструмента.
+- [x] Удалить эксперимент Glass System и вернуть прежний default look, не меняя архитектуру единой активной System.
+- [ ] Проверить полный System fork с изменённой структурой Component и собственным asset в shell и Workbench.
+- [ ] В будущем провести визуальный редизайн как отдельную задачу, когда workflow создания и замены System будет удобен.
+
 ## Принятые ограничения
 
 - [x] Продукт работает как локальное React-приложение с Node.js runtime.
@@ -752,6 +778,26 @@ where they are` и confirm-gated apply plan; ещё нужны post-apply self-c
       diagnostics.
 - [ ] Реализован managed root `AGENTS.md` pointer без перезаписи пользовательского текста и локальные
       rule contracts; ещё нужны integration status, repair и uninstall.
+
+### Project-owned System и локальный npm package (D-093)
+
+- [x] Упаковать исполняемый CLI/app/API и immutable default System template в локальный npm tarball;
+      исключить workspace-only dependency и случайные `node_modules` из архива.
+- [x] При embedded setup создать один project-owned слот `design-lab/system/`; application imports,
+      API discovery и System CLI разрешают его из config, а исходные mounts проекта остаются на месте.
+- [x] Проверить `npm pack` → install в чистый внешний Git-проект → read-only scan → apply → doctor →
+      sources → новая patch version инструмента с изменённым default template без потери локальной
+      правки → alternative System → ручная замена одной папки с doctor → reset. Автоматический
+      fixture запускается через `npm run test:package --workspace=design-lab`.
+- [x] Проверить отдельные UI/API порты и открыть установленный UI в браузере; изменение токена в
+      проектной System обновило реальный shell через Vite HMR.
+- [x] Проверить изменение реального Component style одновременно в Workbench specimen и shell:
+      браузерный `test:package:browser` меняет project-owned `Button.scss`, сравнивает computed
+      style обоих потребителей через HMR и восстанавливает файл.
+- [ ] Добавить версионированное сравнение default template с активной System и явный upgrade flow,
+      который сохраняет пользовательские изменения.
+- [ ] Добавить post-apply self-check, repair и uninstall, сохраняющий исходники пользователя.
+- [ ] Подготовить registry release, проверить установку на других ОС и package managers.
 
 ## Ближайший конкретный шаг
 

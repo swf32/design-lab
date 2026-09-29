@@ -10,6 +10,10 @@ const previewModules = import.meta.glob<PreviewModule>(
   '../../libraries/*/components/**/*.preview.tsx',
   { eager: true },
 )
+const activePreviewModules = import.meta.glob<PreviewModule>(
+  '@design-lab/active-system/components/**/*.preview.tsx',
+  { eager: true },
+)
 
 export type StoryExample = {
   label: string
@@ -44,32 +48,63 @@ const storyModules = import.meta.glob<StoryModule>(
   '../../libraries/*/components/**/*.stories.{ts,tsx}',
   { eager: true },
 )
+const activeStoryModules = import.meta.glob<StoryModule>(
+  '@design-lab/active-system/components/**/*.stories.{ts,tsx}',
+  { eager: true },
+)
 
 const playgroundModules = import.meta.glob<ComponentPlaygroundModule>(
   '../../libraries/*/components/**/*.playground.{ts,tsx}',
   { eager: true },
 )
+const activePlaygroundModules = import.meta.glob<ComponentPlaygroundModule>(
+  '@design-lab/active-system/components/**/*.playground.{ts,tsx}',
+  { eager: true },
+)
+
+function sourceModule<T>(
+  modules: Record<string, T>,
+  activeModules: Record<string, T>,
+  component: ComponentEntity,
+  filename: string,
+) {
+  if (component.sourceId === __DESIGN_LAB_ACTIVE_SYSTEM_ID__)
+    return (
+      Object.entries(activeModules).find(([path]) =>
+        path.endsWith(`/components/${component.directory}/${filename}`),
+      )?.[1] ?? null
+    )
+  return (
+    Object.entries(modules).find(([path]) =>
+      path.endsWith(
+        `/libraries/${component.sourceId}/components/${component.directory}/${filename}`,
+      ),
+    )?.[1] ?? null
+  )
+}
 
 export function previewComponentFor(component: ComponentEntity, sourceId: string) {
   if (component.adapter !== 'react-manifest') return null
   if (!component.preview) return null
-  const suffix = `/libraries/${component.sourceId ?? sourceId}/components/${component.directory}/${component.preview}`
-  const module = Object.entries(previewModules).find(([path]) => path.endsWith(suffix))?.[1]
+  const module = sourceModule(
+    previewModules,
+    activePreviewModules,
+    { ...component, sourceId: component.sourceId ?? sourceId },
+    component.preview,
+  )
   return module && Object.values(module).find((value) => typeof value === 'function')
 }
 
 export function storyModuleFor(component: ComponentEntity) {
   if (component.adapter !== 'react-manifest') return null
   if (!component.stories) return null
-  const suffix = `/libraries/${component.sourceId}/components/${component.directory}/${component.stories}`
-  return Object.entries(storyModules).find(([path]) => path.endsWith(suffix))?.[1] ?? null
+  return sourceModule(storyModules, activeStoryModules, component, component.stories)
 }
 
 export function playgroundModuleFor(component: ComponentEntity) {
   if (component.adapter !== 'react-manifest') return null
   if (!component.playground) return null
-  const suffix = `/libraries/${component.sourceId}/components/${component.directory}/${component.playground}`
-  return Object.entries(playgroundModules).find(([path]) => path.endsWith(suffix))?.[1] ?? null
+  return sourceModule(playgroundModules, activePlaygroundModules, component, component.playground)
 }
 
 function serializeProp(name: string, value: unknown) {

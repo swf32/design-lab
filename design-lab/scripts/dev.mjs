@@ -1,22 +1,26 @@
 import { spawn } from 'node:child_process'
 import { fileURLToPath } from 'node:url'
+import { join, resolve } from 'node:path'
+import { defaultInterfacePaths } from '../server/services/interfacePacks.mjs'
 
 const viteBin = fileURLToPath(new URL('../../bin/vite.js', import.meta.resolve('vite')))
-const componentIndexBuilder = fileURLToPath(
-  new URL('../../libraries/design-lab-system/scripts/build-component-index.mjs', import.meta.url),
-)
-const iconIndexBuilder = fileURLToPath(
-  new URL('../../libraries/design-lab-system/scripts/build-icon-index.mjs', import.meta.url),
-)
+const applicationRoot = resolve(fileURLToPath(new URL('..', import.meta.url)))
+const { systemSlot } = defaultInterfacePaths()
+const componentIndexBuilder = join(systemSlot, 'scripts', 'build-component-index.mjs')
+const iconIndexBuilder = join(systemSlot, 'scripts', 'build-icon-index.mjs')
+const tokenBuilder = join(systemSlot, 'scripts', 'build-tokens.mjs')
 
 const commands = [
   ['node', ['server/index.mjs']],
   ['node', [viteBin]],
   ['node', [componentIndexBuilder, '--watch']],
   ['node', [iconIndexBuilder, '--watch']],
+  ['node', [tokenBuilder, '--watch']],
 ]
 
-const children = commands.map(([command, args]) => spawn(command, args, { stdio: 'inherit' }))
+const children = commands.map(([command, args]) =>
+  spawn(command, args, { stdio: 'inherit', cwd: applicationRoot }),
+)
 let stopping = false
 
 const stop = (exitCode = 0) => {

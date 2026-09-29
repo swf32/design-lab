@@ -3,7 +3,7 @@ import test from 'node:test'
 import { mkdtemp, mkdir, rm, writeFile } from 'node:fs/promises'
 import { join } from 'node:path'
 import { tmpdir } from 'node:os'
-import { listProjects, registerInstalledProject } from './projectRegistry.mjs'
+import { listProjects, listSources, registerInstalledProject } from './projectRegistry.mjs'
 
 test('an embedded source is rebuilt from its filesystem config without registry state', async () => {
   const workspace = await mkdtemp(join(tmpdir(), 'design-lab-installation-discovery-'))
@@ -30,6 +30,7 @@ test('an embedded source is rebuilt from its filesystem config without registry 
             mounts: { components: ['src/components'] },
             packageEnvironments: [],
           },
+          interfaceSystem: { path: 'design-lab/system' },
         },
         null,
         2,
@@ -44,6 +45,15 @@ test('an embedded source is rebuilt from its filesystem config without registry 
     assert.equal(first.projects[0].available, true)
     assert.equal(first.projects[0].configPath, 'design-lab/designlab.config.json')
     assert.deepEqual(first.projects[0].mounts, { components: ['src/components'] })
+
+    await mkdir(join(integration, 'system'), { recursive: true })
+    await writeFile(
+      join(integration, 'system', 'library.json'),
+      '{"id":"design-lab-system","kind":"library","name":"Design Lab System"}\n',
+    )
+    const sources = await listSources()
+    assert.equal(sources.sources[0].id, 'design-lab-system')
+    assert.equal(sources.sources[0].path, join(integration, 'system'))
 
     const registered = await registerInstalledProject({
       name: 'Existing product',

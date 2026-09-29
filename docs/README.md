@@ -1,18 +1,15 @@
-# Product Definition v0.2 для Design Lab
+# Документация Design Lab
 
-## Executive summary
+> Срез состояния: 2026-09-30. Если возвращаетесь после перерыва, начните с [карты проекта](24-project-map-and-status.md). Различайте **реализовано**, **принятое решение**, **план** и **исследование**: ранние страницы сохраняют историю и местами описывают заменённые гипотезы.
 
-**Design Lab** целесообразно определять как **локальное filesystem-first рабочее пространство
-дизайн-систем**, которое подключается к существующему repository без переноса source или создаёт
-canonical greenfield roots. Components, Wireframes, Pages, Tokens, Palette, Assets, Fonts, rules и
-AI-контекст объединяются semantic contracts и relative source mounts, а не требованием одного
-физического дерева. Это не универсальный адаптер любого кода, full IDE или буквальная копия Figma:
-точная категория — **designer-first code workspace** с безопасным onboarding, AI-помощью и
-framework adapters.
+## Быстрый маршрут
 
-Ниже — уже не пересказ диалога, а нормализованная сводка того, каким на данный момент видится проект. Она основана на всём обсуждении и отражает текущую концепцию. 
+1. [Что такое Design Lab, что работает и где код](24-project-map-and-status.md).
+2. [Собственный интерфейс, Skin, System и установка](25-interface-system-and-installation.md).
+3. [Видение, приоритеты и открытые вопросы](26-vision-and-next-steps.md).
+4. [Подробный checklist](IMPLEMENTATION-CHECKLIST.md) и [принятые решения](DECISIONS.md).
 
-## Содержание
+## Полная карта документов
 
 - [Рабочий implementation checklist](IMPLEMENTATION-CHECKLIST.md)
 - [Принятые продуктовые и архитектурные решения](DECISIONS.md)
@@ -37,5 +34,15 @@ framework adapters.
 - [Web runtime feature parity: React, Vue и Svelte](21-web-runtime-feature-parity.md)
 - [Web stack coupling audit: оставшиеся React/TSX-зависимости](22-web-stack-coupling-audit.md)
 - [Interface Skins, Systems и community gallery](23-interface-skins-systems-and-gallery.md)
+- [Карта проекта и честный статус](24-project-map-and-status.md)
+- [Собственная интерфейсная система и установка](25-interface-system-and-installation.md)
+- [Видение и следующие шаги](26-vision-and-next-steps.md)
 - [Конкурентный обзор](07-market-review.md)
 - [Roadmap, риски и пакетные AI-задачи](08-roadmap-risks-and-tasks.md)
+
+## Правила чтения
+
+- [AGENTS.md](../AGENTS.md) и [rules/](../rules/) задают обязательные контракты при изменении сущностей.
+- [DECISIONS.md](DECISIONS.md) хранит принятые решения; поздняя поправка заменяет противоречащую часть раннего решения.
+- [IMPLEMENTATION-CHECKLIST.md](IMPLEMENTATION-CHECKLIST.md) хранит детальные задачи; поздний открытый gap может уточнять раннюю отметку `[x]`.
+- Код и тесты подтверждают фактическое поведение. Открывайте весь репозиторий как Obsidian vault, чтобы работали ссылки из `docs/` на код и правила уровнем выше.

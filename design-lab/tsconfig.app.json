@@ -11,6 +11,16 @@
     "strict": true,
     "module": "ESNext",
     "moduleResolution": "Bundler",
+    "paths": {
+      "@design-lab/system/components": ["../libraries/design-lab-system/components/index.ts"],
+      "@design-lab/system/icons": ["../libraries/design-lab-system/assets/icons/index.ts"],
+      "@design-lab/system/i18n": ["../libraries/design-lab-system/i18n/index.ts"],
+      "@design-lab/system/inspection": ["../libraries/design-lab-system/inspection/index.ts"],
+      "@design-lab/system/playground": ["../libraries/design-lab-system/playground/index.ts"],
+      "@design-lab/system/pages": ["../libraries/design-lab-system/pages/index.ts"],
+      "@design-lab/system/wireframes": ["../libraries/design-lab-system/wireframes/index.ts"],
+      "@design-lab/system/assets/*": ["../libraries/design-lab-system/assets/*"]
+    },
     "isolatedModules": true,
     "moduleDetection": "force",
     "noEmit": true,

@@ -1,5 +1,7 @@
 # Design Lab collaboration rules
 
+For product context before changing architecture or planning work, start with [`docs/README.md`](docs/README.md), then [`docs/24-project-map-and-status.md`](docs/24-project-map-and-status.md) and [`docs/26-vision-and-next-steps.md`](docs/26-vision-and-next-steps.md). They distinguish implemented behavior from decisions and future work; [`docs/DECISIONS.md`](docs/DECISIONS.md) records the detailed history.
+
 For every component creation or modification, read and follow [`rules/COMPONENT_RULES.md`](rules/COMPONENT_RULES.md). It is the shared component contract for Codex, Claude, humans, and other agents.
 
 For every Wireframe creation or modification, read and follow [`rules/WIREFRAME_RULES.md`](rules/WIREFRAME_RULES.md). It defines the canonical hybrid source contract, layout directions, states, controls, and user-flow graph.
@@ -31,6 +33,7 @@ For every Design Lab interface Skin creation or modification, read and follow [`
 - The directory panel is module-specific: it shows entities and folders relevant to the active module in the selected project/library, not the Design Lab application repository.
 - Palette is a visual and semantic layer over color tokens; it must not duplicate color values as a second source of truth.
 - `libraries/design-lab-system/` is the single source of truth for Design Lab's own tokens, icons, fonts, and reusable UI components. The application consumes that same Library; never maintain a mirrored copy under application source.
+- For future package installation into another repository, D-093 assigns the single active editable interface System to a visible project-owned folder. The development checkout still uses `libraries/design-lab-system/`; package upgrades must not overwrite the installed project's edits.
 - Do not add an immutable UI kernel or fallback design system. A broken customization may break Design Lab; recovery is reinstalling the default `design-lab-system` Library.
 - Asset mounts own images, video, SVG, and code-native icons; do not create a separate Icons module. Ordinary media is framework-neutral, while code-native assets publish honest adapter capabilities (for example TSX icons are React code, not directly executable Vue/Svelte assets).
 - A canonical Design Lab-authored Component may use a `component.json` directory contract with adjacent implementation, types, preview, stories/states, README, and changelog files. Strong ecosystem evidence may discover an existing implementation without that manifest; optional metadata improves semantics and resolves ambiguity rather than becoming a second registry. Component categories and nesting are arbitrary folders above implementations.

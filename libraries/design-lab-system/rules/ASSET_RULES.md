@@ -1,0 +1,72 @@
+# Design Lab asset rules
+
+This file is the shared source of truth for creating or changing images, video, SVG, and code-native icon assets.
+
+## Canonical source and discovery
+
+Assets live under the active Project or Library `assets/` directory. `icons/`, `images/`, and `videos/` are conventional semantic folders; further nesting is arbitrary. The asset file is discovered recursively without a central asset registry.
+
+Do not create a separate Icons module. Code-native TSX icons, SVG, raster images, and video remain Asset entities.
+
+Asset identity is shared across web frameworks, but executability is capability-specific. Raster
+images, video, and plain SVG are framework-neutral browser assets. A TSX icon is React code and
+must not be advertised as directly executable by Vue or Svelte. Cross-framework code-native icons
+need a shared SVG source or explicitly linked framework-specific implementations; they do not
+justify duplicating the whole Assets module.
+
+## Adjacent semantic metadata
+
+An asset may have an automatically discovered sidecar named `<AssetStem>.meta.json` next to the file. For example:
+
+```text
+assets/icons/ArrowLeftIcon.tsx
+assets/icons/ArrowLeftIcon.meta.json
+```
+
+The sidecar may define:
+
+- `description` — what the asset depicts or communicates;
+- `aliases` — common search names;
+- `useWhen` and `avoidWhen` — appropriate and misleading contexts;
+- `tags` — domain, subject, mood, action, or media vocabulary;
+- `alt` — concise accessible text for meaningful visual media;
+- `license` — known licensing or attribution information.
+
+Sidecars improve semantics but are never required for basic discovery. Default `design-lab-system` assets should include authored semantic metadata. Do not duplicate dimensions, extension, path, preview URL, or other facts already derived from the asset file.
+
+For images specifically, `width`, `height`, `aspectRatio` (the GCD-reduced `"W:H"` label, e.g. `"16:9"`), and `orientation` (`landscape` / `portrait` / `square`) are read directly from the file's own header and always appear on the discovered entity — never author them in the `.meta.json` sidecar, the same rule as dimensions above. Video duration is deliberately not derived yet: unlike an image dimension (one header read), a reliable duration requires actually decoding the container, which is a materially heavier dependency (`ffprobe`/`ffmpeg`) that the current Library has no proven need for (it has no video assets yet). Add it when a real video asset needs it, not speculatively.
+
+## Code-native icons
+
+Use an existing semantic icon whenever it fits. A new product icon is a reusable TSX asset in `assets/icons/`, not inline SVG inside a Component and not a CSS or Unicode substitute.
+
+`assets/icons/index.ts` is generated recursively from code-native icon files during dev, build, and test. Adding the icon file is sufficient; never edit the barrel by hand. The Library manifest supplies the canonical icon import root, so MCP and CLI can return imports such as:
+
+```ts
+import { ArrowLeftIcon } from '@design-lab/system/icons'
+```
+
+Decorative instances are hidden from assistive technology. Interactive icon-only controls need an accessible name supplied by the control, not baked into the vector asset.
+
+## Images and video
+
+Write descriptions from visible content and intended subject matter, not only from filenames. `alt` describes the meaningful visual result; it does not include “image of.” Decorative media may omit `alt` metadata when the consumer deliberately supplies empty alternative text.
+
+Do not invent license claims. Record `license` only when provenance is known.
+
+A Page, Wireframe, or Component must reference an image or video asset the same way it references a Component or icon: a real static import resolved through the Library's own package, never the Design Lab application's `/api/sources/.../asset-previews/...` preview route. That route exists only to render the Assets catalog inside Design Lab; it is not a production contract and must never appear in authored source. The Library manifest's `assetImport` field (parallel to `componentImport`/`iconImport`) supplies the canonical import root, so MCP and CLI return a ready statement such as:
+
+```ts
+import modernWorkspace from '@design-lab/system/assets/images/stock/modern-workspace.jpg'
+```
+
+The default-import symbol is a mechanical camelCase conversion of the asset's own filename, never an authored per-asset name, so it can never drift from the file it points at. A copied Page keeps working unmodified in a consumer application as long as that application also depends on the same Library package and its bundler resolves static image imports (standard behavior for Vite, webpack, and Metro).
+
+## Verification
+
+After changing assets:
+
+1. verify automatic Assets discovery and safe preview fallback;
+2. regenerate/check the icon barrel for code-native icons;
+3. search a natural-language intent through MCP or CLI;
+4. resolve the entity and verify its path, metadata, and canonical import when applicable.

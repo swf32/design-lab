@@ -1,24 +1,43 @@
 # Design Lab
 
-Локальная основа Design Lab: React-интерфейс на TypeScript + SCSS и Node.js runtime для доступа к файловой системе workspace.
+Локальное рабочее пространство дизайн-систем: React-интерфейс на TypeScript + SCSS и Node.js
+runtime для файловой системы. [Начните с карты проекта](docs/24-project-map-and-status.md), если
+возвращаетесь после перерыва; [полное оглавление](docs/README.md) связывает видение, архитектуру,
+контракты и задачи. npm package ещё `private`, но локальный tarball уже можно установить в другой Git-проект.
 
 ## Запуск
 
 ```bash
-cd design-lab
 npm install
 npm run dev
 ```
 
-- UI: `http://localhost:5317`
-- локальный Node.js API: `http://127.0.0.1:4173`
+- UI: `http://localhost:5317` (настраивается через `DESIGN_LAB_PORT`)
+- локальный Node.js API: `http://127.0.0.1:4173` (через `DESIGN_LAB_API_PORT`)
 
 ## Проверка production-сборки
 
 ```bash
-cd design-lab
 npm run build
 ```
+
+## Локальная установка в другой проект
+
+```bash
+# Здесь, в checkout Design Lab
+npm pack --workspace=design-lab
+# В корне другого Git-проекта
+npm install /путь/к/design-lab-0.1.0.tgz
+npx designlab setup --name "My Project"
+npx designlab setup --name "My Project" --apply --confirm
+npx designlab system doctor
+npx designlab dev
+```
+
+Первый `setup` показывает план без записи. Он подключает найденные исходники на месте, а редактируемую
+System создаёт в `design-lab/system/` проекта. `DESIGN_LAB_PORT` и `DESIGN_LAB_API_PORT` задают
+независимые порты. Повторная установка пакета сохраняет содержимое `design-lab/system/`; явный
+`system reset` восстанавливает default. Подробнее — в [инструкции и границах поддержки](docs/25-interface-system-and-installation.md).
 
 ## Форматирование
 
@@ -41,7 +60,8 @@ npm run designlab -- system reset
 ```
 
 `theme` управляет безопасным CSS/token Skin поверх активной системы. `system` физически устанавливает
-полную исполняемую Library в единственный слот `libraries/design-lab-system`. Локальные папки,
+полную исполняемую Library в единственный слот: `libraries/design-lab-system/` здесь или
+`design-lab/system/` во внешнем проекте. Локальные папки,
 `github:owner/repo#tag`, npm packages и
 tarballs проходят compatibility/entrypoint validation до атомарной установки. Полный контракт и
 модель community gallery описаны в `docs/23-interface-skins-systems-and-gallery.md`. Оба `create`
@@ -67,4 +87,10 @@ Node runtime предоставляет:
 - `GET /api/projects/:id/tree?module=components`;
 - первичное представление `GET /api/entities?projectId=…&module=…`.
 
-Новый Project создаётся автоматически в соседнем с приложением `projects/<название>/`. Пользователь вводит только название; выбирать директории не нужно. Design Lab читает сущности только из канонических каталогов Project/Library и не адаптируется к произвольной структуре существующего репозитория. Следующий этап — shared entity contracts и вертикальный срез Tokens: scanner → normalization → API → UI → watcher.
+Для нового Project доступны managed roots; для существующего репозитория setup сканирует
+структуру и подключает найденные исходники по относительным mounts, не перенося их.
+Это направление частично реализовано, а оставшиеся gaps перечислены в
+[карте состояния](docs/24-project-map-and-status.md) и [checklist](docs/IMPLEMENTATION-CHECKLIST.md).
+После установки локального tarball активная редактируемая System живёт в одной папке
+пользовательского проекта ([D-093](docs/DECISIONS.md)); текущий development slot находится в
+`libraries/design-lab-system/`.

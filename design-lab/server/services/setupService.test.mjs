@@ -57,6 +57,8 @@ test('createSetupPlan explains writes and never proposes moving product files', 
     assert.deepEqual(plan.config.source.mounts.components, ['src/components'])
     assert.equal(plan.config.runtime.port, 5317)
     assert.equal(plan.config.runtime.applicationPort, null)
+    assert.equal(plan.config.interfaceSystem.path, 'design-lab/system')
+    assert.deepEqual(plan.changes.copyDirectories, ['design-lab/system'])
   } finally {
     await rm(root, { recursive: true, force: true })
   }
@@ -65,6 +67,7 @@ test('createSetupPlan explains writes and never proposes moving product files', 
 test('applySetupPlan requires confirmation and preserves existing AGENTS guidance', async () => {
   const root = await fixture()
   const rulesSource = join(root, 'rule-fixtures')
+  const defaultSystemSource = await mkdtemp(join(tmpdir(), 'design-lab-default-system-'))
   try {
     await mkdir(rulesSource)
     for (const name of [
@@ -77,9 +80,18 @@ test('applySetupPlan requires confirmation and preserves existing AGENTS guidanc
     ])
       await writeFile(join(rulesSource, name), `# ${name}\n`)
     await writeFile(join(root, 'AGENTS.md'), '# Existing team rules\n\n- Keep this.\n')
+    await writeFile(join(defaultSystemSource, 'design-lab-pack.json'), '{"kind":"system"}\n')
+    await writeFile(join(defaultSystemSource, 'library.json'), '{"id":"design-lab-system"}\n')
+    await writeFile(join(defaultSystemSource, 'README.md'), '# Default System\n')
 
     await assert.rejects(
-      applySetupPlan({ root, name: 'Sample system', mode: 'attach', rulesSource }),
+      applySetupPlan({
+        root,
+        name: 'Sample system',
+        mode: 'attach',
+        rulesSource,
+        defaultSystemSource,
+      }),
       (error) => error.code === 'SETUP_CONFIRMATION_REQUIRED',
     )
     const result = await applySetupPlan({
@@ -88,6 +100,7 @@ test('applySetupPlan requires confirmation and preserves existing AGENTS guidanc
       mode: 'attach',
       confirmed: true,
       rulesSource,
+      defaultSystemSource,
     })
     const config = JSON.parse(
       await readFile(join(root, 'design-lab', 'designlab.config.json'), 'utf8'),
@@ -95,6 +108,11 @@ test('applySetupPlan requires confirmation and preserves existing AGENTS guidanc
     const agents = await readFile(join(root, 'AGENTS.md'), 'utf8')
     assert.equal(result.applied, true)
     assert.equal(config.mode, 'attach')
+    assert.equal(config.interfaceSystem.path, 'design-lab/system')
+    assert.equal(
+      await readFile(join(root, 'design-lab', 'system', 'README.md'), 'utf8'),
+      '# Default System\n',
+    )
     assert.match(agents, /# Existing team rules/)
     assert.match(agents, /design-lab:setup:start/)
     assert.match(agents, /Ask the user to confirm/)
@@ -104,5 +122,6 @@ test('applySetupPlan requires confirmation and preserves existing AGENTS guidanc
     )
   } finally {
     await rm(root, { recursive: true, force: true })
+    await rm(defaultSystemSource, { recursive: true, force: true })
   }
 })

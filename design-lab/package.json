@@ -6,7 +6,26 @@
   "engines": {
     "node": ">=22"
   },
+  "bin": {
+    "designlab": "scripts/designlab.mjs"
+  },
+  "files": [
+    "index.html",
+    "interface-system-contract.json",
+    "runtime/runtimeChild.mjs",
+    "runtime/vue/index.html",
+    "runtime/vue/main.ts",
+    "runtime/vue/runtime.css",
+    "scripts/",
+    "server/",
+    "shared/",
+    "src/",
+    "tsconfig*.json",
+    "vendor/",
+    "vite.config.ts"
+  ],
   "scripts": {
+    "prepack": "node scripts/prepack.mjs",
     "dev": "node scripts/dev.mjs",
     "dev:ui": "vite",
     "server": "node server/index.mjs",
@@ -14,6 +33,8 @@
     "designlab": "node scripts/designlab.mjs",
     "capture:install-browser": "playwright install chromium",
     "test:runtime:vue": "node --test server/services/componentCapture.vue.test.mjs",
+    "test:package": "node scripts/package-smoke.mjs",
+    "test:package:browser": "node scripts/package-smoke.mjs --browser",
     "test": "node --test shared/runtimeProtocol.test.mjs src/storySourcePrinter.test.mjs scripts/inspectionTransform.test.mjs server/services/authoredStyles.test.mjs server/services/componentAdapters.test.mjs server/services/componentHandoff.test.mjs server/services/componentRelations.test.mjs server/services/componentRuntimeService.test.mjs server/services/pages.test.mjs server/services/flowLayout.test.mjs server/services/tokenCatalog.test.mjs server/services/sourceMounts.test.mjs server/services/mountedSources.test.mjs server/services/projectRegistry.test.mjs server/services/runtimeProfiles.test.mjs server/services/runtimeSupervisor.test.mjs server/services/setupService.test.mjs server/services/interfacePacks.test.mjs server/services/contextGateway.test.mjs server/mcp/index.test.mjs",
     "build": "tsc -b && vite build",
     "preview": "vite preview",
@@ -21,24 +42,24 @@
   },
   "dependencies": {
     "@babel/parser": "^8.0.4",
-    "@design-lab/system": "*",
+    "@babel/core": "^8.0.1",
     "@modelcontextprotocol/sdk": "^1.29.0",
     "@vitejs/plugin-react": "latest",
+    "@types/node": "latest",
+    "@types/react": "latest",
+    "@types/react-dom": "latest",
     "image-size": "^2.0.2",
     "react": "latest",
     "react-dom": "latest",
     "react-markdown": "^10.1.0",
+    "playwright": "^1.61.1",
+    "postcss-scss": "^4.0.9",
+    "sass-embedded": "^1.100.0",
+    "typescript": "latest",
     "vite": "latest",
     "zod": "^3.25.76"
   },
   "devDependencies": {
-    "@babel/core": "^8.0.1",
-    "@types/node": "latest",
-    "@types/react": "latest",
-    "@types/react-dom": "latest",
-    "playwright": "^1.61.1",
-    "postcss-scss": "^4.0.9",
-    "sass-embedded": "^1.100.0",
-    "typescript": "latest"
+    "prettier": "^3.9.5"
   }
 }
