@@ -50,7 +50,8 @@ an authored file or a second source of UI code. `system upgrade` uses it to comp
 with a newer bundled default. If both sides changed the same file, the entire update is blocked;
 resolve the overlap manually and review the plan again. A folder without a trusted baseline cannot
 use this automatic upgrade path. `system reset` is a separate recovery action that replaces the
-active folder after saving a snapshot.
+active folder after saving a snapshot. Settings exposes this as "Restore default"; if a broken
+System prevents Settings from opening, run `npx designlab system reset` from the project root.
 
 The validator proves compatibility, not security. A System contains executable code and must be
 reviewed with the same care as any source dependency.
@@ -80,13 +81,17 @@ breaking implementation.
    keyboard use, focus, loading, disabled, error, empty, overflow, and compact states.
 5. Add or update focused Stories and illustrative previews when a Component's behavior or
    recognizable anatomy changes.
-6. Run validation after each contract-level change:
+6. In Design Lab Settings → Interface System, choose this folder under "Install a System from a
+   folder". "Browse project" finds folders inside the project; an external folder can be entered
+   by path. Select "Check folder" and resolve any diagnostics. CLI validation remains available
+   for automation:
 
    ```bash
-   npm run designlab -- system validate <path-to-system>
+   npx designlab system validate <path-to-system>
    ```
 
-7. Install locally, restart Design Lab, and review every module in dark and light modes. Verify
+7. Select "Install this System", confirm, restart Design Lab, and review every module in dark and
+   light modes. Verify
    long content, narrow viewports, dialogs, navigation, Canvas modes, and browser console output.
 8. Add deterministic screenshots, append changelogs, and update semantic versions before release.
 

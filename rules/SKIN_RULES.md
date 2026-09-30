@@ -77,16 +77,13 @@ density direction.
 1. Write one short visual intent in `README.md`: mood, contrast, density, typography, and the parts
    of Design Lab that should feel different.
 2. Change the smallest relevant group in `theme.css`, starting with surfaces and readable text.
-3. Validate the package from the Design Lab workspace:
+3. In Design Lab Settings → Interface Skin, choose this folder under "Install a Skin from a folder".
+   "Browse project" finds folders inside the project; an external folder can be entered by path.
+4. Select "Check Skin" and correct any diagnostics. Then select "Install this Skin", confirm,
+   and restart Design Lab. CLI validation is optional for automation:
 
    ```bash
-   npm run designlab -- theme validate <path-to-skin>
-   ```
-
-4. Install it locally and restart Design Lab:
-
-   ```bash
-   npm run designlab -- theme install <path-to-skin>
+   npx designlab theme validate <path-to-skin>
    ```
 
 5. Review Components, Wireframes, Pages, Tokens, Assets, and Fonts in dark and light modes. Check
@@ -95,8 +92,9 @@ density direction.
 6. Add representative screenshots, update the manifest version, and re-run validation before
    publishing.
 
-`theme reset` returns to the active System without deleting the installed Skin. A failed Skin may
-make Design Lab visually unusable; reset is the recovery path, not a hidden fallback stylesheet.
+"Clear Skin" in Settings returns to the active System without deleting the installed Skin. If a
+failed Skin makes Settings unusable, `npx designlab theme reset` is the recovery path; there is no
+hidden fallback stylesheet.
 
 ## Versioning
 

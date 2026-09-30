@@ -1207,6 +1207,7 @@ function authoringReadme(kind, name) {
   const command = kind === 'skin' ? 'theme' : 'system'
   const noun = kind === 'skin' ? 'visual Skin' : 'complete interface System'
   const firstEdit = kind === 'skin' ? '`theme.css`' : 'canonical tokens and Components'
+  const label = kind === 'skin' ? 'Skin' : 'System'
   return `# ${name}
 
 This package is a ${noun} for Design Lab.
@@ -1220,29 +1221,29 @@ parts of Design Lab that should feel intentionally different.
 
 1. Read \`AGENTS.md\` and the linked local rules.
 2. Begin with ${firstEdit}; avoid changing more of the interface than the visual direction needs.
-3. From the Design Lab workspace, validate this folder:
+3. Open Design Lab → Settings → Interface ${label}. Under "Install a ${label} from a folder", use
+   "Browse project" to select this folder, or enter its path relative to the project root.
+4. Select "${kind === 'skin' ? 'Check Skin' : 'Check folder'}". Fix any reported problem, then
+   select "Install this ${label}" and confirm the replacement. Restart Design Lab to load it.
+5. Review every module in dark and light modes, including keyboard focus, narrow widths, and long
+   content. Add representative files under \`screenshots/\`, then update version, compatibility,
+   license, repository, and screenshot paths in \`design-lab-pack.json\` before sharing.
+
+The folder browser only shows folders inside the current project. For a folder outside the project,
+enter its path in Settings. The command line is optional for validation and automation:
 
    \`\`\`bash
-   npm run designlab -- ${command} validate <path-to-this-folder>
+   npx designlab ${command} validate <path-to-this-folder>
    \`\`\`
-
-4. Install it locally and restart Design Lab:
-
-   \`\`\`bash
-   npm run designlab -- ${command} install <path-to-this-folder>
-   \`\`\`
-
-5. Review every module in dark and light modes, add representative files under \`screenshots/\`,
-   then update version, compatibility, license, repository, and screenshot paths in
-   \`design-lab-pack.json\`.
 
 ## Recovery
 
-Use \`npm run designlab -- ${command} reset\` to return to ${
+In Settings, ${
     kind === 'skin'
-      ? 'the active System without this Skin'
-      : 'the snapshotted default System in the canonical installation slot'
-  }. Installed packages are retained for later use.
+      ? 'select "Clear Skin" to return to the active System appearance'
+      : 'select "Restore default" to replace the active folder with the bundled default after a snapshot'
+  }. Restart Design Lab afterward. If a broken interface makes Settings unusable, run
+\`npx designlab ${command} reset\` from the project root. Installed packages remain available.
 `
 }
 

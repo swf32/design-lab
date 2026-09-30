@@ -408,6 +408,10 @@ test('Skin and System scaffolds are immediately valid authoring packages', async
       await readFile(join(root, 'new-skin', 'theme.css'), 'utf8'),
       /--shell-navigation-width/,
     )
+    const skinReadme = await readFile(join(root, 'new-skin', 'README.md'), 'utf8')
+    assert.match(skinReadme, /Settings → Interface Skin/)
+    assert.match(skinReadme, /Check Skin/)
+    assert.match(skinReadme, /Clear Skin/)
     assert.equal(
       await readFile(join(root, 'new-skin', 'rules', 'SKIN_RULES.md'), 'utf8'),
       await readFile(resolve(applicationRoot, '../rules/SKIN_RULES.md'), 'utf8'),
@@ -416,6 +420,10 @@ test('Skin and System scaffolds are immediately valid authoring packages', async
       await readFile(join(root, 'new-system', 'AGENTS.md'), 'utf8'),
       /rules\/SYSTEM_RULES\.md/,
     )
+    const systemReadme = await readFile(join(root, 'new-system', 'README.md'), 'utf8')
+    assert.match(systemReadme, /Settings → Interface System/)
+    assert.match(systemReadme, /Check folder/)
+    assert.match(systemReadme, /Restore default/)
     for (const rule of [
       'SYSTEM_RULES.md',
       'COMPONENT_RULES.md',

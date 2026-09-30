@@ -899,6 +899,8 @@ native backlog до Web DoD.
       accessibility, geometry, compatibility и recovery workflow.
 - [x] Генерировать в каждом Skin/System package-local `AGENTS.md`, beginner README, screenshot
       guidance и применимые локальные rule copies для самостоятельной работы вне monorepo.
+- [x] Сделать generated README и локальные Skin/System rules UI-first: фактические действия
+      Settings для проверки, установки и recovery описаны до необязательных CLI команд.
 - [x] Заменить пустой Skin CSS scaffold на секционный шаблон реальных public shell, semantic,
       typography, layout, control, motion, dark/light и inspection variables.
 - [x] Покрыть тестом идентичность scaffold rule copies canonical источникам и наличие ключевых
