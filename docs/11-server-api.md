@@ -164,6 +164,24 @@ otherwise they return `403` with `INTERFACE_UI_REQUEST_REQUIRED`. Missing confir
 System validation/path failures return `422` with their `INTERFACE_*` code and message. These
 routes are intended for the local Design Lab process and do not authorize remote System uploads.
 
+### Skin management in Settings
+
+`GET /api/interface/skin/packs` returns `{ packs[] }` with installed Skin ids, names, versions,
+paths, and active flags. The following POST routes require the same JSON/UI headers described
+above. Install, use, and reset increment the API revision and report `restartRequired: true`;
+create and inspect leave the active selection unchanged:
+
+| Route | Body | Result |
+| --- | --- | --- |
+| `/api/interface/skin/create` | `{ name, path }` | `201` and an inactive local Skin scaffold with `theme.css` and authoring rules; the destination must be new and outside the active System. |
+| `/api/interface/skin/inspect` | `{ path }` | `200` with validated local Skin identity and version. |
+| `/api/interface/skin/install` | `{ path, confirmed: true }` | `200` after revalidation, caching, and activation; missing confirmation returns `409`. |
+| `/api/interface/skin/use` | `{ id, version }` | `200` after validating and selecting an installed Skin. |
+| `/api/interface/skin/reset` | `{}` | `200` after clearing the Skin selection without deleting its cached files. |
+
+Relative create/inspect/install paths start at the product repository root. Skin changes load after
+an application restart because Vite resolves the selected CSS entrypoint at startup.
+
 ## What is intentionally not here
 
 - **MCP** (`designlab_sources`/`designlab_search`/`designlab_get` over stdio) and the **CLI** (`npm run designlab -- ...`) are separate adapters over the same `contextGateway`, not HTTP routes — see `09-ai-context-and-mcp.md`.

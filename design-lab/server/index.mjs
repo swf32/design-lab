@@ -17,12 +17,17 @@ import { getComponentHandoff } from './services/componentHandoff.mjs'
 import { applySetupPlan, createSetupPlan } from './services/setupService.mjs'
 import {
   createLocalInterfaceSystem,
+  createLocalInterfaceSkin,
   diffInterfaceSystem,
   defaultSystemRecovery,
   doctorInterfacePacks,
   inspectLocalInterfaceSystem,
+  inspectLocalInterfaceSkin,
   installLocalInterfaceSystem,
+  installLocalInterfaceSkin,
+  listInterfacePacks,
   resetInterfacePack,
+  useInterfacePack,
 } from './services/interfacePacks.mjs'
 import {
   closeComponentRuntimes,
@@ -98,6 +103,44 @@ createServer(async (request, response) => {
           status: 409,
         })
       const reset = await resetInterfacePack('system')
+      revision += 1
+      return sendJson(response, 200, { ...reset, restartRequired: true })
+    }
+    if (request.method === 'GET' && url.pathname === '/api/interface/skin/packs') {
+      return sendJson(response, 200, { packs: await listInterfacePacks('skin') })
+    }
+    if (request.method === 'POST' && url.pathname === '/api/interface/skin/create') {
+      requireInterfaceUiRequest(request)
+      const input = await readJson(request)
+      return sendJson(response, 201, await createLocalInterfaceSkin(input.path, input.name))
+    }
+    if (request.method === 'POST' && url.pathname === '/api/interface/skin/inspect') {
+      requireInterfaceUiRequest(request)
+      const input = await readJson(request)
+      return sendJson(response, 200, await inspectLocalInterfaceSkin(input.path))
+    }
+    if (request.method === 'POST' && url.pathname === '/api/interface/skin/install') {
+      requireInterfaceUiRequest(request)
+      const input = await readJson(request)
+      if (input.confirmed !== true)
+        throw Object.assign(new Error('Confirm Skin installation first.'), {
+          code: 'INTERFACE_INSTALL_CONFIRMATION_REQUIRED',
+          status: 409,
+        })
+      const installed = await installLocalInterfaceSkin(input.path)
+      revision += 1
+      return sendJson(response, 200, { ...installed, restartRequired: true })
+    }
+    if (request.method === 'POST' && url.pathname === '/api/interface/skin/use') {
+      requireInterfaceUiRequest(request)
+      const input = await readJson(request)
+      const selected = await useInterfacePack('skin', input.id, { version: input.version })
+      revision += 1
+      return sendJson(response, 200, { ...selected, restartRequired: true })
+    }
+    if (request.method === 'POST' && url.pathname === '/api/interface/skin/reset') {
+      requireInterfaceUiRequest(request)
+      const reset = await resetInterfacePack('skin')
       revision += 1
       return sendJson(response, 200, { ...reset, restartRequired: true })
     }

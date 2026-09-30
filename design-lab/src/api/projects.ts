@@ -710,3 +710,78 @@ export function resetInterfaceSystem() {
     },
   )
 }
+
+export type InterfaceSkinPack = {
+  id: string
+  name: string
+  version: string
+  kind: 'skin'
+  active: boolean
+  path: string
+}
+
+export type LocalInterfaceSkinInspection = {
+  valid: true
+  path: string
+  id: string
+  name: string
+  version: string
+  description: string
+}
+
+const interfaceUiHeaders = { 'Content-Type': 'application/json', 'X-Design-Lab-UI': '1' }
+
+export function listInterfaceSkins() {
+  return request<{ packs: InterfaceSkinPack[] }>('/api/interface/skin/packs')
+}
+
+export function createLocalInterfaceSkin(name: string, path: string) {
+  return request<{ created: true; id: string; name: string; version: string; path: string }>(
+    '/api/interface/skin/create',
+    {
+      method: 'POST',
+      headers: interfaceUiHeaders,
+      body: JSON.stringify({ name, path }),
+    },
+  )
+}
+
+export function inspectLocalInterfaceSkin(path: string) {
+  return request<LocalInterfaceSkinInspection>('/api/interface/skin/inspect', {
+    method: 'POST',
+    headers: interfaceUiHeaders,
+    body: JSON.stringify({ path }),
+  })
+}
+
+export function installLocalInterfaceSkin(path: string) {
+  return request<{
+    installed: true
+    id: string
+    name: string
+    version: string
+    restartRequired: true
+  }>('/api/interface/skin/install', {
+    method: 'POST',
+    headers: interfaceUiHeaders,
+    body: JSON.stringify({ path, confirmed: true }),
+  })
+}
+
+export function useInterfaceSkin(id: string, version: string) {
+  return request<{ active: true; id: string; version: string; restartRequired: true }>(
+    '/api/interface/skin/use',
+    {
+      method: 'POST',
+      headers: interfaceUiHeaders,
+      body: JSON.stringify({ id, version }),
+    },
+  )
+}
+
+export function resetInterfaceSkin() {
+  return request<{ reset: true; active: null; restartRequired: true }>(
+    '/api/interface/skin/reset',
+    { method: 'POST', headers: interfaceUiHeaders, body: '{}' },
+  )
+}

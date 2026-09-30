@@ -11,7 +11,7 @@
 ## Ближайший фокус: основа для сменяемых интерфейсных System
 
 1. **Один источник собственной System.** Активная папка System используется одновременно оболочкой и каталогом. Это проверено в development checkout и установленном внешнем fixture. См. [D-090–D-093](DECISIONS.md) и [схему](25-interface-system-and-installation.md).
-2. **Понятное авторство.** Skin подходит для публичных CSS variables; полная System может менять структуру и композицию Components, SVG, изображения, шрифты и токены. Scaffold уже даёт локальные rules/README. Следующий UX слой — UI для создания, проверки и установки без обязательного CLI.
+2. **Понятное авторство.** Skin подходит для публичных CSS variables; полная System может менять структуру и композицию Components, SVG, изображения, шрифты и токены. Scaffold уже даёт локальные rules/README. Базовые действия создания, проверки и установки есть в Settings; следующий UX слой — выбор папки без ручного пути и понятная диагностика.
 3. **Проверяемый результат.** Настоящий Component в Workbench, иллюстративный Preview отдельно, dark/light, responsive states, focus, текстовые перегрузки и screenshots. Требования содержатся в [component rules](../rules/COMPONENT_RULES.md), [skin rules](../rules/SKIN_RULES.md) и [system rules](../rules/SYSTEM_RULES.md).
 4. **Обновляемость.** Установка и апгрейд инструмента не должны стирать отредактированную System. Нужны versioned contract, doctor, сравнение с default и понятный recovery path.
 
@@ -48,7 +48,7 @@
 - [ ] Дать автору понятный стартовый System template и диагностировать отсутствие обязательных экспортов, assets и несовместимость.
 - [ ] Проверить, что в `design-lab/src` не добавляются самостоятельные цвета, типографика, поверхности и visual spacing; новые значения принадлежат System tokens/Components.
 - [x] Проверить полный System fork, меняющий структуру Button и добавляющий SVG asset, в shell и Workbench; browser fixture подтверждает установку и общий executable source.
-- [ ] Добавить полный UI workflow для Skin/System create/validate/install/use/doctor с понятной диагностикой. System можно создать, проверить, установить и восстановить через Settings; Skin и улучшенные ошибки остаются открытыми.
+- [ ] Довести UI workflow Skin/System create/validate/install/use/doctor до понятной диагностики и выбора папки без ручного пути. Базовые действия для обоих видов пакета уже есть в Settings.
 - [x] Показать в Settings doctor и diff активной System, создание копии System, проверку/установку из локальной папки и восстановление bundled default после подтверждения.
 - [x] Проверить изменение реального Component style одновременно в её Workbench specimen и shell; браузерная регрессия входит в `test:package:browser`.
 

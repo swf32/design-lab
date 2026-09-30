@@ -4,6 +4,7 @@ import { tmpdir } from 'node:os'
 import { dirname, join, resolve } from 'node:path'
 import test from 'node:test'
 import {
+  createLocalInterfaceSkin,
   createInterfacePack,
   createLocalInterfaceSystem,
   defaultInterfacePaths,
@@ -11,7 +12,9 @@ import {
   diffInterfaceSystem,
   doctorInterfacePacks,
   inspectLocalInterfaceSystem,
+  inspectLocalInterfaceSkin,
   installLocalInterfaceSystem,
+  installLocalInterfaceSkin,
   installInterfacePack,
   listInterfacePacks,
   readInterfaceSelection,
@@ -192,6 +195,20 @@ test('local System creation copies the active source without replacing it', asyn
       createLocalInterfaceSystem('authoring/my-system', 'Duplicate', options),
       (error) => error.code === 'INTERFACE_PACK_DESTINATION_EXISTS',
     )
+  })
+})
+
+test('local Skin workflow creates, validates, installs, lists, and resets', async () => {
+  await withPackWorkspace(async ({ options }) => {
+    const created = await createLocalInterfaceSkin('authoring/my-skin', 'My Skin', options)
+    assert.equal(created.id, 'my-skin')
+    assert.equal((await inspectLocalInterfaceSkin(created.path, options)).valid, true)
+    const installed = await installLocalInterfaceSkin(created.path, options)
+    assert.equal(installed.active, true)
+    assert.equal((await listInterfacePacks('skin', options))[0].active, true)
+    assert.equal((await doctorInterfacePacks(options)).skin.id, 'my-skin')
+    assert.equal((await resetInterfacePack('skin', options)).active, null)
+    assert.equal((await doctorInterfacePacks(options)).skin, null)
   })
 })
 

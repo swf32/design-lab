@@ -24,10 +24,13 @@
 - [x] Добавить в Settings первый UI путь проверки и установки полной System из локальной папки:
       relative path от корня проекта, contract/typecheck до установки, повторная проверка перед
       активацией, подтверждение, snapshot прежней System и сообщение о необходимости restart.
-      Архивы и управление Skin через UI остаются открытыми.
+      Архивы и выбор папки без ручного пути остаются открытыми.
 - [x] Создавать в Settings неактивную полную System как копию активной папки: новое имя и путь,
       локальные rules/AGENTS, проверка application contract, защита от существующей папки и
       вложения в активный слот. Внешний browser fixture проверяет создание и последующую установку.
+- [x] Добавить Settings workflow для Skin: create/inspect/install/use/reset над тем же pack service,
+      без копирования Component code и с явным restart для загрузки CSS. Внешний browser fixture
+      проверяет публичную переменную Skin после restart, выбор и сброс.
 - [x] Вывести в Settings System doctor и read-only diff с кнопкой повторной проверки, а также
       явное восстановление bundled default со snapshot; безопасный versioned upgrade остаётся открытым.
 - [ ] Сделать `system diff`/upgrade flow, который показывает изменения default и сохраняет локальные

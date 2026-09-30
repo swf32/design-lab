@@ -12,7 +12,7 @@
 | --- | --- | --- |
 | **Design Lab package** | Исполняемый инструмент: приложение, API, CLI и adapters. | Локальный npm tarball устанавливается в чужой репозиторий; package ещё `private` и не опубликован в registry. |
 | **Interface System** | Полную активную Library собственного UI: React Components, icons, tokens, supporting entrypoints. | В development checkout — [`libraries/design-lab-system/`](../libraries/design-lab-system/); после установки — `design-lab/system/` проекта. |
-| **Skin** | CSS/token слой поверх активной System без замены Component code. | Версионный pack с CLI create/install/use/reset. |
+| **Skin** | CSS/token слой поверх активной System без замены Component code. | Версионный pack с CLI и Settings create/inspect/install/use/reset. |
 
 Пользовательская дизайн-система проекта, подключённая через source mounts, — четвёртый объект. Она может быть React, Vue или иной web stack; её темы не выбирают тему самого интерфейса Design Lab. См. [D-089](DECISIONS.md) и [платформенную матрицу](21-web-runtime-feature-parity.md).
 
@@ -34,13 +34,13 @@ Design Lab shell + каталог/Workbench
 
 ## Что делает существующий installer
 
-[`interfacePacks.mjs`](../design-lab/server/services/interfacePacks.mjs) создаёт, проверяет и устанавливает Skin или полную System. Для System валидируются manifest, относительные entrypoints, обязательные exports из [`interface-system-contract.json`](../design-lab/interface-system-contract.json) и typecheck приложения. Выбранный пакет копируется в один физический слот, предварительно сохраняется snapshot; неактивные версии лежат в управляемом cache. Текущий выбор хранится в `design-lab/.designlab/interface.json`. CLI документирован в [корневом README](../README.md) и [контракте пакетов](23-interface-skins-systems-and-gallery.md).
+[`interfacePacks.mjs`](../design-lab/server/services/interfacePacks.mjs) создаёт, проверяет и устанавливает Skin или полную System. Для System валидируются manifest, относительные entrypoints, обязательные exports из [`interface-system-contract.json`](../design-lab/interface-system-contract.json) и typecheck приложения. Выбранный пакет копируется в один физический слот, предварительно сохраняется snapshot; неактивные версии лежат в управляемом cache. В embedded проекте выбор хранится в `design-lab/.cache/interface.json`, а в development checkout — в `design-lab/.designlab/interface.json`. CLI документирован в [корневом README](../README.md) и [контракте пакетов](23-interface-skins-systems-and-gallery.md).
 
 В установленном проекте автор может заменить `design-lab/system/` вручную и выполнить `npx designlab system doctor`; если папка несовместима, приложение может перестать запускаться до восстановления. CLI `system install <папка>` проверяет совместимость и сохраняет snapshot до активации. В Settings можно создать полную неактивную копию текущей System в новой папке: scaffold переименует pack/library, добавит локальные правила и проверит контракт. Затем можно указать путь к любой локальной папке System, проверить её и после явного подтверждения установить в тот же активный слот. Относительный путь считается от корня проекта. Предыдущая System сохраняется как snapshot. Для загрузки нового исполняемого кода нужен перезапуск Design Lab.
 
 Автоматический внешний fixture доказывает более широкий сценарий, чем смена токенов: CLI или Settings создаёт fork, автор меняет структуру `Button` и добавляет импортируемый SVG asset, после чего проверка и установка проходят. Браузерная проверка создаёт System через Settings и видит новые DOM-элементы и загруженный SVG в shell и Workbench от одной активной папки. Это проверка React-адаптера и текущего application contract, а не обещание автоматической миграции всех будущих версий.
 
-Settings показывает совместимость активной System и её read-only отличия от bundled default, включая Components и отдельные authored файлы. Диагностику можно повторить кнопкой без терминала. Здесь же можно создать, проверить и установить полную System из локальной папки или восстановить bundled default с сохранением snapshot текущей папки. Управление Skin пока доступно только через CLI. Если сломанная System препятствует запуску приложения, восстановление остаётся доступно через CLI `system reset`.
+Settings показывает совместимость активной System и её read-only отличия от bundled default, включая Components и отдельные authored файлы. Диагностику можно повторить кнопкой без терминала. Здесь же можно создать, проверить и установить полную System из локальной папки или восстановить bundled default с сохранением snapshot текущей папки. Для Skin доступен отдельный цикл создания, проверки, установки, выбора сохранённой версии и сброса; CSS загружается после перезапуска. Если сломанная System или Skin препятствует использованию приложения, восстановление остаётся доступно через CLI `system reset` или `theme reset`.
 
 Текущий default look восстановлен после Glass-эксперимента. Приоритет — сменяемость полноценного
 исполняемого System-пакета, а не новый визуальный стиль; см. [D-094](DECISIONS.md).
@@ -86,7 +86,7 @@ npx designlab dev
 - Проверка clean install на других ОС и package managers; текущая проверка проведена с npm на macOS.
 - Как обновление пакета выполняет безопасный трёхсторонний merge и мигрирует versioned interface contract; текущий `system diff` только показывает двусторонние отличия.
 - Когда изменение Component требует HMR, reload или restart; пользователь должен видеть честный статус.
-- Как расширить первый UI create/install/validate/doctor до управления Skin, выбора папки без ручного пути и более понятных диагностик.
+- Как расширить первый UI create/install/validate/doctor до выбора папки без ручного пути и более понятных диагностик.
 - Как поддерживать полный System fork без принудительного ручного копирования каждого нового optional Component; текущий `system diff` даёт файловый отчёт, но не синхронизирует fork.
 
 Рабочие задачи для этих пунктов находятся в [приоритетном плане](26-vision-and-next-steps.md) и [checklist](IMPLEMENTATION-CHECKLIST.md).

@@ -125,6 +125,20 @@
 .settings-system__candidate code {
   color: var(--color-text-secondary);
 }
+.settings-skin__packs {
+  list-style: none;
+  margin: var(--space-12) 0;
+  padding: 0;
+}
+.settings-skin__packs li {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-12);
+  padding: var(--space-8) 0;
+  border-bottom: 1px solid var(--color-border-subtle);
+  color: var(--color-text-secondary);
+}
 .settings-page__intro span,
 .settings-section header > span {
   color: var(--color-accent-primary);

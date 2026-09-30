@@ -686,6 +686,39 @@ export async function createLocalInterfaceSystem(path, name, options = {}) {
   return createInterfacePack('system', destination, { ...options, name: name.trim() })
 }
 
+export async function createLocalInterfaceSkin(path, name, options = {}) {
+  if (typeof name !== 'string' || !name.trim())
+    throw packError('Enter a name for the new Skin.', 'INTERFACE_PACK_NAME_REQUIRED')
+  if (typeof path !== 'string' || !path.trim())
+    throw packError('Choose a folder for the new Skin.', 'INTERFACE_PACK_DESTINATION_REQUIRED')
+  const paths = defaultInterfacePaths(options)
+  const destination = resolve(paths.workspaceDirectory, path.trim())
+  if (isInside(paths.systemSlot, destination))
+    throw packError(
+      'Create the Skin outside the active System folder.',
+      'INTERFACE_PACK_DESTINATION_ACTIVE',
+    )
+  return createInterfacePack('skin', destination, { ...options, name: name.trim() })
+}
+
+export async function inspectLocalInterfaceSkin(path, options = {}) {
+  const root = await localInterfaceDirectory(path, options)
+  const validated = await validateInterfacePack(root, { ...options, expectedKind: 'skin' })
+  return {
+    valid: true,
+    path: root,
+    id: validated.manifest.id,
+    name: validated.manifest.name,
+    version: validated.manifest.version,
+    description: validated.manifest.description ?? '',
+  }
+}
+
+export async function installLocalInterfaceSkin(path, options = {}) {
+  const root = await localInterfaceDirectory(path, options)
+  return installInterfacePack(root, { ...options, kind: 'skin', activate: true })
+}
+
 function parseGithubSource(spec) {
   if (!spec.startsWith('github:')) return null
   const value = spec.slice('github:'.length)

@@ -16,6 +16,7 @@ const applicationRoot = resolve(fileURLToPath(new URL('..', import.meta.url)))
 const temporary = await realpath(await mkdtemp(join(tmpdir(), 'design-lab-package-smoke-')))
 const projectRoot = join(temporary, 'external-project')
 const alternateSystem = join(temporary, 'alternate-system')
+const smokeSkin = join(temporary, 'smoke-skin')
 const systemRoot = join(projectRoot, 'design-lab', 'system')
 
 async function run(command, args, cwd) {
@@ -96,6 +97,9 @@ async function browserSmoke(
     createCandidate = null,
     installCandidate = null,
     resetSystem = false,
+    createSkinCandidate = null,
+    verifySkinAndClear = false,
+    expectDefaultMatch = false,
   } = {},
 ) {
   const { chromium } = await import('playwright')
@@ -198,12 +202,75 @@ async function browserSmoke(
     await page.locator('.app-sidebar__footer .sidebar-tab').click()
     await page.getByRole('heading', { name: 'Active System' }).waitFor()
     await page.getByText('Compatible', { exact: true }).waitFor()
-    await page.getByText('Authored files differ from the bundled default.').waitFor()
+    await page
+      .getByText(
+        expectDefaultMatch
+          ? 'Authored files match the bundled default.'
+          : 'Authored files differ from the bundled default.',
+      )
+      .waitFor()
     if (customStructure) {
       await page.getByRole('heading', { name: 'Components' }).waitFor()
       await page.getByText('alternate-smoke', { exact: true }).waitFor()
     }
     assert.deepEqual(pageErrors, [])
+    if (verifySkinAndClear) {
+      await page.waitForFunction(
+        () =>
+          getComputedStyle(document.documentElement)
+            .getPropertyValue('--shell-application-background')
+            .trim() === 'rgb(12 34 56)',
+      )
+      const clear = async () => {
+        const [response] = await Promise.all([
+          page.waitForResponse((result) => result.url().endsWith('/api/interface/skin/reset')),
+          page.getByRole('button', { name: 'Clear Skin' }).click(),
+        ])
+        assert.equal(response.status(), 200)
+      }
+      await clear()
+      const [used] = await Promise.all([
+        page.waitForResponse((result) => result.url().endsWith('/api/interface/skin/use')),
+        page.getByRole('button', { name: 'Use Skin' }).click(),
+      ])
+      assert.equal(used.status(), 200)
+      await page.getByRole('button', { name: 'Clear Skin' }).waitFor()
+      await clear()
+    }
+    if (createSkinCandidate) {
+      await page.getByRole('textbox', { name: 'New Skin name' }).fill('Smoke Skin')
+      await page
+        .getByRole('textbox', { name: 'New Skin folder' })
+        .fill(relative(projectRoot, createSkinCandidate))
+      const [created] = await Promise.all([
+        page.waitForResponse((result) => result.url().endsWith('/api/interface/skin/create')),
+        page.getByRole('button', { name: 'Create Skin' }).click(),
+      ])
+      assert.equal(created.status(), 201)
+      await writeFile(
+        join(createSkinCandidate, 'theme.css'),
+        ':root { --shell-application-background: rgb(12 34 56) !important; }\n',
+      )
+      await page
+        .getByRole('textbox', { name: 'Skin folder', exact: true })
+        .fill(relative(projectRoot, createSkinCandidate))
+      await page.getByRole('button', { name: 'Check Skin' }).click()
+      await page.getByRole('button', { name: 'Install this Skin' }).waitFor()
+      await page.getByRole('button', { name: 'Install this Skin' }).click()
+      const [installed] = await Promise.all([
+        page.waitForResponse((result) => result.url().endsWith('/api/interface/skin/install')),
+        page.getByRole('dialog').getByRole('button', { name: 'Install Skin' }).click(),
+      ])
+      assert.equal(installed.status(), 200)
+      assert.equal((await installed.json()).id, 'smoke-skin')
+      await page.setViewportSize({ width: 390, height: 844 })
+      await page.getByRole('heading', { name: 'Interface Skin' }).waitFor()
+      assert(
+        await page.locator('.settings-page').evaluate((element) =>
+          element.scrollWidth <= element.clientWidth + 1,
+        ),
+      )
+    }
     if (createCandidate) {
       await page.getByRole('textbox', { name: 'New System name' }).fill('Alternate Smoke')
       await page
@@ -446,6 +513,13 @@ try {
   )
   assert.equal(parse(await run(cli, ['system', 'reset'], projectRoot)).active, 'design-lab-system')
   assert.equal(parse(await run(cli, ['system', 'doctor'], projectRoot)).ok, true)
+
+  if (process.argv.includes('--browser')) {
+    await browserSmoke(cli, { createSkinCandidate: smokeSkin, expectDefaultMatch: true })
+    assert.equal(parse(await run(cli, ['system', 'doctor'], projectRoot)).skin.id, 'smoke-skin')
+    await browserSmoke(cli, { verifySkinAndClear: true, expectDefaultMatch: true })
+    assert.equal(parse(await run(cli, ['system', 'doctor'], projectRoot)).skin, null)
+  }
 
   process.stdout.write(
     `Package smoke passed: pack, attach, clean managed setup, one System, versioned upgrade preserving edits, validated fork with Component anatomy and SVG asset, switch, manual folder replacement, reset${process.argv.includes('--browser') ? ', browser shell/Workbench fork and HMR' : ''}.\n`,

@@ -1,4 +1,5 @@
 import './SettingsView.scss'
+import { SkinSettings } from './SkinSettings'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { Button, CodeBlock, Dialog, Input, ModuleHeader } from '@design-lab/system/components'
 import {
@@ -458,6 +459,11 @@ export function SettingsView({ onClose }: { onClose: () => void }) {
             </Button>
           </>
         }
+      />
+
+      <SkinSettings
+        activeSkin={systemDoctor?.skin ?? null}
+        onRefresh={() => void refreshSystem()}
       />
 
       <div className="settings-page__intro">
