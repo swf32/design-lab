@@ -1,4 +1,5 @@
 import { parse } from '@babel/parser'
+import scss from 'postcss-scss'
 import { execFile } from 'node:child_process'
 import { createHash, randomUUID } from 'node:crypto'
 import { existsSync, readFileSync } from 'node:fs'
@@ -37,7 +38,9 @@ const STATIC_ASSET_EXTENSIONS = new Set([
   '.gif',
   '.jpeg',
   '.jpg',
+  '.mov',
   '.otf',
+  '.mp4',
   '.png',
   '.svg',
   '.ttf',
@@ -681,15 +684,66 @@ async function collectExports(file, root, seen = new Set()) {
 }
 
 async function validateSystemAssetImports(root, assetsRoot) {
+  async function checkReference(file, reference) {
+    const cleanReference = reference.split(/[?#]/, 1)[0]
+    if (!STATIC_ASSET_EXTENSIONS.has(extname(cleanReference).toLowerCase())) return
+    const canonicalPrefix = '@design-lab/system/assets/'
+    const target = cleanReference.startsWith(canonicalPrefix)
+      ? resolve(assetsRoot, cleanReference.slice(canonicalPrefix.length))
+      : cleanReference.startsWith('.')
+        ? resolve(dirname(file), cleanReference)
+        : null
+    if (!target) return
+    const sourcePath = portablePath(relative(root, file))
+    if (!isInside(root, target))
+      throw packError(
+        `${sourcePath} imports an asset outside this System: ${reference}.`,
+        'INTERFACE_PACK_ASSET_OUTSIDE',
+        { source: sourcePath, reference },
+      )
+    if (
+      !(
+        await lstat(target).catch((error) => {
+          if (error.code === 'ENOENT') return null
+          throw error
+        })
+      )?.isFile()
+    )
+      throw packError(
+        `${sourcePath} imports a missing asset: ${reference}.`,
+        'INTERFACE_PACK_ASSET_MISSING',
+        { source: sourcePath, reference, path: portablePath(relative(root, target)) },
+      )
+  }
+
   async function visit(directory) {
     for (const entry of await readdir(directory, { withFileTypes: true })) {
       if (entry.isDirectory()) {
         if (!DIFF_IGNORED_DIRECTORIES.has(entry.name)) await visit(join(directory, entry.name))
         continue
       }
-      if (!entry.isFile() || !SCRIPT_EXTENSIONS.includes(extname(entry.name))) continue
+      if (!entry.isFile()) continue
       const file = join(directory, entry.name)
+      const extension = extname(entry.name)
+      if (!SCRIPT_EXTENSIONS.includes(extension) && !['.css', '.scss'].includes(extension)) continue
       const source = await readFile(file, 'utf8')
+      if (extension === '.css' || extension === '.scss') {
+        let stylesheet
+        try {
+          stylesheet = scss.parse(source, { from: file })
+        } catch {
+          // The stylesheet compiler reports syntax failures separately.
+          continue
+        }
+        const references = []
+        stylesheet.walkDecls((declaration) => {
+          const value = declaration.value.replace(/\/\*[\s\S]*?\*\//g, '')
+          for (const match of value.matchAll(/\burl\(\s*(?:"([^"]*)"|'([^']*)'|([^)]*))\s*\)/gi))
+            references.push((match[1] ?? match[2] ?? match[3]).trim())
+        })
+        for (const reference of references) await checkReference(file, reference)
+        continue
+      }
       let ast
       try {
         ast = parse(source, { sourceType: 'module', plugins: ['typescript', 'jsx'] })
@@ -705,36 +759,7 @@ async function validateSystemAssetImports(root, assetsRoot) {
         )
           continue
         const reference = node.source?.value
-        if (typeof reference !== 'string') continue
-        const cleanReference = reference.split(/[?#]/, 1)[0]
-        if (!STATIC_ASSET_EXTENSIONS.has(extname(cleanReference).toLowerCase())) continue
-        const canonicalPrefix = '@design-lab/system/assets/'
-        const target = cleanReference.startsWith(canonicalPrefix)
-          ? resolve(assetsRoot, cleanReference.slice(canonicalPrefix.length))
-          : cleanReference.startsWith('.')
-            ? resolve(dirname(file), cleanReference)
-            : null
-        if (!target) continue
-        const sourcePath = portablePath(relative(root, file))
-        if (!isInside(root, target))
-          throw packError(
-            `${sourcePath} imports an asset outside this System: ${reference}.`,
-            'INTERFACE_PACK_ASSET_OUTSIDE',
-            { source: sourcePath, reference },
-          )
-        if (
-          !(
-            await lstat(target).catch((error) => {
-              if (error.code === 'ENOENT') return null
-              throw error
-            })
-          )?.isFile()
-        )
-          throw packError(
-            `${sourcePath} imports a missing asset: ${reference}.`,
-            'INTERFACE_PACK_ASSET_MISSING',
-            { source: sourcePath, reference, path: portablePath(relative(root, target)) },
-          )
+        if (typeof reference === 'string') await checkReference(file, reference)
       }
     }
   }

@@ -582,3 +582,32 @@ test('System validation identifies a missing statically imported asset before in
     )
   })
 })
+
+test('System validation checks local CSS and SCSS asset URLs without treating data URLs as files', async () => {
+  await withPackWorkspace(async ({ sources, options }) => {
+    const source = join(sources, 'styled-system')
+    await writeSystem(source)
+    await mkdir(join(source, 'components/Badge'), { recursive: true })
+    const style = join(source, 'components/Badge/Badge.scss')
+    await writeFile(
+      style,
+      '.badge { background: url("../../assets/images/missing.svg"); mask: url(data:image/svg+xml;base64,PHN2Zy8+); }\n',
+    )
+    await assert.rejects(
+      validateInterfacePack(source, { ...options, expectedKind: 'system' }),
+      (error) =>
+        error.code === 'INTERFACE_PACK_ASSET_MISSING' &&
+        error.details.source === 'components/Badge/Badge.scss' &&
+        error.details.path === 'assets/images/missing.svg',
+    )
+    await mkdir(join(source, 'assets/images'), { recursive: true })
+    await writeFile(
+      join(source, 'assets/images/missing.svg'),
+      '<svg xmlns="http://www.w3.org/2000/svg" />\n',
+    )
+    assert.equal(
+      (await validateInterfacePack(source, { ...options, expectedKind: 'system' })).manifest.kind,
+      'system',
+    )
+  })
+})

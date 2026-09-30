@@ -21,9 +21,9 @@ function guidance(error: ApiRequestError, kind: 'Skin' | 'System') {
     case 'INTERFACE_PACK_TYPECHECK_FAILED':
       return 'Fix the TypeScript errors in this System. Its Components must satisfy the current Design Lab application contract.'
     case 'INTERFACE_PACK_ASSET_MISSING':
-      return 'Add the missing image or font to this System, or correct its import path, then check the folder again.'
+      return 'Add the missing media or font file to this System, or correct its path, then check the folder again.'
     case 'INTERFACE_PACK_ASSET_OUTSIDE':
-      return 'Keep imported images and fonts inside this System folder, then check the folder again.'
+      return 'Keep referenced media and fonts inside this System folder, then check the folder again.'
     case 'INTERFACE_PACK_ASSETS_INVALID':
       return 'Set entrypoints.assets in design-lab-pack.json to a folder inside this System.'
     case 'INTERFACE_PACK_INCOMPATIBLE':
