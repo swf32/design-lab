@@ -35,6 +35,7 @@ export function sendError(response, error) {
     error: {
       code: error.code ?? 'INTERNAL_ERROR',
       message: status === 500 ? 'Unexpected local server error' : error.message,
+      ...(status < 500 && error.details !== undefined ? { details: error.details } : {}),
     },
   })
   if (status === 500) console.error(error)

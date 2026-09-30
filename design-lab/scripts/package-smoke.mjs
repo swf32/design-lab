@@ -327,6 +327,27 @@ async function browserSmoke(
       assert.equal(response.status(), 201)
       assert.equal((await response.json()).id, 'alternate-smoke')
       await page.getByRole('button', { name: 'Install this System' }).waitFor()
+      const barrel = join(createCandidate, 'components/index.ts')
+      const originalBarrel = await readFile(barrel, 'utf8')
+      try {
+        await writeFile(barrel, 'export const NotTheContract = null\n')
+        const [invalid] = await Promise.all([
+          page.waitForResponse((result) => result.url().endsWith('/api/interface/system/inspect')),
+          page.getByRole('button', { name: 'Check folder' }).click(),
+        ])
+        assert.equal(invalid.status(), 422)
+        const failure = await invalid.json()
+        assert.equal(failure.error.code, 'INTERFACE_PACK_EXPORTS_MISSING')
+        assert(failure.error.details.missing.includes('Button'))
+        await page
+          .getByText(
+            'Export the required names from the declared System entrypoint, then check the folder again.',
+          )
+          .waitFor()
+        await page.getByText('Missing from components:').waitFor()
+      } finally {
+        await writeFile(barrel, originalBarrel)
+      }
     }
     if (installCandidate) {
       await page

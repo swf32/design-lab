@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { Button, Dialog, Input } from '@design-lab/system/components'
 import { InterfaceFolderPicker } from './InterfaceFolderPicker'
+import { InterfacePackDiagnostic } from './InterfacePackDiagnostic'
 import {
   createLocalInterfaceSkin,
   inspectLocalInterfaceSkin,
@@ -30,14 +31,14 @@ export function SkinSettings({
   const [busy, setBusy] = useState(false)
   const [confirmOpen, setConfirmOpen] = useState(false)
   const [message, setMessage] = useState<string | null>(null)
-  const [error, setError] = useState<string | null>(null)
+  const [error, setError] = useState<Error | null>(null)
   const candidateRequest = useRef(0)
 
   const refresh = useCallback(async () => {
     try {
       setPacks((await listInterfaceSkins()).packs)
     } catch (cause) {
-      setError(cause instanceof Error ? cause.message : 'Could not list installed Skins.')
+      setError(cause instanceof Error ? cause : new Error('Could not list installed Skins.'))
     }
   }, [])
 
@@ -55,7 +56,7 @@ export function SkinSettings({
     } catch (cause) {
       if (candidateRequest.current === request) {
         setCandidate(null)
-        setError(cause instanceof Error ? cause.message : 'Could not check the Skin.')
+        setError(cause instanceof Error ? cause : new Error('Could not check the Skin.'))
       }
     } finally {
       if (candidateRequest.current === request) setChecking(false)
@@ -73,7 +74,7 @@ export function SkinSettings({
       )
       void checkFolder(created.path)
     } catch (cause) {
-      setError(cause instanceof Error ? cause.message : 'Could not create the Skin.')
+      setError(cause instanceof Error ? cause : new Error('Could not create the Skin.'))
     } finally {
       setBusy(false)
     }
@@ -91,7 +92,7 @@ export function SkinSettings({
       void refresh()
     } catch (cause) {
       setConfirmOpen(false)
-      setError(cause instanceof Error ? cause.message : 'Could not install the Skin.')
+      setError(cause instanceof Error ? cause : new Error('Could not install the Skin.'))
     } finally {
       setBusy(false)
     }
@@ -106,7 +107,7 @@ export function SkinSettings({
       onRefresh()
       void refresh()
     } catch (cause) {
-      setError(cause instanceof Error ? cause.message : 'Could not activate the Skin.')
+      setError(cause instanceof Error ? cause : new Error('Could not activate the Skin.'))
     } finally {
       setBusy(false)
     }
@@ -121,7 +122,7 @@ export function SkinSettings({
       onRefresh()
       void refresh()
     } catch (cause) {
-      setError(cause instanceof Error ? cause.message : 'Could not clear the Skin.')
+      setError(cause instanceof Error ? cause : new Error('Could not clear the Skin.'))
     } finally {
       setBusy(false)
     }
@@ -146,11 +147,7 @@ export function SkinSettings({
           {activeSkin ? `${activeSkin.id} · ${activeSkin.version}` : 'System appearance'}
         </strong>
       </p>
-      {error && (
-        <p className="settings-page__error" role="alert">
-          {error}
-        </p>
-      )}
+      {error && <InterfacePackDiagnostic error={error} kind="Skin" />}
       {message && <p role="status">{message}</p>}
 
       <div className="settings-system__create">

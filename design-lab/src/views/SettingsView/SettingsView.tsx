@@ -1,6 +1,7 @@
 import './SettingsView.scss'
 import { SkinSettings } from './SkinSettings'
 import { InterfaceFolderPicker } from './InterfaceFolderPicker'
+import { InterfacePackDiagnostic } from './InterfacePackDiagnostic'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { Button, CodeBlock, Dialog, Input, ModuleHeader } from '@design-lab/system/components'
 import {
@@ -76,7 +77,7 @@ export function SettingsView({ onClose }: { onClose: () => void }) {
   const [createError, setCreateError] = useState<string | null>(null)
   const [createResult, setCreateResult] = useState<string | null>(null)
   const [candidate, setCandidate] = useState<LocalInterfaceSystemInspection | null>(null)
-  const [candidateError, setCandidateError] = useState<string | null>(null)
+  const [candidateError, setCandidateError] = useState<Error | null>(null)
   const [candidateLoading, setCandidateLoading] = useState(false)
   const candidateRequest = useRef(0)
   const [installConfirmOpen, setInstallConfirmOpen] = useState(false)
@@ -140,7 +141,7 @@ export function SettingsView({ onClose }: { onClose: () => void }) {
     } catch (cause) {
       if (candidateRequest.current === request) {
         setCandidate(null)
-        setCandidateError(cause instanceof Error ? cause.message : 'Could not check the folder.')
+        setCandidateError(cause instanceof Error ? cause : new Error('Could not check the folder.'))
       }
     } finally {
       if (candidateRequest.current === request) setCandidateLoading(false)
@@ -164,7 +165,7 @@ export function SettingsView({ onClose }: { onClose: () => void }) {
       } catch (cause) {
         if (candidateRequest.current === request)
           setCandidateError(
-            cause instanceof Error ? cause.message : 'Could not check the new System.',
+            cause instanceof Error ? cause : new Error('Could not check the new System.'),
           )
       }
     } catch (cause) {
@@ -187,7 +188,7 @@ export function SettingsView({ onClose }: { onClose: () => void }) {
       setInstallConfirmOpen(false)
       void refreshSystem()
     } catch (cause) {
-      setCandidateError(cause instanceof Error ? cause.message : 'Could not install the System.')
+      setCandidateError(cause instanceof Error ? cause : new Error('Could not install the System.'))
       setInstallConfirmOpen(false)
     } finally {
       setInstalling(false)
@@ -446,11 +447,7 @@ export function SettingsView({ onClose }: { onClose: () => void }) {
               Browse project
             </Button>
           </form>
-          {candidateError && (
-            <p className="settings-page__error" role="alert">
-              {candidateError}
-            </p>
-          )}
+          {candidateError && <InterfacePackDiagnostic error={candidateError} kind="System" />}
           {installResult && <p role="status">{installResult}</p>}
           {candidate && (
             <div className="settings-system__candidate" role="status">

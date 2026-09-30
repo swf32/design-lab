@@ -180,7 +180,10 @@ API revision. The running UI must be restarted to load changed executable System
 All four POST routes require `Content-Type: application/json` and `X-Design-Lab-UI: 1`;
 otherwise they return `403` with `INTERFACE_UI_REQUEST_REQUIRED`. Missing confirmation returns
 `409` (`INTERFACE_INSTALL_CONFIRMATION_REQUIRED` or `INTERFACE_RESET_CONFIRMATION_REQUIRED`).
-System validation/path failures return `422` with their `INTERFACE_*` code and message. These
+System validation/path failures return `422` with their `INTERFACE_*` code and message; when the
+validator has structured facts such as an entrypoint and missing exports, `error.details` carries
+them. Settings keeps the code and details, shows a concrete correction, and leaves the raw message
+under Technical details. These
 routes are intended for the local Design Lab process and do not authorize remote System uploads.
 
 ### Skin management in Settings

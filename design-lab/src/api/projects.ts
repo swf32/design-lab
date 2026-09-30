@@ -61,13 +61,28 @@ export type ProjectTreeItem = {
   diagnostics?: number
 }
 
-type ApiError = { error?: { message?: string } }
+type ApiError = { error?: { code?: string; message?: string; details?: unknown } }
+
+export class ApiRequestError extends Error {
+  constructor(
+    message: string,
+    readonly code: string,
+    readonly details: unknown,
+  ) {
+    super(message)
+    this.name = 'ApiRequestError'
+  }
+}
 
 async function request<T>(url: string, init?: RequestInit): Promise<T> {
   const response = await fetch(url, init)
   const body = (await response.json()) as T & ApiError
   if (!response.ok)
-    throw new Error(body.error?.message ?? `Request failed with status ${response.status}`)
+    throw new ApiRequestError(
+      body.error?.message ?? `Request failed with status ${response.status}`,
+      body.error?.code ?? 'REQUEST_FAILED',
+      body.error?.details,
+    )
   return body
 }
 
