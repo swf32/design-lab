@@ -17,13 +17,15 @@
     "check:code": "prettier --check \"design-lab/**/*.{json,mjs,ts,tsx}\" \"libraries/**/*.{json,mjs,ts,tsx}\" \"scripts/**/*.mjs\"",
     "check:styles": "node scripts/format-styles.mjs --check",
     "check:app-styles": "node scripts/check-app-visual-styles.mjs",
-    "build": "npm run sync:components && npm run sync:assets && npm run check:code && npm run check:styles && npm run check:app-styles && npm run build --workspace=design-lab",
-    "test": "npm run sync:components && npm run sync:assets && npm run check:code && npm run check:styles && npm run check:app-styles && npm run test --workspace=design-lab",
+    "check:app-inline-styles": "node scripts/check-app-inline-styles.mjs",
+    "build": "npm run sync:components && npm run sync:assets && npm run check:code && npm run check:styles && npm run check:app-styles && npm run check:app-inline-styles && npm run build --workspace=design-lab",
+    "test": "npm run sync:components && npm run sync:assets && npm run check:code && npm run check:styles && npm run check:app-styles && npm run check:app-inline-styles && node --test scripts/check-app-inline-styles.test.mjs && npm run test --workspace=design-lab",
     "test:runtime:vue": "npm run test:runtime:vue --workspace=design-lab",
     "mcp": "npm run mcp --workspace=design-lab",
     "designlab": "npm run designlab --workspace=design-lab --"
   },
   "devDependencies": {
+    "@babel/parser": "^8.0.4",
     "postcss": "^8.5.20",
     "postcss-scss": "^4.0.9",
     "prettier": "^3.9.5"

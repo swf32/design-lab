@@ -12,10 +12,20 @@
 корневые `npm test` и `npm run build`.
 
 `design-lab/src/styles/default-skin.css` исключён: он является намеренным источником Skin variables,
-а не route-level стилем. Проверка пока не видит inline styles в TSX и не запрещает app-local
-layout declarations вроде `display`, `grid`, `padding` и `gap`, потому что часть из них нужна
+а не route-level стилем. CSS/SCSS-проверка не запрещает app-local layout declarations вроде
+`display`, `grid`, `padding` и `gap`, потому что часть из них нужна
 product composition и runtime geometry. Это ограничение проверки, а не разрешение заводить новый
 визуальный язык в приложении.
+
+`npm run check:app-inline-styles` теперь отдельно разбирает TS/TSX AST: прямые JSX
+`style={{...}}`, объектные литералы с типом `CSSProperties` и присваивания
+`element.style.property = ...`. Девять существующих визуальных записей зафиксированы в
+[inline baseline](../scripts/app-inline-style-baseline.jsonl); новые или изменённые значения
+блокируются в `npm test` и `npm run build`. В эту базу входят отображение цветов и шрифтов
+самих пользовательских токенов, а также стили временных clipboard elements. Это не объявляет
+такие стили частью System. Динамически собранные объекты `style={variable}`, вызовы функций,
+`setProperty()` и layout geometry пока вне проверки; их перенос и более полный контроль остаются
+открытой работой.
 
 ## Существующий долг
 
