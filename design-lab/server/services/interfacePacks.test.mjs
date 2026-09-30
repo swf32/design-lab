@@ -555,3 +555,30 @@ test('incompatible packs and paths outside a pack fail before activation', async
     )
   })
 })
+
+test('System validation identifies a missing statically imported asset before installation', async () => {
+  await withPackWorkspace(async ({ sources, options }) => {
+    const source = join(sources, 'asset-system')
+    await writeSystem(source)
+    await writeFile(
+      join(source, 'components.ts'),
+      `${await readFile(join(source, 'components.ts'), 'utf8')}\nimport missingImage from '@design-lab/system/assets/images/missing.svg'\nexport { missingImage }\n`,
+    )
+    await assert.rejects(
+      validateInterfacePack(source, { ...options, expectedKind: 'system' }),
+      (error) =>
+        error.code === 'INTERFACE_PACK_ASSET_MISSING' &&
+        error.details.source === 'components.ts' &&
+        error.details.path === 'assets/images/missing.svg',
+    )
+    await mkdir(join(source, 'assets/images'), { recursive: true })
+    await writeFile(
+      join(source, 'assets/images/missing.svg'),
+      '<svg xmlns="http://www.w3.org/2000/svg" />\n',
+    )
+    assert.equal(
+      (await validateInterfacePack(source, { ...options, expectedKind: 'system' })).manifest.kind,
+      'system',
+    )
+  })
+})

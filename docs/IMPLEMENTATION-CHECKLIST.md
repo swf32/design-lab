@@ -882,6 +882,9 @@ native backlog до Web DoD.
       обязательными entrypoints/exports.
 - [x] Валидировать compatibility range, relative paths, symlink confinement, canonical imports и
       полный export contract до активации.
+- [x] Диагностировать отсутствующие статически импортированные изображения и шрифты в JS/TS
+      исходниках System до установки с указанием файла и пути; CSS `url()` и динамические пути
+      остаются открытыми.
 - [x] Реализовать transactional local/GitHub/npm/tarball install без npm lifecycle scripts и без
       перезаписи unmanaged Library directories.
 - [x] Реализовать CLI `create / validate / install / use / list / doctor / reset` для Skin и System.

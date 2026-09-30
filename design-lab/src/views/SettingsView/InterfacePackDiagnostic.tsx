@@ -20,6 +20,12 @@ function guidance(error: ApiRequestError, kind: 'Skin' | 'System') {
       return 'Export the required names from the declared System entrypoint, then check the folder again.'
     case 'INTERFACE_PACK_TYPECHECK_FAILED':
       return 'Fix the TypeScript errors in this System. Its Components must satisfy the current Design Lab application contract.'
+    case 'INTERFACE_PACK_ASSET_MISSING':
+      return 'Add the missing image or font to this System, or correct its import path, then check the folder again.'
+    case 'INTERFACE_PACK_ASSET_OUTSIDE':
+      return 'Keep imported images and fonts inside this System folder, then check the folder again.'
+    case 'INTERFACE_PACK_ASSETS_INVALID':
+      return 'Set entrypoints.assets in design-lab-pack.json to a folder inside this System.'
     case 'INTERFACE_PACK_INCOMPATIBLE':
       return 'This package targets a different Design Lab version. Use a compatible release or update its implementation and compatibility range.'
     case 'INTERFACE_PACK_KIND_INVALID':
@@ -47,7 +53,14 @@ export function InterfacePackDiagnostic({
     )
 
   const nextStep = guidance(error, kind)
-  const details = error.details as { entrypoint?: unknown; missing?: unknown } | undefined
+  const details = error.details as
+    | {
+        entrypoint?: unknown
+        missing?: unknown
+        source?: unknown
+        path?: unknown
+      }
+    | undefined
   const missing = Array.isArray(details?.missing)
     ? details.missing.filter((name): name is string => typeof name === 'string')
     : []
@@ -58,6 +71,11 @@ export function InterfacePackDiagnostic({
       {missing.length > 0 && (
         <p>
           Missing from {String(details?.entrypoint ?? 'entrypoint')}: {missing.join(', ')}
+        </p>
+      )}
+      {typeof details?.source === 'string' && typeof details?.path === 'string' && (
+        <p>
+          Referenced in {details.source}: {details.path}
         </p>
       )}
       <details>

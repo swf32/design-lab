@@ -32,6 +32,20 @@ const DEFAULT_WORKSPACE_ROOT = resolve(APPLICATION_ROOT, '..')
 const DEFAULT_CONTRACT_PATH = join(APPLICATION_ROOT, 'interface-system-contract.json')
 const DEFAULT_SKIN_PATH = join(APPLICATION_ROOT, 'src', 'styles', 'default-skin.css')
 const SCRIPT_EXTENSIONS = ['.ts', '.tsx', '.js', '.jsx', '.mjs']
+const STATIC_ASSET_EXTENSIONS = new Set([
+  '.avif',
+  '.gif',
+  '.jpeg',
+  '.jpg',
+  '.otf',
+  '.png',
+  '.svg',
+  '.ttf',
+  '.webm',
+  '.webp',
+  '.woff',
+  '.woff2',
+])
 const SYSTEM_AUTHORING_RULES = [
   'SYSTEM_RULES.md',
   'COMPONENT_RULES.md',
@@ -666,6 +680,67 @@ async function collectExports(file, root, seen = new Set()) {
   return exports
 }
 
+async function validateSystemAssetImports(root, assetsRoot) {
+  async function visit(directory) {
+    for (const entry of await readdir(directory, { withFileTypes: true })) {
+      if (entry.isDirectory()) {
+        if (!DIFF_IGNORED_DIRECTORIES.has(entry.name)) await visit(join(directory, entry.name))
+        continue
+      }
+      if (!entry.isFile() || !SCRIPT_EXTENSIONS.includes(extname(entry.name))) continue
+      const file = join(directory, entry.name)
+      const source = await readFile(file, 'utf8')
+      let ast
+      try {
+        ast = parse(source, { sourceType: 'module', plugins: ['typescript', 'jsx'] })
+      } catch {
+        // Entrypoint parsing and the full application typecheck report syntax failures.
+        continue
+      }
+      for (const node of ast.program.body) {
+        if (
+          !['ImportDeclaration', 'ExportNamedDeclaration', 'ExportAllDeclaration'].includes(
+            node.type,
+          )
+        )
+          continue
+        const reference = node.source?.value
+        if (typeof reference !== 'string') continue
+        const cleanReference = reference.split(/[?#]/, 1)[0]
+        if (!STATIC_ASSET_EXTENSIONS.has(extname(cleanReference).toLowerCase())) continue
+        const canonicalPrefix = '@design-lab/system/assets/'
+        const target = cleanReference.startsWith(canonicalPrefix)
+          ? resolve(assetsRoot, cleanReference.slice(canonicalPrefix.length))
+          : cleanReference.startsWith('.')
+            ? resolve(dirname(file), cleanReference)
+            : null
+        if (!target) continue
+        const sourcePath = portablePath(relative(root, file))
+        if (!isInside(root, target))
+          throw packError(
+            `${sourcePath} imports an asset outside this System: ${reference}.`,
+            'INTERFACE_PACK_ASSET_OUTSIDE',
+            { source: sourcePath, reference },
+          )
+        if (
+          !(
+            await lstat(target).catch((error) => {
+              if (error.code === 'ENOENT') return null
+              throw error
+            })
+          )?.isFile()
+        )
+          throw packError(
+            `${sourcePath} imports a missing asset: ${reference}.`,
+            'INTERFACE_PACK_ASSET_MISSING',
+            { source: sourcePath, reference, path: portablePath(relative(root, target)) },
+          )
+      }
+    }
+  }
+  await visit(root)
+}
+
 export async function typecheckInterfaceSystem(validated, options = {}) {
   if (validated.manifest.kind !== 'system')
     throw packError('Only a System pack can be typechecked.', 'INTERFACE_PACK_KIND_INVALID')
@@ -797,6 +872,12 @@ export async function validateInterfacePack(root, options = {}) {
       )
     for (const [key, definition] of Object.entries(contract.entrypoints)) {
       const entry = await assertPackFile(packRoot, manifest.entrypoints[key], `entrypoints.${key}`)
+      if (key === 'assets' && !(await lstat(entry.target)).isDirectory())
+        throw packError(
+          'The System assets entrypoint must be a directory.',
+          'INTERFACE_PACK_ASSETS_INVALID',
+          { path: entry.path },
+        )
       resolvedEntrypoints[key] = entry.target
       if (!definition.requiredExports.length) continue
       const exports = await collectExports(entry.target, realPackRoot)
@@ -808,6 +889,7 @@ export async function validateInterfacePack(root, options = {}) {
           { entrypoint: key, missing },
         )
     }
+    await validateSystemAssetImports(realPackRoot, resolvedEntrypoints.assets)
   }
 
   for (const [index, screenshot] of (manifest.screenshots ?? []).entries())
