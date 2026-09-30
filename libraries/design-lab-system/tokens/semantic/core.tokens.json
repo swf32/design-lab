@@ -197,6 +197,11 @@
           "type": "color",
           "value": "#d8d8d2",
           "description": "Light Workbench checkerboard alternating cell."
+        },
+        "light-text": {
+          "type": "color",
+          "value": "#171a18",
+          "description": "Readable foreground on the light Workbench checkerboard regardless of application mode."
         }
       },
       "status": {

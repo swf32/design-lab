@@ -160,6 +160,59 @@ async function browserSmoke(
     await page.locator('.story-comparison .dl-button').first().waitFor({ timeout: 20_000 })
     assert((await page.locator('.story-comparison .dl-button').count()) > 0)
     assert((await page.locator('.dl-button').count()) > 1)
+    if (browseProjectSystem) {
+      for (const [mode, theme] of [
+        ['dark-grid', 'dark'],
+        ['light-grid', 'dark'],
+        ['light-grid', 'light'],
+        ['solid', 'light'],
+      ]) {
+        await page.evaluate(
+          ({ mode, theme }) => {
+            localStorage.setItem('design-lab:canvas-mode', mode)
+            localStorage.setItem('design-lab:canvas-color', '#264653')
+            localStorage.setItem('design-lab:theme', theme)
+          },
+          { mode, theme },
+        )
+        await page.reload({ waitUntil: 'networkidle' })
+        const stage = page.locator(`.dl-story-canvas__stage--${mode}`).first()
+        await stage.waitFor()
+        const appearance = await stage.evaluate((element) => {
+          const style = getComputedStyle(element)
+          const probe = document.createElement('span')
+          const mode = element.classList.contains('dl-story-canvas__stage--dark-grid')
+            ? 'dark'
+            : 'light'
+          probe.style.backgroundColor = `var(--color-canvas-grid-${mode}-a)`
+          document.body.append(probe)
+          const gridColor = getComputedStyle(probe).backgroundColor
+          probe.remove()
+          return {
+            backgroundColor: style.backgroundColor,
+            backgroundImage: style.backgroundImage,
+            color: style.color,
+            gridColor,
+          }
+        })
+        assert.equal(
+          appearance.backgroundColor,
+          mode === 'solid' ? 'rgb(38, 70, 83)' : appearance.gridColor,
+        )
+        assert.equal(appearance.backgroundImage === 'none', mode === 'solid')
+        if (mode === 'light-grid') assert.equal(appearance.color, 'rgb(23, 26, 24)')
+      }
+      await page.setViewportSize({ width: 390, height: 700 })
+      const stageBounds = await page.locator('.dl-story-canvas__stage').first().boundingBox()
+      assert(stageBounds && stageBounds.width > 0 && stageBounds.width <= 391)
+      await page.setViewportSize({ width: 1500, height: 1000 })
+      await page.evaluate(() => {
+        localStorage.setItem('design-lab:canvas-mode', 'dark-grid')
+        localStorage.setItem('design-lab:theme', 'dark')
+      })
+      await page.reload({ waitUntil: 'networkidle' })
+      await page.locator('.story-comparison .dl-button').first().waitFor()
+    }
     if (customStructure) {
       const decorations = page.locator('.dl-button [data-system-decoration="alternate-smoke"]')
       const shellDecoration = page.locator(

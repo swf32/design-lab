@@ -61,7 +61,7 @@
     0 10px,
     10px -10px,
     -10px 0;
-  color: #171a18;
+  color: var(--color-canvas-grid-light-text);
 }
 .dl-workbench-playground__canvas--solid {
   background: var(--canvas-solid);

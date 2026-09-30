@@ -1,12 +1,5 @@
 import './ModuleView.scss'
-import {
-  isValidElement,
-  useEffect,
-  useRef,
-  useState,
-  type CSSProperties,
-  type ReactNode,
-} from 'react'
+import { isValidElement, useEffect, useRef, useState, type ReactNode } from 'react'
 import ReactMarkdown, { type Components } from 'react-markdown'
 import { useDesignLabI18n } from '@design-lab/system/i18n'
 import {
@@ -508,10 +501,8 @@ function ManagedComponentWorkbench({
   useEffect(() => {
     if (setup) setValues(setup.values)
   }, [component.id, runtime?.profile.id])
-  const canvasStyle = { '--canvas-solid': canvasColor } as CSSProperties
-
   return (
-    <div className={`workbench workbench--canvas-${canvasMode}`} style={canvasStyle}>
+    <div className="workbench">
       <div className="workbench__top">
         <ModuleHeader
           eyebrow={component.directory}
@@ -691,14 +682,13 @@ function ComponentWorkbench({
   themeVariables: Record<string, Record<string, string | number>>
 }) {
   const { t } = useDesignLabI18n()
-  const canvasStyle = { '--canvas-solid': canvasColor } as CSSProperties
   const playgroundModule = playgroundModuleFor(component)
   const hasWireframePlayground = Boolean(
     playgroundModule && Object.keys(playgroundModule.playground.controls).length,
   )
 
   return (
-    <div className={`workbench workbench--canvas-${canvasMode}`} style={canvasStyle}>
+    <div className="workbench">
       <div className="workbench__top">
         <ModuleHeader
           eyebrow={component.directory}

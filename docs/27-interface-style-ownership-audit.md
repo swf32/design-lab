@@ -32,6 +32,12 @@ product composition и runtime geometry. Это ограничение пров�
 Текущая база содержит **501** visual declarations. Они не объявлены правильным конечным ownership;
 список только фиксирует состояние, чтобы оно не росло во время миграции.
 
+После удаления дублирующих Workbench overrides для трёх режимов Story Canvas в приложении
+осталась **491** visual declaration. `StoryCanvas.scss` в активной System владеет фоном и
+контрастом Canvas; `color.canvas-grid.light-text` хранит читаемый цвет светлой сетки для dark и
+light app modes. Таблица ниже показывает исходные лимиты baseline; десять удалённых записей из
+`ModuleView.scss` не пересоздаются в нём.
+
 | App-local stylesheet | Деклараций в базе | Следующая граница |
 | --- | ---: | --- |
 | [`ModuleView.scss`](../design-lab/src/views/ModuleView/ModuleView.scss) | 288 | Вынести повторяемые catalog rows/cards/tables и текстовые роли в Library Components. |

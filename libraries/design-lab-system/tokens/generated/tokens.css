@@ -85,6 +85,7 @@
   --color-canvas-grid-dark-b: #1c1c1c;
   --color-canvas-grid-light-a: #e8e8e3;
   --color-canvas-grid-light-b: #d8d8d2;
+  --color-canvas-grid-light-text: #171a18;
   --color-status-success: #52d89a;
   --color-status-warning: #f2c14e;
   --color-status-danger: #ff7b72;
@@ -194,6 +195,7 @@
   --color-canvas-grid-dark-b: #1c1c1c;
   --color-canvas-grid-light-a: #e8e8e3;
   --color-canvas-grid-light-b: #d8d8d2;
+  --color-canvas-grid-light-text: #171a18;
   --color-status-success: #23845c;
   --color-status-warning: #9a6700;
   --color-status-danger: #c84f4a;

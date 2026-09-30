@@ -10,6 +10,7 @@ Reusable component-detail playground that composes the live Canvas, global backg
 - Omit `controls` (or pass `null`) to hide the rail and give the Canvas the full width; do not leave an empty controls column.
 - `controlsPosition="start"` supports the full Component Playground route; the existing Workbench detail keeps controls at the end.
 - Background mode/color and source theme are controlled but independent preferences shared by all component workbenches.
+- The light-grid stage uses `color.canvas-grid.light-text` for readable foreground in either application theme.
 
 On phones the Canvas remains first and the controls rail moves below it regardless of desktop rail position.
 

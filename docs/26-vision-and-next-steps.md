@@ -47,7 +47,7 @@
 
 - [x] Убрать эксперимент Design Lab Glass System и вернуть прежнюю default System; визуальный редизайн пока не выполнять.
 - [ ] Дать автору понятный стартовый System template и диагностировать отсутствие обязательных экспортов, assets и несовместимость. Статические JS/TS импорты и локальные CSS/SCSS `url()` отсутствующих медиа и шрифтов уже диагностируются; динамические пути пока нет.
-- [ ] Завершить перенос визуальных стилей из `design-lab/src` в System. Новые app-local visual CSS/SCSS declarations и прямые inline TSX visual styles уже блокируются; 501 CSS-запись, 9 inline-записей и пределы проверки перечислены в [аудите ownership](27-interface-style-ownership-audit.md). Visual spacing и динамические inline styles ещё нужно охватить.
+- [ ] Завершить перенос визуальных стилей из `design-lab/src` в System. Новые app-local visual CSS/SCSS declarations и прямые inline TSX visual styles уже блокируются; после переноса Story Canvas modes осталось 491 из исходных 501 CSS-записей, а 9 inline-записей и пределы проверки перечислены в [аудите ownership](27-interface-style-ownership-audit.md). Visual spacing и динамические inline styles ещё нужно охватить.
 - [x] Проверить полный System fork, меняющий структуру Button и добавляющий SVG asset, в shell и Workbench; browser fixture подтверждает установку и общий executable source.
 - [ ] Довести UI workflow Skin/System create/validate/install/use/doctor до полной диагностики. Выбор папки проекта и подсказки для известных ошибок проверки уже есть; внешний источник пока требует путь.
 - [x] Показать в Settings doctor и diff активной System, создание копии System, read-only diff проверенной папки перед установкой, проверку/установку из локальной папки и восстановление bundled default после подтверждения.

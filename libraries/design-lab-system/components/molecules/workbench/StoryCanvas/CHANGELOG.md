@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- Changed: Story Canvas now owns all three stage background modes and the light-grid text contrast; Workbench no longer overrides its stage CSS.
 - Added: Story Canvas can expose arbitrary source token themes through the shared Canvas appearance control without coupling them to its background.
 - Added: framework-native Story handoff may declare its CodeBlock language; TSX remains the default.
 - Changed: all automatic Story handoff uses one structural source printer that keeps short JSX compact and expands long props, arrays, objects, nested values, and sibling examples with stable indentation.

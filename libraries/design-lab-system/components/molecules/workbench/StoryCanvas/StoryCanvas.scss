@@ -78,6 +78,7 @@
     linear-gradient(-45deg, var(--color-canvas-grid-light-b) 25%, transparent 25%),
     linear-gradient(45deg, transparent 75%, var(--color-canvas-grid-light-b) 75%),
     linear-gradient(-45deg, transparent 75%, var(--color-canvas-grid-light-b) 75%);
+  color: var(--color-canvas-grid-light-text);
 }
 .dl-story-canvas__stage--solid {
   background: var(--canvas-solid);
