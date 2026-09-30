@@ -3,7 +3,12 @@ import { mkdtemp, mkdir, readFile, rm, writeFile } from 'node:fs/promises'
 import { join } from 'node:path'
 import { tmpdir } from 'node:os'
 import test from 'node:test'
-import { applySetupPlan, createSetupPlan, scanRepository } from './setupService.mjs'
+import {
+  applySetupPlan,
+  checkSetupInstallation,
+  createSetupPlan,
+  scanRepository,
+} from './setupService.mjs'
 
 async function fixture() {
   const root = await mkdtemp(join(tmpdir(), 'design-lab-setup-'))
@@ -107,6 +112,10 @@ test('applySetupPlan requires confirmation and preserves existing AGENTS guidanc
     )
     const agents = await readFile(join(root, 'AGENTS.md'), 'utf8')
     assert.equal(result.applied, true)
+    assert.equal(result.selfCheck.ok, false)
+    assert(
+      result.selfCheck.diagnostics.some((diagnostic) => diagnostic.code.startsWith('INTERFACE_')),
+    )
     assert.equal(config.mode, 'attach')
     assert.equal(config.interfaceSystem.path, 'design-lab/system')
     assert.equal(
@@ -119,6 +128,19 @@ test('applySetupPlan requires confirmation and preserves existing AGENTS guidanc
     assert.equal(
       await readFile(join(root, 'src', 'components', 'Button.tsx'), 'utf8'),
       'export function Button() { return <button /> }\n',
+    )
+    await rm(join(root, 'src', 'components'), { recursive: true })
+    const selfCheck = await checkSetupInstallation({ root, typecheckSystem: false })
+    assert(
+      selfCheck.diagnostics.some(
+        (diagnostic) =>
+          diagnostic.code === 'SETUP_MOUNT_MISSING' && diagnostic.path === 'src/components',
+      ),
+    )
+    await writeFile(join(root, 'design-lab', 'designlab.config.json'), 'null\n')
+    assert.equal(
+      (await checkSetupInstallation({ root })).diagnostics[0].code,
+      'SETUP_CONFIG_INVALID',
     )
   } finally {
     await rm(root, { recursive: true, force: true })

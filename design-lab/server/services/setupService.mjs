@@ -13,6 +13,7 @@ import {
 } from 'node:fs/promises'
 import { basename, dirname, extname, join, relative, resolve, sep } from 'node:path'
 import { fileURLToPath } from 'node:url'
+import { validateInterfacePack } from './interfacePacks.mjs'
 
 export const SETUP_SCHEMA_VERSION = 1
 export const DEFAULT_INTEGRATION_DIRECTORY = 'design-lab'
@@ -428,6 +429,119 @@ async function writeJsonAtomic(path, value) {
   await rename(temporary, path)
 }
 
+export async function checkSetupInstallation({
+  root,
+  integrationDirectory = DEFAULT_INTEGRATION_DIRECTORY,
+  typecheckSystem = true,
+}) {
+  const projectRoot = assertRoot(root)
+  const integrationRoot = resolve(projectRoot, integrationDirectory)
+  const diagnostics = []
+  const report = (code, message, path) => diagnostics.push({ code, message, path })
+  if (!isInside(integrationRoot, projectRoot)) {
+    report(
+      'SETUP_INTEGRATION_PATH_INVALID',
+      'The integration folder leaves the project.',
+      integrationDirectory,
+    )
+    return { ok: false, diagnostics }
+  }
+
+  const configPath = join(integrationRoot, 'designlab.config.json')
+  let config
+  try {
+    config = JSON.parse(await readFile(configPath, 'utf8'))
+  } catch {
+    report(
+      'SETUP_CONFIG_INVALID',
+      'The setup config is missing or invalid JSON.',
+      portablePath(relative(projectRoot, configPath)),
+    )
+    return { ok: false, diagnostics }
+  }
+  if (!config || typeof config !== 'object' || Array.isArray(config)) {
+    report(
+      'SETUP_CONFIG_INVALID',
+      'The setup config must be an object.',
+      portablePath(relative(projectRoot, configPath)),
+    )
+    return { ok: false, diagnostics }
+  }
+  if (config.schemaVersion !== SETUP_SCHEMA_VERSION)
+    report(
+      'SETUP_SCHEMA_UNSUPPORTED',
+      'The setup config has an unsupported schema version.',
+      portablePath(relative(projectRoot, configPath)),
+    )
+  if (config.source?.root !== '..')
+    report(
+      'SETUP_SOURCE_ROOT_INVALID',
+      'The product source must point to the project root.',
+      portablePath(relative(projectRoot, configPath)),
+    )
+
+  if (
+    !config.source?.mounts ||
+    typeof config.source.mounts !== 'object' ||
+    Array.isArray(config.source.mounts)
+  )
+    report(
+      'SETUP_MOUNTS_INVALID',
+      'The setup config has no source mounts.',
+      portablePath(relative(projectRoot, configPath)),
+    )
+
+  for (const [kind, mounts] of Object.entries(config.source?.mounts ?? {})) {
+    if (!Array.isArray(mounts)) {
+      report(
+        'SETUP_MOUNTS_INVALID',
+        `${kind} mounts must be a list.`,
+        portablePath(relative(projectRoot, configPath)),
+      )
+      continue
+    }
+    for (const mount of mounts) {
+      if (typeof mount !== 'string' || !mount || mount.startsWith('/')) {
+        report('SETUP_MOUNT_INVALID', `${kind} mount has an invalid relative path.`, String(mount))
+        continue
+      }
+      const target = resolve(projectRoot, mount)
+      if (!isInside(target, projectRoot)) {
+        report('SETUP_MOUNT_OUTSIDE_ROOT', `${kind} mount leaves the project.`, mount)
+        continue
+      }
+      if (!(await stat(target).catch(() => null))?.isDirectory())
+        report('SETUP_MOUNT_MISSING', `${kind} mount is not a directory.`, mount)
+    }
+  }
+
+  for (const rule of RULE_FILES) {
+    const path = join(integrationRoot, 'rules', rule)
+    if (!(await exists(path)))
+      report('SETUP_RULE_MISSING', `${rule} is missing.`, portablePath(relative(projectRoot, path)))
+  }
+  const agents = await readFile(join(projectRoot, 'AGENTS.md'), 'utf8').catch(() => '')
+  if (!agents.includes(MANAGED_AGENTS_START) || !agents.includes(MANAGED_AGENTS_END))
+    report('SETUP_AGENTS_POINTER_MISSING', 'The root AGENTS.md pointer is missing.', 'AGENTS.md')
+
+  const systemPath = config.interfaceSystem?.path
+  if (typeof systemPath !== 'string' || !systemPath || systemPath.startsWith('/'))
+    report('SETUP_SYSTEM_PATH_INVALID', 'The active System path is invalid.', String(systemPath))
+  else {
+    const systemRoot = resolve(projectRoot, systemPath)
+    if (!isInside(systemRoot, projectRoot))
+      report('SETUP_SYSTEM_PATH_INVALID', 'The active System leaves the project.', systemPath)
+    else {
+      try {
+        await validateInterfacePack(systemRoot, { expectedKind: 'system', typecheckSystem })
+      } catch (error) {
+        report(error.code ?? 'SETUP_SYSTEM_INVALID', error.message, systemPath)
+      }
+    }
+  }
+  return { ok: diagnostics.length === 0, diagnostics }
+}
+
 export async function applySetupPlan({
   root,
   name,
@@ -519,5 +633,6 @@ export async function applySetupPlan({
     configPath: portablePath(relative(plan.root, configPath)),
     source: plan.config.source,
     changes: plan.changes,
+    selfCheck: await checkSetupInstallation({ root: plan.root, integrationDirectory }),
   }
 }

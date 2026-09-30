@@ -17,7 +17,7 @@
 
 ## Вторая главная линия: Design Lab как устанавливаемый инструмент
 
-Локальный tarball, CLI, интеграционная папка, read-only scan, применение и запуск на отдельных портах проверены в чистом внешнем репозитории. Пакет закрыт для публикации (`private: true`). До registry release нужны post-apply self-check, repair/uninstall, versioned upgrade и проверки на других платформах. См. [подробную модель](20-embedded-install-and-attach-mode.md) и [раздел об установке](25-interface-system-and-installation.md).
+Локальный tarball, CLI, интеграционная папка, read-only scan, применение, post-apply self-check и запуск на отдельных портах проверены в чистом внешнем репозитории. Пакет закрыт для публикации (`private: true`). До registry release нужны repair/uninstall, versioned upgrade и проверки на других платформах. См. [подробную модель](20-embedded-install-and-attach-mode.md) и [раздел об установке](25-interface-system-and-installation.md).
 
 ## Остальные направления
 
@@ -54,7 +54,7 @@
 
 ### P2 — завершить attach и web adapters
 
-- [ ] Довести mount resolver до watcher, runtime host и оставшихся scanners; добавить post-apply self-check/repair.
+- [ ] Довести mount resolver до watcher, runtime host и оставшихся scanners; добавить repair. Первый post-apply self-check config/mounts/rules/System уже есть.
 - [ ] Закрыть Vue gaps, перенести React на isolated runtime, затем добавить Svelte по [feature matrix](21-web-runtime-feature-parity.md).
 - [ ] Убрать оставшиеся eager React registries после доказанной parity; сохранить честные capability errors.
 

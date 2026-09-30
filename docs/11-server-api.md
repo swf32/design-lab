@@ -51,6 +51,10 @@ Body: `{ "name": string, "mode": "attach" | "managed", "confirmed": true }`. Reb
 server-side, writes the integration folder and bounded `AGENTS.md` pointer, then registers the
 attached/managed source. The UI's final `Connect project` action sends the explicit confirmation;
 a prior scan alone never grants it. Returns `201` with the applied result and registered `project`.
+The applied result includes `selfCheck: { ok, diagnostics[] }`, a read-only verification of the
+written config, source mounts, local rules, root AGENTS pointer, and full System contract/typecheck.
+`selfCheck.ok: false` means setup wrote files but found a repairable problem; the diagnostics carry
+`code`, `message`, and `path`. It does not roll back authored project files.
 
 Errors: `409 SETUP_CONFIRMATION_REQUIRED` when `confirmed` is absent/false,
 `409 SETUP_DIRECTORY_OCCUPIED` when a non-Design-Lab `design-lab/` folder already contains files,

@@ -266,6 +266,7 @@ try {
     await run(cli, ['setup', '--name', 'External smoke', '--apply', '--confirm'], projectRoot),
   )
   assert.equal(applied.applied, true)
+  assert.deepEqual(applied.selfCheck, { ok: true, diagnostics: [] })
   assert.equal(applied.source.mounts.components[0], 'src/components')
   assert.equal(
     await readFile(join(projectRoot, 'src', 'components', 'Button.tsx'), 'utf8'),
@@ -302,6 +303,7 @@ try {
     ),
   )
   assert.equal(cleanApplied.applied, true)
+  assert.deepEqual(cleanApplied.selfCheck, { ok: true, diagnostics: [] })
   assert.deepEqual(cleanApplied.source.mounts.components, ['design-lab/components'])
   assert.equal(parse(await run(cleanCli, ['system', 'doctor'], cleanRoot)).ok, true)
   assert.equal(

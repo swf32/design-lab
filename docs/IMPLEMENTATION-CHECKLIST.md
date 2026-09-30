@@ -779,7 +779,7 @@ Web sequencing и границы shared/native modules: `docs/17-web-first-platf
 - [x] Реализован deterministic repository scan с evidence/confidence, framework/package detection
       и designer-readable summary; AI не является единственным scanner.
 - [ ] Реализован component-based onboarding `Connect existing` / `Start clean`, default `Use files
-where they are` и confirm-gated apply plan; ещё нужны post-apply self-check, repair и optional
+where they are` и confirm-gated apply plan; post-apply self-check возвращает диагностики, но ещё нужны repair и optional
       managed migration существующих файлов.
 - [x] Реализован первый package environment resolver: ближайшие реальные `package.json` и lockfile
       определяются без ручного `node_modules` path; workspace edge cases ещё покрываются adapter
@@ -808,7 +808,9 @@ where they are` и confirm-gated apply plan; ещё нужны post-apply self-c
       который сохраняет пользовательские изменения.
 - [x] Добавить двусторонний read-only `system diff` против default template текущего пакета;
       скрытые cache/derived barrels/token CSS исключены, symlink отклоняется.
-- [ ] Добавить post-apply self-check, repair и uninstall, сохраняющий исходники пользователя.
+- [x] Добавить read-only post-apply self-check для config, source mounts, локальных rules,
+      AGENTS pointer и контракта активной System; внешний fixture проверяет attach и managed setup.
+- [ ] Добавить repair и uninstall, сохраняющий исходники пользователя.
 - [ ] Подготовить registry release, проверить установку на других ОС и package managers.
 
 ## Ближайший конкретный шаг
