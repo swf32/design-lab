@@ -117,6 +117,18 @@ export async function applyProjectSetup(input: {
   })
 }
 
+export type SetupInstallationStatus =
+  | { available: false; reason: string }
+  | {
+      available: true
+      ok: boolean
+      diagnostics: Array<{ code: string; message: string; path: string }>
+    }
+
+export function getSetupInstallationStatus() {
+  return request<SetupInstallationStatus>('/api/onboarding/status')
+}
+
 export type TokenNavigationView = 'tokens' | 'files'
 
 export async function getProjectTree(

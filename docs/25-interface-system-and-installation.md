@@ -55,7 +55,7 @@ Settings показывает совместимость активной System
 
 ## Отдельная установка Design Lab
 
-[Embedded/attach proposal](20-embedded-install-and-attach-mode.md) определяет одну видимую `design-lab/` integration folder в пользовательском repository и относительные mounts существующих исходников. [`setupService.mjs`](../design-lab/server/services/setupService.mjs) создаёт config, локальные rules и System. После применения read-only self-check проверяет config, mounts, rules, AGENTS pointer и System contract/typecheck; результат возвращается в `selfCheck` с `{ ok, diagnostics }`. CLI из локального tarball запускает приложение на портах `DESIGN_LAB_PORT`/`DESIGN_LAB_API_PORT`; clean external fixture проверен. Registry publication, миграции breaking contracts и uninstall ещё не проверены.
+[Embedded/attach proposal](20-embedded-install-and-attach-mode.md) определяет одну видимую `design-lab/` integration folder в пользовательском repository и относительные mounts существующих исходников. [`setupService.mjs`](../design-lab/server/services/setupService.mjs) создаёт config, локальные rules и System. После применения read-only self-check проверяет config, mounts, rules, AGENTS pointer и System contract/typecheck; результат возвращается в `selfCheck` с `{ ok, diagnostics }`. После установки Settings показывает повторяемую read-only проверку интеграции с путями и следующим шагом для каждой проблемы; полный typecheck остаётся в System doctor. CLI из локального tarball запускает приложение на портах `DESIGN_LAB_PORT`/`DESIGN_LAB_API_PORT`; clean external fixture проверен. Registry publication, миграции breaking contracts и uninstall ещё не проверены.
 
 Целевой пользовательский цикл:
 

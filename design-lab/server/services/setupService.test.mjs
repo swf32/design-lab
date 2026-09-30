@@ -7,6 +7,7 @@ import {
   applySetupPlan,
   checkSetupInstallation,
   createSetupPlan,
+  inspectSetupInstallation,
   scanRepository,
 } from './setupService.mjs'
 
@@ -47,6 +48,24 @@ test('scanRepository finds existing framework sources without changing files', a
     assert.equal(scan.mounts.components[0].path, 'src/components')
     assert.equal(scan.mounts.tokens[0].path, 'packages/tokens/src/tokens')
     await assert.rejects(readFile(join(root, 'design-lab', 'designlab.config.json')))
+  } finally {
+    await rm(root, { recursive: true, force: true })
+  }
+})
+
+test('integration status distinguishes a standalone workspace from a damaged setup', async () => {
+  const root = await fixture()
+  try {
+    assert.deepEqual(await inspectSetupInstallation({ root }), {
+      available: false,
+      reason: 'No embedded Design Lab setup is present in this workspace.',
+    })
+    await mkdir(join(root, 'design-lab'))
+    await writeFile(join(root, 'design-lab', 'designlab.config.json'), 'null\n')
+    const status = await inspectSetupInstallation({ root })
+    assert.equal(status.available, true)
+    assert.equal(status.ok, false)
+    assert.equal(status.diagnostics[0].code, 'SETUP_CONFIG_INVALID')
   } finally {
     await rm(root, { recursive: true, force: true })
   }

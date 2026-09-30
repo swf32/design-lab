@@ -797,7 +797,7 @@ where they are` и confirm-gated apply plan; post-apply self-check возвра�
       определяются без ручного `node_modules` path; workspace edge cases ещё покрываются adapter
       diagnostics.
 - [ ] Реализован managed root `AGENTS.md` pointer без перезаписи пользовательского текста и локальные
-      rule contracts; ещё нужны integration status, repair и uninstall.
+      rule contracts; read-only integration status в Settings уже есть, repair и uninstall остаются.
 
 ### Project-owned System и локальный npm package (D-093)
 
@@ -822,6 +822,9 @@ where they are` и confirm-gated apply plan; post-apply self-check возвра�
       скрытые cache/derived barrels/token CSS исключены, symlink отклоняется.
 - [x] Добавить read-only post-apply self-check для config, source mounts, локальных rules,
       AGENTS pointer и контракта активной System; внешний fixture проверяет attach и managed setup.
+- [x] Показать повторяемую read-only проверку интеграции в Settings: статус, пути и следующий шаг
+      для config/mounts/rules/AGENTS/System; browser fixture удаляет правило, видит ошибку и
+      подтверждает здоровое состояние после его восстановления. System typecheck остаётся в doctor.
 - [ ] Добавить repair и uninstall, сохраняющий исходники пользователя.
 - [ ] Подготовить registry release, проверить установку на других ОС и package managers.
 

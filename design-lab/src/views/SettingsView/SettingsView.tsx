@@ -2,6 +2,7 @@ import './SettingsView.scss'
 import { SkinSettings } from './SkinSettings'
 import { InterfaceFolderPicker } from './InterfaceFolderPicker'
 import { InterfacePackDiagnostic } from './InterfacePackDiagnostic'
+import { IntegrationStatus } from './IntegrationStatus'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { Button, CodeBlock, Dialog, Input, ModuleHeader } from '@design-lab/system/components'
 import {
@@ -239,6 +240,8 @@ export function SettingsView({ onClose }: { onClose: () => void }) {
   return (
     <section className="settings-page">
       <ModuleHeader eyebrow="Application" title="Settings" backLabel="Workspace" onBack={onClose} />
+
+      <IntegrationStatus />
 
       <section
         className="settings-section settings-section--system"

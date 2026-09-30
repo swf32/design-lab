@@ -14,7 +14,11 @@ import { getIntegrationInfo } from './services/integrationInfo.mjs'
 import { getAuthoredStyles } from './services/authoredStyles.mjs'
 import { patchEntityManifest } from './services/manifestWrite.mjs'
 import { getComponentHandoff } from './services/componentHandoff.mjs'
-import { applySetupPlan, createSetupPlan } from './services/setupService.mjs'
+import {
+  applySetupPlan,
+  createSetupPlan,
+  inspectSetupInstallation,
+} from './services/setupService.mjs'
 import { browseInterfaceFolders } from './services/interfaceFolderBrowser.mjs'
 import {
   analyzeSystemUpgrade,
@@ -178,6 +182,13 @@ createServer(async (request, response) => {
           mode: url.searchParams.get('mode') ?? 'attach',
           name: url.searchParams.get('name') ?? undefined,
         }),
+      )
+    }
+    if (request.method === 'GET' && url.pathname === '/api/onboarding/status') {
+      return sendJson(
+        response,
+        200,
+        await inspectSetupInstallation({ root: getWorkspaceDirectory() }),
       )
     }
     if (request.method === 'POST' && url.pathname === '/api/onboarding/apply') {

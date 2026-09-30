@@ -100,6 +100,7 @@ async function browserSmoke(
     resetSystem = false,
     upgradeSystem = false,
     browseProjectSystem = false,
+    checkIntegrationFailure = false,
     createSkinCandidate = null,
     verifySkinAndClear = false,
     expectDefaultMatch = false,
@@ -204,6 +205,36 @@ async function browserSmoke(
     styleChanged = false
     await page.locator('.app-sidebar__footer .sidebar-tab').click()
     await page.getByRole('heading', { name: 'Active System' }).waitFor()
+    await page.getByRole('heading', { name: 'Design Lab integration' }).waitFor()
+    await page.getByText('Healthy', { exact: true }).waitFor()
+    if (checkIntegrationFailure) {
+      const rulePath = join(projectRoot, 'design-lab/rules/COMPONENT_RULES.md')
+      const rule = await readFile(rulePath, 'utf8')
+      try {
+        await rm(rulePath)
+        assert.equal(existsSync(rulePath), false)
+        const [failed] = await Promise.all([
+          page.waitForResponse(async (result) => {
+            if (!result.url().endsWith('/api/onboarding/status')) return false
+            const report = await result.json()
+            return report.diagnostics?.some((item) => item.code === 'SETUP_RULE_MISSING') ?? false
+          }),
+          page.getByRole('button', { name: 'Check integration' }).click(),
+        ])
+        assert.equal(failed.status(), 200)
+        const report = await failed.json()
+        assert(
+          report.diagnostics.some((item) => item.code === 'SETUP_RULE_MISSING'),
+          JSON.stringify(report),
+        )
+        await page.getByText('Needs attention', { exact: true }).waitFor()
+        await page.getByText('COMPONENT_RULES.md is missing.').waitFor()
+      } finally {
+        await writeFile(rulePath, rule)
+      }
+      await page.getByRole('button', { name: 'Check integration' }).click()
+      await page.getByText('Healthy', { exact: true }).waitFor()
+    }
     await page.getByText('Compatible', { exact: true }).waitFor()
     await page
       .getByText(
@@ -475,7 +506,8 @@ try {
   await run('npm', ['install', archive, '--ignore-scripts', '--no-audit', '--no-fund'], projectRoot)
   assert.equal(await readFile(join(systemRoot, 'local-smoke-marker.txt'), 'utf8'), marker)
 
-  if (process.argv.includes('--browser')) await browserSmoke(cli, { browseProjectSystem: true })
+  if (process.argv.includes('--browser'))
+    await browserSmoke(cli, { browseProjectSystem: true, checkIntegrationFailure: true })
 
   const upgradeRoot = join(temporary, 'upgrade')
   await mkdir(upgradeRoot)
@@ -610,7 +642,7 @@ try {
   }
 
   process.stdout.write(
-    `Package smoke passed: pack, attach, clean managed setup, one System, versioned upgrade preserving edits, validated fork with Component anatomy and SVG asset, switch, manual folder replacement, reset${process.argv.includes('--browser') ? ', browser Skin/System folder selection, shell/Workbench fork and HMR' : ''}.\n`,
+    `Package smoke passed: pack, attach, clean managed setup, one System, versioned upgrade preserving edits, validated fork with Component anatomy and SVG asset, switch, manual folder replacement, reset${process.argv.includes('--browser') ? ', browser integration health, Skin/System folder selection, shell/Workbench fork and HMR' : ''}.\n`,
   )
 } finally {
   if (process.env.DESIGN_LAB_KEEP_SMOKE === '1')

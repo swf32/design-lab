@@ -116,6 +116,14 @@ A thin legacy-shaped wrapper: `{ revision, entities: <same tree as getProjectTre
 
 Static-ish info payload for the Settings page: the absolute Node executable path, absolute MCP server script path, a ready-to-paste `mcpServers` config block, and CLI usage examples (`getIntegrationInfo`, `server/services/integrationInfo.mjs`). Does not touch the filesystem beyond resolving `import.meta.url`; always returns `200`.
 
+### `GET /api/onboarding/status`
+
+Read-only integration check for the current workspace. Without an embedded config it returns
+`{ available: false, reason }`; with one it returns `{ available: true, ok, diagnostics[] }`.
+Each diagnostic has `code`, `message`, and project-relative `path`. This endpoint checks config,
+relative mounts, local rules, root AGENTS pointer, and System structure. It skips the expensive
+System typecheck; Settings runs the full System doctor separately. No files are repaired or removed.
+
 ### `GET /api/interface/system/doctor` and `GET /api/interface/system/diff`
 
 Read-only Settings diagnostics over the same services as `designlab system doctor` and `designlab system diff`.

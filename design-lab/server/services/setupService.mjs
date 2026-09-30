@@ -542,6 +542,24 @@ export async function checkSetupInstallation({
   return { ok: diagnostics.length === 0, diagnostics }
 }
 
+export async function inspectSetupInstallation({
+  root,
+  integrationDirectory = DEFAULT_INTEGRATION_DIRECTORY,
+  typecheckSystem = false,
+}) {
+  const projectRoot = assertRoot(root)
+  const configPath = join(projectRoot, integrationDirectory, 'designlab.config.json')
+  if (!(await exists(configPath)))
+    return {
+      available: false,
+      reason: 'No embedded Design Lab setup is present in this workspace.',
+    }
+  return {
+    available: true,
+    ...(await checkSetupInstallation({ root: projectRoot, integrationDirectory, typecheckSystem })),
+  }
+}
+
 export async function applySetupPlan({
   root,
   name,
