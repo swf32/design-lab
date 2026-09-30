@@ -639,6 +639,16 @@ export function getInterfaceSystemDoctor() {
   return request<InterfaceSystemDoctor>('/api/interface/system/doctor')
 }
 
+export type InterfaceFolderListing = {
+  path: string
+  parent: string | null
+  folders: Array<{ name: string; path: string }>
+}
+
+export function browseInterfaceFolders(path = '.') {
+  return request<InterfaceFolderListing>(`/api/interface/folders?path=${encodeURIComponent(path)}`)
+}
+
 export function getInterfaceSystemDiff() {
   return request<InterfaceSystemDiff>('/api/interface/system/diff')
 }

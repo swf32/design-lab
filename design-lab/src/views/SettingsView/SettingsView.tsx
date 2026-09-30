@@ -1,5 +1,6 @@
 import './SettingsView.scss'
 import { SkinSettings } from './SkinSettings'
+import { InterfaceFolderPicker } from './InterfaceFolderPicker'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { Button, CodeBlock, Dialog, Input, ModuleHeader } from '@design-lab/system/components'
 import {
@@ -68,6 +69,7 @@ export function SettingsView({ onClose }: { onClose: () => void }) {
   const [systemError, setSystemError] = useState<string | null>(null)
   const [systemLoading, setSystemLoading] = useState(false)
   const [systemFolder, setSystemFolder] = useState('')
+  const [systemPickerOpen, setSystemPickerOpen] = useState(false)
   const [newSystemName, setNewSystemName] = useState('')
   const [newSystemFolder, setNewSystemFolder] = useState('')
   const [creating, setCreating] = useState(false)
@@ -127,13 +129,13 @@ export function SettingsView({ onClose }: { onClose: () => void }) {
     void refreshSystem()
   }, [refreshSystem])
 
-  const inspectCandidate = async () => {
+  const inspectCandidate = async (path = systemFolder) => {
     const request = ++candidateRequest.current
     setCandidateLoading(true)
     setCandidateError(null)
     setInstallResult(null)
     try {
-      const inspection = await inspectLocalInterfaceSystem(systemFolder.trim())
+      const inspection = await inspectLocalInterfaceSystem(path.trim())
       if (candidateRequest.current === request) setCandidate(inspection)
     } catch (cause) {
       if (candidateRequest.current === request) {
@@ -440,6 +442,9 @@ export function SettingsView({ onClose }: { onClose: () => void }) {
             >
               Check folder
             </Button>
+            <Button type="button" size="small" onClick={() => setSystemPickerOpen(true)}>
+              Browse project
+            </Button>
           </form>
           {candidateError && (
             <p className="settings-page__error" role="alert">
@@ -482,6 +487,17 @@ export function SettingsView({ onClose }: { onClose: () => void }) {
           </div>
         )}
       </section>
+
+      <InterfaceFolderPicker
+        kind="System"
+        open={systemPickerOpen}
+        onClose={() => setSystemPickerOpen(false)}
+        onSelect={(path) => {
+          setSystemPickerOpen(false)
+          setSystemFolder(path)
+          void inspectCandidate(path)
+        }}
+      />
 
       <Dialog
         open={upgradeConfirmOpen}

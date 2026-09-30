@@ -138,6 +138,26 @@
 .settings-system__candidate code {
   color: var(--color-text-secondary);
 }
+.settings-folder-picker {
+  min-width: min(420px, 100%);
+}
+.settings-folder-picker > p {
+  overflow-wrap: anywhere;
+}
+.settings-folder-picker ul {
+  list-style: none;
+  padding: 0;
+  margin: var(--space-12) 0 0;
+  max-height: 280px;
+  overflow: auto;
+}
+.settings-folder-picker li {
+  border-top: 1px solid var(--color-border-subtle);
+}
+.settings-folder-picker li .dl-button {
+  width: 100%;
+  justify-content: flex-start;
+}
 .settings-skin__packs {
   list-style: none;
   margin: var(--space-12) 0;

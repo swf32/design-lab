@@ -127,6 +127,14 @@ the System root, and added/missing are relative to the bundled default. The endp
 authored files only; it does not write, merge, or distinguish local edits from upstream changes.
 If a folder cannot be read, the generic server error convention applies.
 
+### `GET /api/interface/folders?path=<project-relative-folder>`
+
+Returns `{ path, parent, folders: [{ name, path }] }` for one level of project directories. The
+root is `.`. Settings uses this read-only endpoint to choose a Skin or System folder without
+typing a path. It skips package/build/cache folders and symlinks; traversal and paths outside the
+project return `422 INTERFACE_FOLDER_PATH_INVALID`. Choosing a folder still invokes the normal
+Skin/System inspection before installation.
+
 ### `GET /api/interface/system/recovery`
 
 Reports whether the bundled default System can be restored: `{ available, source, version }`.

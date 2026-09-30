@@ -15,6 +15,7 @@ import { getAuthoredStyles } from './services/authoredStyles.mjs'
 import { patchEntityManifest } from './services/manifestWrite.mjs'
 import { getComponentHandoff } from './services/componentHandoff.mjs'
 import { applySetupPlan, createSetupPlan } from './services/setupService.mjs'
+import { browseInterfaceFolders } from './services/interfaceFolderBrowser.mjs'
 import {
   analyzeSystemUpgrade,
   applySystemUpgrade,
@@ -67,6 +68,13 @@ createServer(async (request, response) => {
     }
     if (request.method === 'GET' && url.pathname === '/api/interface/system/doctor') {
       return sendJson(response, 200, await doctorInterfacePacks())
+    }
+    if (request.method === 'GET' && url.pathname === '/api/interface/folders') {
+      return sendJson(
+        response,
+        200,
+        await browseInterfaceFolders(url.searchParams.get('path') ?? '.'),
+      )
     }
     if (request.method === 'GET' && url.pathname === '/api/interface/system/diff') {
       return sendJson(response, 200, await diffInterfaceSystem())

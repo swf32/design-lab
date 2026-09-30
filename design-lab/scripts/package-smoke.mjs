@@ -17,7 +17,7 @@ const applicationRoot = resolve(fileURLToPath(new URL('..', import.meta.url)))
 const temporary = await realpath(await mkdtemp(join(tmpdir(), 'design-lab-package-smoke-')))
 const projectRoot = join(temporary, 'external-project')
 const alternateSystem = join(temporary, 'alternate-system')
-const smokeSkin = join(temporary, 'smoke-skin')
+const smokeSkin = join(projectRoot, 'design-lab', 'skins', 'smoke-skin')
 const systemRoot = join(projectRoot, 'design-lab', 'system')
 
 async function run(command, args, cwd) {
@@ -99,6 +99,7 @@ async function browserSmoke(
     installCandidate = null,
     resetSystem = false,
     upgradeSystem = false,
+    browseProjectSystem = false,
     createSkinCandidate = null,
     verifySkinAndClear = false,
     expectDefaultMatch = false,
@@ -216,6 +217,23 @@ async function browserSmoke(
       await page.getByText('alternate-smoke', { exact: true }).waitFor()
     }
     assert.deepEqual(pageErrors, [])
+    if (browseProjectSystem) {
+      await page
+        .locator('.settings-section--system')
+        .getByRole('button', { name: 'Browse project' })
+        .click()
+      for (const folder of ['design-lab', 'system'])
+        await page.getByRole('dialog').getByRole('button', { name: folder, exact: true }).click()
+      const [inspection] = await Promise.all([
+        page.waitForResponse((result) => result.url().endsWith('/api/interface/system/inspect')),
+        page.getByRole('dialog').getByRole('button', { name: 'Check this folder' }).click(),
+      ])
+      assert.equal(inspection.status(), 200)
+      assert.equal(
+        await page.getByRole('textbox', { name: 'System folder', exact: true }).inputValue(),
+        'design-lab/system',
+      )
+    }
     if (verifySkinAndClear) {
       await page.waitForFunction(
         () =>
@@ -254,9 +272,20 @@ async function browserSmoke(
         ':root { --shell-application-background: rgb(12 34 56) !important; }\n',
       )
       await page
-        .getByRole('textbox', { name: 'Skin folder', exact: true })
-        .fill(relative(projectRoot, createSkinCandidate))
-      await page.getByRole('button', { name: 'Check Skin' }).click()
+        .locator('.settings-section--skin')
+        .getByRole('button', { name: 'Browse project' })
+        .click()
+      for (const folder of ['design-lab', 'skins', 'smoke-skin'])
+        await page.getByRole('dialog').getByRole('button', { name: folder, exact: true }).click()
+      const [inspection] = await Promise.all([
+        page.waitForResponse((result) => result.url().endsWith('/api/interface/skin/inspect')),
+        page.getByRole('dialog').getByRole('button', { name: 'Check this folder' }).click(),
+      ])
+      assert.equal(inspection.status(), 200)
+      assert.equal(
+        await page.getByRole('textbox', { name: 'Skin folder', exact: true }).inputValue(),
+        'design-lab/skins/smoke-skin',
+      )
       await page.getByRole('button', { name: 'Install this Skin' }).waitFor()
       await page.getByRole('button', { name: 'Install this Skin' }).click()
       const [installed] = await Promise.all([
@@ -425,7 +454,7 @@ try {
   await run('npm', ['install', archive, '--ignore-scripts', '--no-audit', '--no-fund'], projectRoot)
   assert.equal(await readFile(join(systemRoot, 'local-smoke-marker.txt'), 'utf8'), marker)
 
-  if (process.argv.includes('--browser')) await browserSmoke(cli)
+  if (process.argv.includes('--browser')) await browserSmoke(cli, { browseProjectSystem: true })
 
   const upgradeRoot = join(temporary, 'upgrade')
   await mkdir(upgradeRoot)
@@ -560,7 +589,7 @@ try {
   }
 
   process.stdout.write(
-    `Package smoke passed: pack, attach, clean managed setup, one System, versioned upgrade preserving edits, validated fork with Component anatomy and SVG asset, switch, manual folder replacement, reset${process.argv.includes('--browser') ? ', browser shell/Workbench fork and HMR' : ''}.\n`,
+    `Package smoke passed: pack, attach, clean managed setup, one System, versioned upgrade preserving edits, validated fork with Component anatomy and SVG asset, switch, manual folder replacement, reset${process.argv.includes('--browser') ? ', browser Skin/System folder selection, shell/Workbench fork and HMR' : ''}.\n`,
   )
 } finally {
   if (process.env.DESIGN_LAB_KEEP_SMOKE === '1')

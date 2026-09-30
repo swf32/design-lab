@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { Button, Dialog, Input } from '@design-lab/system/components'
+import { InterfaceFolderPicker } from './InterfaceFolderPicker'
 import {
   createLocalInterfaceSkin,
   inspectLocalInterfaceSkin,
@@ -23,6 +24,7 @@ export function SkinSettings({
   const [name, setName] = useState('')
   const [newFolder, setNewFolder] = useState('')
   const [folder, setFolder] = useState('')
+  const [pickerOpen, setPickerOpen] = useState(false)
   const [candidate, setCandidate] = useState<LocalInterfaceSkinInspection | null>(null)
   const [checking, setChecking] = useState(false)
   const [busy, setBusy] = useState(false)
@@ -213,6 +215,9 @@ export function SkinSettings({
           <Button type="submit" size="small" loading={checking} disabled={!folder.trim()}>
             Check Skin
           </Button>
+          <Button type="button" size="small" onClick={() => setPickerOpen(true)}>
+            Browse project
+          </Button>
         </form>
         {candidate && (
           <div className="settings-system__candidate" role="status">
@@ -227,6 +232,17 @@ export function SkinSettings({
           </div>
         )}
       </div>
+
+      <InterfaceFolderPicker
+        kind="Skin"
+        open={pickerOpen}
+        onClose={() => setPickerOpen(false)}
+        onSelect={(path) => {
+          setPickerOpen(false)
+          setFolder(path)
+          void checkFolder(path)
+        }}
+      />
 
       <div className="settings-system__recovery">
         <h4>Installed Skins</h4>
