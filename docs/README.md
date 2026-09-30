@@ -37,6 +37,7 @@
 - [Карта проекта и честный статус](24-project-map-and-status.md)
 - [Собственная интерфейсная система и установка](25-interface-system-and-installation.md)
 - [Видение и следующие шаги](26-vision-and-next-steps.md)
+- [Граница стилей приложения и System: аудит и проверка](27-interface-style-ownership-audit.md)
 - [Конкурентный обзор](07-market-review.md)
 - [Roadmap, риски и пакетные AI-задачи](08-roadmap-risks-and-tasks.md)
 

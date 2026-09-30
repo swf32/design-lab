@@ -867,7 +867,10 @@ native backlog до Web DoD.
       orchestration у `CreateProjectDialog` и `ManagedRuntimeFrame`; удалить пустые component dirs.
 - [ ] Запретить новые app-owned colors, typography, backgrounds, borders, radii, shadows и visual
       transitions; app-local CSS допускает только доказуемую product composition или technical
-      runtime geometry.
+      runtime geometry. Проверка CSS/SCSS с baseline уже не допускает роста этого списка;
+      501 существующая declaration ещё требует переноса, inline TSX styles и spacing не покрыты.
+- [x] Включить read-only style ownership guard в root test/build и документировать исходный
+      app-local визуальный долг по файлам в `docs/27-interface-style-ownership-audit.md`.
 - [x] Проверить, что shell использует тот же сгенерированный token source, что Component specimens,
       и что изменение shell/component tokens одновременно обновляет Workbench specimen и
       реальный Design Lab в light/dark interface themes.
