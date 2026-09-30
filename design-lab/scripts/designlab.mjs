@@ -17,7 +17,12 @@ import {
   getComponentCaptureInfo,
   renderComponentCapture,
 } from '../server/services/componentCapture.mjs'
-import { applySetupPlan, createSetupPlan } from '../server/services/setupService.mjs'
+import {
+  applySetupPlan,
+  applySetupRepair,
+  createSetupPlan,
+  createSetupRepairPlan,
+} from '../server/services/setupService.mjs'
 import {
   analyzeSystemUpgrade,
   applySystemUpgrade,
@@ -105,6 +110,8 @@ function help() {
 Usage:
   designlab dev [--root <project-folder>]
   designlab setup [--root <project-folder>] [--mode attach|managed] [--name <name>]
+  designlab repair [--root <project-folder>]
+  designlab repair --apply --confirm --fingerprint <preview-fingerprint> [--root <project-folder>]
   npm run designlab -- setup [--root <project-folder>] [--mode attach|managed] [--name <name>]
   npm run designlab -- setup --apply --confirm [--root <project-folder>] [--mode attach|managed]
   npm run designlab -- sources
@@ -188,6 +195,18 @@ try {
           'Explain this plan to the user in plain language. Apply it only after explicit confirmation.',
       })
     }
+  } else if (command === 'repair') {
+    const root = resolve(option('--root') ?? defaultWorkspaceRoot)
+    process.env.DESIGN_LAB_WORKSPACE_DIR = root
+    if (args.includes('--apply'))
+      print(
+        await applySetupRepair({
+          root,
+          fingerprint: option('--fingerprint'),
+          confirmed: args.includes('--confirm'),
+        }),
+      )
+    else print(await createSetupRepairPlan({ root }))
   } else if (command === 'sources') {
     const result = await listSources()
     print(result.sources.map(({ id, name, kind, available }) => ({ id, name, kind, available })))

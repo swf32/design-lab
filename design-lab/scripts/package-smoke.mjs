@@ -229,11 +229,35 @@ async function browserSmoke(
         )
         await page.getByText('Needs attention', { exact: true }).waitFor()
         await page.getByText('COMPONENT_RULES.md is missing.').waitFor()
+        const [preview] = await Promise.all([
+          page.waitForResponse(
+            (result) =>
+              result.url().endsWith('/api/onboarding/repair') &&
+              result.request().method() === 'GET',
+          ),
+          page.getByRole('button', { name: 'Preview safe repair' }).click(),
+        ])
+        assert.equal(preview.status(), 200)
+        assert(
+          (await preview.json()).changes.some(
+            (item) => item.path === 'design-lab/rules/COMPONENT_RULES.md',
+          ),
+        )
+        const [appliedRepair] = await Promise.all([
+          page.waitForResponse(
+            (result) =>
+              result.url().endsWith('/api/onboarding/repair') &&
+              result.request().method() === 'POST',
+          ),
+          page.getByRole('dialog').getByRole('button', { name: 'Apply safe repair' }).click(),
+        ])
+        assert.equal(appliedRepair.status(), 200)
+        assert.equal((await appliedRepair.json()).applied, true)
+        assert.equal(await readFile(rulePath, 'utf8'), rule)
+        await page.getByText('Healthy', { exact: true }).waitFor()
       } finally {
-        await writeFile(rulePath, rule)
+        if (!existsSync(rulePath)) await writeFile(rulePath, rule)
       }
-      await page.getByRole('button', { name: 'Check integration' }).click()
-      await page.getByText('Healthy', { exact: true }).waitFor()
     }
     await page.getByText('Compatible', { exact: true }).waitFor()
     await page

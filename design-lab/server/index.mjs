@@ -15,7 +15,9 @@ import { getAuthoredStyles } from './services/authoredStyles.mjs'
 import { patchEntityManifest } from './services/manifestWrite.mjs'
 import { getComponentHandoff } from './services/componentHandoff.mjs'
 import {
+  applySetupRepair,
   applySetupPlan,
+  createSetupRepairPlan,
   createSetupPlan,
   inspectSetupInstallation,
 } from './services/setupService.mjs'
@@ -190,6 +192,20 @@ createServer(async (request, response) => {
         200,
         await inspectSetupInstallation({ root: getWorkspaceDirectory() }),
       )
+    }
+    if (request.method === 'GET' && url.pathname === '/api/onboarding/repair') {
+      return sendJson(response, 200, await createSetupRepairPlan({ root: getWorkspaceDirectory() }))
+    }
+    if (request.method === 'POST' && url.pathname === '/api/onboarding/repair') {
+      requireInterfaceUiRequest(request)
+      const input = await readJson(request)
+      const result = await applySetupRepair({
+        root: getWorkspaceDirectory(),
+        fingerprint: input.fingerprint,
+        confirmed: input.confirmed === true,
+      })
+      if (result.applied) revision += 1
+      return sendJson(response, 200, result)
     }
     if (request.method === 'POST' && url.pathname === '/api/onboarding/apply') {
       const input = await readJson(request)

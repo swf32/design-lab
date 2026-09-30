@@ -124,6 +124,17 @@ Each diagnostic has `code`, `message`, and project-relative `path`. This endpoin
 relative mounts, local rules, root AGENTS pointer, and System structure. It skips the expensive
 System typecheck; Settings runs the full System doctor separately. No files are repaired or removed.
 
+### `GET /api/onboarding/repair` and `POST /api/onboarding/repair`
+
+`GET` returns a read-only plan `{ available, changes, blockers, fingerprint, canApply }` for a
+configured embedded project. It offers only missing local rule copies and an absent managed
+`AGENTS.md` pointer. Edited rules, config, mounts, and the active System are left alone. Unsafe
+paths and unresolved diagnostics appear as blockers. `POST` requires the local UI request headers,
+`{ fingerprint, confirmed: true }`, and a fresh plan; it creates missing rule files without replacing
+existing entries and appends only the managed pointer. It returns `{ applied, changes, selfCheck }`.
+Missing confirmation or a stale fingerprint returns `409`. The CLI exposes the same preview and
+confirmed apply as `designlab repair`.
+
 ### `GET /api/interface/system/doctor` and `GET /api/interface/system/diff`
 
 Read-only Settings diagnostics over the same services as `designlab system doctor` and `designlab system diff`.

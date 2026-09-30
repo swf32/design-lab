@@ -1,11 +1,13 @@
 import assert from 'node:assert/strict'
-import { mkdtemp, mkdir, readFile, rm, writeFile } from 'node:fs/promises'
+import { mkdtemp, mkdir, readFile, rm, symlink, writeFile } from 'node:fs/promises'
 import { join } from 'node:path'
 import { tmpdir } from 'node:os'
 import test from 'node:test'
 import {
+  applySetupRepair,
   applySetupPlan,
   checkSetupInstallation,
+  createSetupRepairPlan,
   createSetupPlan,
   inspectSetupInstallation,
   scanRepository,
@@ -48,6 +50,65 @@ test('scanRepository finds existing framework sources without changing files', a
     assert.equal(scan.mounts.components[0].path, 'src/components')
     assert.equal(scan.mounts.tokens[0].path, 'packages/tokens/src/tokens')
     await assert.rejects(readFile(join(root, 'design-lab', 'designlab.config.json')))
+  } finally {
+    await rm(root, { recursive: true, force: true })
+  }
+})
+
+test('repair previews and restores only missing managed files', async () => {
+  const root = await fixture()
+  try {
+    await writeFile(join(root, 'AGENTS.md'), '# Existing project guidance\n')
+    await applySetupPlan({ root, name: 'Repair smoke', confirmed: true })
+    const missingRule = join(root, 'design-lab/rules/COMPONENT_RULES.md')
+    const customRule = join(root, 'design-lab/rules/TOKEN_RULES.md')
+    const originalComponent = await readFile(join(root, 'src/components/Button.tsx'), 'utf8')
+    await rm(missingRule)
+    await writeFile(customRule, '# Keep my local rule\n')
+    await writeFile(join(root, 'AGENTS.md'), '# Existing project guidance\n')
+
+    const plan = await createSetupRepairPlan({ root })
+    assert.equal(plan.available, true)
+    assert.deepEqual(plan.changes, [
+      { kind: 'restore-rule', path: 'design-lab/rules/COMPONENT_RULES.md' },
+      { kind: 'append-agents-pointer', path: 'AGENTS.md' },
+    ])
+    await assert.rejects(applySetupRepair({ root, fingerprint: plan.fingerprint }), {
+      code: 'SETUP_REPAIR_CONFIRMATION_REQUIRED',
+    })
+    await assert.rejects(applySetupRepair({ root, fingerprint: 'stale', confirmed: true }), {
+      code: 'SETUP_REPAIR_STALE',
+    })
+    const repaired = await applySetupRepair({
+      root,
+      fingerprint: plan.fingerprint,
+      confirmed: true,
+    })
+    assert.equal(repaired.applied, true)
+    assert.equal(repaired.selfCheck.ok, true)
+    assert.match(await readFile(missingRule, 'utf8'), /# Design Lab/)
+    assert.equal(await readFile(customRule, 'utf8'), '# Keep my local rule\n')
+    assert.equal(await readFile(join(root, 'src/components/Button.tsx'), 'utf8'), originalComponent)
+    assert.match(await readFile(join(root, 'AGENTS.md'), 'utf8'), /# Existing project guidance/)
+    assert.match(await readFile(join(root, 'AGENTS.md'), 'utf8'), /design-lab:setup:start/)
+  } finally {
+    await rm(root, { recursive: true, force: true })
+  }
+})
+
+test('repair refuses a linked local rules directory', async () => {
+  const root = await fixture()
+  try {
+    await mkdir(join(root, 'design-lab'))
+    await writeFile(join(root, 'design-lab/designlab.config.json'), '{}\n')
+    await symlink(tmpdir(), join(root, 'design-lab/rules'))
+    const plan = await createSetupRepairPlan({ root })
+    assert.equal(plan.available, true)
+    assert.equal(
+      plan.changes.some((change) => change.kind === 'restore-rule'),
+      false,
+    )
+    assert(plan.blockers.some((item) => item.code === 'SETUP_REPAIR_RULES_UNSAFE'))
   } finally {
     await rm(root, { recursive: true, force: true })
   }

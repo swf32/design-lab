@@ -31,6 +31,7 @@ npm install /путь/к/design-lab-0.1.0.tgz
 npx designlab setup --name "My Project"
 npx designlab setup --name "My Project" --apply --confirm
 npx designlab system doctor
+npx designlab repair
 npx designlab dev
 ```
 
@@ -38,6 +39,8 @@ npx designlab dev
 System создаёт в `design-lab/system/` проекта. `DESIGN_LAB_PORT` и `DESIGN_LAB_API_PORT` задают
 независимые порты. Повторная установка пакета сохраняет содержимое `design-lab/system/`; явный
 `system reset` восстанавливает default. Подробнее — в [инструкции и границах поддержки](docs/25-interface-system-and-installation.md).
+`repair` сначала показывает план восстановления только отсутствующих управляемых правил и указателя
+в `AGENTS.md`; применить его можно через Settings или с `--apply --confirm --fingerprint` из плана.
 После обновления пакета `npx designlab system upgrade` показывает трёхсторонний план для default System;
 при конфликтах применение целиком блокируется. Такой же план доступен в Settings.
 

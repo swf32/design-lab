@@ -1,10 +1,12 @@
-import { randomUUID } from 'node:crypto'
-import { existsSync } from 'node:fs'
+import { createHash, randomUUID } from 'node:crypto'
+import { constants, existsSync } from 'node:fs'
 import {
   access,
   cp,
   copyFile,
+  lstat,
   mkdir,
+  open,
   readFile,
   readdir,
   rename,
@@ -557,6 +559,194 @@ export async function inspectSetupInstallation({
   return {
     available: true,
     ...(await checkSetupInstallation({ root: projectRoot, integrationDirectory, typecheckSystem })),
+  }
+}
+
+function repairFingerprint(value) {
+  return createHash('sha256').update(JSON.stringify(value)).digest('hex')
+}
+
+export async function createSetupRepairPlan({
+  root,
+  integrationDirectory = DEFAULT_INTEGRATION_DIRECTORY,
+  rulesSource = DEFAULT_RULES_SOURCE,
+}) {
+  const projectRoot = assertRoot(root)
+  const status = await inspectSetupInstallation({ root: projectRoot, integrationDirectory })
+  if (!status.available) return status
+
+  const integrationRoot = resolve(projectRoot, integrationDirectory)
+  if (!isInside(integrationRoot, projectRoot))
+    throw setupError('Repair folder leaves the project.', 'SETUP_REPAIR_PATH_INVALID')
+  if (!(await lstat(integrationRoot)).isDirectory())
+    throw setupError(
+      'Repair will not write through a linked integration folder.',
+      'SETUP_REPAIR_PATH_INVALID',
+    )
+  const changes = []
+  const blockers = status.diagnostics.filter(
+    (item) => !['SETUP_RULE_MISSING', 'SETUP_AGENTS_POINTER_MISSING'].includes(item.code),
+  )
+  const inputs = []
+  const rulesRoot = join(integrationRoot, 'rules')
+  const rulesState = await lstat(rulesRoot).catch((error) => {
+    if (error.code === 'ENOENT') return null
+    throw error
+  })
+  const rulesWritable = !rulesState || rulesState.isDirectory()
+  if (!rulesWritable)
+    blockers.push({
+      code: 'SETUP_REPAIR_RULES_UNSAFE',
+      message:
+        'The local rules folder is not a regular directory. Repair will not write through it.',
+      path: portablePath(relative(projectRoot, rulesRoot)),
+    })
+  for (const rule of RULE_FILES) {
+    if (!rulesWritable) break
+    const target = join(integrationRoot, 'rules', rule)
+    const state = await lstat(target).catch((error) => {
+      if (error.code === 'ENOENT') return null
+      throw error
+    })
+    if (state) continue
+    const source = join(rulesSource, rule)
+    const content = await readFile(source).catch((error) => {
+      if (error.code === 'ENOENT') return null
+      throw error
+    })
+    if (!content) {
+      blockers.push({
+        code: 'SETUP_REPAIR_SOURCE_MISSING',
+        message: `${rule} is absent from the installed Design Lab package.`,
+        path: portablePath(relative(projectRoot, target)),
+      })
+      continue
+    }
+    changes.push({ kind: 'restore-rule', path: portablePath(relative(projectRoot, target)) })
+    inputs.push([rule, repairFingerprint(content.toString('base64'))])
+  }
+
+  const agentsPath = join(projectRoot, 'AGENTS.md')
+  const agentsState = await lstat(agentsPath).catch((error) => {
+    if (error.code === 'ENOENT') return null
+    throw error
+  })
+  if (agentsState && !agentsState.isFile()) {
+    blockers.push({
+      code: 'SETUP_REPAIR_AGENTS_UNSAFE',
+      message: 'AGENTS.md is not a regular file. Repair will not write through it.',
+      path: 'AGENTS.md',
+    })
+  } else {
+    const agents = agentsState ? await readFile(agentsPath, 'utf8') : ''
+    const hasStart = agents.includes(MANAGED_AGENTS_START)
+    const hasEnd = agents.includes(MANAGED_AGENTS_END)
+    if (hasStart !== hasEnd) {
+      blockers.push({
+        code: 'SETUP_REPAIR_AGENTS_PARTIAL',
+        message: 'AGENTS.md has only one Design Lab block marker. Repair will not edit it.',
+        path: 'AGENTS.md',
+      })
+    } else if (!hasStart) {
+      changes.push({ kind: 'append-agents-pointer', path: 'AGENTS.md' })
+      inputs.push(['AGENTS.md', repairFingerprint(agents)])
+    }
+  }
+
+  return {
+    available: true,
+    changes,
+    blockers,
+    fingerprint: repairFingerprint({ changes, blockers, inputs }),
+    canApply: changes.length > 0,
+  }
+}
+
+export async function applySetupRepair({
+  root,
+  fingerprint,
+  confirmed = false,
+  integrationDirectory = DEFAULT_INTEGRATION_DIRECTORY,
+  rulesSource = DEFAULT_RULES_SOURCE,
+}) {
+  if (!confirmed)
+    throw setupError(
+      'Review and confirm the repair plan first.',
+      'SETUP_REPAIR_CONFIRMATION_REQUIRED',
+      409,
+    )
+  const plan = await createSetupRepairPlan({ root, integrationDirectory, rulesSource })
+  if (!plan.available) throw setupError(plan.reason, 'SETUP_REPAIR_UNAVAILABLE', 409)
+  if (typeof fingerprint !== 'string' || plan.fingerprint !== fingerprint)
+    throw setupError(
+      'Project files changed. Review the repair plan again.',
+      'SETUP_REPAIR_STALE',
+      409,
+    )
+  if (!plan.canApply)
+    return { applied: false, changes: [], selfCheck: await inspectSetupInstallation({ root }) }
+
+  const projectRoot = assertRoot(root)
+  for (const change of plan.changes) {
+    const target = resolve(projectRoot, change.path)
+    if (!isInside(target, projectRoot))
+      throw setupError('Repair path leaves the project.', 'SETUP_REPAIR_PATH_INVALID')
+    if (change.kind === 'restore-rule') {
+      const source = join(rulesSource, basename(change.path))
+      const parent = dirname(target)
+      if (!(await lstat(resolve(projectRoot, integrationDirectory))).isDirectory())
+        throw setupError(
+          'Repair will not write through a linked integration folder.',
+          'SETUP_REPAIR_PATH_INVALID',
+        )
+      await mkdir(parent, { recursive: true })
+      if (!(await lstat(parent)).isDirectory())
+        throw setupError(
+          'Repair will not write through a linked rules folder.',
+          'SETUP_REPAIR_PATH_INVALID',
+        )
+      const handle = await open(
+        target,
+        constants.O_CREAT | constants.O_EXCL | constants.O_WRONLY | constants.O_NOFOLLOW,
+      )
+      try {
+        await handle.writeFile(await readFile(source))
+      } finally {
+        await handle.close()
+      }
+    } else if (change.kind === 'append-agents-pointer') {
+      const state = await lstat(target).catch((error) => {
+        if (error.code === 'ENOENT') return null
+        throw error
+      })
+      const flags = state
+        ? constants.O_RDWR | constants.O_APPEND | constants.O_NOFOLLOW
+        : constants.O_CREAT |
+          constants.O_EXCL |
+          constants.O_RDWR |
+          constants.O_APPEND |
+          constants.O_NOFOLLOW
+      const handle = await open(target, flags)
+      try {
+        const current = await handle.readFile('utf8')
+        if (current.includes(MANAGED_AGENTS_START) || current.includes(MANAGED_AGENTS_END))
+          throw setupError(
+            'AGENTS.md changed. Review the repair plan again.',
+            'SETUP_REPAIR_STALE',
+            409,
+          )
+        await handle.writeFile(
+          `${current.trim() ? '\n\n' : ''}${agentsBlock(integrationDirectory)}\n`,
+        )
+      } finally {
+        await handle.close()
+      }
+    }
+  }
+  return {
+    applied: true,
+    changes: plan.changes,
+    selfCheck: await inspectSetupInstallation({ root: projectRoot, integrationDirectory }),
   }
 }
 

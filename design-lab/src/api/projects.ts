@@ -129,6 +129,32 @@ export function getSetupInstallationStatus() {
   return request<SetupInstallationStatus>('/api/onboarding/status')
 }
 
+export type SetupRepairPlan =
+  | { available: false; reason: string }
+  | {
+      available: true
+      changes: Array<{ kind: 'restore-rule' | 'append-agents-pointer'; path: string }>
+      blockers: Array<{ code: string; message: string; path: string }>
+      fingerprint: string
+      canApply: boolean
+    }
+
+export function getSetupRepairPlan() {
+  return request<SetupRepairPlan>('/api/onboarding/repair')
+}
+
+export function applySetupRepair(fingerprint: string) {
+  return request<{
+    applied: boolean
+    changes: Array<{ kind: string; path: string }>
+    selfCheck: SetupInstallationStatus
+  }>('/api/onboarding/repair', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', 'X-Design-Lab-UI': '1' },
+    body: JSON.stringify({ fingerprint, confirmed: true }),
+  })
+}
+
 export type TokenNavigationView = 'tokens' | 'files'
 
 export async function getProjectTree(

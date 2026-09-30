@@ -791,13 +791,15 @@ Web sequencing и границы shared/native modules: `docs/17-web-first-platf
 - [x] Реализован deterministic repository scan с evidence/confidence, framework/package detection
       и designer-readable summary; AI не является единственным scanner.
 - [ ] Реализован component-based onboarding `Connect existing` / `Start clean`, default `Use files
-where they are` и confirm-gated apply plan; post-apply self-check возвращает диагностики, но ещё нужны repair и optional
+where they are` и confirm-gated apply plan; post-apply self-check возвращает диагностики, repair
+      отсутствующих managed files готов, но ещё нужны repair config/mounts и optional
       managed migration существующих файлов.
 - [x] Реализован первый package environment resolver: ближайшие реальные `package.json` и lockfile
       определяются без ручного `node_modules` path; workspace edge cases ещё покрываются adapter
       diagnostics.
 - [ ] Реализован managed root `AGENTS.md` pointer без перезаписи пользовательского текста и локальные
-      rule contracts; read-only integration status в Settings уже есть, repair и uninstall остаются.
+      rule contracts; status и ограниченный repair managed files в Settings уже есть, расширенный
+      repair config/mounts и uninstall остаются.
 
 ### Project-owned System и локальный npm package (D-093)
 
@@ -825,7 +827,11 @@ where they are` и confirm-gated apply plan; post-apply self-check возвра�
 - [x] Показать повторяемую read-only проверку интеграции в Settings: статус, пути и следующий шаг
       для config/mounts/rules/AGENTS/System; browser fixture удаляет правило, видит ошибку и
       подтверждает здоровое состояние после его восстановления. System typecheck остаётся в doctor.
-- [ ] Добавить repair и uninstall, сохраняющий исходники пользователя.
+- [x] Добавить ограниченный repair с планом, fingerprint и подтверждением в CLI/Settings:
+      восстанавливаются только отсутствующие managed rules и AGENTS pointer, без перезаписи
+      авторских файлов. Browser fixture проверяет восстановление правила и здоровый статус.
+- [ ] Добавить repair для безопасной правки config/mounts после move/rename и uninstall,
+      сохраняющий исходники пользователя.
 - [ ] Подготовить registry release, проверить установку на других ОС и package managers.
 
 ## Ближайший конкретный шаг

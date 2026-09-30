@@ -1,6 +1,12 @@
 import { useCallback, useEffect, useState } from 'react'
-import { Button } from '@design-lab/system/components'
-import { getSetupInstallationStatus, type SetupInstallationStatus } from '../../api/projects'
+import { Button, Dialog } from '@design-lab/system/components'
+import {
+  applySetupRepair,
+  getSetupInstallationStatus,
+  getSetupRepairPlan,
+  type SetupInstallationStatus,
+  type SetupRepairPlan,
+} from '../../api/projects'
 
 function nextStep(code: string) {
   if (code === 'SETUP_MOUNT_MISSING')
@@ -20,6 +26,10 @@ export function IntegrationStatus() {
   const [status, setStatus] = useState<SetupInstallationStatus | null>(null)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [repairPlan, setRepairPlan] = useState<SetupRepairPlan | null>(null)
+  const [repairOpen, setRepairOpen] = useState(false)
+  const [repairBusy, setRepairBusy] = useState(false)
+  const [repairMessage, setRepairMessage] = useState<string | null>(null)
 
   const refresh = useCallback(async () => {
     setLoading(true)
@@ -37,6 +47,42 @@ export function IntegrationStatus() {
   useEffect(() => {
     void refresh()
   }, [refresh])
+
+  const previewRepair = async () => {
+    setRepairBusy(true)
+    setError(null)
+    try {
+      setRepairPlan(await getSetupRepairPlan())
+      setRepairOpen(true)
+    } catch (cause) {
+      setError(cause instanceof Error ? cause.message : 'Could not prepare the repair plan.')
+    } finally {
+      setRepairBusy(false)
+    }
+  }
+
+  const repair = async () => {
+    if (!repairPlan?.available || !repairPlan.canApply) return
+    setRepairBusy(true)
+    setError(null)
+    try {
+      const result = await applySetupRepair(repairPlan.fingerprint)
+      setRepairMessage(
+        result.applied
+          ? `Restored ${result.changes.length} managed item(s). Review any remaining diagnostics below.`
+          : 'No managed files needed repair.',
+      )
+      setRepairOpen(false)
+      setRepairPlan(null)
+      void refresh()
+    } catch (cause) {
+      setError(cause instanceof Error ? cause.message : 'Could not repair the integration.')
+      setRepairOpen(false)
+      void refresh()
+    } finally {
+      setRepairBusy(false)
+    }
+  }
 
   return (
     <section
@@ -62,6 +108,7 @@ export function IntegrationStatus() {
           {error}
         </p>
       )}
+      {repairMessage && <p role="status">{repairMessage}</p>}
       {status && !status.available && <p role="status">{status.reason}</p>}
       {status?.available && (
         <div className="settings-integration__report" role="status">
@@ -71,22 +118,95 @@ export function IntegrationStatus() {
           {status.ok ? (
             <p>Config, mounts, rules, AGENTS pointer, and System structure are present.</p>
           ) : (
-            <ul>
-              {status.diagnostics.map((diagnostic, index) => (
-                <li key={`${diagnostic.code}:${diagnostic.path}:${index}`}>
-                  <strong>{diagnostic.message}</strong>
-                  <code>{diagnostic.path}</code>
-                  <p>{nextStep(diagnostic.code)}</p>
-                  <details>
-                    <summary>Diagnostic code</summary>
-                    <code>{diagnostic.code}</code>
-                  </details>
-                </li>
-              ))}
-            </ul>
+            <>
+              <Button
+                type="button"
+                size="small"
+                loading={repairBusy}
+                onClick={() => void previewRepair()}
+              >
+                Preview safe repair
+              </Button>
+              <ul>
+                {status.diagnostics.map((diagnostic, index) => (
+                  <li key={`${diagnostic.code}:${diagnostic.path}:${index}`}>
+                    <strong>{diagnostic.message}</strong>
+                    <code>{diagnostic.path}</code>
+                    <p>{nextStep(diagnostic.code)}</p>
+                    <details>
+                      <summary>Diagnostic code</summary>
+                      <code>{diagnostic.code}</code>
+                    </details>
+                  </li>
+                ))}
+              </ul>
+            </>
           )}
         </div>
       )}
+      <Dialog
+        open={repairOpen}
+        title="Repair managed integration files?"
+        eyebrow="Review file changes"
+        description="Only missing local rule copies and the managed AGENTS pointer can be restored. Existing files, source mounts, config, and the active System are preserved."
+        onClose={() => setRepairOpen(false)}
+        dismissible={!repairBusy}
+        footer={
+          <>
+            <Button
+              type="button"
+              variant="ghost"
+              disabled={repairBusy}
+              onClick={() => setRepairOpen(false)}
+            >
+              Cancel
+            </Button>
+            <Button
+              type="button"
+              variant="primary"
+              loading={repairBusy}
+              disabled={!repairPlan?.available || !repairPlan.canApply}
+              onClick={() => void repair()}
+            >
+              Apply safe repair
+            </Button>
+          </>
+        }
+      >
+        {repairPlan?.available ? (
+          <div className="settings-integration__repair-plan">
+            <h4>Files to restore</h4>
+            {repairPlan.changes.length ? (
+              <ul>
+                {repairPlan.changes.map((change) => (
+                  <li key={change.path}>
+                    <code>{change.path}</code> ·{' '}
+                    {change.kind === 'restore-rule'
+                      ? 'restore missing rule'
+                      : 'append managed pointer'}
+                  </li>
+                ))}
+              </ul>
+            ) : (
+              <p>No managed files need repair.</p>
+            )}
+            {repairPlan.blockers.length > 0 && (
+              <>
+                <h4>Needs manual attention</h4>
+                <ul>
+                  {repairPlan.blockers.map((item, index) => (
+                    <li key={`${item.code}:${index}`}>
+                      <code>{item.path}</code> · {item.message}
+                    </li>
+                  ))}
+                </ul>
+              </>
+            )}
+          </div>
+        ) : (
+          <p>{repairPlan?.reason}</p>
+        )}
+      </Dialog>
     </section>
   )
 }
