@@ -10,6 +10,7 @@ import { join, relative, resolve } from 'node:path'
 import { setTimeout as delay } from 'node:timers/promises'
 import { fileURLToPath } from 'node:url'
 import { promisify } from 'node:util'
+import { writeSystemBaseline } from '../server/services/interfacePacks.mjs'
 
 const execFileAsync = promisify(execFile)
 const applicationRoot = resolve(fileURLToPath(new URL('..', import.meta.url)))
@@ -97,6 +98,7 @@ async function browserSmoke(
     createCandidate = null,
     installCandidate = null,
     resetSystem = false,
+    upgradeSystem = false,
     createSkinCandidate = null,
     verifySkinAndClear = false,
     expectDefaultMatch = false,
@@ -266,10 +268,23 @@ async function browserSmoke(
       await page.setViewportSize({ width: 390, height: 844 })
       await page.getByRole('heading', { name: 'Interface Skin' }).waitFor()
       assert(
-        await page.locator('.settings-page').evaluate((element) =>
-          element.scrollWidth <= element.clientWidth + 1,
-        ),
+        await page
+          .locator('.settings-page')
+          .evaluate((element) => element.scrollWidth <= element.clientWidth + 1),
       )
+    }
+    if (upgradeSystem) {
+      await page.getByRole('button', { name: 'Review update' }).click()
+      const [response] = await Promise.all([
+        page.waitForResponse(
+          (result) =>
+            result.url().endsWith('/api/interface/system/upgrade') &&
+            result.request().method() === 'POST',
+        ),
+        page.getByRole('dialog').getByRole('button', { name: 'Apply update' }).click(),
+      ])
+      assert.equal(response.status(), 200)
+      assert.equal((await response.json()).updated, true)
     }
     if (createCandidate) {
       await page.getByRole('textbox', { name: 'New System name' }).fill('Alternate Smoke')
@@ -426,6 +441,10 @@ try {
     join(upgradePackage, 'vendor/default-system/upgrade-smoke-marker.txt'),
     templateMarker,
   )
+  await writeSystemBaseline(
+    join(upgradePackage, 'vendor/default-system'),
+    join(upgradePackage, 'vendor/default-system'),
+  )
   const upgradePack = parse(
     await run(
       'npm',
@@ -456,6 +475,25 @@ try {
   const upgradeDiff = parse(await run(cli, ['system', 'diff'], projectRoot))
   assert(upgradeDiff.files.added.includes('local-smoke-marker.txt'))
   assert(upgradeDiff.files.missing.includes('upgrade-smoke-marker.txt'))
+  const upgradePreview = parse(await run(cli, ['system', 'upgrade'], projectRoot))
+  assert.equal(upgradePreview.available, true)
+  assert.equal(upgradePreview.canApply, true)
+  assert(upgradePreview.files.upstreamOnly.includes('upgrade-smoke-marker.txt'))
+  assert(upgradePreview.files.localOnly.includes('local-smoke-marker.txt'))
+  assert.deepEqual(upgradePreview.files.conflicts, [])
+  if (process.argv.includes('--browser')) await browserSmoke(cli, { upgradeSystem: true })
+  else {
+    const appliedUpgrade = parse(
+      await run(
+        cli,
+        ['system', 'upgrade', '--apply', '--confirm', '--fingerprint', upgradePreview.fingerprint],
+        projectRoot,
+      ),
+    )
+    assert.equal(appliedUpgrade.updated, true)
+  }
+  assert.equal(await readFile(join(systemRoot, 'local-smoke-marker.txt'), 'utf8'), marker)
+  assert.equal(await readFile(join(systemRoot, 'upgrade-smoke-marker.txt'), 'utf8'), templateMarker)
   if (process.argv.includes('--browser'))
     await browserSmoke(cli, { createCandidate: alternateSystem })
   else {

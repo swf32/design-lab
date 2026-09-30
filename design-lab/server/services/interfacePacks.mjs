@@ -5,6 +5,7 @@ import { existsSync, readFileSync } from 'node:fs'
 import {
   access,
   cp,
+  copyFile,
   lstat,
   mkdir,
   mkdtemp,
@@ -24,6 +25,7 @@ const execFileAsync = promisify(execFile)
 const PACK_SCHEMA_VERSION = 1
 const SELECTION_SCHEMA_VERSION = 1
 const PACK_MANIFEST = 'design-lab-pack.json'
+const SYSTEM_BASELINE_FILE = 'design-lab-baseline.json'
 const DEFAULT_SYSTEM_ID = 'design-lab-system'
 const APPLICATION_ROOT = resolve(fileURLToPath(new URL('../..', import.meta.url)))
 const DEFAULT_WORKSPACE_ROOT = resolve(APPLICATION_ROOT, '..')
@@ -41,6 +43,7 @@ const SYSTEM_AUTHORING_RULES = [
 ]
 const DIFF_IGNORED_DIRECTORIES = new Set(['.git', '.designlab', 'node_modules', 'dist'])
 const DIFF_GENERATED_FILES = new Set([
+  SYSTEM_BASELINE_FILE,
   'components/index.ts',
   'assets/icons/index.ts',
   'tokens/generated/tokens.css',
@@ -280,6 +283,53 @@ async function authoredSystemFiles(root) {
   return files
 }
 
+export async function writeSystemBaseline(target, source) {
+  const manifest = await readJson(join(source, PACK_MANIFEST), 'INTERFACE_PACK_MANIFEST_MISSING')
+  if (manifest.id !== DEFAULT_SYSTEM_ID)
+    throw packError(
+      'Only the bundled default can establish an upgrade baseline.',
+      'INTERFACE_BASELINE_SOURCE_INVALID',
+    )
+  const files = Object.fromEntries(
+    [...(await authoredSystemFiles(source))].sort(([left], [right]) => left.localeCompare(right)),
+  )
+  const baseline = {
+    schemaVersion: 1,
+    sourceId: DEFAULT_SYSTEM_ID,
+    sourceVersion: manifest.version,
+    files,
+  }
+  const destination = join(target, SYSTEM_BASELINE_FILE)
+  const temporary = `${destination}.${randomUUID()}.tmp`
+  await writeFile(temporary, `${JSON.stringify(baseline, null, 2)}\n`)
+  await rename(temporary, destination)
+  return baseline
+}
+
+async function readSystemBaseline(root) {
+  const path = join(root, SYSTEM_BASELINE_FILE)
+  if (!existsSync(path)) return null
+  const baseline = await readJson(path, 'INTERFACE_BASELINE_INVALID')
+  if (
+    baseline.schemaVersion !== 1 ||
+    baseline.sourceId !== DEFAULT_SYSTEM_ID ||
+    typeof baseline.sourceVersion !== 'string' ||
+    !baseline.files ||
+    typeof baseline.files !== 'object' ||
+    Array.isArray(baseline.files) ||
+    Object.entries(baseline.files).some(([file, hash]) => {
+      if (typeof hash !== 'string' || !/^[a-f0-9]{64}$/.test(hash)) return true
+      try {
+        return normalizeRelativePath(file, 'baseline file') !== file
+      } catch {
+        return true
+      }
+    })
+  )
+    throw packError('The System upgrade baseline is invalid.', 'INTERFACE_BASELINE_INVALID')
+  return baseline
+}
+
 export async function diffInterfaceSystem(options = {}) {
   const paths = defaultInterfacePaths(options)
   const baseline = paths.defaultSystemSource ?? paths.systemSlot
@@ -321,6 +371,154 @@ export async function diffInterfaceSystem(options = {}) {
     files,
     components,
     identical: Object.values(files).every((paths) => paths.length === 0),
+  }
+}
+
+export async function analyzeSystemUpgrade(options = {}) {
+  const paths = defaultInterfacePaths(options)
+  if (!paths.defaultSystemSource || !existsSync(paths.defaultSystemSource))
+    return { available: false, reason: 'The bundled default System is unavailable.' }
+  const activeManifest = await readJson(
+    join(paths.systemSlot, PACK_MANIFEST),
+    'INTERFACE_PACK_MANIFEST_MISSING',
+  )
+  if (activeManifest.id !== DEFAULT_SYSTEM_ID)
+    return {
+      available: false,
+      reason: 'Only a default-derived active System can use the bundled upgrade path.',
+    }
+  const [localFiles, bundledFiles] = await Promise.all([
+    authoredSystemFiles(paths.systemSlot),
+    authoredSystemFiles(paths.defaultSystemSource),
+  ])
+  const baseline = await readSystemBaseline(paths.systemSlot)
+  if (!baseline)
+    return {
+      available: false,
+      reason:
+        'This System has no recorded default baseline. Existing files will not be overwritten.',
+    }
+  const bundledManifest = await readJson(
+    join(paths.defaultSystemSource, PACK_MANIFEST),
+    'INTERFACE_PACK_MANIFEST_MISSING',
+  )
+  const files = { upstreamOnly: [], localOnly: [], conflicts: [], converged: [] }
+  const names = new Set([
+    ...Object.keys(baseline.files),
+    ...localFiles.keys(),
+    ...bundledFiles.keys(),
+  ])
+  for (const path of [...names].sort()) {
+    const base = baseline.files[path] ?? null
+    const local = localFiles.get(path) ?? null
+    const bundled = bundledFiles.get(path) ?? null
+    if (local === bundled) {
+      if (local !== base) files.converged.push(path)
+    } else if (local === base) files.upstreamOnly.push(path)
+    else if (bundled === base) files.localOnly.push(path)
+    else files.conflicts.push(path)
+  }
+  const fingerprint = createHash('sha256')
+    .update(
+      JSON.stringify({
+        baseline,
+        local: [...localFiles].sort(([left], [right]) => left.localeCompare(right)),
+        bundled: [...bundledFiles].sort(([left], [right]) => left.localeCompare(right)),
+      }),
+    )
+    .digest('hex')
+  return {
+    available: true,
+    baselineVersion: baseline.sourceVersion,
+    bundledVersion: bundledManifest.version,
+    fingerprint,
+    files,
+    canApply: files.conflicts.length === 0 && files.upstreamOnly.length > 0,
+  }
+}
+
+export async function applySystemUpgrade(expectedFingerprint, options = {}) {
+  const paths = defaultInterfacePaths(options)
+  const report = await analyzeSystemUpgrade(options)
+  if (!report.available) throw packError(report.reason, 'INTERFACE_UPGRADE_BASELINE_UNAVAILABLE')
+  if (typeof expectedFingerprint !== 'string' || report.fingerprint !== expectedFingerprint)
+    throw Object.assign(
+      packError(
+        'The System or bundled default changed. Review the upgrade again.',
+        'INTERFACE_UPGRADE_STALE',
+      ),
+      { status: 409 },
+    )
+  if (report.files.conflicts.length)
+    throw Object.assign(
+      packError(
+        'Resolve overlapping System edits before applying the upgrade.',
+        'INTERFACE_UPGRADE_CONFLICT',
+      ),
+      { status: 409, details: report.files.conflicts },
+    )
+  if (!report.files.upstreamOnly.length)
+    return { updated: false, restartRequired: false, files: report.files }
+
+  await mkdir(paths.dataDirectory, { recursive: true })
+  const temporary = await mkdtemp(join(paths.dataDirectory, '.system-upgrade-'))
+  const staged = join(temporary, 'system')
+  try {
+    await copySystemDirectory(paths.systemSlot, staged)
+    const bundledFiles = await authoredSystemFiles(paths.defaultSystemSource)
+    for (const path of report.files.upstreamOnly) {
+      const destination = join(staged, path)
+      if (bundledFiles.has(path)) {
+        await mkdir(dirname(destination), { recursive: true })
+        await copyFile(join(paths.defaultSystemSource, path), destination)
+      } else await rm(destination, { force: true })
+    }
+    const changed = report.files.upstreamOnly
+    const generators = [
+      [
+        changed.some((path) => path.startsWith('components/')),
+        'build-component-index.mjs',
+        ['--write'],
+      ],
+      [
+        changed.some((path) => path.startsWith('assets/icons/')),
+        'build-icon-index.mjs',
+        ['--write'],
+      ],
+      [changed.some((path) => path.startsWith('tokens/')), 'build-tokens.mjs', []],
+    ]
+    for (const [needed, script, args] of generators) {
+      if (!needed) continue
+      const executable = join(staged, 'scripts', script)
+      if (!existsSync(executable))
+        throw packError(
+          `The System cannot regenerate ${script}.`,
+          'INTERFACE_UPGRADE_GENERATOR_MISSING',
+        )
+      await execFileAsync(process.execPath, [executable, ...args], { cwd: staged })
+    }
+    await writeSystemBaseline(staged, paths.defaultSystemSource)
+    const validated = await validateInterfacePack(staged, {
+      ...options,
+      expectedKind: 'system',
+      typecheckSystem: options.typecheckSystem ?? true,
+    })
+    const current = await analyzeSystemUpgrade(options)
+    if (!current.available || current.fingerprint !== expectedFingerprint)
+      throw Object.assign(
+        packError(
+          'The System changed during upgrade preparation. Review it again.',
+          'INTERFACE_UPGRADE_STALE',
+        ),
+        { status: 409 },
+      )
+    await activateInstalledSystem(
+      { root: staged, manifest: validated.manifest },
+      { ...options, force: true },
+    )
+    return { updated: true, restartRequired: true, files: report.files }
+  } finally {
+    await rm(temporary, { recursive: true, force: true })
   }
 }
 
@@ -1074,6 +1272,11 @@ export async function createInterfacePack(kind, target, options = {}) {
         private: true,
       })
       await writeFile(join(staged, 'package.json'), `${JSON.stringify(packageManifest, null, 2)}\n`)
+      if (!existsSync(join(staged, SYSTEM_BASELINE_FILE))) {
+        const sourceManifest = await currentSystemManifest(paths)
+        if (sourceManifest?.id === DEFAULT_SYSTEM_ID)
+          await writeSystemBaseline(staged, paths.systemSlot)
+      }
     } else {
       await mkdir(staged, { recursive: true })
       await writeFile(

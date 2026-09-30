@@ -16,6 +16,8 @@ import { patchEntityManifest } from './services/manifestWrite.mjs'
 import { getComponentHandoff } from './services/componentHandoff.mjs'
 import { applySetupPlan, createSetupPlan } from './services/setupService.mjs'
 import {
+  analyzeSystemUpgrade,
+  applySystemUpgrade,
   createLocalInterfaceSystem,
   createLocalInterfaceSkin,
   diffInterfaceSystem,
@@ -71,6 +73,21 @@ createServer(async (request, response) => {
     }
     if (request.method === 'GET' && url.pathname === '/api/interface/system/recovery') {
       return sendJson(response, 200, await defaultSystemRecovery())
+    }
+    if (request.method === 'GET' && url.pathname === '/api/interface/system/upgrade') {
+      return sendJson(response, 200, await analyzeSystemUpgrade())
+    }
+    if (request.method === 'POST' && url.pathname === '/api/interface/system/upgrade') {
+      requireInterfaceUiRequest(request)
+      const input = await readJson(request)
+      if (input.confirmed !== true)
+        throw Object.assign(new Error('Review and confirm the System upgrade first.'), {
+          code: 'INTERFACE_UPGRADE_CONFIRMATION_REQUIRED',
+          status: 409,
+        })
+      const upgraded = await applySystemUpgrade(input.fingerprint)
+      if (upgraded.updated) revision += 1
+      return sendJson(response, 200, upgraded)
     }
     if (request.method === 'POST' && url.pathname === '/api/interface/system/inspect') {
       requireInterfaceUiRequest(request)

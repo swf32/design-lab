@@ -19,6 +19,8 @@ import {
 } from '../server/services/componentCapture.mjs'
 import { applySetupPlan, createSetupPlan } from '../server/services/setupService.mjs'
 import {
+  analyzeSystemUpgrade,
+  applySystemUpgrade,
   createInterfacePack,
   diffInterfaceSystem,
   doctorInterfacePacks,
@@ -58,6 +60,7 @@ const VALUED_FLAGS = new Set([
   '--mode',
   '--version',
   '--id',
+  '--fingerprint',
 ])
 
 function option(name) {
@@ -123,6 +126,8 @@ Usage:
   npm run designlab -- system create <folder> [--name <name>] [--id <id>]
   npm run designlab -- system use <id> [--version <x.y.z>]
   npm run designlab -- system validate <folder>
+  npm run designlab -- system upgrade
+  npm run designlab -- system upgrade --apply --confirm --fingerprint <preview-fingerprint>
 
 Search intentionally returns descriptions and opaque refs, not entity names.
 Call get with a ref to reveal the verified name, import, props, variants, docs, and paths; pass
@@ -138,7 +143,9 @@ deletes existing product files.
 
 Theme installs a CSS/token Skin over the active System. System diff compares authored files in the
 active or named System with the bundled default without writing anything; added/missing directions
-are relative to that default. It is not a three-way merge or an upgrade command.
+are relative to that default. System upgrade compares the active folder, its recorded baseline,
+and the bundled default. It blocks the whole upgrade on overlapping edits and snapshots the
+active folder before a confirmed apply. Restart Design Lab after applying.
 System validates and caches a complete
 executable replacement, snapshots the current interface, and physically installs the selection in
 the one libraries/design-lab-system slot; --no-use keeps the downloaded package inactive. Reset
@@ -320,6 +327,14 @@ try {
           target: target && !target.startsWith('--') ? target : undefined,
         }),
       )
+    } else if (action === 'upgrade' && kind === 'system') {
+      if (args.includes('--apply')) {
+        if (!args.includes('--confirm') || !option('--fingerprint'))
+          throw new Error(
+            'system upgrade --apply requires --confirm and --fingerprint from preview',
+          )
+        print(await applySystemUpgrade(option('--fingerprint')))
+      } else print(await analyzeSystemUpgrade())
     } else if (action === 'validate') {
       const path = args[2]
       if (!path || path.startsWith('--')) throw new Error(`${command} validate requires a folder`)

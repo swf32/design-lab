@@ -4,6 +4,8 @@ import { tmpdir } from 'node:os'
 import { dirname, join, resolve } from 'node:path'
 import test from 'node:test'
 import {
+  analyzeSystemUpgrade,
+  applySystemUpgrade,
   createLocalInterfaceSkin,
   createInterfacePack,
   createLocalInterfaceSystem,
@@ -22,6 +24,7 @@ import {
   resolveActiveInterface,
   validateInterfacePack,
   versionSatisfies,
+  writeSystemBaseline,
 } from './interfacePacks.mjs'
 
 const applicationRoot = resolve(import.meta.dirname, '../..')
@@ -170,6 +173,46 @@ test('system diff reports authored file and Component changes without generated 
     await assert.rejects(diffInterfaceSystem({ ...options, defaultSystemSource: baseline }), {
       code: 'INTERFACE_PACK_SYMLINK_UNSUPPORTED',
     })
+  })
+})
+
+test('System upgrade preserves local files and blocks overlapping edits', async () => {
+  await withPackWorkspace(async ({ root, options, librariesDirectory }) => {
+    const active = join(librariesDirectory, 'design-lab-system')
+    const bundled = join(root, 'new-default')
+    await cp(active, bundled, { recursive: true })
+    await writeSystemBaseline(active, bundled)
+    await writeFile(join(active, 'local-note.txt'), 'local edit\n')
+    await writeFile(join(bundled, 'new-feature.txt'), 'bundled update\n')
+    const upgradeOptions = { ...options, defaultSystemSource: bundled }
+    const preview = await analyzeSystemUpgrade(upgradeOptions)
+    assert.equal(preview.available, true)
+    assert.deepEqual(preview.files.upstreamOnly, ['new-feature.txt'])
+    assert.deepEqual(preview.files.localOnly, ['local-note.txt'])
+    assert.deepEqual(preview.files.conflicts, [])
+    await assert.rejects(applySystemUpgrade('outdated', upgradeOptions), {
+      code: 'INTERFACE_UPGRADE_STALE',
+    })
+    const applied = await applySystemUpgrade(preview.fingerprint, upgradeOptions)
+    assert.equal(applied.updated, true)
+    assert.equal(await readFile(join(active, 'local-note.txt'), 'utf8'), 'local edit\n')
+    assert.equal(await readFile(join(active, 'new-feature.txt'), 'utf8'), 'bundled update\n')
+    assert.equal((await analyzeSystemUpgrade(upgradeOptions)).files.upstreamOnly.length, 0)
+
+    await writeFile(join(active, 'components.ts'), 'export const local = true\n')
+    await writeFile(join(bundled, 'components.ts'), 'export const bundled = true\n')
+    await writeFile(join(bundled, 'another-default.txt'), 'must not be applied\n')
+    const conflicted = await analyzeSystemUpgrade(upgradeOptions)
+    assert.deepEqual(conflicted.files.conflicts, ['components.ts'])
+    assert(conflicted.files.upstreamOnly.includes('another-default.txt'))
+    await assert.rejects(applySystemUpgrade(conflicted.fingerprint, upgradeOptions), {
+      code: 'INTERFACE_UPGRADE_CONFLICT',
+    })
+    assert.equal(
+      await readFile(join(active, 'components.ts'), 'utf8'),
+      'export const local = true\n',
+    )
+    await assert.rejects(readFile(join(active, 'another-default.txt'), 'utf8'))
   })
 })
 

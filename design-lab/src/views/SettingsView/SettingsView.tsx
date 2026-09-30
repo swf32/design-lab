@@ -3,10 +3,12 @@ import { SkinSettings } from './SkinSettings'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { Button, CodeBlock, Dialog, Input, ModuleHeader } from '@design-lab/system/components'
 import {
+  applyInterfaceSystemUpgrade,
   createLocalInterfaceSystem,
   getInterfaceSystemDiff,
   getInterfaceSystemDoctor,
   getInterfaceSystemRecovery,
+  getInterfaceSystemUpgrade,
   getMcpIntegration,
   inspectLocalInterfaceSystem,
   installLocalInterfaceSystem,
@@ -14,6 +16,7 @@ import {
   type InterfaceSystemDiff,
   type InterfaceSystemDoctor,
   type InterfaceSystemRecovery,
+  type InterfaceSystemUpgrade,
   type LocalInterfaceSystemInspection,
   type McpIntegrationInfo,
 } from '../../api/projects'
@@ -58,6 +61,10 @@ export function SettingsView({ onClose }: { onClose: () => void }) {
   const [systemDoctor, setSystemDoctor] = useState<InterfaceSystemDoctor | null>(null)
   const [systemDiff, setSystemDiff] = useState<InterfaceSystemDiff | null>(null)
   const [systemRecovery, setSystemRecovery] = useState<InterfaceSystemRecovery | null>(null)
+  const [systemUpgrade, setSystemUpgrade] = useState<InterfaceSystemUpgrade | null>(null)
+  const [upgradeConfirmOpen, setUpgradeConfirmOpen] = useState(false)
+  const [upgrading, setUpgrading] = useState(false)
+  const [upgradeResult, setUpgradeResult] = useState<string | null>(null)
   const [systemError, setSystemError] = useState<string | null>(null)
   const [systemLoading, setSystemLoading] = useState(false)
   const [systemFolder, setSystemFolder] = useState('')
@@ -79,18 +86,21 @@ export function SettingsView({ onClose }: { onClose: () => void }) {
   const refreshSystem = useCallback(async () => {
     setSystemLoading(true)
     setSystemError(null)
-    const [doctor, diff, recovery] = await Promise.allSettled([
+    const [doctor, diff, recovery, upgrade] = await Promise.allSettled([
       getInterfaceSystemDoctor(),
       getInterfaceSystemDiff(),
       getInterfaceSystemRecovery(),
+      getInterfaceSystemUpgrade(),
     ])
     setSystemDoctor(doctor.status === 'fulfilled' ? doctor.value : null)
     setSystemDiff(diff.status === 'fulfilled' ? diff.value : null)
     setSystemRecovery(recovery.status === 'fulfilled' ? recovery.value : null)
+    setSystemUpgrade(upgrade.status === 'fulfilled' ? upgrade.value : null)
     if (
       doctor.status === 'rejected' ||
       diff.status === 'rejected' ||
-      recovery.status === 'rejected'
+      recovery.status === 'rejected' ||
+      upgrade.status === 'rejected'
     ) {
       const failure =
         doctor.status === 'rejected'
@@ -99,7 +109,9 @@ export function SettingsView({ onClose }: { onClose: () => void }) {
             ? diff.reason
             : recovery.status === 'rejected'
               ? recovery.reason
-              : null
+              : upgrade.status === 'rejected'
+                ? upgrade.reason
+                : null
       setSystemError(failure instanceof Error ? failure.message : 'Could not check the System.')
     }
     setSystemLoading(false)
@@ -199,6 +211,28 @@ export function SettingsView({ onClose }: { onClose: () => void }) {
     }
   }
 
+  const upgradeDefaultSystem = async () => {
+    if (!systemUpgrade?.available || !systemUpgrade.canApply) return
+    setUpgrading(true)
+    setSystemError(null)
+    try {
+      const result = await applyInterfaceSystemUpgrade(systemUpgrade.fingerprint)
+      setUpgradeResult(
+        result.updated
+          ? 'Default updates applied; your local edits were preserved. Restart Design Lab to load the updated System.'
+          : 'There were no default updates to apply.',
+      )
+      setUpgradeConfirmOpen(false)
+      void refreshSystem()
+    } catch (cause) {
+      setSystemError(cause instanceof Error ? cause.message : 'Could not upgrade the System.')
+      setUpgradeConfirmOpen(false)
+      void refreshSystem()
+    } finally {
+      setUpgrading(false)
+    }
+  }
+
   return (
     <section className="settings-page">
       <ModuleHeader eyebrow="Application" title="Settings" backLabel="Workspace" onBack={onClose} />
@@ -267,6 +301,62 @@ export function SettingsView({ onClose }: { onClose: () => void }) {
               <DiffGroups title="Components" entries={systemDiff.components} />
               <DiffGroups title="Files" entries={systemDiff.files} />
             </div>
+          </div>
+        )}
+
+        {systemUpgrade && (
+          <div className="settings-system__upgrade">
+            <h4>Update the default System</h4>
+            {systemUpgrade.available ? (
+              <>
+                <p>
+                  Recorded base: {systemUpgrade.baselineVersion} · Bundled default:{' '}
+                  {systemUpgrade.bundledVersion}. Files changed only upstream:{' '}
+                  {systemUpgrade.files.upstreamOnly.length}; only locally:{' '}
+                  {systemUpgrade.files.localOnly.length}; conflicts:{' '}
+                  {systemUpgrade.files.conflicts.length}.
+                </p>
+                {systemUpgrade.files.conflicts.length > 0 && (
+                  <details>
+                    <summary>Conflicting files · {systemUpgrade.files.conflicts.length}</summary>
+                    <p>
+                      Resolve these overlapping edits before upgrading. Nothing will be applied.
+                    </p>
+                    <ul>
+                      {systemUpgrade.files.conflicts.map((path) => (
+                        <li key={path}>
+                          <code>{path}</code>
+                        </li>
+                      ))}
+                    </ul>
+                  </details>
+                )}
+                {systemUpgrade.files.upstreamOnly.length > 0 && (
+                  <details>
+                    <summary>
+                      Files from the bundled default · {systemUpgrade.files.upstreamOnly.length}
+                    </summary>
+                    <ul>
+                      {systemUpgrade.files.upstreamOnly.map((path) => (
+                        <li key={path}>
+                          <code>{path}</code>
+                        </li>
+                      ))}
+                    </ul>
+                  </details>
+                )}
+                {systemUpgrade.canApply ? (
+                  <Button type="button" size="small" onClick={() => setUpgradeConfirmOpen(true)}>
+                    Review update
+                  </Button>
+                ) : systemUpgrade.files.conflicts.length === 0 ? (
+                  <p>No default changes to apply.</p>
+                ) : null}
+              </>
+            ) : (
+              <p>{systemUpgrade.reason}</p>
+            )}
+            {upgradeResult && <p role="status">{upgradeResult}</p>}
           </div>
         )}
 
@@ -392,6 +482,42 @@ export function SettingsView({ onClose }: { onClose: () => void }) {
           </div>
         )}
       </section>
+
+      <Dialog
+        open={upgradeConfirmOpen}
+        title="Update default System?"
+        eyebrow="Apply bundled changes"
+        description="Only files unchanged since the recorded base receive bundled updates. Any overlap blocks the entire update. Design Lab validates the result and saves a snapshot before activation. Restart afterward."
+        onClose={() => setUpgradeConfirmOpen(false)}
+        dismissible={!upgrading}
+        footer={
+          <>
+            <Button
+              type="button"
+              variant="ghost"
+              disabled={upgrading}
+              onClick={() => setUpgradeConfirmOpen(false)}
+            >
+              Cancel
+            </Button>
+            <Button
+              type="button"
+              variant="primary"
+              loading={upgrading}
+              onClick={() => void upgradeDefaultSystem()}
+            >
+              Apply update
+            </Button>
+          </>
+        }
+      >
+        {systemUpgrade?.available && (
+          <p>
+            {systemUpgrade.files.upstreamOnly.length} bundled file changes will be applied.{' '}
+            {systemUpgrade.files.localOnly.length} locally edited files stay as they are.
+          </p>
+        )}
+      </Dialog>
 
       <Dialog
         open={installConfirmOpen}

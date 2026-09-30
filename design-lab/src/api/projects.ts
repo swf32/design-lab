@@ -643,6 +643,29 @@ export function getInterfaceSystemDiff() {
   return request<InterfaceSystemDiff>('/api/interface/system/diff')
 }
 
+export type InterfaceSystemUpgrade =
+  | { available: false; reason: string }
+  | {
+      available: true
+      baselineVersion: string
+      bundledVersion: string
+      fingerprint: string
+      canApply: boolean
+      files: Record<'upstreamOnly' | 'localOnly' | 'conflicts' | 'converged', string[]>
+    }
+
+export function getInterfaceSystemUpgrade() {
+  return request<InterfaceSystemUpgrade>('/api/interface/system/upgrade')
+}
+
+export function applyInterfaceSystemUpgrade(fingerprint: string) {
+  return request<{ updated: boolean; restartRequired: boolean }>('/api/interface/system/upgrade', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', 'X-Design-Lab-UI': '1' },
+    body: JSON.stringify({ fingerprint, confirmed: true }),
+  })
+}
+
 export type InterfaceSystemRecovery = {
   available: boolean
   source: 'bundled' | 'snapshot' | null

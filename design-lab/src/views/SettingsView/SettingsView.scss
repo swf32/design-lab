@@ -71,6 +71,7 @@
 }
 .settings-system__create,
 .settings-system__install,
+.settings-system__upgrade,
 .settings-system__recovery {
   margin-top: var(--space-16);
   padding-top: var(--space-16);
@@ -78,12 +79,14 @@
 }
 .settings-system__create h4,
 .settings-system__install h4,
+.settings-system__upgrade h4,
 .settings-system__recovery h4 {
   margin: 0 0 var(--space-8);
   color: var(--color-text-secondary);
 }
 .settings-system__create p,
 .settings-system__install p,
+.settings-system__upgrade p,
 .settings-system__recovery p {
   color: var(--color-text-muted);
   overflow-wrap: anywhere;
@@ -91,6 +94,16 @@
 .settings-system__create .settings-page__error,
 .settings-system__install .settings-page__error {
   color: var(--color-status-danger);
+}
+.settings-system__upgrade details {
+  margin-bottom: var(--space-12);
+  color: var(--color-text-muted);
+}
+.settings-system__upgrade summary {
+  cursor: pointer;
+}
+.settings-system__upgrade ul {
+  overflow-wrap: anywhere;
 }
 .settings-system__create-form,
 .settings-system__install-form {

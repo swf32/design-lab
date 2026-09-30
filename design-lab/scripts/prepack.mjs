@@ -1,6 +1,7 @@
 import { cp, mkdir, rm } from 'node:fs/promises'
 import { basename, join, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
+import { writeSystemBaseline } from '../server/services/interfacePacks.mjs'
 
 const applicationRoot = resolve(fileURLToPath(new URL('..', import.meta.url)))
 const workspaceRoot = resolve(applicationRoot, '..')
@@ -18,4 +19,5 @@ await cp(
     },
   },
 )
+await writeSystemBaseline(join(vendorRoot, 'default-system'), join(vendorRoot, 'default-system'))
 await cp(join(workspaceRoot, 'rules'), join(vendorRoot, 'rules'), { recursive: true })

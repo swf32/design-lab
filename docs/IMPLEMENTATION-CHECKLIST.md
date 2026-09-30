@@ -32,12 +32,13 @@
       без копирования Component code и с явным restart для загрузки CSS. Внешний browser fixture
       проверяет публичную переменную Skin после restart, выбор и сброс.
 - [x] Вывести в Settings System doctor и read-only diff с кнопкой повторной проверки, а также
-      явное восстановление bundled default со snapshot; безопасный versioned upgrade остаётся открытым.
-- [ ] Сделать `system diff`/upgrade flow, который показывает изменения default и сохраняет локальные
-      правки при обновлении инструмента.
+      явное восстановление bundled default со snapshot.
+- [x] Сделать `system upgrade` с сохранённой базой, трёхсторонним планом, полным блокированием
+      при конфликте, staging validation, snapshot и подтверждённым применением через CLI/Settings.
+      Browser fixture проверяет применение через Settings, локальный marker и новый default marker.
 - [x] Первый read-only `system diff` показывает added/missing/changed authored файлы и Components
       между активной System и bundled default; внешний fixture проверяет результат после patch upgrade.
-      Пока нет трёхсторонней базы или применения изменений.
+      Это отдельное двустороннее сравнение; `system upgrade` использует сохранённую базу.
 - [x] Удалить эксперимент Glass System и вернуть прежний default look, не меняя архитектуру единой активной System.
 - [x] Проверить полный System fork с изменённой структурой Button и собственным SVG asset в shell и Workbench: внешний browser fixture создаёт fork, валидирует, устанавливает и проверяет обе поверхности.
 - [ ] В будущем провести визуальный редизайн как отдельную задачу, когда workflow создания и замены System будет удобен.
@@ -810,7 +811,7 @@ where they are` и confirm-gated apply plan; post-apply self-check возвра�
 - [x] Проверить изменение реального Component style одновременно в Workbench specimen и shell:
       браузерный `test:package:browser` меняет project-owned `Button.scss`, сравнивает computed
       style обоих потребителей через HMR и восстанавливает файл.
-- [ ] Добавить версионированное сравнение default template с активной System и явный upgrade flow,
+- [x] Добавить версионированное сравнение default template с активной System и явный upgrade flow,
       который сохраняет пользовательские изменения.
 - [x] Добавить двусторонний read-only `system diff` против default template текущего пакета;
       скрытые cache/derived barrels/token CSS исключены, symlink отклоняется.

@@ -44,6 +44,14 @@ does not change with the selected package. Inactive Systems must not participate
 load their Component styles. Before updating a Design Lab source checkout with Git, restore the
 default System so tracked default source is not mixed with an installed alternative.
 
+The technical `design-lab-baseline.json` records file hashes of the default System from which an
+editable folder started. Keep it with the folder when copying a default-derived System. It is not
+an authored file or a second source of UI code. `system upgrade` uses it to compare local edits
+with a newer bundled default. If both sides changed the same file, the entire update is blocked;
+resolve the overlap manually and review the plan again. A folder without a trusted baseline cannot
+use this automatic upgrade path. `system reset` is a separate recovery action that replaces the
+active folder after saving a snapshot.
+
 The validator proves compatibility, not security. A System contains executable code and must be
 reviewed with the same care as any source dependency.
 

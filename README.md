@@ -38,6 +38,8 @@ npx designlab dev
 System создаёт в `design-lab/system/` проекта. `DESIGN_LAB_PORT` и `DESIGN_LAB_API_PORT` задают
 независимые порты. Повторная установка пакета сохраняет содержимое `design-lab/system/`; явный
 `system reset` восстанавливает default. Подробнее — в [инструкции и границах поддержки](docs/25-interface-system-and-installation.md).
+После обновления пакета `npx designlab system upgrade` показывает трёхсторонний план для default System;
+при конфликтах применение целиком блокируется. Такой же план доступен в Settings.
 
 ## Форматирование
 
@@ -56,6 +58,8 @@ npm run designlab -- system create ../my-system --name "My System"
 npm run designlab -- system install ../my-system
 npm run designlab -- system doctor
 npm run designlab -- system diff
+npm run designlab -- system upgrade
+npm run designlab -- system upgrade --apply --confirm --fingerprint <значение-из-плана>
 npm run designlab -- theme reset
 npm run designlab -- system reset
 ```
