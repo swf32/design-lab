@@ -135,6 +135,16 @@ existing entries and appends only the managed pointer. It returns `{ applied, ch
 Missing confirmation or a stale fingerprint returns `409`. The CLI exposes the same preview and
 confirmed apply as `designlab repair`.
 
+### `GET /api/onboarding/footprint`
+
+Read-only inventory of the visible integration folder, also available as `designlab footprint`.
+Returns `{ available, integrationDirectory, setupFiles[], projectOwned[], unclassified[],
+agentsPointer, note }`. Setup file entries report `path`, `state`, and where a bundled reference
+exists, `matchesBundled`. `projectOwned` identifies the active System and configured source mounts
+inside the integration folder. `unclassified` identifies extra top-level files and extra local
+rules. The endpoint does not produce a deletion plan or modify any file; a setup file may have
+user edits even if its name is managed. Linked paths are reported without traversing them.
+
 ### `GET /api/interface/system/doctor` and `GET /api/interface/system/diff`
 
 Read-only Settings diagnostics over the same services as `designlab system doctor` and `designlab system diff`.

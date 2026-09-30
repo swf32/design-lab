@@ -9,6 +9,7 @@ import {
   checkSetupInstallation,
   createSetupRepairPlan,
   createSetupPlan,
+  inspectSetupFootprint,
   inspectSetupInstallation,
   scanRepository,
 } from './setupService.mjs'
@@ -109,6 +110,66 @@ test('repair refuses a linked local rules directory', async () => {
       false,
     )
     assert(plan.blockers.some((item) => item.code === 'SETUP_REPAIR_RULES_UNSAFE'))
+  } finally {
+    await rm(root, { recursive: true, force: true })
+  }
+})
+
+test('footprint inventory preserves the distinction between setup files and authored content', async () => {
+  const root = await fixture()
+  try {
+    await writeFile(join(root, 'AGENTS.md'), '# Team guidance\n')
+    await applySetupPlan({ root, name: 'Inventory smoke', confirmed: true })
+    await writeFile(join(root, 'design-lab/rules/TOKEN_RULES.md'), '# My edited rule\n')
+    await writeFile(join(root, 'design-lab/notes.md'), '# My notes\n')
+    await writeFile(join(root, 'design-lab/rules/local.md'), '# Local\n')
+    const before = await readFile(join(root, 'design-lab/rules/TOKEN_RULES.md'), 'utf8')
+    const footprint = await inspectSetupFootprint({ root })
+    assert.equal(footprint.available, true)
+    assert.equal(footprint.agentsPointer.markers, 'complete')
+    assert(
+      footprint.projectOwned.some(
+        (item) => item.path === 'design-lab/system' && item.state === 'directory',
+      ),
+    )
+    assert(footprint.unclassified.includes('design-lab/notes.md'))
+    assert(footprint.unclassified.includes('design-lab/rules/local.md'))
+    assert.equal(
+      footprint.setupFiles.find((item) => item.path === 'design-lab/rules/TOKEN_RULES.md')
+        .matchesBundled,
+      false,
+    )
+    assert.equal(await readFile(join(root, 'design-lab/rules/TOKEN_RULES.md'), 'utf8'), before)
+  } finally {
+    await rm(root, { recursive: true, force: true })
+  }
+})
+
+test('footprint inventory does not follow a linked rules directory', async () => {
+  const root = await fixture()
+  try {
+    await mkdir(join(root, 'design-lab'))
+    await symlink(tmpdir(), join(root, 'design-lab/rules'))
+    const footprint = await inspectSetupFootprint({ root })
+    assert.equal(
+      footprint.setupFiles.find((item) => item.path === 'design-lab/rules').state,
+      'link',
+    )
+    assert.equal(
+      footprint.setupFiles.some((item) => item.path.endsWith('/TOKEN_RULES.md')),
+      false,
+    )
+  } finally {
+    await rm(root, { recursive: true, force: true })
+  }
+})
+
+test('footprint inventory ignores an unrelated folder named design-lab', async () => {
+  const root = await fixture()
+  try {
+    await mkdir(join(root, 'design-lab'))
+    await writeFile(join(root, 'design-lab/notes.md'), '# Not an installation\n')
+    assert.equal((await inspectSetupFootprint({ root })).available, false)
   } finally {
     await rm(root, { recursive: true, force: true })
   }

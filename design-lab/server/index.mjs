@@ -19,6 +19,7 @@ import {
   applySetupPlan,
   createSetupRepairPlan,
   createSetupPlan,
+  inspectSetupFootprint,
   inspectSetupInstallation,
 } from './services/setupService.mjs'
 import { browseInterfaceFolders } from './services/interfaceFolderBrowser.mjs'
@@ -192,6 +193,9 @@ createServer(async (request, response) => {
         200,
         await inspectSetupInstallation({ root: getWorkspaceDirectory() }),
       )
+    }
+    if (request.method === 'GET' && url.pathname === '/api/onboarding/footprint') {
+      return sendJson(response, 200, await inspectSetupFootprint({ root: getWorkspaceDirectory() }))
     }
     if (request.method === 'GET' && url.pathname === '/api/onboarding/repair') {
       return sendJson(response, 200, await createSetupRepairPlan({ root: getWorkspaceDirectory() }))

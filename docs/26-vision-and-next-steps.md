@@ -17,7 +17,7 @@
 
 ## Вторая главная линия: Design Lab как устанавливаемый инструмент
 
-Локальный tarball, CLI, интеграционная папка, read-only scan, применение, post-apply self-check, ограниченный repair managed rules/pointer, безопасное обновление default System и запуск на отдельных портах проверены в чистом внешнем репозитории. Пакет закрыт для публикации (`private: true`). До registry release нужны uninstall, исправление сломанных config/mounts, миграции будущих контрактов и проверки на других платформах. См. [подробную модель](20-embedded-install-and-attach-mode.md) и [раздел об установке](25-interface-system-and-installation.md).
+Локальный tarball, CLI, интеграционная папка, read-only scan, применение, post-apply self-check, ограниченный repair managed rules/pointer, безопасное обновление default System и запуск на отдельных портах проверены в чистом внешнем репозитории. Read-only `designlab footprint` показывает setup files, project-owned System/mounts, дополнительные файлы и AGENTS pointer как основу будущего uninstall. Пакет закрыт для публикации (`private: true`). До registry release нужны само удаление, исправление сломанных config/mounts, миграции будущих контрактов и проверки на других платформах. См. [подробную модель](20-embedded-install-and-attach-mode.md) и [раздел об установке](25-interface-system-and-installation.md).
 
 ## Остальные направления
 
@@ -41,6 +41,7 @@
 - [x] Сделать первый read-only `system diff` активной System против bundled default с отчётом по файлам и Components.
 - [x] Добавить базовую версию для трёхстороннего сравнения и безопасный upgrade flow с локальными правками: при пересечении изменений применение целиком блокируется (D-095); reset остаётся отдельным recovery действием.
 - [ ] Доказать полный цикл clean install, restart, versioned upgrade и uninstall во внешнем fixture repo; attach и отдельный greenfield `Start clean` с dev проверены, как и patch upgrade с сохранением локальных правок System и reset. Repair/uninstall остаются открытыми.
+- [x] Добавить read-only inventory для подготовки uninstall: различать setup files, project-owned System/mounts, дополнительные файлы и AGENTS pointer без удаления.
 
 ### P1 — простое создание и замена System
 

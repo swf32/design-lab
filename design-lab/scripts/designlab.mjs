@@ -22,6 +22,7 @@ import {
   applySetupRepair,
   createSetupPlan,
   createSetupRepairPlan,
+  inspectSetupFootprint,
 } from '../server/services/setupService.mjs'
 import {
   analyzeSystemUpgrade,
@@ -111,6 +112,7 @@ Usage:
   designlab dev [--root <project-folder>]
   designlab setup [--root <project-folder>] [--mode attach|managed] [--name <name>]
   designlab repair [--root <project-folder>]
+  designlab footprint [--root <project-folder>]
   designlab repair --apply --confirm --fingerprint <preview-fingerprint> [--root <project-folder>]
   npm run designlab -- setup [--root <project-folder>] [--mode attach|managed] [--name <name>]
   npm run designlab -- setup --apply --confirm [--root <project-folder>] [--mode attach|managed]
@@ -207,6 +209,8 @@ try {
         }),
       )
     else print(await createSetupRepairPlan({ root }))
+  } else if (command === 'footprint') {
+    print(await inspectSetupFootprint({ root: resolve(option('--root') ?? defaultWorkspaceRoot) }))
   } else if (command === 'sources') {
     const result = await listSources()
     print(result.sources.map(({ id, name, kind, available }) => ({ id, name, kind, available })))

@@ -562,6 +562,155 @@ export async function inspectSetupInstallation({
   }
 }
 
+// Read-only ownership inventory for a future uninstall preview. A path being listed as
+// a setup file does not make it safe to delete: users may have edited any of these files.
+export async function inspectSetupFootprint({
+  root,
+  integrationDirectory = DEFAULT_INTEGRATION_DIRECTORY,
+  rulesSource = DEFAULT_RULES_SOURCE,
+}) {
+  const projectRoot = assertRoot(root)
+  const integrationRoot = resolve(projectRoot, integrationDirectory)
+  if (!isInside(integrationRoot, projectRoot))
+    throw setupError('The integration folder leaves the project.', 'SETUP_PATH_OUTSIDE_ROOT')
+
+  const integrationState = await lstat(integrationRoot).catch((error) => {
+    if (error.code === 'ENOENT') return null
+    throw error
+  })
+  if (!integrationState)
+    return { available: false, reason: 'No Design Lab integration folder exists.' }
+  if (!integrationState.isDirectory())
+    throw setupError('The integration folder is not a regular directory.', 'SETUP_PATH_UNSAFE')
+  const setupMarkers = await Promise.all(
+    ['designlab.config.json', 'rules', 'system'].map((name) =>
+      lstat(join(integrationRoot, name)).catch((error) => {
+        if (error.code === 'ENOENT') return null
+        throw error
+      }),
+    ),
+  )
+  if (setupMarkers.every((state) => !state))
+    return {
+      available: false,
+      reason: 'No embedded Design Lab setup is present in this workspace.',
+    }
+
+  const describe = async (path, expectedContent = null) => {
+    const absolute = resolve(projectRoot, path)
+    if (!isInside(absolute, integrationRoot) && absolute !== join(projectRoot, 'AGENTS.md'))
+      throw setupError(
+        'An inventory path leaves the integration folder.',
+        'SETUP_PATH_OUTSIDE_ROOT',
+      )
+    let ancestor = integrationRoot
+    const segments = relative(integrationRoot, absolute).split(sep)
+    for (const segment of segments.slice(0, -1)) {
+      ancestor = join(ancestor, segment)
+      const parentState = await lstat(ancestor).catch((error) => {
+        if (error.code === 'ENOENT') return null
+        throw error
+      })
+      if (!parentState) return { path, state: 'missing' }
+      if (!parentState.isDirectory()) return { path, state: 'blocked-by-parent' }
+    }
+    const state = await lstat(absolute).catch((error) => {
+      if (error.code === 'ENOENT') return null
+      throw error
+    })
+    if (!state) return { path, state: 'missing' }
+    const type = state.isSymbolicLink()
+      ? 'link'
+      : state.isFile()
+        ? 'file'
+        : state.isDirectory()
+          ? 'directory'
+          : 'other'
+    const result = { path, state: type }
+    if (expectedContent !== null && type === 'file')
+      result.matchesBundled = (await readFile(absolute)).equals(expectedContent)
+    return result
+  }
+
+  const setupFiles = [
+    await describe(`${integrationDirectory}/designlab.config.json`),
+    await describe(`${integrationDirectory}/.gitignore`, Buffer.from('.cache/\n')),
+  ]
+  const rulesDirectory = await describe(`${integrationDirectory}/rules`)
+  setupFiles.push(rulesDirectory)
+  if (rulesDirectory.state === 'directory') {
+    for (const rule of RULE_FILES) {
+      const bundled = await readFile(join(rulesSource, rule)).catch((error) => {
+        if (error.code === 'ENOENT') return null
+        throw error
+      })
+      setupFiles.push(await describe(`${integrationDirectory}/rules/${rule}`, bundled))
+    }
+  }
+  setupFiles.push(await describe(`${integrationDirectory}/.cache`))
+
+  const config =
+    setupFiles[0].state === 'file'
+      ? await readJson(join(integrationRoot, 'designlab.config.json'))
+      : null
+  const authoredPaths = new Set([`${integrationDirectory}/system`])
+  for (const mounts of Object.values(config?.source?.mounts ?? {})) {
+    if (!Array.isArray(mounts)) continue
+    for (const mount of mounts) {
+      if (
+        typeof mount === 'string' &&
+        mount.startsWith(`${integrationDirectory}/`) &&
+        isInside(resolve(projectRoot, mount), integrationRoot)
+      )
+        authoredPaths.add(mount)
+    }
+  }
+  const projectOwned = await Promise.all([...authoredPaths].sort().map((path) => describe(path)))
+  const knownTopLevel = new Set([
+    'designlab.config.json',
+    '.gitignore',
+    'rules',
+    '.cache',
+    'system',
+  ])
+  for (const path of authoredPaths) {
+    const suffix = path.slice(integrationDirectory.length + 1)
+    knownTopLevel.add(suffix.split('/')[0])
+  }
+  const unclassified = (await readdir(integrationRoot))
+    .filter((name) => !knownTopLevel.has(name))
+    .map((name) => `${integrationDirectory}/${name}`)
+  if (rulesDirectory.state === 'directory') {
+    for (const name of await readdir(join(integrationRoot, 'rules'))) {
+      if (!RULE_FILES.includes(name)) unclassified.push(`${integrationDirectory}/rules/${name}`)
+    }
+  }
+
+  const agentsPath = join(projectRoot, 'AGENTS.md')
+  const agentsState = await lstat(agentsPath).catch((error) => {
+    if (error.code === 'ENOENT') return null
+    throw error
+  })
+  const agents = agentsState?.isFile() ? await readFile(agentsPath, 'utf8') : ''
+  const start = agents.indexOf(MANAGED_AGENTS_START)
+  const end = agents.indexOf(MANAGED_AGENTS_END)
+  const agentsPointer = {
+    path: 'AGENTS.md',
+    state: !agentsState ? 'missing' : agentsState.isFile() ? 'file' : 'unsafe',
+    markers: start >= 0 && end > start ? 'complete' : start >= 0 || end >= 0 ? 'partial' : 'absent',
+  }
+
+  return {
+    available: true,
+    integrationDirectory,
+    setupFiles,
+    projectOwned,
+    unclassified,
+    agentsPointer,
+    note: 'This inventory is read-only. It does not decide which edited files may be removed.',
+  }
+}
+
 function repairFingerprint(value) {
   return createHash('sha256').update(JSON.stringify(value)).digest('hex')
 }
