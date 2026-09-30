@@ -32,6 +32,8 @@ Design Lab shell + каталог/Workbench
 
 Это устраняет конкретный класс дублирования: не нужно держать одну копию компонентов для каталога и другую для оболочки. Токены и стили в dev идут через Vite; переключение **целой System** требует перезапуска dev/build, поскольку меняется executable source. Во внешнем fixture изменение токена обновило реальный shell, а изменение `Button.scss` одновременно обновило shell Button и настоящий Button в Workbench Canvas через HMR без ошибок браузера.
 
+Полноэкранный React/Vue concept Playground теперь использует тот же `WorkbenchPlayground` из активной System, что и Component Workbench: фон Canvas, плавающий control и stage presentation не поддерживаются второй копией в приложении. Route state, source renderer и открытие мобильной панели остаются поведением приложения. Browser fixture проверяет React fullscreen Canvas и mobile overlay; Vue runtime capture проверяется отдельно.
+
 ## Что делает существующий installer
 
 [`interfacePacks.mjs`](../design-lab/server/services/interfacePacks.mjs) создаёт, проверяет и устанавливает Skin или полную System. Для System валидируются manifest, относительные entrypoints, обязательные exports из [`interface-system-contract.json`](../design-lab/interface-system-contract.json) и typecheck приложения. Выбранный пакет копируется в один физический слот, предварительно сохраняется snapshot; неактивные версии лежат в управляемом cache. В embedded проекте выбор хранится в `design-lab/.cache/interface.json`, а в development checkout — в `design-lab/.designlab/interface.json`. CLI документирован в [корневом README](../README.md) и [контракте пакетов](23-interface-skins-systems-and-gallery.md).

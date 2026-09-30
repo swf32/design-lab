@@ -11,6 +11,8 @@ Reusable component-detail playground that composes the live Canvas, global backg
 - `controlsPosition="start"` supports the full Component Playground route; the existing Workbench detail keeps controls at the end.
 - Background mode/color and source theme are controlled but independent preferences shared by all component workbenches.
 - The light-grid stage uses `color.canvas-grid.light-text` for readable foreground in either application theme.
+- A fullscreen concept route passes `className="dl-workbench-playground--fullscreen"`, `padding="none"`, and `label=""`; this System class owns its stage padding and safe-area tool placement while the application keeps route state and product rendering.
+- The Canvas tools are marked as inspector UI; inspecting a specimen should not select the floating background control.
 
 On phones the Canvas remains first and the controls rail moves below it regardless of desktop rail position.
 

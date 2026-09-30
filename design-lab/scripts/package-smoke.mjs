@@ -212,6 +212,33 @@ async function browserSmoke(
       })
       await page.reload({ waitUntil: 'networkidle' })
       await page.locator('.story-comparison .dl-button').first().waitFor()
+
+      await page.getByRole('button', { name: 'Open wireframe playground' }).click()
+      const fullscreen = page.locator('.dl-workbench-playground--fullscreen')
+      await fullscreen.waitFor()
+      assert.equal(await fullscreen.locator('.dl-canvas-control').count(), 1)
+      assert.equal(await fullscreen.locator('[data-workbench-inspector-ui]').count(), 1)
+      for (const mode of ['light-grid', 'solid']) {
+        await page.evaluate((value) => localStorage.setItem('design-lab:canvas-mode', value), mode)
+        await page.reload({ waitUntil: 'networkidle' })
+        const canvas = page.locator(`.dl-workbench-playground__canvas--${mode}`)
+        await canvas.waitFor()
+        const appearance = await canvas.evaluate((element) => {
+          const style = getComputedStyle(element)
+          return { background: style.backgroundColor, image: style.backgroundImage }
+        })
+        assert.equal(appearance.image === 'none', mode === 'solid')
+        if (mode === 'solid') assert.equal(appearance.background, 'rgb(38, 70, 83)')
+      }
+      await page.setViewportSize({ width: 390, height: 700 })
+      const fullscreenBounds = await fullscreen.boundingBox()
+      assert(fullscreenBounds && fullscreenBounds.width > 0 && fullscreenBounds.width <= 391)
+      await page.getByRole('button', { name: 'Open Playground settings' }).click()
+      await page.locator('.component-playground-canvas[inert]').waitFor()
+      await page.getByRole('button', { name: 'Done', exact: true }).click()
+      await page.setViewportSize({ width: 1500, height: 1000 })
+      await page.getByRole('button', { name: 'Component', exact: true }).click()
+      await page.locator('.story-comparison .dl-button').first().waitFor()
     }
     if (customStructure) {
       const decorations = page.locator('.dl-button [data-system-decoration="alternate-smoke"]')

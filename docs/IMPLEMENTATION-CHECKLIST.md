@@ -922,6 +922,9 @@ native backlog до Web DoD.
 - [x] Убрать второе оформление dark/light/solid Story Canvas из `ModuleView`: stage mode и
       контраст светлой сетки теперь принадлежат `StoryCanvas` и semantic System token; browser
       fixture проверяет режимы в обеих app themes и узкий viewport.
+- [x] Перевести полноэкранный React/Vue concept Playground на существующий
+      `WorkbenchPlayground` для Canvas и background control; приложение хранит route state,
+      renderer и mobile overlay. Browser fixture проверяет fullscreen режимы и мобильную панель.
 - [ ] Создать отдельный `design-lab-gallery` repository, remote verification workers, immutable
       checksums/signatures и generated screenshot publication flow.
 - [ ] Добавить gallery UI с status `community / validated / curated / incompatible` и установкой из

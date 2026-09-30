@@ -1,14 +1,14 @@
 import './ComponentPlaygroundView.scss'
-import { useEffect, useMemo, useRef, useState, type CSSProperties } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import {
   Button,
-  CanvasBackgroundControl,
   Chip,
   PlaygroundControlsRail,
   TabSwitcher,
   TypedPlaygroundControls,
   WorkbenchAction,
   WorkbenchInspector,
+  WorkbenchPlayground,
   type CanvasMode,
   type ChipColor,
 } from '@design-lab/system/components'
@@ -124,10 +124,8 @@ function ManagedVueDraftPlayground({
     )
   }, [mode, playground, values, variant])
   const selectedVariant = playground?.variants.find((item) => item.id === variant)
-  const shellStyle = { '--canvas-solid': canvasColor } as CSSProperties
-
   return (
-    <main className="component-playground-page" style={shellStyle}>
+    <main className="component-playground-page">
       <PlaygroundControlsRail
         id="component-playground-settings"
         className="component-playground-panel"
@@ -181,21 +179,21 @@ function ManagedVueDraftPlayground({
         )}
       </PlaygroundControlsRail>
       <section
-        className={`component-playground-canvas component-playground-canvas--${canvasMode}`}
+        className="component-playground-canvas"
         aria-label={`${component.name} draft Playground`}
       >
-        <div className="component-playground-canvas__tools">
-          <CanvasBackgroundControl
-            mode={canvasMode}
-            color={canvasColor}
-            onModeChange={onCanvasModeChange}
-            onColorChange={onCanvasColorChange}
-            themes={data.modes}
-            theme={mode}
-            onThemeChange={setMode}
-          />
-        </div>
-        <div className="component-playground-canvas__stage">
+        <WorkbenchPlayground
+          className="dl-workbench-playground--fullscreen"
+          label=""
+          padding="none"
+          mode={canvasMode}
+          color={canvasColor}
+          onModeChange={onCanvasModeChange}
+          onColorChange={onCanvasColorChange}
+          themes={data.modes}
+          theme={mode}
+          onThemeChange={setMode}
+        >
           <ManagedRuntimeFrame
             sourceId={component.sourceId ?? ''}
             componentId={component.id}
@@ -208,7 +206,7 @@ function ManagedVueDraftPlayground({
             className="managed-runtime-frame--draft"
             onRuntime={setRuntime}
           />
-        </div>
+        </WorkbenchPlayground>
       </section>
     </main>
   )
@@ -308,9 +306,6 @@ function LoadedComponentPlayground({
   const selectedVariant =
     module.playground.variants.find((item) => item.id === variant) ?? module.playground.variants[0]
   const status = statusPresentation(component.status)
-  const shellStyle = {
-    '--canvas-solid': canvasColor,
-  } as CSSProperties
   const specimenStyle = designSystemModeStyle(data.themeVariables, mode)
 
   useEffect(() => {
@@ -359,10 +354,7 @@ function LoadedComponentPlayground({
   }, [mode, module.playground.controls, values, variant])
 
   return (
-    <main
-      className={`component-playground-page${controlsOpen ? ' is-controls-open' : ''}`}
-      style={shellStyle}
-    >
+    <main className={`component-playground-page${controlsOpen ? ' is-controls-open' : ''}`}>
       <button
         type="button"
         className="component-playground-page__scrim"
@@ -442,27 +434,27 @@ function LoadedComponentPlayground({
 
       <section
         ref={canvasRef}
-        className={`component-playground-canvas component-playground-canvas--${canvasMode}`}
+        className="component-playground-canvas"
         aria-label={`${component.name} ${selectedVariant?.name ?? 'Playground'} preview`}
         aria-hidden={isCompact && controlsOpen}
         inert={isCompact && controlsOpen ? true : undefined}
       >
-        <div className="component-playground-canvas__tools" data-workbench-inspector-ui>
-          <CanvasBackgroundControl
-            mode={canvasMode}
-            color={canvasColor}
-            onModeChange={onCanvasModeChange}
-            onColorChange={onCanvasColorChange}
-            themes={availableModes}
-            theme={mode}
-            onThemeChange={setMode}
-          />
-        </div>
-        <div className="component-playground-canvas__stage">
+        <WorkbenchPlayground
+          className="dl-workbench-playground--fullscreen"
+          label=""
+          padding="none"
+          mode={canvasMode}
+          color={canvasColor}
+          onModeChange={onCanvasModeChange}
+          onColorChange={onCanvasColorChange}
+          themes={availableModes}
+          theme={mode}
+          onThemeChange={setMode}
+        >
           <div className="component-playground-page__specimen" style={specimenStyle}>
             {module.renderPlaygroundVariant({ variant, values, mode })}
           </div>
-        </div>
+        </WorkbenchPlayground>
       </section>
 
       <WorkbenchAction

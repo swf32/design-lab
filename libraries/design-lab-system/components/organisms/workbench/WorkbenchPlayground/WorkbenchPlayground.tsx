@@ -54,8 +54,8 @@ export function WorkbenchPlayground({
         className={`dl-workbench-playground__canvas dl-workbench-playground__canvas--${mode} dl-workbench-playground__canvas--padding-${padding}`}
         style={style}
       >
-        <div className="dl-workbench-playground__tools">
-          <span>{label}</span>
+        <div className="dl-workbench-playground__tools" data-workbench-inspector-ui>
+          {label && <span>{label}</span>}
           <CanvasBackgroundControl
             mode={mode}
             color={color}

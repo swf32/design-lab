@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Changed: The fullscreen React and Vue concept Playgrounds now render this same Canvas and background control. The `dl-workbench-playground--fullscreen` class owns stage padding and tool placement; an empty `label` hides the optional eyebrow.
+- Fixed: Canvas tools identify themselves to the shared inspector so they are not selected as product content.
 - Changed: Light-grid foreground uses the shared semantic token so it remains readable in both application themes.
 - Added: the shared Canvas appearance control can switch arbitrary source token themes independently from its background.
 - Changed: `controls` is optional; when omitted the controls rail is not rendered and the Canvas fills the width.

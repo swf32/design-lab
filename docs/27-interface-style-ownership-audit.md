@@ -33,10 +33,14 @@ product composition и runtime geometry. Это ограничение пров�
 список только фиксирует состояние, чтобы оно не росло во время миграции.
 
 После удаления дублирующих Workbench overrides для трёх режимов Story Canvas в приложении
-осталась **491** visual declaration. `StoryCanvas.scss` в активной System владеет фоном и
-контрастом Canvas; `color.canvas-grid.light-text` хранит читаемый цвет светлой сетки для dark и
-light app modes. Таблица ниже показывает исходные лимиты baseline; десять удалённых записей из
-`ModuleView.scss` не пересоздаются в нём.
+осталась **491** visual declaration. Затем отдельный Canvas полноэкранного React/Vue Playground
+был заменён существующим `WorkbenchPlayground`: теперь осталось **482** app-local visual
+declarations. Фон, floating background control и fullscreen stage presentation принадлежат
+System; приложение оставляет route state, рендерер и геометрию мобильной панели.
+`StoryCanvas.scss` владеет оформлением Story stage; `color.canvas-grid.light-text` хранит
+читаемый цвет светлой сетки для dark и light app modes. Таблица ниже показывает исходные лимиты
+baseline; десять записей из `ModuleView.scss` и девять из `ComponentPlaygroundView.scss`
+удалены без пересборки baseline.
 
 | App-local stylesheet | Деклараций в базе | Следующая граница |
 | --- | ---: | --- |
