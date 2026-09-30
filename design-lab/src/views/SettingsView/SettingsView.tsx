@@ -26,7 +26,17 @@ import {
 
 const diffKinds = ['changed', 'added', 'missing'] as const
 
-function DiffGroups({ title, entries }: { title: string; entries: InterfaceSystemDiff['files'] }) {
+function DiffGroups({
+  title,
+  entries,
+  baselineLabel,
+  targetLabel,
+}: {
+  title: string
+  entries: InterfaceSystemDiff['files']
+  baselineLabel: string
+  targetLabel: string
+}) {
   return (
     <div className="settings-system__diff-group">
       <h4>{title}</h4>
@@ -34,9 +44,9 @@ function DiffGroups({ title, entries }: { title: string; entries: InterfaceSyste
         <details key={kind}>
           <summary>
             {kind === 'missing'
-              ? 'Only in bundled default'
+              ? `Only in ${baselineLabel}`
               : kind === 'added'
-                ? 'Only in active System'
+                ? `Only in ${targetLabel}`
                 : 'Changed'}
             {' · '}
             {entries[kind].length}
@@ -253,7 +263,7 @@ export function SettingsView({ onClose }: { onClose: () => void }) {
             <h3 id="settings-system-title">Active System</h3>
             <p>
               Design Lab and its Workbench use the same editable System folder. Check its contract
-              and compare authored files with the bundled default before an update.
+              and compare authored files before an update.
             </p>
           </div>
           <Button
@@ -296,16 +306,30 @@ export function SettingsView({ onClose }: { onClose: () => void }) {
           <div className="settings-system__diff">
             <p role="status">
               {systemDiff.identical
-                ? 'Authored files match the bundled default.'
-                : 'Authored files differ from the bundled default.'}
+                ? `Authored files match the ${systemDiff.baselineKind === 'bundled' ? 'bundled default' : 'active System'}.`
+                : `Authored files differ from the ${systemDiff.baselineKind === 'bundled' ? 'bundled default' : 'active System'}.`}
             </p>
             <p>
               This is a read-only, two-way comparison. It does not merge updates or identify which
               side changed first.
             </p>
             <div className="settings-system__diff-groups">
-              <DiffGroups title="Components" entries={systemDiff.components} />
-              <DiffGroups title="Files" entries={systemDiff.files} />
+              <DiffGroups
+                title="Components"
+                entries={systemDiff.components}
+                baselineLabel={
+                  systemDiff.baselineKind === 'bundled' ? 'bundled default' : 'active System'
+                }
+                targetLabel="active System"
+              />
+              <DiffGroups
+                title="Files"
+                entries={systemDiff.files}
+                baselineLabel={
+                  systemDiff.baselineKind === 'bundled' ? 'bundled default' : 'active System'
+                }
+                targetLabel="active System"
+              />
             </div>
           </div>
         )}
@@ -459,6 +483,38 @@ export function SettingsView({ onClose }: { onClose: () => void }) {
               </strong>
               <p>{candidate.description || 'Complete interface System'}</p>
               <code>{candidate.path}</code>
+              <div className="settings-system__diff">
+                <p>
+                  {candidate.diff.identical
+                    ? 'No authored file differences'
+                    : 'Authored file differences'}{' '}
+                  compared with the{' '}
+                  {candidate.diff.baselineKind === 'bundled' ? 'bundled default' : 'active System'}.
+                </p>
+                <p>This is a read-only comparison. Check the folder again after editing it.</p>
+                <div className="settings-system__diff-groups">
+                  <DiffGroups
+                    title="Candidate Components"
+                    entries={candidate.diff.components}
+                    baselineLabel={
+                      candidate.diff.baselineKind === 'bundled'
+                        ? 'bundled default'
+                        : 'active System'
+                    }
+                    targetLabel="candidate System"
+                  />
+                  <DiffGroups
+                    title="Candidate Files"
+                    entries={candidate.diff.files}
+                    baselineLabel={
+                      candidate.diff.baselineKind === 'bundled'
+                        ? 'bundled default'
+                        : 'active System'
+                    }
+                    targetLabel="candidate System"
+                  />
+                </div>
+              </div>
               {candidate.canInstall ? (
                 <Button type="button" size="small" onClick={() => setInstallConfirmOpen(true)}>
                   Install this System

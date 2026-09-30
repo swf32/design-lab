@@ -312,6 +312,10 @@ test('local System inspection and install share the validated one-slot installer
     assert.equal((await defaultSystemRecovery(options)).available, false)
     const candidate = join(sources, 'new-system')
     await writeSystem(candidate, { id: 'new-system' })
+    await writeFile(
+      join(candidate, 'assets', 'candidate.svg'),
+      '<svg xmlns="http://www.w3.org/2000/svg"/>\n',
+    )
     await assert.rejects(inspectLocalInterfaceSystem('', options), {
       code: 'INTERFACE_PACK_SOURCE_REQUIRED',
     })
@@ -322,6 +326,9 @@ test('local System inspection and install share the validated one-slot installer
     assert.equal(inspected.valid, true)
     assert.equal(inspected.id, 'new-system')
     assert.equal(inspected.canInstall, true)
+    assert.equal(inspected.diff.baselineKind, 'active')
+    assert(inspected.diff.files.added.includes('assets/candidate.svg'))
+    assert.equal(inspected.diff.target, candidate)
     const installed = await installLocalInterfaceSystem('sources/new-system', options)
     assert.equal(installed.active, true)
     assert.equal(installed.id, 'new-system')

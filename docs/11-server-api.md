@@ -150,9 +150,10 @@ user edits even if its name is managed. Linked paths are reported without traver
 Read-only Settings diagnostics over the same services as `designlab system doctor` and `designlab system diff`.
 `doctor` returns `{ ok, system: { id, version, path } | null, skin, diagnostics[] }` and uses the
 real application typecheck; an invalid System is reported as `200` with `ok: false` and coded
-diagnostics. `diff` returns `{ baseline, target, files: { added[], missing[], changed[] },
+diagnostics. `diff` returns `{ baseline, baselineKind, target, files: { added[], missing[], changed[] },
 components: { added[], missing[], changed[] }, identical }`. Paths in each list are relative to
-the System root, and added/missing are relative to the bundled default. The endpoint compares
+the System root, and added/missing are relative to the bundled default in an embedded project or
+the active System in a development checkout, as identified by `baselineKind`. The endpoint compares
 authored files only; it does not write, merge, or distinguish local edits from upstream changes.
 If a folder cannot be read, the generic server error convention applies.
 
@@ -185,7 +186,10 @@ applied in either case. Restart the application when `restartRequired` is true.
 
 JSON body `{ "path": "../my-system" }`. A relative path starts at the product repository root.
 Validates a complete local System, including the application typecheck, and returns
-`{ valid, path, id, name, version, description, canInstall }`. The default System ID has
+`{ valid, path, id, name, version, description, canInstall, diff }`. `diff` compares authored
+files and Components against the bundled default in an embedded install or the active System in a
+development checkout. It includes `baselineKind`, `baseline`, `target`, `files`, `components`, and
+`identical`. Recheck after edits; installation validates the folder again. The default System ID has
 `canInstall: false`; restore it with `reset`. This read operation uses the UI request guard below.
 
 ### `POST /api/interface/system/create`

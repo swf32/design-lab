@@ -914,6 +914,8 @@ native backlog до Web DoD.
       application runtime.
 - [x] Добавить `system diff` report для missing, added и changed Components между default System
       и активной System или переданной папкой. Sync/merge остаётся открытым.
+- [x] Показывать read-only diff проверенной локальной System прямо в Settings до установки;
+      в development checkout явно обозначать активную System как эталон.
 - [ ] Создать отдельный `design-lab-gallery` repository, remote verification workers, immutable
       checksums/signatures и generated screenshot publication flow.
 - [ ] Добавить gallery UI с status `community / validated / curated / incompatible` и установкой из

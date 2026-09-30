@@ -50,7 +50,7 @@
 - [ ] Завершить перенос визуальных стилей из `design-lab/src` в System. Новые app-local visual CSS/SCSS declarations уже блокируются; 501 существующая запись и пределы проверки перечислены в [аудите ownership](27-interface-style-ownership-audit.md). Visual spacing и inline TSX styles ещё нужно охватить.
 - [x] Проверить полный System fork, меняющий структуру Button и добавляющий SVG asset, в shell и Workbench; browser fixture подтверждает установку и общий executable source.
 - [ ] Довести UI workflow Skin/System create/validate/install/use/doctor до полной диагностики. Выбор папки проекта и подсказки для известных ошибок проверки уже есть; внешний источник пока требует путь.
-- [x] Показать в Settings doctor и diff активной System, создание копии System, проверку/установку из локальной папки и восстановление bundled default после подтверждения.
+- [x] Показать в Settings doctor и diff активной System, создание копии System, read-only diff проверенной папки перед установкой, проверку/установку из локальной папки и восстановление bundled default после подтверждения.
 - [x] Проверить изменение реального Component style одновременно в её Workbench specimen и shell; браузерная регрессия входит в `test:package:browser`.
 
 ### P2 — завершить attach и web adapters

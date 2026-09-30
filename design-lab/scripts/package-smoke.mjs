@@ -382,6 +382,8 @@ async function browserSmoke(
       assert.equal(response.status(), 201)
       assert.equal((await response.json()).id, 'alternate-smoke')
       await page.getByRole('button', { name: 'Install this System' }).waitFor()
+      await page.getByText('Authored file differences compared with the bundled default.').waitFor()
+      await page.getByRole('heading', { name: 'Candidate Files' }).waitFor()
       const barrel = join(createCandidate, 'components/index.ts')
       const originalBarrel = await readFile(barrel, 'utf8')
       try {

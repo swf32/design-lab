@@ -384,6 +384,7 @@ export async function diffInterfaceSystem(options = {}) {
   for (const paths of Object.values(components)) paths.sort()
   return {
     baseline,
+    baselineKind: paths.defaultSystemSource ? 'bundled' : 'active',
     target,
     files,
     components,
@@ -997,6 +998,7 @@ export async function inspectLocalInterfaceSystem(path, options = {}) {
     version: validated.manifest.version,
     description: validated.manifest.description ?? '',
     canInstall: validated.manifest.id !== DEFAULT_SYSTEM_ID,
+    diff: await diffInterfaceSystem({ ...options, target: root }),
   }
 }
 

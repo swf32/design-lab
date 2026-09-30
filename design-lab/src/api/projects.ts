@@ -682,6 +682,7 @@ export type InterfaceSystemDoctor = {
 
 export type InterfaceSystemDiff = {
   baseline: string
+  baselineKind: 'bundled' | 'active'
   target: string
   files: Record<'added' | 'missing' | 'changed', string[]>
   components: Record<'added' | 'missing' | 'changed', string[]>
@@ -747,6 +748,7 @@ export type LocalInterfaceSystemInspection = {
   version: string
   description: string
   canInstall: boolean
+  diff: InterfaceSystemDiff
 }
 
 export function inspectLocalInterfaceSystem(path: string) {
