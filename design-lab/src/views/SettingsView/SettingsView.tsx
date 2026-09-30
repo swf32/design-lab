@@ -2,6 +2,7 @@ import './SettingsView.scss'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { Button, CodeBlock, Dialog, Input, ModuleHeader } from '@design-lab/system/components'
 import {
+  createLocalInterfaceSystem,
   getInterfaceSystemDiff,
   getInterfaceSystemDoctor,
   getInterfaceSystemRecovery,
@@ -59,6 +60,11 @@ export function SettingsView({ onClose }: { onClose: () => void }) {
   const [systemError, setSystemError] = useState<string | null>(null)
   const [systemLoading, setSystemLoading] = useState(false)
   const [systemFolder, setSystemFolder] = useState('')
+  const [newSystemName, setNewSystemName] = useState('')
+  const [newSystemFolder, setNewSystemFolder] = useState('')
+  const [creating, setCreating] = useState(false)
+  const [createError, setCreateError] = useState<string | null>(null)
+  const [createResult, setCreateResult] = useState<string | null>(null)
   const [candidate, setCandidate] = useState<LocalInterfaceSystemInspection | null>(null)
   const [candidateError, setCandidateError] = useState<string | null>(null)
   const [candidateLoading, setCandidateLoading] = useState(false)
@@ -123,6 +129,33 @@ export function SettingsView({ onClose }: { onClose: () => void }) {
       }
     } finally {
       if (candidateRequest.current === request) setCandidateLoading(false)
+    }
+  }
+
+  const createSystem = async () => {
+    setCreating(true)
+    setCreateError(null)
+    setCreateResult(null)
+    try {
+      const result = await createLocalInterfaceSystem(newSystemName.trim(), newSystemFolder.trim())
+      const request = ++candidateRequest.current
+      setSystemFolder(result.path)
+      setCandidate(null)
+      setCandidateError(null)
+      setCreateResult(`Created ${result.name} at ${result.path}. The active System is unchanged.`)
+      try {
+        const inspection = await inspectLocalInterfaceSystem(result.path)
+        if (candidateRequest.current === request) setCandidate(inspection)
+      } catch (cause) {
+        if (candidateRequest.current === request)
+          setCandidateError(
+            cause instanceof Error ? cause.message : 'Could not check the new System.',
+          )
+      }
+    } catch (cause) {
+      setCreateError(cause instanceof Error ? cause.message : 'Could not create the System.')
+    } finally {
+      setCreating(false)
     }
   }
 
@@ -235,6 +268,51 @@ export function SettingsView({ onClose }: { onClose: () => void }) {
             </div>
           </div>
         )}
+
+        <div className="settings-system__create">
+          <h4>Create a System</h4>
+          <p>
+            Make an editable copy of the currently active System with its Components, assets, and
+            local authoring rules. This does not change the active System. A relative folder starts
+            at the project root.
+          </p>
+          <form
+            className="settings-system__create-form"
+            onSubmit={(event) => {
+              event.preventDefault()
+              void createSystem()
+            }}
+          >
+            <Input
+              label="New System name"
+              value={newSystemName}
+              onChange={(event) => setNewSystemName(event.currentTarget.value)}
+              placeholder="My System"
+              fullWidth
+            />
+            <Input
+              label="New System folder"
+              value={newSystemFolder}
+              onChange={(event) => setNewSystemFolder(event.currentTarget.value)}
+              placeholder="design-lab/systems/my-system"
+              fullWidth
+            />
+            <Button
+              type="submit"
+              size="small"
+              loading={creating}
+              disabled={!newSystemName.trim() || !newSystemFolder.trim()}
+            >
+              Create System
+            </Button>
+          </form>
+          {createError && (
+            <p className="settings-page__error" role="alert">
+              {createError}
+            </p>
+          )}
+          {createResult && <p role="status">{createResult}</p>}
+        </div>
 
         <div className="settings-system__install">
           <h4>Install a System from a folder</h4>

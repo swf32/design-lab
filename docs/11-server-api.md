@@ -140,6 +140,16 @@ Validates a complete local System, including the application typecheck, and retu
 `{ valid, path, id, name, version, description, canInstall }`. The default System ID has
 `canInstall: false`; restore it with `reset`. This read operation uses the UI request guard below.
 
+### `POST /api/interface/system/create`
+
+JSON body `{ "name": "My System", "path": "design-lab/systems/my-system" }`. Creates a
+complete, inactive authoring copy of the currently active System at a new local folder. A relative
+path starts at the product repository root; the destination must not already exist or sit inside
+the active System. The service writes local authoring rules, updates System identity, and validates
+the full application contract before returning `201 { created, kind, id, name, version, path }`.
+Creation never switches the active System. It uses the same UI request guard as the other POST
+routes.
+
 ### `POST /api/interface/system/install` and `POST /api/interface/system/reset`
 
 `install` accepts `{ "path": "../my-system", "confirmed": true }`; it revalidates the folder,
@@ -148,7 +158,7 @@ saves a snapshot of the current active System, and installs into the one active 
 Both return the corresponding CLI service result plus `restartRequired: true` and increment the
 API revision. The running UI must be restarted to load changed executable System code.
 
-All three POST routes require `Content-Type: application/json` and `X-Design-Lab-UI: 1`;
+All four POST routes require `Content-Type: application/json` and `X-Design-Lab-UI: 1`;
 otherwise they return `403` with `INTERFACE_UI_REQUEST_REQUIRED`. Missing confirmation returns
 `409` (`INTERFACE_INSTALL_CONFIRMATION_REQUIRED` or `INTERFACE_RESET_CONFIRMATION_REQUIRED`).
 System validation/path failures return `422` with their `INTERFACE_*` code and message. These

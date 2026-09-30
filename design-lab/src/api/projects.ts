@@ -671,6 +671,21 @@ export function inspectLocalInterfaceSystem(path: string) {
   })
 }
 
+export function createLocalInterfaceSystem(name: string, path: string) {
+  return request<{
+    created: true
+    kind: 'system'
+    id: string
+    name: string
+    version: string
+    path: string
+  }>('/api/interface/system/create', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', 'X-Design-Lab-UI': '1' },
+    body: JSON.stringify({ name, path }),
+  })
+}
+
 export function installLocalInterfaceSystem(path: string) {
   return request<{
     installed: true

@@ -671,6 +671,21 @@ export async function installLocalInterfaceSystem(path, options = {}) {
   })
 }
 
+export async function createLocalInterfaceSystem(path, name, options = {}) {
+  if (typeof name !== 'string' || !name.trim())
+    throw packError('Enter a name for the new System.', 'INTERFACE_PACK_NAME_REQUIRED')
+  if (typeof path !== 'string' || !path.trim())
+    throw packError('Choose a folder for the new System.', 'INTERFACE_PACK_DESTINATION_REQUIRED')
+  const paths = defaultInterfacePaths(options)
+  const destination = resolve(paths.workspaceDirectory, path.trim())
+  if (isInside(paths.systemSlot, destination))
+    throw packError(
+      'Create the new System outside the active System folder.',
+      'INTERFACE_PACK_DESTINATION_ACTIVE',
+    )
+  return createInterfacePack('system', destination, { ...options, name: name.trim() })
+}
+
 function parseGithubSource(spec) {
   if (!spec.startsWith('github:')) return null
   const value = spec.slice('github:'.length)

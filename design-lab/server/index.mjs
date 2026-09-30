@@ -16,6 +16,7 @@ import { patchEntityManifest } from './services/manifestWrite.mjs'
 import { getComponentHandoff } from './services/componentHandoff.mjs'
 import { applySetupPlan, createSetupPlan } from './services/setupService.mjs'
 import {
+  createLocalInterfaceSystem,
   diffInterfaceSystem,
   defaultSystemRecovery,
   doctorInterfacePacks,
@@ -70,6 +71,11 @@ createServer(async (request, response) => {
       requireInterfaceUiRequest(request)
       const input = await readJson(request)
       return sendJson(response, 200, await inspectLocalInterfaceSystem(input.path))
+    }
+    if (request.method === 'POST' && url.pathname === '/api/interface/system/create') {
+      requireInterfaceUiRequest(request)
+      const input = await readJson(request)
+      return sendJson(response, 201, await createLocalInterfaceSystem(input.path, input.name))
     }
     if (request.method === 'POST' && url.pathname === '/api/interface/system/install') {
       requireInterfaceUiRequest(request)

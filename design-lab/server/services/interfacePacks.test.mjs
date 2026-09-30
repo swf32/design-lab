@@ -5,6 +5,7 @@ import { dirname, join, resolve } from 'node:path'
 import test from 'node:test'
 import {
   createInterfacePack,
+  createLocalInterfaceSystem,
   defaultInterfacePaths,
   defaultSystemRecovery,
   diffInterfaceSystem,
@@ -166,6 +167,31 @@ test('system diff reports authored file and Component changes without generated 
     await assert.rejects(diffInterfaceSystem({ ...options, defaultSystemSource: baseline }), {
       code: 'INTERFACE_PACK_SYMLINK_UNSUPPORTED',
     })
+  })
+})
+
+test('local System creation copies the active source without replacing it', async () => {
+  await withPackWorkspace(async ({ options, librariesDirectory }) => {
+    const created = await createLocalInterfaceSystem('authoring/my-system', 'My System', options)
+    assert.equal(created.created, true)
+    assert.equal(created.id, 'my-system')
+    assert.equal(
+      JSON.parse(await readFile(join(created.path, 'library.json'), 'utf8')).id,
+      'my-system',
+    )
+    assert.equal(
+      JSON.parse(await readFile(join(librariesDirectory, 'design-lab-system/library.json'), 'utf8'))
+        .id,
+      'design-lab-system',
+    )
+    await assert.rejects(
+      createLocalInterfaceSystem('libraries/design-lab-system/nested', 'Nested', options),
+      (error) => error.code === 'INTERFACE_PACK_DESTINATION_ACTIVE',
+    )
+    await assert.rejects(
+      createLocalInterfaceSystem('authoring/my-system', 'Duplicate', options),
+      (error) => error.code === 'INTERFACE_PACK_DESTINATION_EXISTS',
+    )
   })
 })
 

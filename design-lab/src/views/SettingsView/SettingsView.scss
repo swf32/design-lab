@@ -69,35 +69,42 @@
   padding-left: var(--space-16);
   overflow-wrap: anywhere;
 }
+.settings-system__create,
 .settings-system__install,
 .settings-system__recovery {
   margin-top: var(--space-16);
   padding-top: var(--space-16);
   border-top: 1px solid var(--color-border-subtle);
 }
+.settings-system__create h4,
 .settings-system__install h4,
 .settings-system__recovery h4 {
   margin: 0 0 var(--space-8);
   color: var(--color-text-secondary);
 }
+.settings-system__create p,
 .settings-system__install p,
 .settings-system__recovery p {
   color: var(--color-text-muted);
   overflow-wrap: anywhere;
 }
+.settings-system__create .settings-page__error,
 .settings-system__install .settings-page__error {
   color: var(--color-status-danger);
 }
+.settings-system__create-form,
 .settings-system__install-form {
   margin-top: var(--space-16);
   display: flex;
   align-items: end;
   gap: var(--space-12);
 }
+.settings-system__create-form .dl-input,
 .settings-system__install-form .dl-input {
   flex: 1;
   min-width: 0;
 }
+.settings-system__create-form .dl-button,
 .settings-system__install-form .dl-button {
   flex: none;
 }
@@ -217,6 +224,7 @@
     grid-template-columns: minmax(0, 1fr);
   }
 
+  .settings-system__create-form,
   .settings-system__install-form {
     align-items: stretch;
     flex-direction: column;

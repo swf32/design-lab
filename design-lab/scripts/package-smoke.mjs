@@ -91,7 +91,12 @@ async function cleanDevSmoke(cli, root) {
 
 async function browserSmoke(
   cli,
-  { customStructure = false, installCandidate = null, resetSystem = false } = {},
+  {
+    customStructure = false,
+    createCandidate = null,
+    installCandidate = null,
+    resetSystem = false,
+  } = {},
 ) {
   const { chromium } = await import('playwright')
   const uiPort = await freePort()
@@ -199,9 +204,22 @@ async function browserSmoke(
       await page.getByText('alternate-smoke', { exact: true }).waitFor()
     }
     assert.deepEqual(pageErrors, [])
+    if (createCandidate) {
+      await page.getByRole('textbox', { name: 'New System name' }).fill('Alternate Smoke')
+      await page
+        .getByRole('textbox', { name: 'New System folder' })
+        .fill(relative(projectRoot, createCandidate))
+      const [response] = await Promise.all([
+        page.waitForResponse((result) => result.url().endsWith('/api/interface/system/create')),
+        page.getByRole('button', { name: 'Create System' }).click(),
+      ])
+      assert.equal(response.status(), 201)
+      assert.equal((await response.json()).id, 'alternate-smoke')
+      await page.getByRole('button', { name: 'Install this System' }).waitFor()
+    }
     if (installCandidate) {
       await page
-        .getByRole('textbox', { name: 'System folder' })
+        .getByRole('textbox', { name: 'System folder', exact: true })
         .fill(relative(projectRoot, installCandidate))
       await page.getByRole('button', { name: 'Check folder' }).click()
       await page.getByRole('button', { name: 'Install this System' }).waitFor()
@@ -371,12 +389,18 @@ try {
   const upgradeDiff = parse(await run(cli, ['system', 'diff'], projectRoot))
   assert(upgradeDiff.files.added.includes('local-smoke-marker.txt'))
   assert(upgradeDiff.files.missing.includes('upgrade-smoke-marker.txt'))
-  if (process.argv.includes('--browser')) await browserSmoke(cli)
-
-  const created = parse(
-    await run(cli, ['system', 'create', alternateSystem, '--name', 'Alternate Smoke'], projectRoot),
-  )
-  assert.equal(created.created, true)
+  if (process.argv.includes('--browser'))
+    await browserSmoke(cli, { createCandidate: alternateSystem })
+  else {
+    const created = parse(
+      await run(
+        cli,
+        ['system', 'create', alternateSystem, '--name', 'Alternate Smoke'],
+        projectRoot,
+      ),
+    )
+    assert.equal(created.created, true)
+  }
   const alternateButton = join(alternateSystem, 'components/atoms/actions/Button/Button.tsx')
   const originalButton = await readFile(alternateButton, 'utf8')
   assert(originalButton.includes('      {loading ? ('))
