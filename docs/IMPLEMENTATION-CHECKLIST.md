@@ -30,6 +30,9 @@
 - [x] Сохранять код и структурированные данные ошибок pack validation в локальном API и UI;
       Settings показывает следующий шаг, недостающие System exports и раскрываемые technical details.
       Внешний browser fixture проверяет невалидный System fork до установки.
+- [x] Разбирать ошибки System typecheck на source/line/TS-code с разделением System и Design Lab
+      consumer; Settings показывает первые диагностики, оставляя полный compiler output раскрываемым.
+      Browser fixture проверяет ошибку в неактивном fork до установки.
 - [x] Создавать в Settings неактивную полную System как копию активной папки: новое имя и путь,
       локальные rules/AGENTS, проверка application contract, защита от существующей папки и
       вложения в активный слот. Внешний browser fixture проверяет создание и последующую установку.

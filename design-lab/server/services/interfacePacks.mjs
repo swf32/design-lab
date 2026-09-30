@@ -766,6 +766,33 @@ async function validateSystemAssetImports(root, assetsRoot) {
   await visit(root)
 }
 
+export function parseInterfaceTypecheckDiagnostics(output, systemRoot, applicationRoot) {
+  const diagnostics = []
+  for (const line of output.split(/\r?\n/)) {
+    const match = /^(.*)\((\d+),(\d+)\): error (TS\d+): (.+)$/.exec(line)
+    if (!match) continue
+    const source = resolve(applicationRoot, match[1])
+    const origin = isInside(systemRoot, source)
+      ? 'system'
+      : isInside(applicationRoot, source)
+        ? 'application'
+        : null
+    if (!origin) continue
+    diagnostics.push({
+      origin,
+      path: portablePath(relative(origin === 'system' ? systemRoot : applicationRoot, source)),
+      line: Number(match[2]),
+      column: Number(match[3]),
+      code: match[4],
+      message: match[5],
+    })
+  }
+  diagnostics.sort((left, right) =>
+    left.origin === right.origin ? 0 : left.origin === 'system' ? -1 : 1,
+  )
+  return { diagnostics: diagnostics.slice(0, 12), total: diagnostics.length }
+}
+
 export async function typecheckInterfaceSystem(validated, options = {}) {
   if (validated.manifest.kind !== 'system')
     throw packError('Only a System pack can be typechecked.', 'INTERFACE_PACK_KIND_INVALID')
@@ -816,9 +843,15 @@ export async function typecheckInterfaceSystem(validated, options = {}) {
     return { ok: true }
   } catch (error) {
     const output = `${error.stdout ?? ''}${error.stderr ?? ''}`.trim()
+    const details = parseInterfaceTypecheckDiagnostics(
+      output,
+      validated.root,
+      paths.applicationRoot,
+    )
     throw packError(
       `${validated.manifest.name} does not satisfy the typed Design Lab application contract.${output ? `\n${output}` : ''}`,
       'INTERFACE_PACK_TYPECHECK_FAILED',
+      details,
     )
   } finally {
     await rm(temporary, { recursive: true, force: true })

@@ -19,6 +19,7 @@ import {
   installLocalInterfaceSkin,
   installInterfacePack,
   listInterfacePacks,
+  parseInterfaceTypecheckDiagnostics,
   readInterfaceSelection,
   resetInterfacePack,
   resolveActiveInterface,
@@ -137,6 +138,57 @@ test('compatibility ranges support exact, comparator, caret, and tilde forms', (
   assert.equal(versionSatisfies('0.2.0', '^0.1.0'), false)
   assert.equal(versionSatisfies('1.3.1', '~1.3.0'), true)
   assert.equal(versionSatisfies('1.4.0', '~1.3.0'), false)
+})
+
+test('typed System errors identify authored files before application consumers', () => {
+  const root = '/tmp/interface-check'
+  const application = '/tmp/design-lab-app'
+  const report = parseInterfaceTypecheckDiagnostics(
+    `${application}/src/App.tsx(20,4): error TS2322: Consumer mismatch.\n${root}/components/Button/Button.tsx(7,11): error TS2322: Wrong prop.\n/tmp/other/file.ts(1,1): error TS1000: Unrelated.`,
+    root,
+    application,
+  )
+  assert.deepEqual(report, {
+    diagnostics: [
+      {
+        origin: 'system',
+        path: 'components/Button/Button.tsx',
+        line: 7,
+        column: 11,
+        code: 'TS2322',
+        message: 'Wrong prop.',
+      },
+      {
+        origin: 'application',
+        path: 'src/App.tsx',
+        line: 20,
+        column: 4,
+        code: 'TS2322',
+        message: 'Consumer mismatch.',
+      },
+    ],
+    total: 2,
+  })
+})
+
+test('failed System typecheck exposes authored file diagnostics', async () => {
+  await withPackWorkspace(async ({ sources, options }) => {
+    const source = join(sources, 'broken-type-system')
+    await writeSystem(source)
+    await writeFile(
+      join(source, 'components.ts'),
+      `${await readFile(join(source, 'components.ts'), 'utf8')}\nexport const broken: string = 1\n`,
+    )
+    await assert.rejects(
+      validateInterfacePack(source, { ...options, expectedKind: 'system', typecheckSystem: true }),
+      (error) =>
+        error.code === 'INTERFACE_PACK_TYPECHECK_FAILED' &&
+        error.details.diagnostics.some(
+          (item) =>
+            item.origin === 'system' && item.path === 'components.ts' && item.code === 'TS2322',
+        ),
+    )
+  })
 })
 
 test('system diff reports authored file and Component changes without generated files', async () => {

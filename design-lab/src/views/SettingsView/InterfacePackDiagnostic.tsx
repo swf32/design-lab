@@ -19,7 +19,7 @@ function guidance(error: ApiRequestError, kind: 'Skin' | 'System') {
     case 'INTERFACE_PACK_EXPORT_MISSING':
       return 'Export the required names from the declared System entrypoint, then check the folder again.'
     case 'INTERFACE_PACK_TYPECHECK_FAILED':
-      return 'Fix the TypeScript errors in this System. Its Components must satisfy the current Design Lab application contract.'
+      return 'Start with the first listed TypeScript error. Check the System file or the Design Lab consumer named there, then verify the required props and exports.'
     case 'INTERFACE_PACK_ASSET_MISSING':
       return 'Add the missing media or font file to this System, or correct its path, then check the folder again.'
     case 'INTERFACE_PACK_ASSET_OUTSIDE':
@@ -59,10 +59,33 @@ export function InterfacePackDiagnostic({
         missing?: unknown
         source?: unknown
         path?: unknown
+        diagnostics?: unknown
+        total?: unknown
       }
     | undefined
   const missing = Array.isArray(details?.missing)
     ? details.missing.filter((name): name is string => typeof name === 'string')
+    : []
+  const typedDiagnostics = Array.isArray(details?.diagnostics)
+    ? details.diagnostics.filter(
+        (
+          item,
+        ): item is {
+          origin: 'system' | 'application'
+          path: string
+          line: number
+          column: number
+          code: string
+          message: string
+        } =>
+          !!item &&
+          (item.origin === 'system' || item.origin === 'application') &&
+          typeof item.path === 'string' &&
+          Number.isInteger(item.line) &&
+          Number.isInteger(item.column) &&
+          typeof item.code === 'string' &&
+          typeof item.message === 'string',
+      )
     : []
   return (
     <div className="settings-pack-diagnostic" role="alert">
@@ -77,6 +100,25 @@ export function InterfacePackDiagnostic({
         <p>
           Referenced in {details.source}: {details.path}
         </p>
+      )}
+      {typedDiagnostics.length > 0 && (
+        <div>
+          <p>TypeScript found these contract errors:</p>
+          <ol>
+            {typedDiagnostics.map((item, index) => (
+              <li key={`${item.path}:${item.line}:${item.column}:${item.code}:${index}`}>
+                <strong>{item.origin === 'system' ? 'System' : 'Design Lab consumer'}</strong>{' '}
+                <code>
+                  {item.path}:{item.line}:{item.column}
+                </code>{' '}
+                <code>{item.code}</code> — {item.message}
+              </li>
+            ))}
+          </ol>
+          {typeof details?.total === 'number' && details.total > typedDiagnostics.length && (
+            <p>{details.total - typedDiagnostics.length} more errors in Technical details.</p>
+          )}
+        </div>
       )}
       <details>
         <summary>Technical details · {error.code}</summary>

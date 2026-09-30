@@ -403,6 +403,30 @@ async function browserSmoke(
       } finally {
         await writeFile(barrel, originalBarrel)
       }
+      const candidateButton = join(createCandidate, 'components/atoms/actions/Button/Button.tsx')
+      const originalButton = await readFile(candidateButton, 'utf8')
+      try {
+        await writeFile(candidateButton, `${originalButton}\nconst brokenTypeCheck: string = 1\n`)
+        const [invalid] = await Promise.all([
+          page.waitForResponse((result) => result.url().endsWith('/api/interface/system/inspect')),
+          page.getByRole('button', { name: 'Check folder' }).click(),
+        ])
+        assert.equal(invalid.status(), 422)
+        const failure = await invalid.json()
+        assert.equal(failure.error.code, 'INTERFACE_PACK_TYPECHECK_FAILED')
+        assert(
+          failure.error.details.diagnostics.some(
+            (item) =>
+              item.origin === 'system' &&
+              item.path.endsWith('Button/Button.tsx') &&
+              item.code === 'TS2322',
+          ),
+        )
+        await page.getByText('TypeScript found these contract errors:').waitFor()
+        await page.getByText('TS2322', { exact: true }).first().waitFor()
+      } finally {
+        await writeFile(candidateButton, originalButton)
+      }
     }
     if (installCandidate) {
       await page
