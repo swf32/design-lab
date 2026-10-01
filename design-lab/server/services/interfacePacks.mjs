@@ -866,6 +866,44 @@ async function validateSystemAssetImports(root, assetsRoot) {
         const reference = node.source?.value
         if (typeof reference === 'string') await checkReference(file, reference)
       }
+      const literalReference = (node) => {
+        if (node?.type === 'StringLiteral') return node.value
+        if (node?.type === 'TemplateLiteral' && node.expressions.length === 0)
+          return node.quasis[0]?.value.cooked
+        return null
+      }
+      const isImportMetaUrl = (node) =>
+        node?.type === 'MemberExpression' &&
+        node.computed === false &&
+        node.property?.type === 'Identifier' &&
+        node.property.name === 'url' &&
+        node.object?.type === 'MetaProperty' &&
+        node.object.meta?.name === 'import' &&
+        node.object.property?.name === 'meta'
+      const visitNode = async (node) => {
+        if (
+          node.type === 'NewExpression' &&
+          node.callee?.type === 'Identifier' &&
+          node.callee.name === 'URL' &&
+          isImportMetaUrl(node.arguments[1])
+        ) {
+          const reference = literalReference(node.arguments[0])
+          if (reference) await checkReference(file, reference)
+        }
+        if (
+          node.type === 'ImportExpression' ||
+          (node.type === 'CallExpression' && node.callee?.type === 'Import')
+        ) {
+          const reference = literalReference(node.source ?? node.arguments?.[0])
+          if (reference) await checkReference(file, reference)
+        }
+        for (const value of Object.values(node)) {
+          if (Array.isArray(value)) {
+            for (const child of value) if (child?.type) await visitNode(child)
+          } else if (value?.type) await visitNode(value)
+        }
+      }
+      await visitNode(ast.program)
     }
   }
   await visit(root)

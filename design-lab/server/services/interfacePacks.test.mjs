@@ -322,7 +322,10 @@ test('default-derived System fork can upgrade without losing its identity or loc
     await cp(active, bundled, { recursive: true })
     const created = await createLocalInterfaceSystem('authoring/my-system', 'My System', options)
     await installLocalInterfaceSystem(created.path, options)
-    assert.equal((await analyzeSystemUpgrade({ ...options, defaultSystemSource: bundled })).available, true)
+    assert.equal(
+      (await analyzeSystemUpgrade({ ...options, defaultSystemSource: bundled })).available,
+      true,
+    )
 
     await writeFile(join(active, 'local-note.txt'), 'author edit\n')
     await writeFile(join(bundled, 'new-feature.txt'), 'new default\n')
@@ -332,7 +335,10 @@ test('default-derived System fork can upgrade without losing its identity or loc
     assert(preview.files.localOnly.includes('design-lab-pack.json'))
     await applySystemUpgrade(preview.fingerprint, upgradeOptions)
     assert.equal((await readInterfaceSelection(options)).system.id, 'my-system')
-    assert.equal(JSON.parse(await readFile(join(active, 'design-lab-pack.json'), 'utf8')).id, 'my-system')
+    assert.equal(
+      JSON.parse(await readFile(join(active, 'design-lab-pack.json'), 'utf8')).id,
+      'my-system',
+    )
     assert.equal(await readFile(join(active, 'local-note.txt'), 'utf8'), 'author edit\n')
     assert.equal(await readFile(join(active, 'new-feature.txt'), 'utf8'), 'new default\n')
 
@@ -755,6 +761,49 @@ test('System validation identifies a missing statically imported asset before in
     await mkdir(join(source, 'assets/images'), { recursive: true })
     await writeFile(
       join(source, 'assets/images/missing.svg'),
+      '<svg xmlns="http://www.w3.org/2000/svg" />\n',
+    )
+    assert.equal(
+      (await validateInterfacePack(source, { ...options, expectedKind: 'system' })).manifest.kind,
+      'system',
+    )
+  })
+})
+
+test('System validation checks literal asset URLs and lazy imports before installation', async () => {
+  await withPackWorkspace(async ({ sources, options }) => {
+    const source = join(sources, 'url-asset-system')
+    await writeSystem(source)
+    const componentPath = join(source, 'components.ts')
+    const original = await readFile(componentPath, 'utf8')
+    await writeFile(
+      componentPath,
+      `${original}\nexport const imageUrl = new URL('./assets/images/missing.svg', import.meta.url).href\n`,
+    )
+    await assert.rejects(
+      validateInterfacePack(source, { ...options, expectedKind: 'system' }),
+      (error) =>
+        error.code === 'INTERFACE_PACK_ASSET_MISSING' &&
+        error.details.source === 'components.ts' &&
+        error.details.path === 'assets/images/missing.svg',
+    )
+    await mkdir(join(source, 'assets/images'), { recursive: true })
+    await writeFile(
+      join(source, 'assets/images/missing.svg'),
+      '<svg xmlns="http://www.w3.org/2000/svg" />\n',
+    )
+    await writeFile(
+      componentPath,
+      `${original}\nexport const loadImage = () => import('./assets/images/lazy.svg')\n`,
+    )
+    await assert.rejects(
+      validateInterfacePack(source, { ...options, expectedKind: 'system' }),
+      (error) =>
+        error.code === 'INTERFACE_PACK_ASSET_MISSING' &&
+        error.details.path === 'assets/images/lazy.svg',
+    )
+    await writeFile(
+      join(source, 'assets/images/lazy.svg'),
       '<svg xmlns="http://www.w3.org/2000/svg" />\n',
     )
     assert.equal(

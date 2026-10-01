@@ -52,6 +52,9 @@
       при отсутствующем export запуск останавливается до старта серверов с именем export и путями
       doctor/upgrade/reset; для Skin указан theme reset. Внешний package fixture ломает `SettingsPanel`, проверяет ошибку,
       восстанавливает файл и затем запускает UI/API; автоматическая миграция контракта остаётся открытой.
+- [x] До установки System проверять буквальные пути медиа и шрифтов также в `import()` и
+      `new URL(..., import.meta.url)`, включая вложенные выражения; unit fixture подтверждает
+      ошибку отсутствующего SVG и успешную повторную проверку после добавления файла.
 - [x] Первый read-only `system diff` показывает added/missing/changed authored файлы и Components
       между активной System и bundled default; внешний fixture проверяет результат после patch upgrade.
       Это отдельное двустороннее сравнение; `system upgrade` использует сохранённую базу.
