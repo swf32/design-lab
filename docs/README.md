@@ -8,6 +8,7 @@
 2. [Собственный интерфейс, Skin, System и установка](25-interface-system-and-installation.md).
 3. [Видение, приоритеты и открытые вопросы](26-vision-and-next-steps.md).
 4. [Подробный checklist](IMPLEMENTATION-CHECKLIST.md) и [принятые решения](DECISIONS.md).
+5. [Текущий план поставки P0/P1 и проверяемый прогресс](28-delivery-board.md).
 
 ## Полная карта документов
 
@@ -38,6 +39,7 @@
 - [Собственная интерфейсная система и установка](25-interface-system-and-installation.md)
 - [Видение и следующие шаги](26-vision-and-next-steps.md)
 - [Граница стилей приложения и System: аудит и проверка](27-interface-style-ownership-audit.md)
+- [План поставки P0/P1 и прогресс](28-delivery-board.md)
 - [Конкурентный обзор](07-market-review.md)
 - [Roadmap, риски и пакетные AI-задачи](08-roadmap-risks-and-tasks.md)
 
