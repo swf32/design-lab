@@ -9,6 +9,7 @@ import {
   open,
   readFile,
   readdir,
+  realpath,
   rename,
   stat,
   writeFile,
@@ -439,7 +440,8 @@ export async function checkSetupInstallation({
   const projectRoot = assertRoot(root)
   const integrationRoot = resolve(projectRoot, integrationDirectory)
   const diagnostics = []
-  const report = (code, message, path) => diagnostics.push({ code, message, path })
+  const report = (code, message, path, details = {}) =>
+    diagnostics.push({ code, message, path, ...details })
   if (!isInside(integrationRoot, projectRoot)) {
     report(
       'SETUP_INTEGRATION_PATH_INVALID',
@@ -513,7 +515,7 @@ export async function checkSetupInstallation({
         continue
       }
       if (!(await stat(target).catch(() => null))?.isDirectory())
-        report('SETUP_MOUNT_MISSING', `${kind} mount is not a directory.`, mount)
+        report('SETUP_MOUNT_MISSING', `${kind} mount is not a directory.`, mount, { kind })
     }
   }
 
@@ -719,6 +721,7 @@ export async function createSetupRepairPlan({
   root,
   integrationDirectory = DEFAULT_INTEGRATION_DIRECTORY,
   rulesSource = DEFAULT_RULES_SOURCE,
+  mountReplacements = [],
 }) {
   const projectRoot = assertRoot(root)
   const status = await inspectSetupInstallation({ root: projectRoot, integrationDirectory })
@@ -737,6 +740,82 @@ export async function createSetupRepairPlan({
     (item) => !['SETUP_RULE_MISSING', 'SETUP_AGENTS_POINTER_MISSING'].includes(item.code),
   )
   const inputs = []
+  let configDigest = null
+  if (!Array.isArray(mountReplacements))
+    throw setupError('Mount replacements must be a list.', 'SETUP_REPAIR_MOUNT_INVALID', 422)
+  if (mountReplacements.length) {
+    const canonicalProjectRoot = await realpath(projectRoot)
+    const configPath = join(integrationRoot, 'designlab.config.json')
+    const configState = await lstat(configPath)
+    if (!configState.isFile())
+      throw setupError(
+        'Repair will not write through a linked config.',
+        'SETUP_REPAIR_PATH_INVALID',
+        422,
+      )
+    const configContent = await readFile(configPath, 'utf8')
+    const config = JSON.parse(configContent)
+    const seen = new Set()
+    for (const replacement of mountReplacements) {
+      const { kind, from, to } = replacement ?? {}
+      const key = `${kind}:${from}`
+      if (
+        typeof kind !== 'string' ||
+        typeof from !== 'string' ||
+        typeof to !== 'string' ||
+        !to ||
+        to.trim() !== to ||
+        to.includes('\\') ||
+        to.startsWith('/') ||
+        to.split('/').some((segment) => !segment || segment === '.' || segment === '..') ||
+        seen.has(key) ||
+        !blockers.some(
+          (item) => item.code === 'SETUP_MOUNT_MISSING' && item.kind === kind && item.path === from,
+        ) ||
+        !config.source?.mounts?.[kind]?.includes(from)
+      )
+        throw setupError(
+          'Choose an existing missing mount and a relative project folder.',
+          'SETUP_REPAIR_MOUNT_INVALID',
+          422,
+        )
+      const target = resolve(projectRoot, to)
+      if (!isInside(target, projectRoot))
+        throw setupError(
+          'The replacement mount leaves the project.',
+          'SETUP_REPAIR_PATH_INVALID',
+          422,
+        )
+      const actual = await realpath(target).catch((error) => {
+        if (error.code === 'ENOENT' || error.code === 'ENOTDIR') return null
+        throw error
+      })
+      if (!actual || !isInside(actual, canonicalProjectRoot) || !(await stat(actual)).isDirectory())
+        throw setupError(
+          'Choose an existing project folder for the mount.',
+          'SETUP_REPAIR_MOUNT_INVALID',
+          422,
+        )
+      seen.add(key)
+      changes.push({
+        kind: 'replace-mount',
+        path: portablePath(relative(projectRoot, configPath)),
+        mountKind: kind,
+        from,
+        to,
+      })
+      inputs.push([key, portablePath(relative(canonicalProjectRoot, actual))])
+      for (let index = blockers.length - 1; index >= 0; index -= 1)
+        if (
+          blockers[index].code === 'SETUP_MOUNT_MISSING' &&
+          blockers[index].kind === kind &&
+          blockers[index].path === from
+        )
+          blockers.splice(index, 1)
+    }
+    configDigest = repairFingerprint(configContent)
+    inputs.push(['config', configDigest])
+  }
   const rulesRoot = join(integrationRoot, 'rules')
   const rulesState = await lstat(rulesRoot).catch((error) => {
     if (error.code === 'ENOENT') return null
@@ -806,6 +885,7 @@ export async function createSetupRepairPlan({
     available: true,
     changes,
     blockers,
+    configDigest,
     fingerprint: repairFingerprint({ changes, blockers, inputs }),
     canApply: changes.length > 0,
   }
@@ -817,6 +897,7 @@ export async function applySetupRepair({
   confirmed = false,
   integrationDirectory = DEFAULT_INTEGRATION_DIRECTORY,
   rulesSource = DEFAULT_RULES_SOURCE,
+  mountReplacements = [],
 }) {
   if (!confirmed)
     throw setupError(
@@ -824,7 +905,12 @@ export async function applySetupRepair({
       'SETUP_REPAIR_CONFIRMATION_REQUIRED',
       409,
     )
-  const plan = await createSetupRepairPlan({ root, integrationDirectory, rulesSource })
+  const plan = await createSetupRepairPlan({
+    root,
+    integrationDirectory,
+    rulesSource,
+    mountReplacements,
+  })
   if (!plan.available) throw setupError(plan.reason, 'SETUP_REPAIR_UNAVAILABLE', 409)
   if (typeof fingerprint !== 'string' || plan.fingerprint !== fingerprint)
     throw setupError(
@@ -836,6 +922,7 @@ export async function applySetupRepair({
     return { applied: false, changes: [], selfCheck: await inspectSetupInstallation({ root }) }
 
   const projectRoot = assertRoot(root)
+  const mountChanges = plan.changes.filter((change) => change.kind === 'replace-mount')
   for (const change of plan.changes) {
     const target = resolve(projectRoot, change.path)
     if (!isInside(target, projectRoot))
@@ -891,6 +978,36 @@ export async function applySetupRepair({
         await handle.close()
       }
     }
+  }
+  if (mountChanges.length) {
+    const configPath = join(projectRoot, integrationDirectory, 'designlab.config.json')
+    if (!(await lstat(configPath)).isFile())
+      throw setupError(
+        'The config changed. Review the repair plan again.',
+        'SETUP_REPAIR_STALE',
+        409,
+      )
+    const configContent = await readFile(configPath, 'utf8')
+    if (repairFingerprint(configContent) !== plan.configDigest)
+      throw setupError(
+        'The config changed. Review the repair plan again.',
+        'SETUP_REPAIR_STALE',
+        409,
+      )
+    const config = JSON.parse(configContent)
+    for (const change of mountChanges) {
+      const mounts = config.source?.mounts?.[change.mountKind]
+      if (!Array.isArray(mounts) || !mounts.includes(change.from))
+        throw setupError(
+          'The config changed. Review the repair plan again.',
+          'SETUP_REPAIR_STALE',
+          409,
+        )
+      config.source.mounts[change.mountKind] = mounts.map((mount) =>
+        mount === change.from ? change.to : mount,
+      )
+    }
+    await writeJsonAtomic(configPath, config)
   }
   return {
     applied: true,

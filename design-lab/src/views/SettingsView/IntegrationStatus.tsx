@@ -1,16 +1,20 @@
 import { useCallback, useEffect, useState } from 'react'
-import { Button, Dialog, SettingsPanel } from '@design-lab/system/components'
+import { Button, Dialog, Input, SettingsPanel } from '@design-lab/system/components'
+import { InterfaceFolderPicker } from './InterfaceFolderPicker'
 import {
   applySetupRepair,
   getSetupInstallationStatus,
   getSetupRepairPlan,
   type SetupInstallationStatus,
   type SetupRepairPlan,
+  type MountReplacement,
 } from '../../api/projects'
+
+const mountKey = (kind: string, path: string) => JSON.stringify([kind, path])
 
 function nextStep(code: string) {
   if (code === 'SETUP_MOUNT_MISSING')
-    return 'Restore the source folder or update its relative mount in designlab.config.json.'
+    return 'If this folder moved, choose its new location below and preview the config change.'
   if (code === 'SETUP_RULE_MISSING')
     return 'Restore the missing rule in design-lab/rules/ from the installed Design Lab package.'
   if (code === 'SETUP_AGENTS_POINTER_MISSING')
@@ -30,6 +34,9 @@ export function IntegrationStatus() {
   const [repairOpen, setRepairOpen] = useState(false)
   const [repairBusy, setRepairBusy] = useState(false)
   const [repairMessage, setRepairMessage] = useState<string | null>(null)
+  const [mountPaths, setMountPaths] = useState<Record<string, string>>({})
+  const [reviewedMounts, setReviewedMounts] = useState<MountReplacement[]>([])
+  const [pickerMount, setPickerMount] = useState<{ kind: string; path: string } | null>(null)
 
   const refresh = useCallback(async () => {
     setLoading(true)
@@ -52,7 +59,16 @@ export function IntegrationStatus() {
     setRepairBusy(true)
     setError(null)
     try {
-      setRepairPlan(await getSetupRepairPlan())
+      const replacements: MountReplacement[] = status?.available
+        ? status.diagnostics
+            .filter((item) => item.code === 'SETUP_MOUNT_MISSING' && item.kind)
+            .flatMap((item) => {
+              const to = mountPaths[mountKey(item.kind!, item.path)]?.trim()
+              return to ? [{ kind: item.kind!, from: item.path, to }] : []
+            })
+        : []
+      setRepairPlan(await getSetupRepairPlan(replacements))
+      setReviewedMounts(replacements)
       setRepairOpen(true)
     } catch (cause) {
       setError(cause instanceof Error ? cause.message : 'Could not prepare the repair plan.')
@@ -66,14 +82,16 @@ export function IntegrationStatus() {
     setRepairBusy(true)
     setError(null)
     try {
-      const result = await applySetupRepair(repairPlan.fingerprint)
+      const result = await applySetupRepair(repairPlan.fingerprint, reviewedMounts)
       setRepairMessage(
         result.applied
-          ? `Restored ${result.changes.length} managed item(s). Review any remaining diagnostics below.`
+          ? `Applied ${result.changes.length} integration repair(s). Review any remaining diagnostics below.`
           : 'No managed files needed repair.',
       )
       setRepairOpen(false)
       setRepairPlan(null)
+      setReviewedMounts([])
+      setMountPaths({})
       void refresh()
     } catch (cause) {
       setError(cause instanceof Error ? cause.message : 'Could not repair the integration.')
@@ -127,6 +145,32 @@ export function IntegrationStatus() {
                     <strong>{diagnostic.message}</strong>
                     <code>{diagnostic.path}</code>
                     <p>{nextStep(diagnostic.code)}</p>
+                    {diagnostic.code === 'SETUP_MOUNT_MISSING' && diagnostic.kind && (
+                      <div className="settings-integration__mount-repair">
+                        <Input
+                          label={`New folder for ${diagnostic.kind}`}
+                          value={mountPaths[mountKey(diagnostic.kind, diagnostic.path)] ?? ''}
+                          onChange={(event) =>
+                            setMountPaths((current) => ({
+                              ...current,
+                              [mountKey(diagnostic.kind!, diagnostic.path)]:
+                                event.currentTarget.value,
+                            }))
+                          }
+                          placeholder="src/components"
+                          fullWidth
+                        />
+                        <Button
+                          type="button"
+                          size="small"
+                          onClick={() =>
+                            setPickerMount({ kind: diagnostic.kind!, path: diagnostic.path })
+                          }
+                        >
+                          Browse project
+                        </Button>
+                      </div>
+                    )}
                     <details>
                       <summary>Diagnostic code</summary>
                       <code>{diagnostic.code}</code>
@@ -140,9 +184,9 @@ export function IntegrationStatus() {
       )}
       <Dialog
         open={repairOpen}
-        title="Repair managed integration files?"
+        title="Repair Design Lab integration?"
         eyebrow="Review file changes"
-        description="Only missing local rule copies and the managed AGENTS pointer can be restored. Existing files, source mounts, config, and the active System are preserved."
+        description="Review each proposed change. Missing managed rules and the AGENTS pointer can be restored; selected missing source mounts update only their relative paths in config. Source files and the active System stay in place."
         onClose={() => setRepairOpen(false)}
         dismissible={!repairBusy}
         footer={
@@ -169,20 +213,24 @@ export function IntegrationStatus() {
       >
         {repairPlan?.available ? (
           <div className="settings-integration__repair-plan">
-            <h4>Files to restore</h4>
+            <h4>Changes to apply</h4>
             {repairPlan.changes.length ? (
               <ul>
                 {repairPlan.changes.map((change) => (
-                  <li key={change.path}>
+                  <li
+                    key={`${change.kind}:${change.path}:${change.kind === 'replace-mount' ? change.from : ''}`}
+                  >
                     <code>{change.path}</code> ·{' '}
                     {change.kind === 'restore-rule'
                       ? 'restore missing rule'
-                      : 'append managed pointer'}
+                      : change.kind === 'append-agents-pointer'
+                        ? 'append managed pointer'
+                        : `${change.mountKind}: ${change.from} → ${change.to}`}
                   </li>
                 ))}
               </ul>
             ) : (
-              <p>No managed files need repair.</p>
+              <p>No safe changes selected.</p>
             )}
             {repairPlan.blockers.length > 0 && (
               <>
@@ -201,6 +249,19 @@ export function IntegrationStatus() {
           <p>{repairPlan?.reason}</p>
         )}
       </Dialog>
+      <InterfaceFolderPicker
+        kind="source mount"
+        open={pickerMount !== null}
+        onClose={() => setPickerMount(null)}
+        onSelect={(path) => {
+          if (pickerMount)
+            setMountPaths((current) => ({
+              ...current,
+              [mountKey(pickerMount.kind, pickerMount.path)]: path,
+            }))
+          setPickerMount(null)
+        }}
+      />
     </SettingsPanel>
   )
 }

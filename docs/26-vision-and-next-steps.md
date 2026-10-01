@@ -17,7 +17,7 @@
 
 ## Вторая главная линия: Design Lab как устанавливаемый инструмент
 
-Локальный tarball, CLI, интеграционная папка, read-only scan, применение, post-apply self-check, ограниченный repair managed rules/pointer, безопасное обновление default System и запуск на отдельных портах проверены в чистом внешнем репозитории. Read-only `designlab footprint` показывает setup files, project-owned System/mounts, дополнительные файлы и AGENTS pointer как основу будущего uninstall. Пакет закрыт для публикации (`private: true`). До registry release нужны само удаление, исправление сломанных config/mounts, миграции будущих контрактов и проверки на других платформах. См. [подробную модель](20-embedded-install-and-attach-mode.md) и [раздел об установке](25-interface-system-and-installation.md).
+Локальный tarball, CLI, интеграционная папка, read-only scan, применение, post-apply self-check, repair managed rules/pointer и выбранных перенесённых mounts, безопасное обновление default System и запуск на отдельных портах проверены в чистом внешнем репозитории. Read-only `designlab footprint` показывает setup files, project-owned System/mounts, дополнительные файлы и AGENTS pointer как основу будущего uninstall. Пакет закрыт для публикации (`private: true`). До registry release нужны само удаление, исправление повреждённого config, миграции будущих контрактов и проверки на других платформах. См. [подробную модель](20-embedded-install-and-attach-mode.md) и [раздел об установке](25-interface-system-and-installation.md).
 
 ## Остальные направления
 
@@ -55,7 +55,7 @@
 
 ### P2 — завершить attach и web adapters
 
-- [ ] Довести mount resolver до watcher, runtime host и оставшихся scanners; расширить repair на случаи move/rename mounts. Post-apply self-check config/mounts/rules/System, повторная диагностика и repair отсутствующих managed files в Settings уже есть.
+- [ ] Довести mount resolver до watcher, runtime host и оставшихся scanners. Post-apply self-check config/mounts/rules/System, повторная диагностика и repair отсутствующих managed files в Settings уже есть; перенос source mount теперь исправляется выбором новой относительной папки. Повреждённый config и более сложные случаи остаются открытыми.
 - [ ] Закрыть Vue gaps, перенести React на isolated runtime, затем добавить Svelte по [feature matrix](21-web-runtime-feature-parity.md).
 - [ ] Убрать оставшиеся eager React registries после доказанной parity; сохранить честные capability errors.
 

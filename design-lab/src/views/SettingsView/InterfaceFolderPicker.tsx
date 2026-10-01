@@ -8,7 +8,7 @@ export function InterfaceFolderPicker({
   onClose,
   onSelect,
 }: {
-  kind: 'Skin' | 'System'
+  kind: 'Skin' | 'System' | 'source mount'
   open: boolean
   onClose: () => void
   onSelect: (path: string) => void
@@ -43,7 +43,11 @@ export function InterfaceFolderPicker({
       open={open}
       title={`Choose a ${kind} folder`}
       eyebrow="Project folders"
-      description="Browse folders in this project. Choosing one checks its package contract before installation."
+      description={
+        kind === 'source mount'
+          ? 'Choose the folder where the project source now lives. Its relative path will be reviewed before the config changes.'
+          : 'Browse folders in this project. Choosing one checks its package contract before installation.'
+      }
       onClose={onClose}
       footer={
         <>
@@ -58,7 +62,7 @@ export function InterfaceFolderPicker({
               if (listing && listing.path !== '.') onSelect(listing.path)
             }}
           >
-            Check this folder
+            {kind === 'source mount' ? 'Use this folder' : 'Check this folder'}
           </Button>
         </>
       }

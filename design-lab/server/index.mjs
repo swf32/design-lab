@@ -214,6 +214,18 @@ createServer(async (request, response) => {
     if (request.method === 'GET' && url.pathname === '/api/onboarding/repair') {
       return sendJson(response, 200, await createSetupRepairPlan({ root: getWorkspaceDirectory() }))
     }
+    if (request.method === 'POST' && url.pathname === '/api/onboarding/repair/preview') {
+      requireInterfaceUiRequest(request)
+      const input = await readJson(request)
+      return sendJson(
+        response,
+        200,
+        await createSetupRepairPlan({
+          root: getWorkspaceDirectory(),
+          mountReplacements: input.mountReplacements ?? [],
+        }),
+      )
+    }
     if (request.method === 'POST' && url.pathname === '/api/onboarding/repair') {
       requireInterfaceUiRequest(request)
       const input = await readJson(request)
@@ -221,6 +233,7 @@ createServer(async (request, response) => {
         root: getWorkspaceDirectory(),
         fingerprint: input.fingerprint,
         confirmed: input.confirmed === true,
+        mountReplacements: input.mountReplacements ?? [],
       })
       if (result.applied) revision += 1
       return sendJson(response, 200, result)

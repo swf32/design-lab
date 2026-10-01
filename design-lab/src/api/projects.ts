@@ -122,7 +122,7 @@ export type SetupInstallationStatus =
   | {
       available: true
       ok: boolean
-      diagnostics: Array<{ code: string; message: string; path: string }>
+      diagnostics: Array<{ code: string; message: string; path: string; kind?: string }>
     }
 
 export function getSetupInstallationStatus() {
@@ -133,17 +133,28 @@ export type SetupRepairPlan =
   | { available: false; reason: string }
   | {
       available: true
-      changes: Array<{ kind: 'restore-rule' | 'append-agents-pointer'; path: string }>
+      changes: Array<
+        | { kind: 'restore-rule'; path: string }
+        | { kind: 'append-agents-pointer'; path: string }
+        | { kind: 'replace-mount'; path: string; mountKind: string; from: string; to: string }
+      >
       blockers: Array<{ code: string; message: string; path: string }>
       fingerprint: string
       canApply: boolean
     }
 
-export function getSetupRepairPlan() {
-  return request<SetupRepairPlan>('/api/onboarding/repair')
+export type MountReplacement = { kind: string; from: string; to: string }
+
+export function getSetupRepairPlan(mountReplacements: MountReplacement[] = []) {
+  if (mountReplacements.length === 0) return request<SetupRepairPlan>('/api/onboarding/repair')
+  return request<SetupRepairPlan>('/api/onboarding/repair/preview', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', 'X-Design-Lab-UI': '1' },
+    body: JSON.stringify({ mountReplacements }),
+  })
 }
 
-export function applySetupRepair(fingerprint: string) {
+export function applySetupRepair(fingerprint: string, mountReplacements: MountReplacement[] = []) {
   return request<{
     applied: boolean
     changes: Array<{ kind: string; path: string }>
@@ -151,7 +162,7 @@ export function applySetupRepair(fingerprint: string) {
   }>('/api/onboarding/repair', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json', 'X-Design-Lab-UI': '1' },
-    body: JSON.stringify({ fingerprint, confirmed: true }),
+    body: JSON.stringify({ fingerprint, mountReplacements, confirmed: true }),
   })
 }
 

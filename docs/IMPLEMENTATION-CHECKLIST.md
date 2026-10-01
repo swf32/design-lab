@@ -849,8 +849,11 @@ where they are` и confirm-gated apply plan; post-apply self-check возвра�
       авторских файлов. Browser fixture проверяет восстановление правила и здоровый статус.
 - [x] Добавить read-only footprint inventory для uninstall: setup files, project-owned System/mounts,
       дополнительные файлы и AGENTS pointer; CLI/API не удаляют и не перезаписывают файлы.
-- [ ] Добавить repair для безопасной правки config/mounts после move/rename и uninstall,
-      сохраняющий исходники пользователя.
+- [x] Дать Settings подтверждаемый repair перенесённого source mount: пользователь выбирает новую
+      папку проекта, preview проверяет существование и containment, apply повторно сверяет config,
+      меняет только относительный путь и проверяет интеграцию; unit и browser fixtures покрывают
+      move/rename без перемещения исходников.
+- [ ] Добавить repair повреждённого config и uninstall, сохраняющий исходники пользователя.
 - [ ] Подготовить registry release, проверить установку на других ОС и package managers.
 
 ## Ближайший конкретный шаг

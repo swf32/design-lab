@@ -3,7 +3,7 @@ import { execFile, spawn } from 'node:child_process'
 import { randomUUID } from 'node:crypto'
 import { once } from 'node:events'
 import { existsSync } from 'node:fs'
-import { cp, mkdtemp, mkdir, readFile, realpath, rm, writeFile } from 'node:fs/promises'
+import { cp, mkdtemp, mkdir, readFile, realpath, rename, rm, writeFile } from 'node:fs/promises'
 import { createServer } from 'node:net'
 import { tmpdir } from 'node:os'
 import { join, relative, resolve } from 'node:path'
@@ -102,6 +102,7 @@ async function browserSmoke(
     browseProjectSystem = false,
     verifyUpgradeConflict = false,
     checkIntegrationFailure = false,
+    repairMovedMount = false,
     createSkinCandidate = null,
     verifySkinAndClear = false,
     expectDefaultMatch = false,
@@ -314,7 +315,7 @@ async function browserSmoke(
       )
       await page.setViewportSize({ width: 1500, height: 1000 })
     }
-    await page.getByText('Healthy', { exact: true }).waitFor()
+    if (!repairMovedMount) await page.getByText('Healthy', { exact: true }).waitFor()
     if (checkIntegrationFailure) {
       const rulePath = join(projectRoot, 'design-lab/rules/COMPONENT_RULES.md')
       const rule = await readFile(rulePath, 'utf8')
@@ -366,6 +367,38 @@ async function browserSmoke(
       } finally {
         if (!existsSync(rulePath)) await writeFile(rulePath, rule)
       }
+    }
+    if (repairMovedMount) {
+      await page.getByText('Needs attention', { exact: true }).waitFor()
+      const mountRepair = page.locator('.settings-integration__mount-repair')
+      await mountRepair.getByRole('button', { name: 'Browse project' }).click()
+      for (const folder of ['src', 'widgets'])
+        await page.getByRole('dialog').getByRole('button', { name: folder, exact: true }).click()
+      await page.getByRole('dialog').getByRole('button', { name: 'Use this folder' }).click()
+      assert.equal(
+        await mountRepair.getByRole('textbox', { name: 'New folder for components' }).inputValue(),
+        'src/widgets',
+      )
+      const [preview] = await Promise.all([
+        page.waitForResponse((result) => result.url().endsWith('/api/onboarding/repair/preview')),
+        page.getByRole('button', { name: 'Preview safe repair' }).click(),
+      ])
+      assert.equal(preview.status(), 200)
+      assert(
+        (await preview.json()).changes.some(
+          (change) => change.kind === 'replace-mount' && change.to === 'src/widgets',
+        ),
+      )
+      const [appliedRepair] = await Promise.all([
+        page.waitForResponse(
+          (result) =>
+            result.url().endsWith('/api/onboarding/repair') && result.request().method() === 'POST',
+        ),
+        page.getByRole('dialog').getByRole('button', { name: 'Apply safe repair' }).click(),
+      ])
+      assert.equal(appliedRepair.status(), 200)
+      assert.equal((await appliedRepair.json()).selfCheck.ok, true)
+      await page.getByText('Healthy', { exact: true }).waitFor()
     }
     await page.getByText('Compatible', { exact: true }).waitFor()
     await page
@@ -699,7 +732,11 @@ try {
   )
   const cleanComponentsIndex = join(cleanRoot, 'design-lab/system/components/index.ts')
   const originalComponentsIndex = await readFile(cleanComponentsIndex, 'utf8')
-  assert(originalComponentsIndex.includes("export * from './organisms/shell/SettingsPanel/SettingsPanel'"))
+  assert(
+    originalComponentsIndex.includes(
+      "export * from './organisms/shell/SettingsPanel/SettingsPanel'",
+    ),
+  )
   await writeFile(
     cleanComponentsIndex,
     originalComponentsIndex.replace(
@@ -747,6 +784,15 @@ try {
     } finally {
       await rm(localConflict, { force: true })
       await rm(bundledConflict, { force: true })
+    }
+    const configPath = join(projectRoot, 'design-lab/designlab.config.json')
+    const originalConfig = await readFile(configPath, 'utf8')
+    await rename(join(projectRoot, 'src/components'), join(projectRoot, 'src/widgets'))
+    try {
+      await browserSmoke(cli, { repairMovedMount: true })
+    } finally {
+      await rename(join(projectRoot, 'src/widgets'), join(projectRoot, 'src/components'))
+      await writeFile(configPath, originalConfig)
     }
   }
 
@@ -883,7 +929,7 @@ try {
   }
 
   process.stdout.write(
-    `Package smoke passed: pack, attach, clean managed setup, one System, versioned upgrade preserving edits, validated fork with Component anatomy and SVG asset, switch, manual folder replacement, reset${process.argv.includes('--browser') ? ', browser integration health, Skin/System folder selection, shell/Workbench fork and HMR' : ''}.\n`,
+    `Package smoke passed: pack, attach, clean managed setup, one System, versioned upgrade preserving edits, validated fork with Component anatomy and SVG asset, switch, manual folder replacement, reset${process.argv.includes('--browser') ? ', browser integration health and moved mount repair, Skin/System folder selection, shell/Workbench fork and HMR' : ''}.\n`,
   )
 } finally {
   if (process.env.DESIGN_LAB_KEEP_SMOKE === '1')

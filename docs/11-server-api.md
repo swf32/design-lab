@@ -120,20 +120,26 @@ Static-ish info payload for the Settings page: the absolute Node executable path
 
 Read-only integration check for the current workspace. Without an embedded config it returns
 `{ available: false, reason }`; with one it returns `{ available: true, ok, diagnostics[] }`.
-Each diagnostic has `code`, `message`, and project-relative `path`. This endpoint checks config,
+Each diagnostic has `code`, `message`, and project-relative `path`; a missing mount also reports its
+`kind`. This endpoint checks config,
 relative mounts, local rules, root AGENTS pointer, and System structure. It skips the expensive
 System typecheck; Settings runs the full System doctor separately. No files are repaired or removed.
 
-### `GET /api/onboarding/repair` and `POST /api/onboarding/repair`
+### `GET /api/onboarding/repair`, `POST /api/onboarding/repair/preview`, and `POST /api/onboarding/repair`
 
 `GET` returns a read-only plan `{ available, changes, blockers, fingerprint, canApply }` for a
-configured embedded project. It offers only missing local rule copies and an absent managed
-`AGENTS.md` pointer. Edited rules, config, mounts, and the active System are left alone. Unsafe
-paths and unresolved diagnostics appear as blockers. `POST` requires the local UI request headers,
-`{ fingerprint, confirmed: true }`, and a fresh plan; it creates missing rule files without replacing
-existing entries and appends only the managed pointer. It returns `{ applied, changes, selfCheck }`.
+configured embedded project. It offers missing local rule copies and an absent managed
+`AGENTS.md` pointer. `POST /preview` accepts `{ mountReplacements: [{ kind, from, to }] }` and
+adds explicit relative-path changes for missing mounts. Each `to` must be an existing project
+folder; symlinks resolving outside the project are rejected. Unselected mounts and other
+unresolved diagnostics remain blockers. `POST /repair` requires the local UI request headers,
+`{ fingerprint, mountReplacements, confirmed: true }`, and a fresh plan. It creates missing rule
+files without replacing existing entries, appends only the managed pointer, and atomically rewrites
+the config for selected mount paths. It never moves source files or changes the active System.
+It returns `{ applied, changes, selfCheck }`.
 Missing confirmation or a stale fingerprint returns `409`. The CLI exposes the same preview and
-confirmed apply as `designlab repair`.
+confirmed apply for missing managed files as `designlab repair`; mount path selection is currently
+available in Settings.
 
 ### `GET /api/onboarding/footprint`
 

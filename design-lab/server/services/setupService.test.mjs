@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict'
-import { mkdtemp, mkdir, readFile, rm, symlink, writeFile } from 'node:fs/promises'
+import { mkdtemp, mkdir, readFile, rename, rm, symlink, writeFile } from 'node:fs/promises'
 import { join } from 'node:path'
 import { tmpdir } from 'node:os'
 import test from 'node:test'
@@ -110,6 +110,66 @@ test('repair refuses a linked local rules directory', async () => {
       false,
     )
     assert(plan.blockers.some((item) => item.code === 'SETUP_REPAIR_RULES_UNSAFE'))
+  } finally {
+    await rm(root, { recursive: true, force: true })
+  }
+})
+
+test('repair replaces a missing relative mount after a project folder moves', async () => {
+  const root = await fixture()
+  try {
+    await applySetupPlan({ root, name: 'Moved source', confirmed: true })
+    await rename(join(root, 'src/components'), join(root, 'src/widgets'))
+    const mountReplacements = [{ kind: 'components', from: 'src/components', to: 'src/widgets' }]
+    const plan = await createSetupRepairPlan({ root, mountReplacements })
+    assert(
+      plan.changes.some((change) => change.kind === 'replace-mount' && change.to === 'src/widgets'),
+    )
+    assert.equal(
+      plan.blockers.some((item) => item.code === 'SETUP_MOUNT_MISSING'),
+      false,
+    )
+    await assert.rejects(
+      applySetupRepair({ root, mountReplacements, fingerprint: 'stale', confirmed: true }),
+      { code: 'SETUP_REPAIR_STALE' },
+    )
+    await assert.rejects(
+      createSetupRepairPlan({
+        root,
+        mountReplacements: [{ kind: 'components', from: 'src/components', to: '../outside' }],
+      }),
+      { code: 'SETUP_REPAIR_MOUNT_INVALID' },
+    )
+    await symlink(tmpdir(), join(root, 'src/outside-link'))
+    await assert.rejects(
+      createSetupRepairPlan({
+        root,
+        mountReplacements: [{ kind: 'components', from: 'src/components', to: 'src/outside-link' }],
+      }),
+      { code: 'SETUP_REPAIR_MOUNT_INVALID' },
+    )
+    const configPath = join(root, 'design-lab/designlab.config.json')
+    const originalConfig = await readFile(configPath, 'utf8')
+    await writeFile(configPath, `${originalConfig.trimEnd()}\n `)
+    await assert.rejects(
+      applySetupRepair({ root, mountReplacements, fingerprint: plan.fingerprint, confirmed: true }),
+      { code: 'SETUP_REPAIR_STALE' },
+    )
+    await writeFile(configPath, originalConfig)
+    const applied = await applySetupRepair({
+      root,
+      mountReplacements,
+      fingerprint: plan.fingerprint,
+      confirmed: true,
+    })
+    assert.equal(applied.applied, true)
+    assert.equal(applied.selfCheck.ok, true)
+    const config = JSON.parse(await readFile(configPath, 'utf8'))
+    assert.deepEqual(config.source.mounts.components, ['src/widgets'])
+    assert.match(
+      await readFile(join(root, 'src/widgets/Button.tsx'), 'utf8'),
+      /External button|button/,
+    )
   } finally {
     await rm(root, { recursive: true, force: true })
   }
