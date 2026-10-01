@@ -795,6 +795,15 @@ export type LocalInterfaceSystemInspection = {
   description: string
   canInstall: boolean
   diff: InterfaceSystemDiff
+  unresolvedAssetReferences: {
+    references: Array<{
+      source: string
+      line: number
+      kind: 'new URL' | 'import()'
+      expression: string
+    }>
+    total: number
+  }
   uploaded?: boolean
 }
 

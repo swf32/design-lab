@@ -214,6 +214,12 @@ returns the same inspection and diff as `POST /api/interface/system/inspect`, pl
 `uploaded: true`. This does not activate the System. `POST /api/interface/system/install` still
 requires its fresh fingerprint and explicit confirmation; stale staging folders are deleted on a
 later upload after 24 hours. This endpoint runs on the loopback-only local server.
+
+System inspection also returns `unresolvedAssetReferences: { references, total }`.
+The validator verifies literal and statically composed `new URL`/`import()` paths; expressions
+dependent on runtime values are listed with source file, line, kind, and a short expression
+(first 20, with the full count). These are non-blocking review warnings, not proof that the
+runtime files exist.
 The endpoint reads no arbitrary project path, writes nothing, and rechecks the plan before reply.
 
 ### `POST /api/interface/system/inspect`

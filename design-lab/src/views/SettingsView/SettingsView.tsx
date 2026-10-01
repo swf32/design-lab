@@ -680,6 +680,26 @@ export function SettingsView({ onClose }: { onClose: () => void }) {
               <code>
                 {candidate.uploaded ? 'Folder selected from your computer' : candidate.path}
               </code>
+              {candidate.unresolvedAssetReferences.total > 0 && (
+                <div>
+                  <p>
+                    Review these dynamic paths before installing. Design Lab cannot verify the
+                    referenced files without running the System code. Showing{' '}
+                    {candidate.unresolvedAssetReferences.references.length} of{' '}
+                    {candidate.unresolvedAssetReferences.total}:
+                  </p>
+                  <ul>
+                    {candidate.unresolvedAssetReferences.references.map((reference, index) => (
+                      <li key={`${reference.source}:${reference.line}:${index}`}>
+                        <code>
+                          {reference.source}:{reference.line}
+                        </code>{' '}
+                        {reference.kind}: <code>{reference.expression}</code>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
               <div className="settings-system__diff">
                 <p>
                   {candidate.diff.identical
@@ -828,13 +848,23 @@ export function SettingsView({ onClose }: { onClose: () => void }) {
         }
       >
         {candidate && (
-          <p>
-            <strong>
-              {candidate.name} {candidate.version}
-            </strong>
-            <br />
-            <code>{candidate.path}</code>
-          </p>
+          <div>
+            <p>
+              <strong>
+                {candidate.name} {candidate.version}
+              </strong>
+              <br />
+              <code>
+                {candidate.uploaded ? 'Folder selected from your computer' : candidate.path}
+              </code>
+            </p>
+            {candidate.unresolvedAssetReferences.total > 0 && (
+              <p>
+                {candidate.unresolvedAssetReferences.total} dynamic path(s) could not be checked.
+                Review them in the candidate before installing.
+              </p>
+            )}
+          </div>
         )}
       </Dialog>
 

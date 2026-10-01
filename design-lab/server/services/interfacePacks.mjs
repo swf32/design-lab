@@ -822,6 +822,8 @@ async function collectExports(file, root, seen = new Set()) {
 }
 
 async function validateSystemAssetImports(root, assetsRoot) {
+  const unresolvedReferences = []
+  let unresolvedReferenceCount = 0
   async function checkReference(file, reference) {
     const cleanReference = reference.split(/[?#]/, 1)[0]
     if (!STATIC_ASSET_EXTENSIONS.has(extname(cleanReference).toLowerCase())) return
@@ -899,11 +901,40 @@ async function validateSystemAssetImports(root, assetsRoot) {
         const reference = node.source?.value
         if (typeof reference === 'string') await checkReference(file, reference)
       }
-      const literalReference = (node) => {
+      const staticReference = (node) => {
         if (node?.type === 'StringLiteral') return node.value
-        if (node?.type === 'TemplateLiteral' && node.expressions.length === 0)
-          return node.quasis[0]?.value.cooked
+        if (node?.type === 'TemplateLiteral') {
+          let value = ''
+          for (const [index, quasi] of node.quasis.entries()) {
+            value += quasi.value.cooked ?? quasi.value.raw
+            if (index < node.expressions.length) {
+              const expression = staticReference(node.expressions[index])
+              if (expression === null) return null
+              value += expression
+            }
+          }
+          return value
+        }
+        if (node?.type === 'BinaryExpression' && node.operator === '+') {
+          const left = staticReference(node.left)
+          const right = staticReference(node.right)
+          return left === null || right === null ? null : left + right
+        }
+        if (['ParenthesizedExpression', 'TSAsExpression', 'TSTypeAssertion'].includes(node?.type))
+          return staticReference(node.expression)
         return null
+      }
+      const checkExpression = async (node, kind) => {
+        const reference = staticReference(node)
+        if (reference !== null) return checkReference(file, reference)
+        unresolvedReferenceCount += 1
+        if (unresolvedReferences.length < 20)
+          unresolvedReferences.push({
+            source: portablePath(relative(root, file)),
+            line: node?.loc?.start.line ?? 1,
+            kind,
+            expression: source.slice(node?.start ?? 0, node?.end ?? 0).slice(0, 160),
+          })
       }
       const isImportMetaUrl = (node) =>
         node?.type === 'MemberExpression' &&
@@ -920,15 +951,13 @@ async function validateSystemAssetImports(root, assetsRoot) {
           node.callee.name === 'URL' &&
           isImportMetaUrl(node.arguments[1])
         ) {
-          const reference = literalReference(node.arguments[0])
-          if (reference) await checkReference(file, reference)
+          await checkExpression(node.arguments[0], 'new URL')
         }
         if (
           node.type === 'ImportExpression' ||
           (node.type === 'CallExpression' && node.callee?.type === 'Import')
         ) {
-          const reference = literalReference(node.source ?? node.arguments?.[0])
-          if (reference) await checkReference(file, reference)
+          await checkExpression(node.source ?? node.arguments?.[0], 'import()')
         }
         for (const value of Object.values(node)) {
           if (Array.isArray(value)) {
@@ -940,6 +969,7 @@ async function validateSystemAssetImports(root, assetsRoot) {
     }
   }
   await visit(root)
+  return { references: unresolvedReferences, total: unresolvedReferenceCount }
 }
 
 export function parseInterfaceTypecheckDiagnostics(output, systemRoot, applicationRoot) {
@@ -1077,6 +1107,7 @@ export async function validateInterfacePack(root, options = {}) {
     )
 
   const resolvedEntrypoints = {}
+  let unresolvedAssetReferences = { references: [], total: 0 }
   if (manifest.kind === 'skin') {
     const style = await assertPackFile(packRoot, manifest.entrypoints.style, 'entrypoints.style')
     if (extname(style.path) !== '.css')
@@ -1123,7 +1154,10 @@ export async function validateInterfacePack(root, options = {}) {
           { entrypoint: key, missing },
         )
     }
-    await validateSystemAssetImports(realPackRoot, resolvedEntrypoints.assets)
+    unresolvedAssetReferences = await validateSystemAssetImports(
+      realPackRoot,
+      resolvedEntrypoints.assets,
+    )
   }
 
   for (const [index, screenshot] of (manifest.screenshots ?? []).entries())
@@ -1134,6 +1168,7 @@ export async function validateInterfacePack(root, options = {}) {
     manifest,
     designLabVersion: version,
     entrypoints: resolvedEntrypoints,
+    unresolvedAssetReferences,
   }
   if (manifest.kind === 'system' && options.typecheckSystem)
     await typecheckInterfaceSystem(validated, options)
@@ -1172,6 +1207,7 @@ export async function inspectLocalInterfaceSystem(path, options = {}) {
     name: validated.manifest.name,
     version: validated.manifest.version,
     description: validated.manifest.description ?? '',
+    unresolvedAssetReferences: validated.unresolvedAssetReferences,
     fingerprint: await packSourceFingerprint(root),
     canInstall: validated.manifest.id !== DEFAULT_SYSTEM_ID,
     diff: await diffInterfaceSystem({ ...options, target: root }),

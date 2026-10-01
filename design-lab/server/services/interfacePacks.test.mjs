@@ -989,6 +989,46 @@ test('System validation checks literal asset URLs and lazy imports before instal
   })
 })
 
+test('System validation resolves constant asset expressions and reports runtime-dependent paths', async () => {
+  await withPackWorkspace(async ({ sources, options }) => {
+    const source = join(sources, 'computed-asset-system')
+    await writeSystem(source)
+    const componentPath = join(source, 'components.ts')
+    const original = await readFile(componentPath, 'utf8')
+    await writeFile(
+      componentPath,
+      `${original}\nexport const imageUrl = new URL('./assets/images/' + 'missing.svg', import.meta.url).href\n`,
+    )
+    await assert.rejects(
+      validateInterfacePack(source, { ...options, expectedKind: 'system' }),
+      (error) =>
+        error.code === 'INTERFACE_PACK_ASSET_MISSING' &&
+        error.details.path === 'assets/images/missing.svg',
+    )
+    await mkdir(join(source, 'assets/images'), { recursive: true })
+    await writeFile(join(source, 'assets/images/missing.svg'), '<svg/>\n')
+    await writeFile(
+      componentPath,
+      `${original}\nexport const imageUrl = new URL(\`./assets/images/\${'missing'}\${'.svg'}\`, import.meta.url).href\nexport const dynamicUrl = (name: string) => new URL(name, import.meta.url).href\n`,
+    )
+    const inspected = await inspectLocalInterfaceSystem(source, {
+      ...options,
+      typecheckSystem: false,
+    })
+    assert.deepEqual(inspected.unresolvedAssetReferences, {
+      total: 1,
+      references: [
+        {
+          source: 'components.ts',
+          line: original.split('\n').length + 2,
+          kind: 'new URL',
+          expression: 'name',
+        },
+      ],
+    })
+  })
+})
+
 test('System validation checks local CSS and SCSS asset URLs without treating data URLs as files', async () => {
   await withPackWorkspace(async ({ sources, options }) => {
     const source = join(sources, 'styled-system')

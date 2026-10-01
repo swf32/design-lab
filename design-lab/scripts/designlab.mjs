@@ -373,6 +373,7 @@ try {
         name: result.manifest.name,
         version: result.manifest.version,
         designLabVersion: result.designLabVersion,
+        unresolvedAssetReferences: result.unresolvedAssetReferences,
       })
     } else {
       throw new Error(`Unknown ${command} action "${action}"`)

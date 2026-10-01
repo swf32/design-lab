@@ -100,6 +100,9 @@ new folder is inactive until you validate and install it.
 7. Select "Install this System", confirm, restart Design Lab, and review every module in dark and
    light modes. Verify
    long content, narrow viewports, dialogs, navigation, Canvas modes, and browser console output.
+   The validator checks literal and statically composed local asset paths. If a `new URL` or
+   `import()` path depends on runtime values, Settings lists its source line for manual review;
+   validation cannot prove that every runtime value names an existing file.
 8. Add deterministic screenshots, append changelogs, and update semantic versions before release.
 
 ## Adding new Components and features
