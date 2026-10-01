@@ -1267,13 +1267,35 @@ export async function createLocalInterfaceSystem(path, name, options = {}) {
   if (typeof path !== 'string' || !path.trim())
     throw packError('Choose a folder for the new System.', 'INTERFACE_PACK_DESTINATION_REQUIRED')
   const paths = defaultInterfacePaths(options)
+  const template = options.template ?? 'active'
+  if (!['active', 'default'].includes(template))
+    throw packError(
+      'Choose the active or bundled default System as the starting point.',
+      'INTERFACE_PACK_TEMPLATE_INVALID',
+    )
+  let sourceRoot = paths.systemSlot
+  if (template === 'default') {
+    if (paths.defaultSystemSource && existsSync(join(paths.defaultSystemSource, PACK_MANIFEST)))
+      sourceRoot = paths.defaultSystemSource
+    else {
+      const defaults = (await installedPacks('system', options))
+        .filter(({ manifest }) => manifest.id === DEFAULT_SYSTEM_ID)
+        .sort((left, right) => right.manifest.version.localeCompare(left.manifest.version))
+      if (!defaults.length)
+        throw packError(
+          'The bundled default System is unavailable.',
+          'INTERFACE_DEFAULT_SYSTEM_MISSING',
+        )
+      sourceRoot = defaults[0].root
+    }
+  }
   const destination = resolve(paths.workspaceDirectory, path.trim())
   if (isInside(paths.systemSlot, destination))
     throw packError(
       'Create the new System outside the active System folder.',
       'INTERFACE_PACK_DESTINATION_ACTIVE',
     )
-  return createInterfacePack('system', destination, { ...options, name: name.trim() })
+  return createInterfacePack('system', destination, { ...options, sourceRoot, name: name.trim() })
 }
 
 export async function createLocalInterfaceSkin(path, name, options = {}) {
@@ -1650,7 +1672,8 @@ export async function createInterfacePack(kind, target, options = {}) {
   const staged = join(dirname(destination), `.interface-pack-${randomUUID()}`)
   try {
     if (kind === 'system') {
-      await cp(paths.systemSlot, staged, {
+      const sourceRoot = options.sourceRoot ?? paths.systemSlot
+      await cp(sourceRoot, staged, {
         recursive: true,
         errorOnExist: true,
       })
@@ -1685,9 +1708,11 @@ export async function createInterfacePack(kind, target, options = {}) {
       })
       await writeFile(join(staged, 'package.json'), `${JSON.stringify(packageManifest, null, 2)}\n`)
       if (!existsSync(join(staged, SYSTEM_BASELINE_FILE))) {
-        const sourceManifest = await currentSystemManifest(paths)
-        if (sourceManifest?.id === DEFAULT_SYSTEM_ID)
-          await writeSystemBaseline(staged, paths.systemSlot)
+        const sourceManifest = await readJson(
+          join(sourceRoot, PACK_MANIFEST),
+          'INTERFACE_PACK_MANIFEST_MISSING',
+        )
+        if (sourceManifest?.id === DEFAULT_SYSTEM_ID) await writeSystemBaseline(staged, sourceRoot)
       }
     } else {
       await mkdir(staged, { recursive: true })

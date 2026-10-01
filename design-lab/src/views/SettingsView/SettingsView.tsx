@@ -10,6 +10,7 @@ import {
   Dialog,
   Input,
   ModuleHeader,
+  Select,
   SettingsPanel,
 } from '@design-lab/system/components'
 import {
@@ -204,6 +205,7 @@ export function SettingsView({ onClose }: { onClose: () => void }) {
   const [uploadingSystem, setUploadingSystem] = useState(false)
   const [newSystemName, setNewSystemName] = useState('')
   const [newSystemFolder, setNewSystemFolder] = useState('')
+  const [newSystemTemplate, setNewSystemTemplate] = useState<'default' | 'active'>('default')
   const [creating, setCreating] = useState(false)
   const [createError, setCreateError] = useState<string | null>(null)
   const [createResult, setCreateResult] = useState<string | null>(null)
@@ -309,7 +311,11 @@ export function SettingsView({ onClose }: { onClose: () => void }) {
     setCreateError(null)
     setCreateResult(null)
     try {
-      const result = await createLocalInterfaceSystem(newSystemName.trim(), newSystemFolder.trim())
+      const result = await createLocalInterfaceSystem(
+        newSystemName.trim(),
+        newSystemFolder.trim(),
+        newSystemTemplate,
+      )
       const request = ++candidateRequest.current
       setSystemFolder(result.path)
       setCandidate(null)
@@ -551,9 +557,9 @@ export function SettingsView({ onClose }: { onClose: () => void }) {
         <div className="settings-system__create">
           <h4>Create a System</h4>
           <p>
-            Make an editable copy of the currently active System with its Components, assets, and
-            local authoring rules. This does not change the active System. A relative folder starts
-            at the project root.
+            Start from the bundled default or the active System. The new editable copy includes
+            Components, assets, and local authoring rules. It does not change the active System. A
+            relative folder starts at the project root.
           </p>
           <form
             className="settings-system__create-form"
@@ -575,6 +581,17 @@ export function SettingsView({ onClose }: { onClose: () => void }) {
               onChange={(event) => setNewSystemFolder(event.currentTarget.value)}
               placeholder="design-lab/systems/my-system"
               fullWidth
+            />
+            <Select
+              label="Start from"
+              value={newSystemTemplate}
+              onChange={(event) =>
+                setNewSystemTemplate(event.currentTarget.value as 'default' | 'active')
+              }
+              options={[
+                { value: 'default', label: 'Bundled default' },
+                { value: 'active', label: 'Active System' },
+              ]}
             />
             <Button
               type="submit"

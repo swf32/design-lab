@@ -74,6 +74,10 @@ breaking implementation.
 
 ## Designer-first workflow
 
+In Settings, create a new System from the bundled default for a clean starting point, or choose
+the active System when you deliberately want to build on its current Components and assets. The
+new folder is inactive until you validate and install it.
+
 1. Document the intended direction in `README.md`: visual principles, navigation behavior,
    density, typography, and what intentionally differs from the default System.
 2. Start with tokens. Change Component structure only when tokens cannot express the direction.

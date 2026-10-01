@@ -229,8 +229,9 @@ copies the folder, compares the copy with that fingerprint, then validates it. T
 
 ### `POST /api/interface/system/create`
 
-JSON body `{ "name": "My System", "path": "design-lab/systems/my-system" }`. Creates a
-complete, inactive authoring copy of the currently active System at a new local folder. A relative
+JSON body `{ "name": "My System", "path": "design-lab/systems/my-system", "template": "default" }`.
+`template` is `default` (the bundled default System) or `active` (the current System); omitted
+for older clients means `active`. Creates a complete, inactive authoring copy at a new local folder. A relative
 path starts at the product repository root; the destination must not already exist or sit inside
 the active System. The service writes local authoring rules, updates System identity, and validates
 the full application contract before returning `201 { created, kind, id, name, version, path }`.

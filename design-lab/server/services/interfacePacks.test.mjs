@@ -426,6 +426,41 @@ test('local System creation copies the active source without replacing it', asyn
   })
 })
 
+test('System author can start from bundled default even while a customized System is active', async () => {
+  await withPackWorkspace(async ({ root, options, librariesDirectory }) => {
+    const active = join(librariesDirectory, 'design-lab-system')
+    const bundled = join(root, 'bundled-default')
+    await cp(active, bundled, { recursive: true })
+    await writeFile(join(active, 'active-only.txt'), 'local customization\n')
+    await assert.rejects(
+      createLocalInterfaceSystem('authoring/invalid', 'Invalid', {
+        ...options,
+        template: 'unknown',
+      }),
+      { code: 'INTERFACE_PACK_TEMPLATE_INVALID' },
+    )
+    const fresh = await createLocalInterfaceSystem('authoring/from-default', 'From Default', {
+      ...options,
+      defaultSystemSource: bundled,
+      template: 'default',
+    })
+    await assert.rejects(readFile(join(fresh.path, 'active-only.txt')))
+    assert.equal(
+      JSON.parse(await readFile(join(fresh.path, 'library.json'), 'utf8')).id,
+      'from-default',
+    )
+    assert(await readFile(join(fresh.path, 'design-lab-baseline.json'), 'utf8'))
+    const copied = await createLocalInterfaceSystem('authoring/from-active', 'From Active', {
+      ...options,
+      template: 'active',
+    })
+    assert.equal(
+      await readFile(join(copied.path, 'active-only.txt'), 'utf8'),
+      'local customization\n',
+    )
+  })
+})
+
 test('local Skin workflow creates, validates, installs, lists, and resets', async () => {
   await withPackWorkspace(async ({ options }) => {
     const created = await createLocalInterfaceSkin('authoring/my-skin', 'My Skin', options)

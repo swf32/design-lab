@@ -137,7 +137,11 @@ createServer(async (request, response) => {
     if (request.method === 'POST' && url.pathname === '/api/interface/system/create') {
       requireInterfaceUiRequest(request)
       const input = await readJson(request)
-      return sendJson(response, 201, await createLocalInterfaceSystem(input.path, input.name))
+      return sendJson(
+        response,
+        201,
+        await createLocalInterfaceSystem(input.path, input.name, { template: input.template }),
+      )
     }
     if (request.method === 'POST' && url.pathname === '/api/interface/system/install') {
       requireInterfaceUiRequest(request)

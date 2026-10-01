@@ -826,7 +826,11 @@ export function inspectLocalInterfaceSystem(path: string) {
   })
 }
 
-export function createLocalInterfaceSystem(name: string, path: string) {
+export function createLocalInterfaceSystem(
+  name: string,
+  path: string,
+  template: 'default' | 'active' = 'default',
+) {
   return request<{
     created: true
     kind: 'system'
@@ -837,7 +841,7 @@ export function createLocalInterfaceSystem(name: string, path: string) {
   }>('/api/interface/system/create', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json', 'X-Design-Lab-UI': '1' },
-    body: JSON.stringify({ name, path }),
+    body: JSON.stringify({ name, path, template }),
   })
 }
 
