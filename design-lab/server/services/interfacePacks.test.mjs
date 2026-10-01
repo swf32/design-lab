@@ -277,6 +277,13 @@ test('System upgrade preserves local files and blocks overlapping edits', async 
     await assert.rejects(applySystemUpgrade(conflicted.fingerprint, upgradeOptions), {
       code: 'INTERFACE_UPGRADE_CONFLICT',
     })
+    await assert.rejects(
+      applySystemUpgrade(conflicted.fingerprint, {
+        ...upgradeOptions,
+        resolutions: { 'components.ts': 'bundled' },
+      }),
+      { code: 'INTERFACE_PACK_EXPORTS_MISSING' },
+    )
     assert.equal(
       await readFile(join(active, 'components.ts'), 'utf8'),
       'export const local = true\n',
@@ -313,6 +320,46 @@ test('System upgrade preserves local files and blocks overlapping edits', async 
     assert.equal(deleted.local.kind, 'missing')
     assert.equal(deleted.bundled.kind, 'text')
   })
+})
+
+test('System upgrade applies only explicitly chosen conflict resolutions', async () => {
+  for (const choice of ['local', 'bundled']) {
+    await withPackWorkspace(async ({ root, options, librariesDirectory }) => {
+      const active = join(librariesDirectory, 'design-lab-system')
+      const bundled = join(root, 'new-default')
+      await cp(active, bundled, { recursive: true })
+      await writeSystemBaseline(active, bundled)
+      await writeFile(join(active, 'conflict.txt'), 'my version\n')
+      await writeFile(join(bundled, 'conflict.txt'), 'bundled version\n')
+      await writeFile(join(bundled, 'new-feature.txt'), 'new upstream file\n')
+      const upgradeOptions = { ...options, defaultSystemSource: bundled }
+      const plan = await analyzeSystemUpgrade(upgradeOptions)
+      assert.deepEqual(plan.files.conflicts, ['conflict.txt'])
+      await assert.rejects(
+        applySystemUpgrade(plan.fingerprint, {
+          ...upgradeOptions,
+          resolutions: { 'unknown.txt': 'local' },
+        }),
+        { code: 'INTERFACE_UPGRADE_RESOLUTION_INVALID' },
+      )
+      await assert.rejects(applySystemUpgrade(plan.fingerprint, upgradeOptions), {
+        code: 'INTERFACE_UPGRADE_CONFLICT',
+      })
+      assert.equal(await readFile(join(active, 'conflict.txt'), 'utf8'), 'my version\n')
+      await assert.rejects(readFile(join(active, 'new-feature.txt')))
+      const applied = await applySystemUpgrade(plan.fingerprint, {
+        ...upgradeOptions,
+        resolutions: { 'conflict.txt': choice },
+      })
+      assert.equal(applied.updated, true)
+      assert.equal(
+        await readFile(join(active, 'conflict.txt'), 'utf8'),
+        choice === 'local' ? 'my version\n' : 'bundled version\n',
+      )
+      assert.equal(await readFile(join(active, 'new-feature.txt'), 'utf8'), 'new upstream file\n')
+      assert.deepEqual((await analyzeSystemUpgrade(upgradeOptions)).files.conflicts, [])
+    })
+  }
 })
 
 test('default-derived System fork can upgrade without losing its identity or local edits', async () => {

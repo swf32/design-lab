@@ -582,15 +582,32 @@ export async function applySystemUpgrade(expectedFingerprint, options = {}) {
       ),
       { status: 409 },
     )
-  if (report.files.conflicts.length)
+  const resolutions = options.resolutions ?? {}
+  if (
+    !resolutions ||
+    typeof resolutions !== 'object' ||
+    Array.isArray(resolutions) ||
+    Object.entries(resolutions).some(
+      ([path, choice]) =>
+        !report.files.conflicts.includes(path) || !['local', 'bundled'].includes(choice),
+    )
+  )
     throw Object.assign(
       packError(
-        'Resolve overlapping System edits before applying the upgrade.',
+        'Choose a current conflicting file and a valid resolution.',
+        'INTERFACE_UPGRADE_RESOLUTION_INVALID',
+      ),
+      { status: 422 },
+    )
+  if (report.files.conflicts.some((path) => !Object.hasOwn(resolutions, path)))
+    throw Object.assign(
+      packError(
+        'Choose Keep mine or Use bundled for every conflicting System file before applying the upgrade.',
         'INTERFACE_UPGRADE_CONFLICT',
       ),
       { status: 409, details: report.files.conflicts },
     )
-  if (!report.files.upstreamOnly.length)
+  if (!report.files.upstreamOnly.length && !report.files.conflicts.length)
     return { updated: false, restartRequired: false, files: report.files }
 
   await mkdir(paths.dataDirectory, { recursive: true })
@@ -599,14 +616,18 @@ export async function applySystemUpgrade(expectedFingerprint, options = {}) {
   try {
     await copySystemDirectory(paths.systemSlot, staged)
     const bundledFiles = await authoredSystemFiles(paths.defaultSystemSource)
-    for (const path of report.files.upstreamOnly) {
+    const bundledChanges = [
+      ...report.files.upstreamOnly,
+      ...report.files.conflicts.filter((path) => resolutions[path] === 'bundled'),
+    ]
+    for (const path of bundledChanges) {
       const destination = join(staged, path)
       if (bundledFiles.has(path)) {
         await mkdir(dirname(destination), { recursive: true })
         await copyFile(join(paths.defaultSystemSource, path), destination)
       } else await rm(destination, { force: true })
     }
-    const changed = report.files.upstreamOnly
+    const changed = bundledChanges
     const generators = [
       [
         changed.some((path) => path.startsWith('components/')),

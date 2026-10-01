@@ -30,6 +30,7 @@ import {
   type InterfaceSystemUpgrade,
   type InterfaceSystemUpgradeConflict,
   type InterfaceSystemUpgradeConflictSide,
+  type InterfaceSystemConflictResolution,
   type LocalInterfaceSystemInspection,
   type McpIntegrationInfo,
 } from '../../api/projects'
@@ -113,10 +114,14 @@ function UpgradeConflictPreview({
   path,
   fingerprint,
   onRefresh,
+  resolution,
+  onResolve,
 }: {
   path: string
   fingerprint: string
   onRefresh: () => Promise<void>
+  resolution?: InterfaceSystemConflictResolution
+  onResolve: (choice: InterfaceSystemConflictResolution) => void
 }) {
   const [comparison, setComparison] = useState<InterfaceSystemUpgradeConflict | null>(null)
   const [loading, setLoading] = useState(false)
@@ -139,6 +144,26 @@ function UpgradeConflictPreview({
       <Button type="button" size="small" loading={loading} onClick={() => void compare()}>
         Compare versions
       </Button>
+      <div role="group" aria-label={`Resolve ${path}`}>
+        <Button
+          type="button"
+          size="small"
+          variant={resolution === 'local' ? 'primary' : 'secondary'}
+          aria-pressed={resolution === 'local'}
+          onClick={() => onResolve('local')}
+        >
+          Keep mine
+        </Button>{' '}
+        <Button
+          type="button"
+          size="small"
+          variant={resolution === 'bundled' ? 'primary' : 'secondary'}
+          aria-pressed={resolution === 'bundled'}
+          onClick={() => onResolve('bundled')}
+        >
+          Use bundled
+        </Button>
+      </div>
       {error && (
         <p role="alert">
           {error.message}{' '}
@@ -164,6 +189,9 @@ export function SettingsView({ onClose }: { onClose: () => void }) {
   const [systemDiff, setSystemDiff] = useState<InterfaceSystemDiff | null>(null)
   const [systemRecovery, setSystemRecovery] = useState<InterfaceSystemRecovery | null>(null)
   const [systemUpgrade, setSystemUpgrade] = useState<InterfaceSystemUpgrade | null>(null)
+  const [conflictResolutions, setConflictResolutions] = useState<
+    Record<string, InterfaceSystemConflictResolution>
+  >({})
   const [upgradeConfirmOpen, setUpgradeConfirmOpen] = useState(false)
   const [upgrading, setUpgrading] = useState(false)
   const [upgradeResult, setUpgradeResult] = useState<string | null>(null)
@@ -199,6 +227,7 @@ export function SettingsView({ onClose }: { onClose: () => void }) {
     setSystemDiff(diff.status === 'fulfilled' ? diff.value : null)
     setSystemRecovery(recovery.status === 'fulfilled' ? recovery.value : null)
     setSystemUpgrade(upgrade.status === 'fulfilled' ? upgrade.value : null)
+    setConflictResolutions({})
     if (
       doctor.status === 'rejected' ||
       diff.status === 'rejected' ||
@@ -316,11 +345,14 @@ export function SettingsView({ onClose }: { onClose: () => void }) {
   }
 
   const upgradeDefaultSystem = async () => {
-    if (!systemUpgrade?.available || !systemUpgrade.canApply) return
+    if (!systemUpgrade?.available || !upgradeReady) return
     setUpgrading(true)
     setSystemError(null)
     try {
-      const result = await applyInterfaceSystemUpgrade(systemUpgrade.fingerprint)
+      const result = await applyInterfaceSystemUpgrade(
+        systemUpgrade.fingerprint,
+        conflictResolutions,
+      )
       setUpgradeResult(
         result.updated
           ? 'Default updates applied; your local edits were preserved. Restart Design Lab to load the updated System.'
@@ -336,6 +368,12 @@ export function SettingsView({ onClose }: { onClose: () => void }) {
       setUpgrading(false)
     }
   }
+
+  const upgradeReady =
+    systemUpgrade?.available &&
+    (systemUpgrade.files.conflicts.length > 0
+      ? systemUpgrade.files.conflicts.every((path) => conflictResolutions[path])
+      : systemUpgrade.canApply)
 
   return (
     <section className="settings-page">
@@ -434,9 +472,9 @@ export function SettingsView({ onClose }: { onClose: () => void }) {
                   <details>
                     <summary>Conflicting files · {systemUpgrade.files.conflicts.length}</summary>
                     <p>
-                      Compare the current local and bundled versions, resolve overlapping edits in
-                      your System folder, then refresh the plan. The recorded base stores hashes,
-                      not previous file contents. Nothing will be applied while conflicts remain.
+                      Compare the versions and choose which file to keep for every conflict. The
+                      recorded base stores hashes, not previous file contents. Design Lab checks the
+                      complete result before replacing the active System.
                     </p>
                     <ul>
                       {systemUpgrade.files.conflicts.map((path) => (
@@ -445,6 +483,10 @@ export function SettingsView({ onClose }: { onClose: () => void }) {
                           path={path}
                           fingerprint={systemUpgrade.fingerprint}
                           onRefresh={refreshSystem}
+                          resolution={conflictResolutions[path]}
+                          onResolve={(choice) =>
+                            setConflictResolutions((current) => ({ ...current, [path]: choice }))
+                          }
                         />
                       ))}
                     </ul>
@@ -464,7 +506,7 @@ export function SettingsView({ onClose }: { onClose: () => void }) {
                     </ul>
                   </details>
                 )}
-                {systemUpgrade.canApply ? (
+                {upgradeReady ? (
                   <Button type="button" size="small" onClick={() => setUpgradeConfirmOpen(true)}>
                     Review update
                   </Button>
@@ -648,7 +690,7 @@ export function SettingsView({ onClose }: { onClose: () => void }) {
         open={upgradeConfirmOpen}
         title="Update default System?"
         eyebrow="Apply bundled changes"
-        description="Only files unchanged since the recorded base receive bundled updates. Any overlap blocks the entire update. Design Lab validates the result and saves a snapshot before activation. Restart afterward."
+        description="Your explicit choice resolves each overlap. Design Lab validates the complete result and saves a snapshot before activation. Restart afterward."
         onClose={() => setUpgradeConfirmOpen(false)}
         dismissible={!upgrading}
         footer={
@@ -675,7 +717,18 @@ export function SettingsView({ onClose }: { onClose: () => void }) {
         {systemUpgrade?.available && (
           <p>
             {systemUpgrade.files.upstreamOnly.length} bundled file changes will be applied.{' '}
-            {systemUpgrade.files.localOnly.length} locally edited files stay as they are.
+            {systemUpgrade.files.localOnly.length} locally edited files stay as they are.{' '}
+            {
+              systemUpgrade.files.conflicts.filter((path) => conflictResolutions[path] === 'local')
+                .length
+            }{' '}
+            conflicts keep your file;{' '}
+            {
+              systemUpgrade.files.conflicts.filter(
+                (path) => conflictResolutions[path] === 'bundled',
+              ).length
+            }{' '}
+            use the bundled file.
           </p>
         )}
       </Dialog>

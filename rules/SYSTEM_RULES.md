@@ -47,9 +47,11 @@ default System so tracked default source is not mixed with an installed alternat
 The technical `design-lab-baseline.json` records file hashes of the default System from which an
 editable folder started. Keep it with the folder when copying a default-derived System. It is not
 an authored file or a second source of UI code. `system upgrade` uses it to compare local edits
-with a newer bundled default. If both sides changed the same file, the entire update is blocked;
-resolve the overlap manually and review the plan again. A folder without a trusted baseline cannot
-use this automatic upgrade path. `system reset` is a separate recovery action that replaces the
+with a newer bundled default. If both sides changed the same file, the entire update is blocked
+until every conflict has an explicit choice in Settings: keep the local file or use the bundled
+file. Design Lab validates the complete staged result before applying it. To combine both versions,
+edit the local file and refresh the plan. A folder without a trusted baseline cannot use this
+automatic upgrade path. `system reset` is a separate recovery action that replaces the
 active folder after saving a snapshot. Settings exposes this as "Restore default"; if a broken
 System prevents Settings from opening, run `npx designlab system reset` from the project root.
 

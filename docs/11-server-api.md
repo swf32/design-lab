@@ -186,11 +186,13 @@ the development checkout. This endpoint does not change the active System.
 `GET` returns a read-only three-way plan for a default-derived active System. Without a valid
 `design-lab-baseline.json`, it returns `{ available: false, reason }`. Otherwise it returns
 `{ available: true, baselineVersion, bundledVersion, fingerprint, canApply, files }`; `files`
-contains `upstreamOnly`, `localOnly`, `conflicts`, and `converged` relative paths. Any conflict
-blocks the whole update. `POST` requires the UI request headers, `{ fingerprint, confirmed: true }`,
-and a fresh plan. It validates a staged System, saves a snapshot, activates the update, and returns
-`{ updated, restartRequired, files }`. Stale plans and conflicts return `409`; no authored file is
-applied in either case. Restart the application when `restartRequired` is true.
+contains `upstreamOnly`, `localOnly`, `conflicts`, and `converged` relative paths. Any unresolved
+conflict blocks the whole update. `POST` requires the UI request headers,
+`{ fingerprint, resolutions: { "path": "local" | "bundled" }, confirmed: true }`, and a fresh plan.
+Every conflicting path needs an explicit choice; unknown paths or choices return `422`.
+It validates a staged System, saves a snapshot, activates the update, and returns
+`{ updated, restartRequired, files }`. Stale plans and unresolved conflicts return `409`; no
+authored file is applied in either case. Restart when `restartRequired` is true.
 
 ### `POST /api/interface/system/upgrade/conflict`
 

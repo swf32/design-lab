@@ -110,7 +110,9 @@ createServer(async (request, response) => {
           code: 'INTERFACE_UPGRADE_CONFIRMATION_REQUIRED',
           status: 409,
         })
-      const upgraded = await applySystemUpgrade(input.fingerprint)
+      const upgraded = await applySystemUpgrade(input.fingerprint, {
+        resolutions: input.resolutions ?? {},
+      })
       if (upgraded.updated) revision += 1
       return sendJson(response, 200, upgraded)
     }

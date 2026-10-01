@@ -480,6 +480,30 @@ async function browserSmoke(
       await page.getByRole('heading', { name: 'Your active System' }).waitFor()
       await page.getByRole('heading', { name: 'Bundled default' }).waitFor()
       assert.equal(await page.getByRole('button', { name: 'Review update' }).count(), 0)
+      await page.getByRole('button', { name: 'Keep mine' }).click()
+      assert.equal(
+        await page.getByRole('button', { name: 'Keep mine' }).getAttribute('aria-pressed'),
+        'true',
+      )
+      await page.getByRole('button', { name: 'Review update' }).click()
+      await page
+        .getByRole('dialog')
+        .getByText(/1 conflicts keep your file/)
+        .waitFor()
+      const [applied] = await Promise.all([
+        page.waitForResponse(
+          (result) =>
+            result.url().endsWith('/api/interface/system/upgrade') &&
+            result.request().method() === 'POST',
+        ),
+        page.getByRole('dialog').getByRole('button', { name: 'Apply update' }).click(),
+      ])
+      assert.equal(applied.status(), 200)
+      assert.equal((await applied.json()).updated, true)
+      assert.equal(
+        await readFile(join(systemRoot, 'conflict-smoke.txt'), 'utf8'),
+        'Local conflict smoke\n',
+      )
     }
     if (customStructure) {
       await page.getByRole('heading', { name: 'Components' }).waitFor()
@@ -1071,7 +1095,7 @@ try {
   }
 
   process.stdout.write(
-    `Package smoke passed: pack, attach, clean managed setup, one System, versioned upgrade preserving edits, validated fork with Component anatomy and SVG asset, switch, manual folder replacement, reset${process.argv.includes('--browser') ? ', browser integration health, damaged config and moved mount repair, Skin/System folder selection, shell/Workbench fork and HMR' : ''}.\n`,
+    `Package smoke passed: pack, attach, clean managed setup, one System, versioned upgrade preserving edits, validated fork with Component anatomy and SVG asset, switch, manual folder replacement, reset${process.argv.includes('--browser') ? ', browser conflict resolution, integration health, damaged config and moved mount repair, Skin/System folder selection, shell/Workbench fork and HMR' : ''}.\n`,
   )
 } finally {
   if (process.env.DESIGN_LAB_KEEP_SMOKE === '1')

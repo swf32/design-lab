@@ -838,6 +838,11 @@ where they are` и confirm-gated apply plan; post-apply self-check возвра�
 - [x] Дать Settings read-only просмотр одного конфликтующего файла из локальной и bundled System
       по свежему fingerprint; binary/large/delete показываются честно, весь update остаётся
       заблокирован до ручного решения. Browser fixture проверяет реальный конфликт и сравнение.
+- [x] Разрешить в Settings каждый конфликт явным выбором «Keep mine»/«Use bundled»;
+      неполный или неизвестный набор отклоняется, staging проверяет полный System, baseline
+      обновляется только после успешной активации. Unit fixture покрывает обе стороны, внешний
+      browser fixture — выбор локальной версии и подтверждённый apply. Текстовое слияние двух
+      версий в UI ещё не реализовано.
 - [x] Добавить двусторонний read-only `system diff` против default template текущего пакета;
       скрытые cache/derived barrels/token CSS исключены, symlink отклоняется.
 - [x] Добавить read-only post-apply self-check для config, source mounts, локальных rules,

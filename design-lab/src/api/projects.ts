@@ -762,11 +762,16 @@ export function getInterfaceSystemUpgradeConflict(path: string, fingerprint: str
   })
 }
 
-export function applyInterfaceSystemUpgrade(fingerprint: string) {
+export type InterfaceSystemConflictResolution = 'local' | 'bundled'
+
+export function applyInterfaceSystemUpgrade(
+  fingerprint: string,
+  resolutions: Record<string, InterfaceSystemConflictResolution> = {},
+) {
   return request<{ updated: boolean; restartRequired: boolean }>('/api/interface/system/upgrade', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json', 'X-Design-Lab-UI': '1' },
-    body: JSON.stringify({ fingerprint, confirmed: true }),
+    body: JSON.stringify({ fingerprint, resolutions, confirmed: true }),
   })
 }
 
