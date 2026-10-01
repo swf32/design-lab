@@ -795,6 +795,27 @@ export type LocalInterfaceSystemInspection = {
   description: string
   canInstall: boolean
   diff: InterfaceSystemDiff
+  uploaded?: boolean
+}
+
+export function uploadLocalInterfaceSystemFolder(files: FileList) {
+  if (!files.length) throw new Error('Choose a System folder.')
+  const root = files[0].webkitRelativePath.split('/')[0]
+  if (!root || !files[0].webkitRelativePath.includes('/'))
+    throw new Error(
+      'This browser did not provide the folder structure. Use Browse project or a supported browser.',
+    )
+  const form = new FormData()
+  for (const file of files) {
+    const parts = file.webkitRelativePath.split('/')
+    if (parts[0] !== root || parts.length < 2) throw new Error('Choose one complete System folder.')
+    form.append(parts.slice(1).join('/'), file, file.name)
+  }
+  return request<LocalInterfaceSystemInspection>('/api/interface/system/upload', {
+    method: 'POST',
+    headers: { 'X-Design-Lab-UI': '1' },
+    body: form,
+  })
 }
 
 export function inspectLocalInterfaceSystem(path: string) {

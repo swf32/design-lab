@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict'
-import { cp, mkdir, mkdtemp, readFile, rm, symlink, writeFile } from 'node:fs/promises'
+import { cp, mkdir, mkdtemp, readFile, readdir, rm, symlink, writeFile } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { dirname, join, resolve } from 'node:path'
 import test from 'node:test'
@@ -24,6 +24,7 @@ import {
   readInterfaceSelection,
   resetInterfacePack,
   resolveActiveInterface,
+  stageLocalInterfaceSystemUpload,
   validateInterfacePack,
   versionSatisfies,
   writeSystemBaseline,
@@ -533,6 +534,48 @@ test('local System inspection and install share the validated one-slot installer
   })
 })
 
+test('uploaded System folder is staged, validated, and installed without touching the source', async () => {
+  await withPackWorkspace(async ({ sources, options }) => {
+    const source = join(sources, 'upload-system')
+    await writeSystem(source, { id: 'upload-system' })
+    await writeFile(
+      join(source, 'assets', 'mark.svg'),
+      '<svg xmlns="http://www.w3.org/2000/svg"/>\n',
+    )
+    const files = []
+    async function collect(directory, prefix = '') {
+      for (const entry of await readdir(directory, { withFileTypes: true })) {
+        const path = prefix ? `${prefix}/${entry.name}` : entry.name
+        if (entry.isDirectory()) await collect(join(directory, entry.name), path)
+        else files.push({ path, bytes: await readFile(join(directory, entry.name)) })
+      }
+    }
+    await collect(source)
+    await assert.rejects(
+      stageLocalInterfaceSystemUpload(
+        [{ path: '../outside.txt', bytes: Buffer.from('bad') }],
+        options,
+      ),
+      { code: 'INTERFACE_UPLOAD_PATH_INVALID' },
+    )
+    const inspection = await stageLocalInterfaceSystemUpload(files, options)
+    assert.equal(inspection.uploaded, true)
+    assert.equal(inspection.id, 'upload-system')
+    assert.equal(inspection.canInstall, true)
+    assert(inspection.diff.files.added.includes('assets/mark.svg'))
+    const installed = await installLocalInterfaceSystem(inspection.path, {
+      ...options,
+      expectedFingerprint: inspection.fingerprint,
+    })
+    assert.equal(installed.id, 'upload-system')
+    assert.equal(
+      await readFile(join(source, 'assets', 'mark.svg'), 'utf8'),
+      '<svg xmlns="http://www.w3.org/2000/svg"/>\n',
+    )
+    assert.equal((await doctorInterfacePacks(options)).system.id, 'upload-system')
+  })
+})
+
 test('embedded config selects one project-owned active System folder', async () => {
   const workspaceDirectory = await mkdtemp(join(tmpdir(), 'design-lab-embedded-system-'))
   try {
@@ -664,6 +707,7 @@ test('Skin and System scaffolds are immediately valid authoring packages', async
     )
     const systemReadme = await readFile(join(root, 'new-system', 'README.md'), 'utf8')
     assert.match(systemReadme, /Settings → Interface System/)
+    assert.match(systemReadme, /Choose folder on computer/)
     assert.match(systemReadme, /Check folder/)
     assert.match(systemReadme, /Restore default/)
     for (const rule of [

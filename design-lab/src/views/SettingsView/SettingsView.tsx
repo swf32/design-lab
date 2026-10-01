@@ -24,6 +24,7 @@ import {
   inspectLocalInterfaceSystem,
   installLocalInterfaceSystem,
   resetInterfaceSystem,
+  uploadLocalInterfaceSystemFolder,
   type InterfaceSystemDiff,
   type InterfaceSystemDoctor,
   type InterfaceSystemRecovery,
@@ -199,6 +200,8 @@ export function SettingsView({ onClose }: { onClose: () => void }) {
   const [systemLoading, setSystemLoading] = useState(false)
   const [systemFolder, setSystemFolder] = useState('')
   const [systemPickerOpen, setSystemPickerOpen] = useState(false)
+  const systemUploadInput = useRef<HTMLInputElement>(null)
+  const [uploadingSystem, setUploadingSystem] = useState(false)
   const [newSystemName, setNewSystemName] = useState('')
   const [newSystemFolder, setNewSystemFolder] = useState('')
   const [creating, setCreating] = useState(false)
@@ -259,6 +262,10 @@ export function SettingsView({ onClose }: { onClose: () => void }) {
     void refreshSystem()
   }, [refreshSystem])
 
+  useEffect(() => {
+    systemUploadInput.current?.setAttribute('webkitdirectory', '')
+  }, [])
+
   const inspectCandidate = async (path = systemFolder) => {
     const request = ++candidateRequest.current
     setCandidateLoading(true)
@@ -274,6 +281,26 @@ export function SettingsView({ onClose }: { onClose: () => void }) {
       }
     } finally {
       if (candidateRequest.current === request) setCandidateLoading(false)
+    }
+  }
+
+  const uploadSystemFolder = async (files: FileList) => {
+    const request = ++candidateRequest.current
+    setUploadingSystem(true)
+    setCandidate(null)
+    setCandidateError(null)
+    setInstallResult(null)
+    try {
+      const inspection = await uploadLocalInterfaceSystemFolder(files)
+      if (candidateRequest.current === request) {
+        setSystemFolder('')
+        setCandidate(inspection)
+      }
+    } catch (cause) {
+      if (candidateRequest.current === request)
+        setCandidateError(cause instanceof Error ? cause : new Error('Could not check the folder.'))
+    } finally {
+      if (candidateRequest.current === request) setUploadingSystem(false)
     }
   }
 
@@ -604,6 +631,26 @@ export function SettingsView({ onClose }: { onClose: () => void }) {
             <Button type="button" size="small" onClick={() => setSystemPickerOpen(true)}>
               Browse project
             </Button>
+            <input
+              ref={systemUploadInput}
+              type="file"
+              multiple
+              hidden
+              aria-label="System folder from computer"
+              onChange={(event) => {
+                const files = event.currentTarget.files
+                if (files?.length) void uploadSystemFolder(files)
+                event.currentTarget.value = ''
+              }}
+            />
+            <Button
+              type="button"
+              size="small"
+              loading={uploadingSystem}
+              onClick={() => systemUploadInput.current?.click()}
+            >
+              Choose folder on computer
+            </Button>
           </form>
           {candidateError && <InterfacePackDiagnostic error={candidateError} kind="System" />}
           {installResult && <p role="status">{installResult}</p>}
@@ -613,7 +660,9 @@ export function SettingsView({ onClose }: { onClose: () => void }) {
                 {candidate.name} · {candidate.version}
               </strong>
               <p>{candidate.description || 'Complete interface System'}</p>
-              <code>{candidate.path}</code>
+              <code>
+                {candidate.uploaded ? 'Folder selected from your computer' : candidate.path}
+              </code>
               <div className="settings-system__diff">
                 <p>
                   {candidate.diff.identical

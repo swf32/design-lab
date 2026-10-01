@@ -203,6 +203,17 @@ the fingerprint must still match; otherwise the endpoint returns `404` or `409`.
 `missing`, `binary`, or `large`; non-text sides include byte count but never file content. Both
 sides are read from the active project-owned System and current bundled default. The recorded
 ancestor stores hashes only, so this is a two-way content view inside a three-way upgrade plan.
+
+### `POST /api/interface/system/upload`
+
+The Settings folder chooser sends a browser-selected directory as `multipart/form-data` with
+file names relative to that selected folder. The endpoint requires `X-Design-Lab-UI: 1`, rejects traversal,
+duplicate paths and excluded build folders, and limits the body to 64 MiB and 2000 files. It
+copies files into a temporary local staging folder, validates the complete System contract, and
+returns the same inspection and diff as `POST /api/interface/system/inspect`, plus
+`uploaded: true`. This does not activate the System. `POST /api/interface/system/install` still
+requires its fresh fingerprint and explicit confirmation; stale staging folders are deleted on a
+later upload after 24 hours. This endpoint runs on the loopback-only local server.
 The endpoint reads no arbitrary project path, writes nothing, and rechecks the plan before reply.
 
 ### `POST /api/interface/system/inspect`

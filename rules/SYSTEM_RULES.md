@@ -84,8 +84,9 @@ breaking implementation.
 5. Add or update focused Stories and illustrative previews when a Component's behavior or
    recognizable anatomy changes.
 6. In Design Lab Settings → Interface System, choose this folder under "Install a System from a
-   folder". "Browse project" finds folders inside the project; an external folder can be entered
-   by path. Select "Check folder" and resolve any diagnostics. CLI validation remains available
+   folder". "Browse project" finds folders inside the project; "Choose folder on computer"
+   imports an external folder into a temporary staging area and checks it. A path can also be
+   entered. Select "Check folder" for a typed path and resolve any diagnostics. CLI validation remains available
    for automation:
 
    ```bash

@@ -1,5 +1,5 @@
 import { createServer } from 'node:http'
-import { readJson, sendBuffer, sendError, sendJson } from './lib/http.mjs'
+import { readFolderUpload, readJson, sendBuffer, sendError, sendJson } from './lib/http.mjs'
 import {
   createProject,
   getWorkspaceDirectory,
@@ -38,6 +38,7 @@ import {
   installLocalInterfaceSkin,
   listInterfacePacks,
   resetInterfacePack,
+  stageLocalInterfaceSystemUpload,
   useInterfacePack,
 } from './services/interfacePacks.mjs'
 import {
@@ -120,6 +121,18 @@ createServer(async (request, response) => {
       requireInterfaceUiRequest(request)
       const input = await readJson(request)
       return sendJson(response, 200, await inspectLocalInterfaceSystem(input.path))
+    }
+    if (request.method === 'POST' && url.pathname === '/api/interface/system/upload') {
+      if (request.headers['x-design-lab-ui'] !== '1')
+        throw Object.assign(new Error('Choose a folder in the local Design Lab interface.'), {
+          code: 'INTERFACE_UI_REQUEST_REQUIRED',
+          status: 403,
+        })
+      return sendJson(
+        response,
+        201,
+        await stageLocalInterfaceSystemUpload(await readFolderUpload(request)),
+      )
     }
     if (request.method === 'POST' && url.pathname === '/api/interface/system/create') {
       requireInterfaceUiRequest(request)

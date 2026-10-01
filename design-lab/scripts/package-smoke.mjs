@@ -107,6 +107,7 @@ async function browserSmoke(
     customStructure = false,
     createCandidate = null,
     installCandidate = null,
+    uploadCandidate = null,
     resetSystem = false,
     upgradeSystem = false,
     browseProjectSystem = false,
@@ -690,11 +691,27 @@ async function browserSmoke(
         await writeFile(candidateButton, originalButton)
       }
     }
-    if (installCandidate) {
-      await page
-        .getByRole('textbox', { name: 'System folder', exact: true })
-        .fill(relative(projectRoot, installCandidate))
-      await page.getByRole('button', { name: 'Check folder' }).click()
+    if (uploadCandidate) {
+      const [uploaded] = await Promise.all([
+        page.waitForResponse((result) => result.url().endsWith('/api/interface/system/upload')),
+        page
+          .locator('input[type="file"][aria-label="System folder from computer"]')
+          .setInputFiles(uploadCandidate),
+      ])
+      assert.equal(uploaded.status(), 201)
+      const inspection = await uploaded.json()
+      assert.equal(inspection.id, 'alternate-smoke')
+      assert.equal(inspection.uploaded, true)
+      assert(inspection.diff.files.added.includes('assets/images/system-accent.svg'))
+      await page.getByText('Folder selected from your computer').waitFor()
+    }
+    if (installCandidate || uploadCandidate) {
+      if (installCandidate) {
+        await page
+          .getByRole('textbox', { name: 'System folder', exact: true })
+          .fill(relative(projectRoot, installCandidate))
+        await page.getByRole('button', { name: 'Check folder' }).click()
+      }
       await page.getByRole('button', { name: 'Install this System' }).waitFor()
       await page.getByRole('button', { name: 'Install this System' }).click()
       const [response] = await Promise.all([
@@ -1059,7 +1076,7 @@ try {
   const validatedFork = parse(await run(cli, ['system', 'validate', alternateSystem], projectRoot))
   assert.equal(validatedFork.valid, true)
   if (process.argv.includes('--browser'))
-    await browserSmoke(cli, { installCandidate: alternateSystem })
+    await browserSmoke(cli, { uploadCandidate: alternateSystem })
   else {
     const installed = parse(await run(cli, ['system', 'install', alternateSystem], projectRoot))
     assert.equal(installed.path, 'design-lab/system')
@@ -1095,7 +1112,7 @@ try {
   }
 
   process.stdout.write(
-    `Package smoke passed: pack, attach, clean managed setup, one System, versioned upgrade preserving edits, validated fork with Component anatomy and SVG asset, switch, manual folder replacement, reset${process.argv.includes('--browser') ? ', browser conflict resolution, integration health, damaged config and moved mount repair, Skin/System folder selection, shell/Workbench fork and HMR' : ''}.\n`,
+    `Package smoke passed: pack, attach, clean managed setup, one System, versioned upgrade preserving edits, validated fork with Component anatomy and SVG asset, switch, manual folder replacement, reset${process.argv.includes('--browser') ? ', browser external System folder upload, conflict resolution, integration health, damaged config and moved mount repair, Skin/System folder selection, shell/Workbench fork and HMR' : ''}.\n`,
   )
 } finally {
   if (process.env.DESIGN_LAB_KEEP_SMOKE === '1')

@@ -15,6 +15,7 @@ import {
   realpath,
   rename,
   rm,
+  stat,
   writeFile,
 } from 'node:fs/promises'
 import { basename, dirname, extname, isAbsolute, join, relative, resolve, sep } from 'node:path'
@@ -1177,6 +1178,79 @@ export async function inspectLocalInterfaceSystem(path, options = {}) {
   }
 }
 
+export async function stageLocalInterfaceSystemUpload(files, options = {}) {
+  if (!Array.isArray(files) || files.length === 0 || files.length > 2000)
+    throw Object.assign(
+      packError(
+        'Choose a System folder containing up to 2000 files.',
+        'INTERFACE_UPLOAD_FILES_INVALID',
+      ),
+      { status: 422 },
+    )
+  const paths = defaultInterfacePaths(options)
+  const uploadsRoot = join(paths.dataDirectory, 'interface-packs', 'uploads')
+  await mkdir(uploadsRoot, { recursive: true })
+  for (const entry of await readdir(uploadsRoot, { withFileTypes: true })) {
+    if (!entry.isDirectory() || !entry.name.startsWith('system-')) continue
+    const path = join(uploadsRoot, entry.name)
+    if (Date.now() - (await stat(path)).mtimeMs > 24 * 60 * 60 * 1000)
+      await rm(path, { recursive: true, force: true })
+  }
+  const staged = await mkdtemp(join(uploadsRoot, 'system-'))
+  let total = 0
+  const seen = new Set()
+  try {
+    for (const file of files) {
+      const path = file?.path
+      const bytes = file?.bytes
+      if (
+        typeof path !== 'string' ||
+        path.length === 0 ||
+        path.length > 512 ||
+        path.startsWith('/') ||
+        path.includes('\\') ||
+        path.includes('\0') ||
+        /^[a-zA-Z]:/.test(path) ||
+        path
+          .split('/')
+          .some(
+            (part) =>
+              !part ||
+              part === '.' ||
+              part === '..' ||
+              ['.git', '.designlab', 'node_modules', 'dist'].includes(part),
+          ) ||
+        seen.has(path) ||
+        !(bytes instanceof Uint8Array)
+      )
+        throw Object.assign(
+          packError(
+            'The selected folder contains an unsafe or duplicate file path.',
+            'INTERFACE_UPLOAD_PATH_INVALID',
+          ),
+          { status: 422 },
+        )
+      total += bytes.byteLength
+      if (total > 64 * 1024 * 1024)
+        throw Object.assign(
+          packError(
+            'The selected folder exceeds the 64 MB upload limit.',
+            'INTERFACE_UPLOAD_TOO_LARGE',
+          ),
+          { status: 413 },
+        )
+      seen.add(path)
+      const destination = join(staged, path)
+      await mkdir(dirname(destination), { recursive: true })
+      await writeFile(destination, bytes, { flag: 'wx' })
+    }
+    return { ...(await inspectLocalInterfaceSystem(staged, options)), uploaded: true }
+  } catch (error) {
+    await rm(staged, { recursive: true, force: true })
+    throw error
+  }
+}
+
 export async function installLocalInterfaceSystem(path, options = {}) {
   const root = await localInterfaceDirectory(path, options)
   return installInterfacePack(root, {
@@ -1439,15 +1513,16 @@ parts of Design Lab that should feel intentionally different.
 1. Read \`AGENTS.md\` and the linked local rules.
 2. Begin with ${firstEdit}; avoid changing more of the interface than the visual direction needs.
 3. Open Design Lab → Settings → Interface ${label}. Under "Install a ${label} from a folder", use
-   "Browse project" to select this folder, or enter its path relative to the project root.
+   "Browse project" to select this folder${kind === 'system' ? ', "Choose folder on computer" to import an external copy,' : ''}
+   or enter its path relative to the project root.
 4. Select "${kind === 'skin' ? 'Check Skin' : 'Check folder'}". Fix any reported problem, then
    select "Install this ${label}" and confirm the replacement. Restart Design Lab to load it.
 5. Review every module in dark and light modes, including keyboard focus, narrow widths, and long
    content. Add representative files under \`screenshots/\`, then update version, compatibility,
    license, repository, and screenshot paths in \`design-lab-pack.json\` before sharing.
 
-The folder browser only shows folders inside the current project. For a folder outside the project,
-enter its path in Settings. The command line is optional for validation and automation:
+The project folder browser only shows folders inside the current project. ${kind === 'system' ? 'For an external System folder, use "Choose folder on computer"; Design Lab validates a temporary copy before installation.' : 'For an external Skin folder, enter its path in Settings.'}
+The command line is optional for validation and automation:
 
    \`\`\`bash
    npx designlab ${command} validate <path-to-this-folder>

@@ -946,6 +946,11 @@ native backlog до Web DoD.
       и активной System или переданной папкой. Sync/merge остаётся открытым.
 - [x] Показывать read-only diff проверенной локальной System прямо в Settings до установки;
       в development checkout явно обозначать активную System как эталон.
+- [x] Дать выбор внешней папки полной System без пути: браузер отправляет все файлы (включая SVG
+      и другие assets) во временный local staging с лимитом и проверкой путей, тот же validator
+      показывает compatibility и diff, установка отдельно подтверждается по fingerprint. Unit
+      fixture проверяет staging/installation, внешний browser fixture выбирает полный fork с
+      изменённой анатомией Button и SVG; активная System остаётся единственной папкой проекта.
 - [x] Связать проверку Skin/System в Settings с отпечатком файлов: install сверяет staging-копию
       с просмотренной версией и возвращает `409` до snapshot/activation, если папка изменилась;
       browser fixture проверяет повторную проверку Skin после stale отказа.
