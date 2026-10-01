@@ -44,6 +44,10 @@
 - [x] Сделать `system upgrade` с сохранённой базой, трёхсторонним планом, полным блокированием
       при конфликте, staging validation, snapshot и подтверждённым применением через CLI/Settings.
       Browser fixture проверяет применение через Settings, локальный marker и новый default marker.
+- [x] Разрешить тот же безопасный upgrade для созданного через Design Lab fork default System:
+      baseline переживает смену ID, авторская идентичность и локальные файлы сохраняются,
+      пересекающиеся изменения по-прежнему блокируют применение. Unit fixture проверяет apply
+      и конфликт; независимая System без baseline не получает автоматическое обновление.
 - [x] Первый read-only `system diff` показывает added/missing/changed authored файлы и Components
       между активной System и bundled default; внешний fixture проверяет результат после patch upgrade.
       Это отдельное двустороннее сравнение; `system upgrade` использует сохранённую базу.

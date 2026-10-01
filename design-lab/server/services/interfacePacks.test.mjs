@@ -315,6 +315,38 @@ test('System upgrade preserves local files and blocks overlapping edits', async 
   })
 })
 
+test('default-derived System fork can upgrade without losing its identity or local edits', async () => {
+  await withPackWorkspace(async ({ root, options, librariesDirectory }) => {
+    const active = join(librariesDirectory, 'design-lab-system')
+    const bundled = join(root, 'new-default')
+    await cp(active, bundled, { recursive: true })
+    const created = await createLocalInterfaceSystem('authoring/my-system', 'My System', options)
+    await installLocalInterfaceSystem(created.path, options)
+    assert.equal((await analyzeSystemUpgrade({ ...options, defaultSystemSource: bundled })).available, true)
+
+    await writeFile(join(active, 'local-note.txt'), 'author edit\n')
+    await writeFile(join(bundled, 'new-feature.txt'), 'new default\n')
+    const upgradeOptions = { ...options, defaultSystemSource: bundled }
+    const preview = await analyzeSystemUpgrade(upgradeOptions)
+    assert.equal(preview.canApply, true)
+    assert(preview.files.localOnly.includes('design-lab-pack.json'))
+    await applySystemUpgrade(preview.fingerprint, upgradeOptions)
+    assert.equal((await readInterfaceSelection(options)).system.id, 'my-system')
+    assert.equal(JSON.parse(await readFile(join(active, 'design-lab-pack.json'), 'utf8')).id, 'my-system')
+    assert.equal(await readFile(join(active, 'local-note.txt'), 'utf8'), 'author edit\n')
+    assert.equal(await readFile(join(active, 'new-feature.txt'), 'utf8'), 'new default\n')
+
+    await writeFile(join(active, 'new-feature.txt'), 'second author edit\n')
+    await writeFile(join(bundled, 'new-feature.txt'), 'second default edit\n')
+    const conflicted = await analyzeSystemUpgrade(upgradeOptions)
+    assert.deepEqual(conflicted.files.conflicts, ['new-feature.txt'])
+    await assert.rejects(applySystemUpgrade(conflicted.fingerprint, upgradeOptions), {
+      code: 'INTERFACE_UPGRADE_CONFLICT',
+    })
+    assert.equal(await readFile(join(active, 'new-feature.txt'), 'utf8'), 'second author edit\n')
+  })
+})
+
 test('local System creation copies the active source without replacing it', async () => {
   await withPackWorkspace(async ({ options, librariesDirectory }) => {
     const created = await createLocalInterfaceSystem('authoring/my-system', 'My System', options)

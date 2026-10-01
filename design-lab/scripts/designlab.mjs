@@ -153,8 +153,9 @@ deletes existing product files.
 Theme installs a CSS/token Skin over the active System. System diff compares authored files in the
 active or named System with the bundled default without writing anything; added/missing directions
 are relative to that default. System upgrade compares the active folder, its recorded baseline,
-and the bundled default. It blocks the whole upgrade on overlapping edits and snapshots the
-active folder before a confirmed apply. Restart Design Lab after applying.
+and the bundled default. Default-derived forks retain the baseline after changing their id; a
+System without a default baseline cannot use this upgrade. Overlapping edits block the whole
+upgrade. A confirmed apply snapshots the active folder. Restart Design Lab after applying.
 System validates and caches a complete
 executable replacement, snapshots the current interface, and physically installs the selection in
 the one libraries/design-lab-system slot; --no-use keeps the downloaded package inactive. Reset

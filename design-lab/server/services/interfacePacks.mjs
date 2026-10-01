@@ -427,15 +427,7 @@ export async function analyzeSystemUpgrade(options = {}) {
   const paths = defaultInterfacePaths(options)
   if (!paths.defaultSystemSource || !existsSync(paths.defaultSystemSource))
     return { available: false, reason: 'The bundled default System is unavailable.' }
-  const activeManifest = await readJson(
-    join(paths.systemSlot, PACK_MANIFEST),
-    'INTERFACE_PACK_MANIFEST_MISSING',
-  )
-  if (activeManifest.id !== DEFAULT_SYSTEM_ID)
-    return {
-      available: false,
-      reason: 'Only a default-derived active System can use the bundled upgrade path.',
-    }
+  await readJson(join(paths.systemSlot, PACK_MANIFEST), 'INTERFACE_PACK_MANIFEST_MISSING')
   const [localFiles, bundledFiles] = await Promise.all([
     authoredSystemFiles(paths.systemSlot),
     authoredSystemFiles(paths.defaultSystemSource),
@@ -445,7 +437,7 @@ export async function analyzeSystemUpgrade(options = {}) {
     return {
       available: false,
       reason:
-        'This System has no recorded default baseline. Existing files will not be overwritten.',
+        'This System has no recorded default baseline. Only default-derived Systems can use the bundled upgrade path; existing files will not be overwritten.',
     }
   const bundledManifest = await readJson(
     join(paths.defaultSystemSource, PACK_MANIFEST),

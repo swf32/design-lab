@@ -39,7 +39,7 @@
 - [x] Довести package layout и установку из tarball до чистого внешнего repo, не смешивая инструмент с user-authored source.
 - [x] Проверить единые imports/discovery и живое обновление shell и Workbench Canvas из активной папки в clean external repo.
 - [x] Сделать первый read-only `system diff` активной System против bundled default с отчётом по файлам и Components.
-- [x] Добавить базовую версию для трёхстороннего сравнения и безопасный upgrade flow с локальными правками: при пересечении изменений применение целиком блокируется (D-095); reset остаётся отдельным recovery действием.
+- [x] Добавить базовую версию для трёхстороннего сравнения и безопасный upgrade flow с локальными правками: при пересечении изменений применение целиком блокируется (D-095); reset остаётся отдельным recovery действием. Созданные из default авторские копии System сохраняют baseline и могут пользоваться тем же upgrade после смены ID; независимые System без baseline обновляются автором отдельно.
 - [ ] Доказать полный цикл clean install, restart, versioned upgrade и uninstall во внешнем fixture repo; attach и отдельный greenfield `Start clean` с dev проверены, как и patch upgrade с сохранением локальных правок System и reset. Repair/uninstall остаются открытыми.
 - [x] Добавить read-only inventory для подготовки uninstall: различать setup files, project-owned System/mounts, дополнительные файлы и AGENTS pointer без удаления.
 
