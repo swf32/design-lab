@@ -15,6 +15,7 @@ import {
   doctorInterfacePacks,
   inspectLocalInterfaceSystem,
   inspectLocalInterfaceSkin,
+  inspectSystemUpgradeConflict,
   installLocalInterfaceSystem,
   installLocalInterfaceSkin,
   installInterfacePack,
@@ -257,6 +258,22 @@ test('System upgrade preserves local files and blocks overlapping edits', async 
     const conflicted = await analyzeSystemUpgrade(upgradeOptions)
     assert.deepEqual(conflicted.files.conflicts, ['components.ts'])
     assert(conflicted.files.upstreamOnly.includes('another-default.txt'))
+    const comparison = await inspectSystemUpgradeConflict(
+      'components.ts',
+      conflicted.fingerprint,
+      upgradeOptions,
+    )
+    assert.equal(comparison.local.kind, 'text')
+    assert.equal(comparison.local.text, 'export const local = true\n')
+    assert.equal(comparison.bundled.kind, 'text')
+    assert.equal(comparison.bundled.text, 'export const bundled = true\n')
+    await assert.rejects(
+      inspectSystemUpgradeConflict('../outside', conflicted.fingerprint, upgradeOptions),
+      { code: 'INTERFACE_UPGRADE_CONFLICT_NOT_FOUND' },
+    )
+    await assert.rejects(inspectSystemUpgradeConflict('components.ts', 'stale', upgradeOptions), {
+      code: 'INTERFACE_UPGRADE_STALE',
+    })
     await assert.rejects(applySystemUpgrade(conflicted.fingerprint, upgradeOptions), {
       code: 'INTERFACE_UPGRADE_CONFLICT',
     })
@@ -265,6 +282,36 @@ test('System upgrade preserves local files and blocks overlapping edits', async 
       'export const local = true\n',
     )
     await assert.rejects(readFile(join(active, 'another-default.txt'), 'utf8'))
+
+    await writeFile(join(active, 'binary.bin'), Buffer.from([0, 1, 2]))
+    await writeFile(join(bundled, 'binary.bin'), Buffer.from([0, 3, 4]))
+    await writeFile(join(active, 'large.txt'), 'a'.repeat(140_000))
+    await writeFile(join(bundled, 'large.txt'), 'b'.repeat(140_000))
+    const nonTextPlan = await analyzeSystemUpgrade(upgradeOptions)
+    const binary = await inspectSystemUpgradeConflict(
+      'binary.bin',
+      nonTextPlan.fingerprint,
+      upgradeOptions,
+    )
+    assert.equal(binary.local.kind, 'binary')
+    assert.equal(binary.bundled.kind, 'binary')
+    const large = await inspectSystemUpgradeConflict(
+      'large.txt',
+      nonTextPlan.fingerprint,
+      upgradeOptions,
+    )
+    assert.equal(large.local.kind, 'large')
+    assert.equal(large.bundled.kind, 'large')
+    assert.equal('text' in large.local, false)
+    await rm(join(active, 'components.ts'))
+    const deletedPlan = await analyzeSystemUpgrade(upgradeOptions)
+    const deleted = await inspectSystemUpgradeConflict(
+      'components.ts',
+      deletedPlan.fingerprint,
+      upgradeOptions,
+    )
+    assert.equal(deleted.local.kind, 'missing')
+    assert.equal(deleted.bundled.kind, 'text')
   })
 })
 

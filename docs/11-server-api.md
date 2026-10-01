@@ -182,6 +182,17 @@ and a fresh plan. It validates a staged System, saves a snapshot, activates the 
 `{ updated, restartRequired, files }`. Stale plans and conflicts return `409`; no authored file is
 applied in either case. Restart the application when `restartRequired` is true.
 
+### `POST /api/interface/system/upgrade/conflict`
+
+Read-only, UI-guarded comparison for one file in the current blocked upgrade plan. JSON body
+`{ "path": "components/...", "fingerprint": "..." }`. The path must be in `files.conflicts` and
+the fingerprint must still match; otherwise the endpoint returns `404` or `409`. Returns
+`{ path, fingerprint, local, bundled }`. Each side is `text` (up to 128 KiB of UTF-8 source),
+`missing`, `binary`, or `large`; non-text sides include byte count but never file content. Both
+sides are read from the active project-owned System and current bundled default. The recorded
+ancestor stores hashes only, so this is a two-way content view inside a three-way upgrade plan.
+The endpoint reads no arbitrary project path, writes nothing, and rechecks the plan before reply.
+
 ### `POST /api/interface/system/inspect`
 
 JSON body `{ "path": "../my-system" }`. A relative path starts at the product repository root.

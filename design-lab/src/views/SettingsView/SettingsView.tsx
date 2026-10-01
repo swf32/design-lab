@@ -12,6 +12,7 @@ import {
   getInterfaceSystemDoctor,
   getInterfaceSystemRecovery,
   getInterfaceSystemUpgrade,
+  getInterfaceSystemUpgradeConflict,
   getMcpIntegration,
   inspectLocalInterfaceSystem,
   installLocalInterfaceSystem,
@@ -20,6 +21,8 @@ import {
   type InterfaceSystemDoctor,
   type InterfaceSystemRecovery,
   type InterfaceSystemUpgrade,
+  type InterfaceSystemUpgradeConflict,
+  type InterfaceSystemUpgradeConflictSide,
   type LocalInterfaceSystemInspection,
   type McpIntegrationInfo,
 } from '../../api/projects'
@@ -65,6 +68,85 @@ function DiffGroups({
         </details>
       ))}
     </div>
+  )
+}
+
+function ConflictVersion({
+  title,
+  side,
+  path,
+}: {
+  title: string
+  side: InterfaceSystemUpgradeConflictSide
+  path: string
+}) {
+  return (
+    <section>
+      <h4>{title}</h4>
+      {side.kind === 'text' ? (
+        <CodeBlock
+          code={side.text}
+          language={path.split('.').pop() ?? 'text'}
+          collapsedLines={12}
+        />
+      ) : (
+        <p>
+          {side.kind === 'missing'
+            ? 'File absent in this version.'
+            : side.kind === 'binary'
+              ? `Binary file (${side.bytes} bytes). Open it in an editor to compare.`
+              : `File is too large to preview (${side.bytes} bytes). Open it in an editor to compare.`}
+        </p>
+      )}
+    </section>
+  )
+}
+
+function UpgradeConflictPreview({
+  path,
+  fingerprint,
+  onRefresh,
+}: {
+  path: string
+  fingerprint: string
+  onRefresh: () => Promise<void>
+}) {
+  const [comparison, setComparison] = useState<InterfaceSystemUpgradeConflict | null>(null)
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState<Error | null>(null)
+  const compare = async () => {
+    setLoading(true)
+    setError(null)
+    try {
+      setComparison(await getInterfaceSystemUpgradeConflict(path, fingerprint))
+    } catch (cause) {
+      setComparison(null)
+      setError(cause instanceof Error ? cause : new Error('Could not compare the files.'))
+    } finally {
+      setLoading(false)
+    }
+  }
+  return (
+    <li>
+      <code>{path}</code>{' '}
+      <Button type="button" size="small" loading={loading} onClick={() => void compare()}>
+        Compare versions
+      </Button>
+      {error && (
+        <p role="alert">
+          {error.message}{' '}
+          <Button type="button" size="small" onClick={() => void onRefresh()}>
+            Refresh plan
+          </Button>
+        </p>
+      )}
+      {comparison && (
+        <div className="settings-system__diff-groups">
+          <ConflictVersion title="Your active System" side={comparison.local} path={path} />
+          <ConflictVersion title="Bundled default" side={comparison.bundled} path={path} />
+        </div>
+      )}
+    </li>
   )
 }
 
@@ -350,13 +432,18 @@ export function SettingsView({ onClose }: { onClose: () => void }) {
                   <details>
                     <summary>Conflicting files · {systemUpgrade.files.conflicts.length}</summary>
                     <p>
-                      Resolve these overlapping edits before upgrading. Nothing will be applied.
+                      Compare the current local and bundled versions, resolve overlapping edits in
+                      your System folder, then refresh the plan. The recorded base stores hashes,
+                      not previous file contents. Nothing will be applied while conflicts remain.
                     </p>
                     <ul>
                       {systemUpgrade.files.conflicts.map((path) => (
-                        <li key={path}>
-                          <code>{path}</code>
-                        </li>
+                        <UpgradeConflictPreview
+                          key={`${systemUpgrade.fingerprint}:${path}`}
+                          path={path}
+                          fingerprint={systemUpgrade.fingerprint}
+                          onRefresh={refreshSystem}
+                        />
                       ))}
                     </ul>
                   </details>

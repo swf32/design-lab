@@ -722,6 +722,26 @@ export function getInterfaceSystemUpgrade() {
   return request<InterfaceSystemUpgrade>('/api/interface/system/upgrade')
 }
 
+export type InterfaceSystemUpgradeConflictSide =
+  | { kind: 'missing'; bytes: 0 }
+  | { kind: 'binary' | 'large'; bytes: number }
+  | { kind: 'text'; bytes: number; text: string }
+
+export type InterfaceSystemUpgradeConflict = {
+  path: string
+  fingerprint: string
+  local: InterfaceSystemUpgradeConflictSide
+  bundled: InterfaceSystemUpgradeConflictSide
+}
+
+export function getInterfaceSystemUpgradeConflict(path: string, fingerprint: string) {
+  return request<InterfaceSystemUpgradeConflict>('/api/interface/system/upgrade/conflict', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', 'X-Design-Lab-UI': '1' },
+    body: JSON.stringify({ path, fingerprint }),
+  })
+}
+
 export function applyInterfaceSystemUpgrade(fingerprint: string) {
   return request<{ updated: boolean; restartRequired: boolean }>('/api/interface/system/upgrade', {
     method: 'POST',

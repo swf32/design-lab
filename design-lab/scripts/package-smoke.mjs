@@ -100,6 +100,7 @@ async function browserSmoke(
     resetSystem = false,
     upgradeSystem = false,
     browseProjectSystem = false,
+    verifyUpgradeConflict = false,
     checkIntegrationFailure = false,
     createSkinCandidate = null,
     verifySkinAndClear = false,
@@ -347,6 +348,24 @@ async function browserSmoke(
           : 'Authored files differ from the bundled default.',
       )
       .waitFor()
+    if (verifyUpgradeConflict) {
+      await page.getByText('Conflicting files · 1').click()
+      await page.getByRole('button', { name: 'Compare versions' }).waitFor()
+      const [preview] = await Promise.all([
+        page.waitForResponse((result) =>
+          result.url().endsWith('/api/interface/system/upgrade/conflict'),
+        ),
+        page.getByRole('button', { name: 'Compare versions' }).click(),
+      ])
+      assert.equal(preview.status(), 200)
+      const comparison = await preview.json()
+      assert.equal(comparison.path, 'conflict-smoke.txt')
+      assert.equal(comparison.local.text, 'Local conflict smoke\n')
+      assert.equal(comparison.bundled.text, 'Bundled conflict smoke\n')
+      await page.getByRole('heading', { name: 'Your active System' }).waitFor()
+      await page.getByRole('heading', { name: 'Bundled default' }).waitFor()
+      assert.equal(await page.getByRole('button', { name: 'Review update' }).count(), 0)
+    }
     if (customStructure) {
       await page.getByRole('heading', { name: 'Components' }).waitFor()
       await page.getByText('alternate-smoke', { exact: true }).waitFor()
@@ -636,8 +655,25 @@ try {
   await run('npm', ['install', archive, '--ignore-scripts', '--no-audit', '--no-fund'], projectRoot)
   assert.equal(await readFile(join(systemRoot, 'local-smoke-marker.txt'), 'utf8'), marker)
 
-  if (process.argv.includes('--browser'))
-    await browserSmoke(cli, { browseProjectSystem: true, checkIntegrationFailure: true })
+  if (process.argv.includes('--browser')) {
+    const localConflict = join(systemRoot, 'conflict-smoke.txt')
+    const bundledConflict = join(
+      projectRoot,
+      'node_modules/design-lab/vendor/default-system/conflict-smoke.txt',
+    )
+    await writeFile(localConflict, 'Local conflict smoke\n')
+    await writeFile(bundledConflict, 'Bundled conflict smoke\n')
+    try {
+      await browserSmoke(cli, {
+        browseProjectSystem: true,
+        verifyUpgradeConflict: true,
+        checkIntegrationFailure: true,
+      })
+    } finally {
+      await rm(localConflict, { force: true })
+      await rm(bundledConflict, { force: true })
+    }
+  }
 
   const upgradeRoot = join(temporary, 'upgrade')
   await mkdir(upgradeRoot)

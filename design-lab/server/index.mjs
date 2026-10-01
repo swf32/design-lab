@@ -33,6 +33,7 @@ import {
   doctorInterfacePacks,
   inspectLocalInterfaceSystem,
   inspectLocalInterfaceSkin,
+  inspectSystemUpgradeConflict,
   installLocalInterfaceSystem,
   installLocalInterfaceSkin,
   listInterfacePacks,
@@ -91,6 +92,15 @@ createServer(async (request, response) => {
     }
     if (request.method === 'GET' && url.pathname === '/api/interface/system/upgrade') {
       return sendJson(response, 200, await analyzeSystemUpgrade())
+    }
+    if (request.method === 'POST' && url.pathname === '/api/interface/system/upgrade/conflict') {
+      requireInterfaceUiRequest(request)
+      const input = await readJson(request)
+      return sendJson(
+        response,
+        200,
+        await inspectSystemUpgradeConflict(input.path, input.fingerprint),
+      )
     }
     if (request.method === 'POST' && url.pathname === '/api/interface/system/upgrade') {
       requireInterfaceUiRequest(request)

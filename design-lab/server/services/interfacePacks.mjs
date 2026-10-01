@@ -455,6 +455,87 @@ export async function analyzeSystemUpgrade(options = {}) {
   }
 }
 
+const UPGRADE_CONFLICT_PREVIEW_MAX_BYTES = 128 * 1024
+
+async function readUpgradeConflictSide(root, path) {
+  const file = join(root, path)
+  let info
+  try {
+    info = await lstat(file)
+  } catch (error) {
+    if (error.code === 'ENOENT') return { kind: 'missing', bytes: 0 }
+    throw error
+  }
+  if (!info.isFile())
+    throw Object.assign(
+      packError('The System file changed. Review the upgrade again.', 'INTERFACE_UPGRADE_STALE'),
+      { status: 409 },
+    )
+  if (info.size > UPGRADE_CONFLICT_PREVIEW_MAX_BYTES) return { kind: 'large', bytes: info.size }
+  let buffer
+  try {
+    buffer = await readFile(file)
+  } catch (error) {
+    if (error.code === 'ENOENT')
+      throw Object.assign(
+        packError('The System file changed. Review the upgrade again.', 'INTERFACE_UPGRADE_STALE'),
+        { status: 409 },
+      )
+    throw error
+  }
+  if (buffer.length > UPGRADE_CONFLICT_PREVIEW_MAX_BYTES)
+    return { kind: 'large', bytes: buffer.length }
+  if (buffer.includes(0)) return { kind: 'binary', bytes: buffer.length }
+  try {
+    return {
+      kind: 'text',
+      bytes: buffer.length,
+      text: new TextDecoder('utf-8', { fatal: true }).decode(buffer),
+    }
+  } catch {
+    return { kind: 'binary', bytes: buffer.length }
+  }
+}
+
+export async function inspectSystemUpgradeConflict(path, expectedFingerprint, options = {}) {
+  const report = await analyzeSystemUpgrade(options)
+  if (!report.available)
+    throw Object.assign(packError(report.reason, 'INTERFACE_UPGRADE_BASELINE_UNAVAILABLE'), {
+      status: 409,
+    })
+  if (typeof expectedFingerprint !== 'string' || report.fingerprint !== expectedFingerprint)
+    throw Object.assign(
+      packError(
+        'The System or bundled default changed. Review the upgrade again.',
+        'INTERFACE_UPGRADE_STALE',
+      ),
+      { status: 409 },
+    )
+  if (typeof path !== 'string' || !report.files.conflicts.includes(path))
+    throw Object.assign(
+      packError(
+        'Choose a conflicting System file from the current plan.',
+        'INTERFACE_UPGRADE_CONFLICT_NOT_FOUND',
+      ),
+      { status: 404 },
+    )
+  const paths = defaultInterfacePaths(options)
+  const [local, bundled] = await Promise.all([
+    readUpgradeConflictSide(paths.systemSlot, path),
+    readUpgradeConflictSide(paths.defaultSystemSource, path),
+  ])
+  const current = await analyzeSystemUpgrade(options)
+  if (!current.available || current.fingerprint !== report.fingerprint)
+    throw Object.assign(
+      packError(
+        'The System or bundled default changed. Review the upgrade again.',
+        'INTERFACE_UPGRADE_STALE',
+      ),
+      { status: 409 },
+    )
+  return { path, fingerprint: report.fingerprint, local, bundled }
+}
+
 export async function applySystemUpgrade(expectedFingerprint, options = {}) {
   const paths = defaultInterfacePaths(options)
   const report = await analyzeSystemUpgrade(options)

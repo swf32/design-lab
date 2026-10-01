@@ -823,6 +823,9 @@ where they are` и confirm-gated apply plan; post-apply self-check возвра�
       style обоих потребителей через HMR и восстанавливает файл.
 - [x] Добавить версионированное сравнение default template с активной System и явный upgrade flow,
       который сохраняет пользовательские изменения.
+- [x] Дать Settings read-only просмотр одного конфликтующего файла из локальной и bundled System
+      по свежему fingerprint; binary/large/delete показываются честно, весь update остаётся
+      заблокирован до ручного решения. Browser fixture проверяет реальный конфликт и сравнение.
 - [x] Добавить двусторонний read-only `system diff` против default template текущего пакета;
       скрытые cache/derived barrels/token CSS исключены, symlink отклоняется.
 - [x] Добавить read-only post-apply self-check для config, source mounts, локальных rules,
