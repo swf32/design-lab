@@ -441,6 +441,28 @@ async function browserSmoke(
         'design-lab/skins/smoke-skin',
       )
       await page.getByRole('button', { name: 'Install this Skin' }).waitFor()
+      await writeFile(
+        join(createSkinCandidate, 'theme.css'),
+        ':root { --shell-application-background: rgb(12 34 57) !important; }\n',
+      )
+      await page.getByRole('button', { name: 'Install this Skin' }).click()
+      const [stale] = await Promise.all([
+        page.waitForResponse((result) => result.url().endsWith('/api/interface/skin/install')),
+        page.getByRole('dialog').getByRole('button', { name: 'Install Skin' }).click(),
+      ])
+      assert.equal(stale.status(), 409)
+      assert.equal((await stale.json()).error.code, 'INTERFACE_PACK_STALE')
+      await page.getByText('The folder changed after the last check.').waitFor()
+      assert.equal(await page.getByRole('button', { name: 'Install this Skin' }).count(), 0)
+      await writeFile(
+        join(createSkinCandidate, 'theme.css'),
+        ':root { --shell-application-background: rgb(12 34 56) !important; }\n',
+      )
+      const [rechecked] = await Promise.all([
+        page.waitForResponse((result) => result.url().endsWith('/api/interface/skin/inspect')),
+        page.getByRole('button', { name: 'Check Skin' }).click(),
+      ])
+      assert.equal(rechecked.status(), 200)
       await page.getByRole('button', { name: 'Install this Skin' }).click()
       const [installed] = await Promise.all([
         page.waitForResponse((result) => result.url().endsWith('/api/interface/skin/install')),

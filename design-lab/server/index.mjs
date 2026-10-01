@@ -132,7 +132,9 @@ createServer(async (request, response) => {
           code: 'INTERFACE_INSTALL_CONFIRMATION_REQUIRED',
           status: 409,
         })
-      const installed = await installLocalInterfaceSystem(input.path)
+      const installed = await installLocalInterfaceSystem(input.path, {
+        expectedFingerprint: input.fingerprint ?? '',
+      })
       revision += 1
       return sendJson(response, 200, { ...installed, restartRequired: true })
     }
@@ -169,7 +171,9 @@ createServer(async (request, response) => {
           code: 'INTERFACE_INSTALL_CONFIRMATION_REQUIRED',
           status: 409,
         })
-      const installed = await installLocalInterfaceSkin(input.path)
+      const installed = await installLocalInterfaceSkin(input.path, {
+        expectedFingerprint: input.fingerprint ?? '',
+      })
       revision += 1
       return sendJson(response, 200, { ...installed, restartRequired: true })
     }

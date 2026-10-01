@@ -2,6 +2,8 @@ import { ApiRequestError } from '../../api/projects'
 
 function guidance(error: ApiRequestError, kind: 'Skin' | 'System') {
   switch (error.code) {
+    case 'INTERFACE_PACK_STALE':
+      return 'The folder changed after the last check. Check it again, review the current version, then install.'
     case 'INTERFACE_PACK_SOURCE_NOT_FOUND':
     case 'INTERFACE_PACK_SOURCE_REQUIRED':
     case 'INTERFACE_PACK_SOURCE_NOT_DIRECTORY':

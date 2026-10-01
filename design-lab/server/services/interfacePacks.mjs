@@ -266,6 +266,37 @@ async function assertPackHasNoSymlinks(root, current = root) {
   }
 }
 
+async function packSourceFingerprint(root) {
+  const files = []
+  async function visit(directory) {
+    for (const entry of await readdir(directory, { withFileTypes: true })) {
+      if (['.git', 'node_modules'].includes(entry.name)) continue
+      const absolute = join(directory, entry.name)
+      const path = portablePath(relative(root, absolute))
+      if (entry.isSymbolicLink())
+        throw packError(
+          `Interface packs cannot contain symbolic links: ${path}.`,
+          'INTERFACE_PACK_SYMLINK_UNSUPPORTED',
+        )
+      if (entry.isDirectory()) await visit(absolute)
+      else if (entry.isFile()) {
+        const digest = createHash('sha256')
+          .update(await readFile(absolute))
+          .digest('hex')
+        files.push([path, digest])
+      } else
+        throw packError(
+          `Interface pack cannot read a special file: ${path}.`,
+          'INTERFACE_PACK_PATH_INVALID',
+        )
+    }
+  }
+  await visit(root)
+  return createHash('sha256')
+    .update(JSON.stringify(files.sort(([left], [right]) => left.localeCompare(right))))
+    .digest('hex')
+}
+
 async function authoredSystemFiles(root) {
   const rootStat = await lstat(root)
   if (!rootStat.isDirectory())
@@ -1078,6 +1109,7 @@ export async function inspectLocalInterfaceSystem(path, options = {}) {
     name: validated.manifest.name,
     version: validated.manifest.version,
     description: validated.manifest.description ?? '',
+    fingerprint: await packSourceFingerprint(root),
     canInstall: validated.manifest.id !== DEFAULT_SYSTEM_ID,
     diff: await diffInterfaceSystem({ ...options, target: root }),
   }
@@ -1089,6 +1121,7 @@ export async function installLocalInterfaceSystem(path, options = {}) {
     ...options,
     kind: 'system',
     activate: true,
+    expectedFingerprint: options.expectedFingerprint,
   })
 }
 
@@ -1132,12 +1165,18 @@ export async function inspectLocalInterfaceSkin(path, options = {}) {
     name: validated.manifest.name,
     version: validated.manifest.version,
     description: validated.manifest.description ?? '',
+    fingerprint: await packSourceFingerprint(root),
   }
 }
 
 export async function installLocalInterfaceSkin(path, options = {}) {
   const root = await localInterfaceDirectory(path, options)
-  return installInterfacePack(root, { ...options, kind: 'skin', activate: true })
+  return installInterfacePack(root, {
+    ...options,
+    kind: 'skin',
+    activate: true,
+    expectedFingerprint: options.expectedFingerprint,
+  })
 }
 
 function parseGithubSource(spec) {
@@ -1389,6 +1428,18 @@ export async function installInterfacePack(spec, options = {}) {
   const staged = join(parent, `.staging-${randomUUID()}`)
   try {
     await acquirePack(spec, staged, resolve(options.cwd ?? process.cwd()))
+    if (
+      options.expectedFingerprint !== undefined &&
+      (typeof options.expectedFingerprint !== 'string' ||
+        (await packSourceFingerprint(staged)) !== options.expectedFingerprint)
+    )
+      throw Object.assign(
+        packError(
+          'The checked folder changed. Check it again before installing.',
+          'INTERFACE_PACK_STALE',
+        ),
+        { status: 409 },
+      )
     const validated = await validateInterfacePack(staged, {
       ...options,
       expectedKind: kind,

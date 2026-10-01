@@ -197,10 +197,11 @@ The endpoint reads no arbitrary project path, writes nothing, and rechecks the p
 
 JSON body `{ "path": "../my-system" }`. A relative path starts at the product repository root.
 Validates a complete local System, including the application typecheck, and returns
-`{ valid, path, id, name, version, description, canInstall, diff }`. `diff` compares authored
+`{ valid, path, id, name, version, description, fingerprint, canInstall, diff }`. `diff` compares authored
 files and Components against the bundled default in an embedded install or the active System in a
 development checkout. It includes `baselineKind`, `baseline`, `target`, `files`, `components`, and
-`identical`. Recheck after edits; installation validates the folder again. The default System ID has
+`identical`. The fingerprint covers the checked package files. Recheck after edits; installation
+copies the folder, compares the copy with that fingerprint, then validates it. The default System ID has
 `canInstall: false`; restore it with `reset`. This read operation uses the UI request guard below.
 
 ### `POST /api/interface/system/create`
@@ -215,8 +216,10 @@ routes.
 
 ### `POST /api/interface/system/install` and `POST /api/interface/system/reset`
 
-`install` accepts `{ "path": "../my-system", "confirmed": true }`; it revalidates the folder,
+`install` accepts `{ "path": "../my-system", "fingerprint": "...", "confirmed": true }`; it revalidates the copied folder,
 saves a snapshot of the current active System, and installs into the one active project-owned slot.
+If the copy no longer matches the reviewed fingerprint, installation returns `409 INTERFACE_PACK_STALE`
+before replacing the active System; check the folder again to get a fresh fingerprint.
 `reset` accepts `{ "confirmed": true }`; it saves a snapshot and restores the bundled default.
 Both return the corresponding CLI service result plus `restartRequired: true` and increment the
 API revision. The running UI must be restarted to load changed executable System code.
@@ -243,8 +246,8 @@ create and inspect leave the active selection unchanged:
 | Route | Body | Result |
 | --- | --- | --- |
 | `/api/interface/skin/create` | `{ name, path }` | `201` and an inactive local Skin scaffold with `theme.css` and authoring rules; the destination must be new and outside the active System. |
-| `/api/interface/skin/inspect` | `{ path }` | `200` with validated local Skin identity and version. |
-| `/api/interface/skin/install` | `{ path, confirmed: true }` | `200` after revalidation, caching, and activation; missing confirmation returns `409`. |
+| `/api/interface/skin/inspect` | `{ path }` | `200` with validated local Skin identity, version, and file fingerprint. |
+| `/api/interface/skin/install` | `{ path, fingerprint, confirmed: true }` | `200` after the copied files match the reviewed fingerprint, revalidation, caching, and activation; stale source or missing confirmation returns `409`. |
 | `/api/interface/skin/use` | `{ id, version }` | `200` after validating and selecting an installed Skin. |
 | `/api/interface/skin/reset` | `{}` | `200` after clearing the Skin selection without deleting its cached files. |
 

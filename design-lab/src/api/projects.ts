@@ -763,6 +763,7 @@ export function getInterfaceSystemRecovery() {
 export type LocalInterfaceSystemInspection = {
   valid: true
   path: string
+  fingerprint: string
   id: string
   name: string
   version: string
@@ -794,7 +795,7 @@ export function createLocalInterfaceSystem(name: string, path: string) {
   })
 }
 
-export function installLocalInterfaceSystem(path: string) {
+export function installLocalInterfaceSystem(path: string, fingerprint: string) {
   return request<{
     installed: true
     id: string
@@ -804,7 +805,7 @@ export function installLocalInterfaceSystem(path: string) {
   }>('/api/interface/system/install', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json', 'X-Design-Lab-UI': '1' },
-    body: JSON.stringify({ path, confirmed: true }),
+    body: JSON.stringify({ path, fingerprint, confirmed: true }),
   })
 }
 
@@ -831,6 +832,7 @@ export type InterfaceSkinPack = {
 export type LocalInterfaceSkinInspection = {
   valid: true
   path: string
+  fingerprint: string
   id: string
   name: string
   version: string
@@ -862,7 +864,7 @@ export function inspectLocalInterfaceSkin(path: string) {
   })
 }
 
-export function installLocalInterfaceSkin(path: string) {
+export function installLocalInterfaceSkin(path: string, fingerprint: string) {
   return request<{
     installed: true
     id: string
@@ -872,7 +874,7 @@ export function installLocalInterfaceSkin(path: string) {
   }>('/api/interface/skin/install', {
     method: 'POST',
     headers: interfaceUiHeaders,
-    body: JSON.stringify({ path, confirmed: true }),
+    body: JSON.stringify({ path, fingerprint, confirmed: true }),
   })
 }
 

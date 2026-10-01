@@ -919,6 +919,9 @@ native backlog до Web DoD.
       и активной System или переданной папкой. Sync/merge остаётся открытым.
 - [x] Показывать read-only diff проверенной локальной System прямо в Settings до установки;
       в development checkout явно обозначать активную System как эталон.
+- [x] Связать проверку Skin/System в Settings с отпечатком файлов: install сверяет staging-копию
+      с просмотренной версией и возвращает `409` до snapshot/activation, если папка изменилась;
+      browser fixture проверяет повторную проверку Skin после stale отказа.
 - [x] Блокировать новые прямые app-local визуальные TSX styles (JSX object, typed
       `CSSProperties`, DOM assignments) с baseline существующих случаев; динамические объекты и
       layout properties остаются открытыми по [аудиту](27-interface-style-ownership-audit.md).

@@ -344,8 +344,26 @@ test('local Skin workflow creates, validates, installs, lists, and resets', asyn
   await withPackWorkspace(async ({ options }) => {
     const created = await createLocalInterfaceSkin('authoring/my-skin', 'My Skin', options)
     assert.equal(created.id, 'my-skin')
-    assert.equal((await inspectLocalInterfaceSkin(created.path, options)).valid, true)
-    const installed = await installLocalInterfaceSkin(created.path, options)
+    const preview = await inspectLocalInterfaceSkin(created.path, options)
+    assert.equal(preview.valid, true)
+    await writeFile(
+      join(created.path, 'theme.css'),
+      ':root { --shell-application-background: red; }\n',
+    )
+    await assert.rejects(
+      installLocalInterfaceSkin(created.path, {
+        ...options,
+        expectedFingerprint: preview.fingerprint,
+      }),
+      { code: 'INTERFACE_PACK_STALE', status: 409 },
+    )
+    assert.equal((await doctorInterfacePacks(options)).skin, null)
+    const current = await inspectLocalInterfaceSkin(created.path, options)
+    assert.notEqual(current.fingerprint, preview.fingerprint)
+    const installed = await installLocalInterfaceSkin(created.path, {
+      ...options,
+      expectedFingerprint: current.fingerprint,
+    })
     assert.equal(installed.active, true)
     assert.equal((await listInterfacePacks('skin', options))[0].active, true)
     assert.equal((await doctorInterfacePacks(options)).skin.id, 'my-skin')
@@ -376,7 +394,24 @@ test('local System inspection and install share the validated one-slot installer
     assert.equal(inspected.diff.baselineKind, 'active')
     assert(inspected.diff.files.added.includes('assets/candidate.svg'))
     assert.equal(inspected.diff.target, candidate)
-    const installed = await installLocalInterfaceSystem('sources/new-system', options)
+    await writeFile(
+      join(candidate, 'assets', 'candidate.svg'),
+      '<svg xmlns="http://www.w3.org/2000/svg"><path/></svg>\n',
+    )
+    await assert.rejects(
+      installLocalInterfaceSystem('sources/new-system', {
+        ...options,
+        expectedFingerprint: inspected.fingerprint,
+      }),
+      { code: 'INTERFACE_PACK_STALE', status: 409 },
+    )
+    assert.equal((await doctorInterfacePacks(options)).system.id, 'design-lab-system')
+    const current = await inspectLocalInterfaceSystem('sources/new-system', options)
+    assert.notEqual(current.fingerprint, inspected.fingerprint)
+    const installed = await installLocalInterfaceSystem('sources/new-system', {
+      ...options,
+      expectedFingerprint: current.fingerprint,
+    })
     assert.equal(installed.active, true)
     assert.equal(installed.id, 'new-system')
     assert.deepEqual(await defaultSystemRecovery(options), {

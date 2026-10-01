@@ -85,7 +85,7 @@ export function SkinSettings({
     setBusy(true)
     setError(null)
     try {
-      const result = await installLocalInterfaceSkin(candidate.path)
+      const result = await installLocalInterfaceSkin(candidate.path, candidate.fingerprint)
       setConfirmOpen(false)
       setMessage(`${result.name} ${result.version} is active. Restart Design Lab to load it.`)
       onRefresh()
@@ -93,6 +93,7 @@ export function SkinSettings({
     } catch (cause) {
       setConfirmOpen(false)
       setError(cause instanceof Error ? cause : new Error('Could not install the Skin.'))
+      setCandidate(null)
     } finally {
       setBusy(false)
     }

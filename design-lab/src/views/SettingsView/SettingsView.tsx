@@ -273,7 +273,7 @@ export function SettingsView({ onClose }: { onClose: () => void }) {
     setInstalling(true)
     setCandidateError(null)
     try {
-      const result = await installLocalInterfaceSystem(candidate.path)
+      const result = await installLocalInterfaceSystem(candidate.path, candidate.fingerprint)
       setInstallResult(
         `${result.name} ${result.version} is installed. Restart Design Lab to load it.`,
       )
@@ -282,6 +282,7 @@ export function SettingsView({ onClose }: { onClose: () => void }) {
       void refreshSystem()
     } catch (cause) {
       setCandidateError(cause instanceof Error ? cause : new Error('Could not install the System.'))
+      setCandidate(null)
       setInstallConfirmOpen(false)
     } finally {
       setInstalling(false)
