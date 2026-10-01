@@ -34,7 +34,7 @@ Design Lab — локальное, ориентированное на диза�
 Текущий фокус — удобное авторство и замена полной System, включая структуру Components и assets;
 визуальный редизайн отложен по [D-094](DECISIONS.md).
 Новые app-local визуальные CSS/SCSS декларации и прямые inline TSX styles блокируются проверками;
-501 CSS-декларация в baseline (458 остались после переносов Canvas и Settings Panel) и 9 inline-деклараций зафиксированы для review в
+501 CSS-декларация в baseline (427 остались после переносов Canvas, Settings Panel и ячеек catalog Table) и 9 inline-деклараций зафиксированы для review в
 [аудите ownership](27-interface-style-ownership-audit.md), а не как
 подтверждение, что весь визуал уже перенесён в System.
 

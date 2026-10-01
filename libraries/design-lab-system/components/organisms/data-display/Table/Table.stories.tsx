@@ -36,7 +36,54 @@ const columns: TableColumn<ExampleRow>[] = [
   },
 ]
 
+type TokenRow = { id: string; path: string; value: string; file: string }
+const tokenRows: TokenRow[] = [
+  { id: 'accent', path: 'color.accent.primary', value: '#7755dc', file: 'color.tokens.json' },
+  { id: 'surface', path: 'color.surface.primary', value: '#24252a', file: 'color.tokens.json' },
+]
+const tokenColumns: TableColumn<TokenRow>[] = [
+  {
+    id: 'path',
+    header: 'Token',
+    cell: (row) =>
+      createElement(
+        'span',
+        { className: 'dl-table__identity' },
+        createElement('strong', null, row.path),
+        createElement('code', null, row.file),
+      ),
+    sortValue: (row) => row.path,
+    width: '55%',
+  },
+  {
+    id: 'value',
+    header: 'Value',
+    cell: (row) =>
+      createElement(
+        'span',
+        { className: 'dl-table__value' },
+        createElement('i', {
+          className: 'dl-table__swatch',
+          style: { background: row.value },
+          'aria-hidden': true,
+        }),
+        createElement('strong', null, row.value),
+      ),
+    sortValue: (row) => row.value,
+    width: '45%',
+  },
+]
+
 export function renderStoryExample(example: StoryExample) {
+  if (example.props.registry)
+    return createElement(Table<TokenRow>, {
+      rows: tokenRows,
+      columns: tokenColumns,
+      getRowId: (row) => row.id,
+      ariaLabel: 'Token registry cell content',
+      density: 'compact',
+      resizableColumns: false,
+    })
   return createElement(Table<ExampleRow>, {
     rows: example.props.empty ? [] : rows,
     columns,
@@ -81,5 +128,11 @@ export const stories = [
       { label: 'Selected row', props: { selected: true } },
       { label: 'Empty', props: { empty: true } },
     ],
+  },
+  {
+    id: 'cell-content',
+    kind: 'context',
+    name: 'Registry cell content',
+    examples: [{ label: 'Identity, path, swatch, and value', props: { registry: true } }],
   },
 ]

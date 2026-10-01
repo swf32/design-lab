@@ -634,6 +634,62 @@ async function browserSmoke(
       assert.equal(response.status(), 200)
       assert.equal((await response.json()).active, 'design-lab-system')
     }
+    if (browseProjectSystem) {
+      let darkTokenPathColor = ''
+      for (const theme of ['dark', 'light']) {
+        await page.evaluate((value) => localStorage.setItem('design-lab:theme', value), theme)
+        await page.goto(`http://localhost:${uiPort}/tokens/design-lab-system`, {
+          waitUntil: 'networkidle',
+        })
+        const tokenTable = page.getByRole('grid', { name: 'Design tokens' })
+        await tokenTable.waitFor()
+        const identity = tokenTable.locator('.dl-table__token-identity').first()
+        const swatch = tokenTable.locator('.dl-table__swatch').first()
+        await identity.waitFor()
+        await swatch.waitFor()
+        const appearance = await identity.evaluate((element) => {
+          const path = element.querySelector('.dl-table__path')
+          const copy = element.querySelector('.dl-table__copy')
+          return {
+            pathColor: path ? getComputedStyle(path).color : '',
+            pathSize: path ? getComputedStyle(path).fontSize : '',
+            copyOpacity: copy ? getComputedStyle(copy).opacity : '',
+          }
+        })
+        assert.equal(appearance.pathSize, '9px')
+        assert(appearance.pathColor)
+        assert.equal(appearance.copyOpacity, '0')
+        const copy = identity.locator('.dl-table__copy')
+        await copy.focus()
+        await page.waitForFunction(
+          () => getComputedStyle(document.querySelector('.dl-table__copy')).opacity === '1',
+        )
+        assert.equal(await copy.evaluate((element) => getComputedStyle(element).opacity), '1')
+        assert.equal(
+          await copy.evaluate((element) => getComputedStyle(element).outlineStyle),
+          'solid',
+        )
+        assert.equal(await swatch.evaluate((element) => getComputedStyle(element).width), '16px')
+        if (theme === 'dark') darkTokenPathColor = appearance.pathColor
+        else assert.notEqual(appearance.pathColor, darkTokenPathColor)
+
+        await page.goto(`http://localhost:${uiPort}/palette/design-lab-system`, {
+          waitUntil: 'networkidle',
+        })
+        await page.getByRole('button', { name: 'List view' }).click()
+        const paletteTable = page.getByRole('table', { name: 'Color palette' })
+        await paletteTable.waitFor()
+        const largeSwatch = paletteTable.locator('.dl-table__swatch--large').first()
+        assert.equal(
+          await largeSwatch.evaluate((element) => getComputedStyle(element).width),
+          '24px',
+        )
+        await page.setViewportSize({ width: 390, height: 844 })
+        const shell = page.locator('.dl-table-shell')
+        assert(await shell.evaluate((element) => element.scrollWidth > element.clientWidth))
+        await page.setViewportSize({ width: 1500, height: 1000 })
+      }
+    }
   } finally {
     if (styleChanged) await writeFile(stylePath, originalStyle)
     await browser?.close()

@@ -177,3 +177,145 @@
   color: var(--color-text-disabled);
   text-align: center;
 }
+
+.dl-table__identity {
+  min-width: 0;
+  display: grid;
+  gap: 2px;
+}
+.dl-table__identity strong,
+.dl-table__identity code,
+.dl-table__path,
+.dl-table__value strong,
+.dl-table__value-text {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.dl-table__identity strong {
+  color: var(--color-text-primary);
+  font-size: 11px;
+  font-weight: 600;
+}
+.dl-table__identity code,
+.dl-table__path,
+.dl-table__source {
+  color: var(--color-text-muted);
+  font-size: 9px;
+}
+.dl-table__source {
+  overflow: hidden;
+  display: block;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.dl-table__token-identity {
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+}
+.dl-table__token-identity .dl-table__path {
+  min-width: 0;
+}
+.dl-table__copy {
+  flex: 0 0 auto;
+  width: 18px;
+  height: 18px;
+  padding: 0;
+  border: 0;
+  border-radius: var(--corner-control);
+  background: transparent;
+  color: var(--color-text-disabled);
+  cursor: copy;
+  opacity: 0;
+  pointer-events: none;
+  transform: translateX(-2px);
+  transition:
+    color var(--transition-fast),
+    opacity var(--transition-fast),
+    transform var(--transition-fast);
+  display: grid;
+  place-items: center;
+}
+.dl-table tbody tr:hover .dl-table__copy,
+.dl-table tbody tr:focus-within .dl-table__copy,
+.dl-table__copy:focus-visible,
+.dl-table__copy.is-copied {
+  opacity: 1;
+  pointer-events: auto;
+  transform: translateX(0);
+}
+.dl-table__copy:hover,
+.dl-table__copy:focus-visible,
+.dl-table__copy.is-copied {
+  color: var(--color-accent-primary);
+}
+.dl-table__copy:focus-visible {
+  outline: 1px solid var(--color-accent-primary);
+  outline-offset: 1px;
+}
+.dl-table__copy-status {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+@media (hover: none) {
+  .dl-table__copy {
+    opacity: 0.72;
+    pointer-events: auto;
+    transform: translateX(0);
+  }
+}
+.dl-table__comment {
+  overflow: hidden;
+  display: block;
+  color: var(--color-text-muted);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.dl-table__type {
+  color: var(--color-text-disabled);
+  font-size: 9px;
+  text-transform: uppercase;
+}
+.dl-table__value,
+.dl-table__swatch-label {
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: var(--space-8);
+}
+.dl-table__value strong,
+.dl-table__value-text {
+  color: var(--color-text-secondary);
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 9px;
+  font-weight: 500;
+}
+.dl-table__swatch,
+.dl-table__swatch--large {
+  flex: 0 0 auto;
+  border: 1px solid var(--color-border-default);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--color-canvas) 28%, transparent);
+}
+.dl-table__swatch {
+  width: 16px;
+  height: 16px;
+  border-radius: 4px;
+}
+.dl-table__swatch--large {
+  width: 24px;
+  height: 24px;
+  border-radius: var(--corner-control);
+}
+.dl-table__swatch-label strong {
+  color: var(--color-text-primary);
+  font-size: 10px;
+}

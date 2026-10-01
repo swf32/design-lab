@@ -948,6 +948,10 @@ native backlog до Web DoD.
 - [x] Вынести общий Settings section surface, заголовки и ведущий AI-блок в `SettingsPanel`
       активной System без изменения default look; app-owned visual declarations сократились с
       482 до 458, installed browser fixture проверяет dark/light, narrow width и заголовки.
+- [x] Вынести presentation ячеек Components/Tokens/Palette table в System-owned `Table` classes:
+      identity, path, value, swatches и copy affordance; app-owned visual declarations сократились
+      с 458 до 427 без изменения default look. Installed browser fixture проверяет dark/light,
+      keyboard focus и горизонтальный scroll на узкой ширине.
 - [ ] Создать отдельный `design-lab-gallery` repository, remote verification workers, immutable
       checksums/signatures и generated screenshot publication flow.
 - [ ] Добавить gallery UI с status `community / validated / curated / incompatible` и установкой из

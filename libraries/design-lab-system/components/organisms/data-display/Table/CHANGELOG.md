@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.2.1 — 2026-10-01
+
+- Changed: moved registry cell identity, token and palette swatch, value, and copy affordance styles from the application into the System-owned Table presentation classes without changing the default appearance.
+- Added: a registry-cell Story showing the composed identity and color value.
+
 ## 0.2.0 — 2026-07-26
 
 - Added: column width, minimum, maximum, and resizable column contracts.

@@ -86,7 +86,7 @@ const componentListColumns: TableColumn<ComponentEntity>[] = [
     id: 'name',
     header: 'Component',
     cell: (component) => (
-      <span className="catalog-list-identity">
+      <span className="dl-table__identity">
         <strong>{component.name}</strong>
         <code>{component.entry ?? 'Playground only'}</code>
       </span>
@@ -1271,9 +1271,9 @@ export function ModuleView({
         cell: (token) => {
           const copied = copiedTokenPath === token.path
           return (
-            <span className="token-table-identity">
+            <span className="dl-table__token-identity">
               <button
-                className={`token-table-copy${copied ? ' is-copied' : ''}`}
+                className={`dl-table__copy${copied ? ' is-copied' : ''}`}
                 type="button"
                 aria-label={`${t(copied ? 'tokens.copied' : 'tokens.copy')}: ${token.path}`}
                 title={t(copied ? 'tokens.copied' : 'tokens.copy')}
@@ -1281,7 +1281,7 @@ export function ModuleView({
               >
                 <CopyIcon size={11} aria-hidden="true" />
               </button>
-              <code className="token-table-path">{token.path}</code>
+              <code className="dl-table__path">{token.path}</code>
             </span>
           )
         },
@@ -1292,7 +1292,7 @@ export function ModuleView({
       {
         id: 'type',
         header: 'Type',
-        cell: (token) => <span className="token-table-type">{token.type}</span>,
+        cell: (token) => <span className="dl-table__type">{token.type}</span>,
         sortValue: (token) => token.type,
         width: '12%',
         minWidth: 96,
@@ -1301,10 +1301,10 @@ export function ModuleView({
         id: 'value',
         header: `Value · ${previewMode}`,
         cell: (token) => (
-          <span className="token-table-value">
+          <span className="dl-table__value">
             {token.type === 'color' && (
               <i
-                className="token-table-swatch"
+                className="dl-table__swatch"
                 style={{ background: token.value }}
                 aria-hidden="true"
               />
@@ -1319,7 +1319,7 @@ export function ModuleView({
       {
         id: 'file',
         header: 'Stored in',
-        cell: (token) => <code className="token-table-source">{token.file}</code>,
+        cell: (token) => <code className="dl-table__source">{token.file}</code>,
         sortValue: (token) => token.file,
         width: '20%',
         minWidth: 160,
@@ -1328,7 +1328,7 @@ export function ModuleView({
         id: 'description',
         header: 'Comment',
         cell: (token) => (
-          <span className="token-table-comment" title={token.description ?? undefined}>
+          <span className="dl-table__comment" title={token.description ?? undefined}>
             {token.description ?? '—'}
           </span>
         ),
@@ -1347,7 +1347,7 @@ export function ModuleView({
         />
         {tokens.length ? (
           <>
-            <span className="token-table-copy-status" role="status" aria-live="polite">
+            <span className="dl-table__copy-status" role="status" aria-live="polite">
               {copiedTokenPath ? `${t('tokens.copied')}: ${copiedTokenPath}` : ''}
             </span>
             <Table
@@ -1402,9 +1402,9 @@ export function ModuleView({
                 id: 'color',
                 header: 'Color',
                 cell: (color) => (
-                  <span className="palette-table-swatch-wrap">
+                  <span className="dl-table__swatch-label">
                     <i
-                      className="palette-table-swatch"
+                      className="dl-table__swatch--large"
                       style={{
                         background: String(color.values[previewMode] ?? color.value),
                       }}
@@ -1419,14 +1419,14 @@ export function ModuleView({
               {
                 id: 'token',
                 header: 'Token',
-                cell: (color) => <code className="token-table-path">{color.path}</code>,
+                cell: (color) => <code className="dl-table__path">{color.path}</code>,
                 sortValue: (color) => color.path,
               },
               {
                 id: 'value',
                 header: `Value · ${previewMode}`,
                 cell: (color) => (
-                  <strong className="palette-table-value">
+                  <strong className="dl-table__value-text">
                     {String(color.values[previewMode] ?? color.value)}
                   </strong>
                 ),
