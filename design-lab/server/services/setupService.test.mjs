@@ -97,6 +97,75 @@ test('repair previews and restores only missing managed files', async () => {
   }
 })
 
+test('repair restores a damaged config from the reviewed last-good copy and preserves original bytes', async () => {
+  const root = await fixture()
+  try {
+    await applySetupPlan({ root, name: 'Recovery smoke', confirmed: true })
+    const configPath = join(root, 'design-lab/designlab.config.json')
+    const lastGoodPath = join(root, 'design-lab/designlab.config.last-good.json')
+    const original = await readFile(configPath, 'utf8')
+    assert.equal(await readFile(lastGoodPath, 'utf8'), original)
+    const damaged = '{ invalid config\n'
+    await writeFile(configPath, damaged)
+    const plan = await createSetupRepairPlan({ root })
+    assert.equal(plan.available, true)
+    assert.equal(plan.recovery.name, 'Recovery smoke')
+    assert(plan.changes.some((change) => change.kind === 'restore-config'))
+    const backup = plan.changes.find((change) => change.kind === 'backup-damaged-config')
+    assert(backup)
+    assert.equal(plan.canApply, true)
+    await assert.rejects(
+      applySetupRepair({ root, fingerprint: plan.fingerprint, confirmed: false }),
+      { code: 'SETUP_REPAIR_CONFIRMATION_REQUIRED' },
+    )
+    await writeFile(configPath, `${damaged}changed`)
+    await assert.rejects(
+      applySetupRepair({ root, fingerprint: plan.fingerprint, confirmed: true }),
+      { code: 'SETUP_REPAIR_STALE' },
+    )
+    await writeFile(configPath, damaged)
+    const repaired = await applySetupRepair({
+      root,
+      fingerprint: plan.fingerprint,
+      confirmed: true,
+    })
+    assert.equal(repaired.selfCheck.ok, true)
+    assert.equal(await readFile(configPath, 'utf8'), original)
+    assert.equal(await readFile(join(root, backup.path), 'utf8'), damaged)
+    assert.match(await readFile(join(root, 'src/components/Button.tsx'), 'utf8'), /Button/)
+  } finally {
+    await rm(root, { recursive: true, force: true })
+  }
+})
+
+test('repair will not restore a damaged config from a linked or invalid last-good copy', async () => {
+  const root = await fixture()
+  try {
+    await applySetupPlan({ root, name: 'Unsafe recovery', confirmed: true })
+    const configPath = join(root, 'design-lab/designlab.config.json')
+    const lastGoodPath = join(root, 'design-lab/designlab.config.last-good.json')
+    await writeFile(configPath, '{ broken\n')
+    await rm(lastGoodPath)
+    await symlink(configPath, lastGoodPath)
+    let plan = await createSetupRepairPlan({ root })
+    assert.equal(
+      plan.changes.some((change) => change.kind === 'restore-config'),
+      false,
+    )
+    assert(plan.blockers.some((item) => item.code === 'SETUP_REPAIR_CONFIG_UNSAFE'))
+    await rm(lastGoodPath)
+    await writeFile(lastGoodPath, '{}\n')
+    plan = await createSetupRepairPlan({ root })
+    assert.equal(
+      plan.changes.some((change) => change.kind === 'restore-config'),
+      false,
+    )
+    assert(plan.blockers.some((item) => item.code === 'SETUP_REPAIR_CONFIG_SNAPSHOT_INVALID'))
+  } finally {
+    await rm(root, { recursive: true, force: true })
+  }
+})
+
 test('repair refuses a linked local rules directory', async () => {
   const root = await fixture()
   try {
@@ -166,6 +235,10 @@ test('repair replaces a missing relative mount after a project folder moves', as
     assert.equal(applied.selfCheck.ok, true)
     const config = JSON.parse(await readFile(configPath, 'utf8'))
     assert.deepEqual(config.source.mounts.components, ['src/widgets'])
+    assert.equal(
+      await readFile(join(root, 'design-lab/designlab.config.last-good.json'), 'utf8'),
+      await readFile(configPath, 'utf8'),
+    )
     assert.match(
       await readFile(join(root, 'src/widgets/Button.tsx'), 'utf8'),
       /External button|button/,

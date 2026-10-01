@@ -77,6 +77,7 @@ const ASSET_EXTENSIONS = new Set([
 ])
 const MANAGED_AGENTS_START = '<!-- design-lab:setup:start -->'
 const MANAGED_AGENTS_END = '<!-- design-lab:setup:end -->'
+const LAST_GOOD_CONFIG = 'designlab.config.last-good.json'
 
 function setupError(message, code, status = 400) {
   return Object.assign(new Error(message), { code, status })
@@ -384,6 +385,7 @@ export async function createSetupPlan({
       createDirectories: [...new Set(createdDirectories)].sort(),
       createFiles: [
         `${integrationDirectory}/designlab.config.json`,
+        `${integrationDirectory}/${LAST_GOOD_CONFIG}`,
         `${integrationDirectory}/.gitignore`,
         ...RULE_FILES.map((file) => `${integrationDirectory}/rules/${file}`),
       ],
@@ -430,6 +432,40 @@ async function writeJsonAtomic(path, value) {
   const temporary = `${path}.${randomUUID()}.tmp`
   await writeFile(temporary, `${JSON.stringify(value, null, 2)}\n`, 'utf8')
   await rename(temporary, path)
+}
+
+function validRecoveryConfig(config, integrationDirectory) {
+  if (!config || typeof config !== 'object' || Array.isArray(config)) return false
+  if (config.schemaVersion !== SETUP_SCHEMA_VERSION || config.source?.root !== '..') return false
+  if (config.interfaceSystem?.path !== `${integrationDirectory}/system`) return false
+  if (
+    config.integrationDirectory !== integrationDirectory ||
+    !['attach', 'managed'].includes(config.mode) ||
+    typeof config.installationId !== 'string' ||
+    !config.installationId ||
+    typeof config.name !== 'string' ||
+    config.name.length < 2 ||
+    typeof config.source?.id !== 'string' ||
+    !config.source.id ||
+    !Array.isArray(config.source.packageEnvironments) ||
+    !config.runtime ||
+    typeof config.runtime !== 'object'
+  )
+    return false
+  const mounts = config.source?.mounts
+  if (!mounts || typeof mounts !== 'object' || Array.isArray(mounts)) return false
+  return Object.values(mounts).every(
+    (items) =>
+      Array.isArray(items) &&
+      items.every(
+        (item) =>
+          typeof item === 'string' &&
+          item.length > 0 &&
+          !item.startsWith('/') &&
+          !item.includes('\\') &&
+          item.split('/').every((segment) => segment && segment !== '.' && segment !== '..'),
+      ),
+  )
 }
 
 export async function checkSetupInstallation({
@@ -636,6 +672,7 @@ export async function inspectSetupFootprint({
 
   const setupFiles = [
     await describe(`${integrationDirectory}/designlab.config.json`),
+    await describe(`${integrationDirectory}/${LAST_GOOD_CONFIG}`),
     await describe(`${integrationDirectory}/.gitignore`, Buffer.from('.cache/\n')),
   ]
   const rulesDirectory = await describe(`${integrationDirectory}/rules`)
@@ -670,6 +707,7 @@ export async function inspectSetupFootprint({
   const projectOwned = await Promise.all([...authoredPaths].sort().map((path) => describe(path)))
   const knownTopLevel = new Set([
     'designlab.config.json',
+    LAST_GOOD_CONFIG,
     '.gitignore',
     'rules',
     '.cache',
@@ -741,6 +779,84 @@ export async function createSetupRepairPlan({
   )
   const inputs = []
   let configDigest = null
+  let recovery = null
+  if (blockers.some((item) => item.code === 'SETUP_CONFIG_INVALID')) {
+    const configPath = join(integrationRoot, 'designlab.config.json')
+    const snapshotPath = join(integrationRoot, LAST_GOOD_CONFIG)
+    const configState = await lstat(configPath)
+    const snapshotState = await lstat(snapshotPath).catch((error) => {
+      if (error.code === 'ENOENT') return null
+      throw error
+    })
+    if (!configState.isFile() || (snapshotState && !snapshotState.isFile()))
+      blockers.push({
+        code: 'SETUP_REPAIR_CONFIG_UNSAFE',
+        message: 'The config or its last-good copy is not a regular file.',
+        path: portablePath(relative(projectRoot, configPath)),
+      })
+    else if (!snapshotState)
+      blockers.push({
+        code: 'SETUP_REPAIR_CONFIG_SNAPSHOT_MISSING',
+        message: 'No last-good config is available. Keep the damaged file for manual recovery.',
+        path: portablePath(relative(projectRoot, snapshotPath)),
+      })
+    else {
+      const damaged = await readFile(configPath)
+      const snapshot = await readFile(snapshotPath, 'utf8')
+      let candidate = null
+      try {
+        candidate = JSON.parse(snapshot)
+      } catch {
+        // The last-good copy can also be edited by the project; validate it before offering repair.
+      }
+      if (!validRecoveryConfig(candidate, integrationDirectory))
+        blockers.push({
+          code: 'SETUP_REPAIR_CONFIG_SNAPSHOT_INVALID',
+          message: 'The last-good config cannot be safely restored.',
+          path: portablePath(relative(projectRoot, snapshotPath)),
+        })
+      else {
+        const backupName = `designlab.config.damaged.${createHash('sha256').update(damaged).digest('hex').slice(0, 12)}.json`
+        const backupPath = join(integrationRoot, backupName)
+        const backupState = await lstat(backupPath).catch((error) => {
+          if (error.code === 'ENOENT') return null
+          throw error
+        })
+        if (backupState && (!backupState.isFile() || !(await readFile(backupPath)).equals(damaged)))
+          blockers.push({
+            code: 'SETUP_REPAIR_CONFIG_BACKUP_OCCUPIED',
+            message: 'The damaged-config backup path already contains different data.',
+            path: portablePath(relative(projectRoot, backupPath)),
+          })
+        else {
+          if (!backupState)
+            changes.push({
+              kind: 'backup-damaged-config',
+              path: portablePath(relative(projectRoot, backupPath)),
+            })
+          changes.push({
+            kind: 'restore-config',
+            path: portablePath(relative(projectRoot, configPath)),
+          })
+          recovery = {
+            from: portablePath(relative(projectRoot, snapshotPath)),
+            name: candidate.name,
+            mode: candidate.mode,
+            mounts: candidate.source.mounts,
+            warning:
+              'Changes made to the config after the last managed write may be absent from this copy.',
+          }
+          configDigest = createHash('sha256').update(damaged).digest('hex')
+          inputs.push(
+            ['damaged-config', configDigest],
+            ['last-good-config', repairFingerprint(snapshot)],
+          )
+          for (let index = blockers.length - 1; index >= 0; index -= 1)
+            if (blockers[index].code === 'SETUP_CONFIG_INVALID') blockers.splice(index, 1)
+        }
+      }
+    }
+  }
   if (!Array.isArray(mountReplacements))
     throw setupError('Mount replacements must be a list.', 'SETUP_REPAIR_MOUNT_INVALID', 422)
   if (mountReplacements.length) {
@@ -886,6 +1002,7 @@ export async function createSetupRepairPlan({
     changes,
     blockers,
     configDigest,
+    recovery,
     fingerprint: repairFingerprint({ changes, blockers, inputs }),
     canApply: changes.length > 0,
   }
@@ -979,6 +1096,48 @@ export async function applySetupRepair({
       }
     }
   }
+  if (plan.changes.some((change) => change.kind === 'restore-config')) {
+    const integrationRoot = resolve(projectRoot, integrationDirectory)
+    const configPath = join(integrationRoot, 'designlab.config.json')
+    const snapshotPath = join(integrationRoot, LAST_GOOD_CONFIG)
+    if (
+      !(await lstat(integrationRoot)).isDirectory() ||
+      !(await lstat(configPath)).isFile() ||
+      !(await lstat(snapshotPath)).isFile()
+    )
+      throw setupError(
+        'Config recovery paths changed. Review the plan again.',
+        'SETUP_REPAIR_STALE',
+        409,
+      )
+    const damaged = await readFile(configPath)
+    const snapshot = await readFile(snapshotPath, 'utf8')
+    if (
+      createHash('sha256').update(damaged).digest('hex') !== plan.configDigest ||
+      !validRecoveryConfig(JSON.parse(snapshot), integrationDirectory)
+    )
+      throw setupError(
+        'Config recovery inputs changed. Review the plan again.',
+        'SETUP_REPAIR_STALE',
+        409,
+      )
+    const backupChange = plan.changes.find((change) => change.kind === 'backup-damaged-config')
+    if (backupChange) {
+      const backupPath = resolve(projectRoot, backupChange.path)
+      if (!isInside(backupPath, integrationRoot))
+        throw setupError('Backup path leaves the integration folder.', 'SETUP_REPAIR_PATH_INVALID')
+      const handle = await open(
+        backupPath,
+        constants.O_CREAT | constants.O_EXCL | constants.O_WRONLY | constants.O_NOFOLLOW,
+      )
+      try {
+        await handle.writeFile(damaged)
+      } finally {
+        await handle.close()
+      }
+    }
+    await writeJsonAtomic(configPath, JSON.parse(snapshot))
+  }
   if (mountChanges.length) {
     const configPath = join(projectRoot, integrationDirectory, 'designlab.config.json')
     if (!(await lstat(configPath)).isFile())
@@ -1007,6 +1166,18 @@ export async function applySetupRepair({
         mount === change.from ? change.to : mount,
       )
     }
+    const snapshotPath = join(projectRoot, integrationDirectory, LAST_GOOD_CONFIG)
+    const snapshotState = await lstat(snapshotPath).catch((error) => {
+      if (error.code === 'ENOENT') return null
+      throw error
+    })
+    if (snapshotState && !snapshotState.isFile())
+      throw setupError(
+        'The last-good config is not a regular file.',
+        'SETUP_REPAIR_PATH_INVALID',
+        409,
+      )
+    await writeJsonAtomic(snapshotPath, config)
     await writeJsonAtomic(configPath, config)
   }
   return {
@@ -1075,6 +1246,7 @@ export async function applySetupPlan({
     },
   })
   await writeJsonAtomic(configPath, plan.config)
+  await writeJsonAtomic(join(integrationRoot, LAST_GOOD_CONFIG), plan.config)
   await writeFile(join(integrationRoot, '.gitignore'), '.cache/\n', 'utf8')
 
   for (const rule of RULE_FILES) {

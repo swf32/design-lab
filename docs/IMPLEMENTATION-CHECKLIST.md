@@ -806,14 +806,15 @@ Web sequencing и границы shared/native modules: `docs/17-web-first-platf
       и designer-readable summary; AI не является единственным scanner.
 - [ ] Реализован component-based onboarding `Connect existing` / `Start clean`, default `Use files
 where they are` и confirm-gated apply plan; post-apply self-check возвращает диагностики, repair
-      отсутствующих managed files готов, но ещё нужны repair config/mounts и optional
+      отсутствующих managed files и перенесённых mounts готов; config восстанавливается из
+      last-good копии, но старые установки без неё и optional
       managed migration существующих файлов.
 - [x] Реализован первый package environment resolver: ближайшие реальные `package.json` и lockfile
       определяются без ручного `node_modules` path; workspace edge cases ещё покрываются adapter
       diagnostics.
 - [ ] Реализован managed root `AGENTS.md` pointer без перезаписи пользовательского текста и локальные
-      rule contracts; status и ограниченный repair managed files в Settings уже есть, расширенный
-      repair config/mounts и uninstall остаются.
+      rule contracts; status и подтверждаемый repair managed files, mounts и config из last-good
+      в Settings уже есть; восстановление без копии и uninstall остаются.
 
 ### Project-owned System и локальный npm package (D-093)
 
@@ -853,7 +854,14 @@ where they are` и confirm-gated apply plan; post-apply self-check возвра�
       папку проекта, preview проверяет существование и containment, apply повторно сверяет config,
       меняет только относительный путь и проверяет интеграцию; unit и browser fixtures покрывают
       move/rename без перемещения исходников.
-- [ ] Добавить repair повреждённого config и uninstall, сохраняющий исходники пользователя.
+- [x] Добавить last-good копию config при setup/managed mount repair и подтверждаемый repair
+      повреждённого JSON в Settings/CLI: preview показывает имя и mounts, apply сохраняет точные
+      повреждённые байты; приложение стартует с той же project-owned System для открытия Settings.
+      Unit и установленный browser fixture проверяют сценарий. Копия не является вторым источником
+      настроек: применяется только после явного подтверждения.
+- [ ] Восстанавливать старую установку без last-good копии без потери пользовательских mounts;
+      выбор стратегии ожидает продуктового решения.
+- [ ] Добавить uninstall, сохраняющий исходники пользователя.
 - [ ] Подготовить registry release, проверить установку на других ОС и package managers.
 
 ## Ближайший конкретный шаг

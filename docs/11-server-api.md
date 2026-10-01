@@ -127,15 +127,19 @@ System typecheck; Settings runs the full System doctor separately. No files are 
 
 ### `GET /api/onboarding/repair`, `POST /api/onboarding/repair/preview`, and `POST /api/onboarding/repair`
 
-`GET` returns a read-only plan `{ available, changes, blockers, fingerprint, canApply }` for a
+`GET` returns a read-only plan `{ available, changes, blockers, recovery, fingerprint, canApply }` for a
 configured embedded project. It offers missing local rule copies and an absent managed
-`AGENTS.md` pointer. `POST /preview` accepts `{ mountReplacements: [{ kind, from, to }] }` and
+`AGENTS.md` pointer. If the config JSON is damaged and a valid project-owned
+`design-lab/designlab.config.last-good.json` exists, the plan shows the stored name, mode and
+mounts, plus separate backup/restore changes. The confirmed apply preserves the exact damaged
+bytes as `designlab.config.damaged.<hash>.json` before restoring the last-good copy. Without a
+valid copy, this remains a blocker. `POST /preview` accepts `{ mountReplacements: [{ kind, from, to }] }` and
 adds explicit relative-path changes for missing mounts. Each `to` must be an existing project
 folder; symlinks resolving outside the project are rejected. Unselected mounts and other
 unresolved diagnostics remain blockers. `POST /repair` requires the local UI request headers,
 `{ fingerprint, mountReplacements, confirmed: true }`, and a fresh plan. It creates missing rule
 files without replacing existing entries, appends only the managed pointer, and atomically rewrites
-the config for selected mount paths. It never moves source files or changes the active System.
+the config for selected mount paths, refreshing the last-good copy. It never moves source files or changes the active System.
 It returns `{ applied, changes, selfCheck }`.
 Missing confirmation or a stale fingerprint returns `409`. The CLI exposes the same preview and
 confirmed apply for missing managed files as `designlab repair`; mount path selection is currently

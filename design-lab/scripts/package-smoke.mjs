@@ -3,7 +3,17 @@ import { execFile, spawn } from 'node:child_process'
 import { randomUUID } from 'node:crypto'
 import { once } from 'node:events'
 import { existsSync } from 'node:fs'
-import { cp, mkdtemp, mkdir, readFile, realpath, rename, rm, writeFile } from 'node:fs/promises'
+import {
+  cp,
+  mkdtemp,
+  mkdir,
+  readFile,
+  readdir,
+  realpath,
+  rename,
+  rm,
+  writeFile,
+} from 'node:fs/promises'
 import { createServer } from 'node:net'
 import { tmpdir } from 'node:os'
 import { join, relative, resolve } from 'node:path'
@@ -103,6 +113,7 @@ async function browserSmoke(
     verifyUpgradeConflict = false,
     checkIntegrationFailure = false,
     repairMovedMount = false,
+    repairDamagedConfig = false,
     createSkinCandidate = null,
     verifySkinAndClear = false,
     expectDefaultMatch = false,
@@ -332,7 +343,34 @@ async function browserSmoke(
       )
       await page.setViewportSize({ width: 1500, height: 1000 })
     }
-    if (!repairMovedMount) await page.getByText('Healthy', { exact: true }).waitFor()
+    if (!repairMovedMount && !repairDamagedConfig)
+      await page.getByText('Healthy', { exact: true }).waitFor()
+    if (repairDamagedConfig) {
+      await page.getByText('Needs attention', { exact: true }).waitFor()
+      await page.getByText('The setup config is missing or invalid JSON.').waitFor()
+      const [preview] = await Promise.all([
+        page.waitForResponse(
+          (result) =>
+            result.url().endsWith('/api/onboarding/repair') && result.request().method() === 'GET',
+        ),
+        page.getByRole('button', { name: 'Preview safe repair' }).click(),
+      ])
+      assert.equal(preview.status(), 200)
+      const plan = await preview.json()
+      assert.equal(plan.recovery.name, 'External smoke')
+      assert(plan.changes.some((change) => change.kind === 'restore-config'))
+      await page.getByRole('dialog').getByText('Restore from:').waitFor()
+      const [applied] = await Promise.all([
+        page.waitForResponse(
+          (result) =>
+            result.url().endsWith('/api/onboarding/repair') && result.request().method() === 'POST',
+        ),
+        page.getByRole('dialog').getByRole('button', { name: 'Apply safe repair' }).click(),
+      ])
+      assert.equal(applied.status(), 200)
+      assert.equal((await applied.json()).selfCheck.ok, true)
+      await page.getByText('Healthy', { exact: true }).waitFor()
+    }
     if (checkIntegrationFailure) {
       const rulePath = join(projectRoot, 'design-lab/rules/COMPONENT_RULES.md')
       const rule = await readFile(rulePath, 'utf8')
@@ -875,6 +913,22 @@ try {
     }
     const configPath = join(projectRoot, 'design-lab/designlab.config.json')
     const originalConfig = await readFile(configPath, 'utf8')
+    const damagedConfig = '{ broken external config\n'
+    await writeFile(configPath, damagedConfig)
+    try {
+      await browserSmoke(cli, { repairDamagedConfig: true })
+      const backups = (await readdir(join(projectRoot, 'design-lab'))).filter((name) =>
+        name.startsWith('designlab.config.damaged.'),
+      )
+      assert.equal(backups.length, 1)
+      assert.equal(
+        await readFile(join(projectRoot, 'design-lab', backups[0]), 'utf8'),
+        damagedConfig,
+      )
+      assert.equal(await readFile(configPath, 'utf8'), originalConfig)
+    } finally {
+      await writeFile(configPath, originalConfig)
+    }
     await rename(join(projectRoot, 'src/components'), join(projectRoot, 'src/widgets'))
     try {
       await browserSmoke(cli, { repairMovedMount: true })
@@ -1017,7 +1071,7 @@ try {
   }
 
   process.stdout.write(
-    `Package smoke passed: pack, attach, clean managed setup, one System, versioned upgrade preserving edits, validated fork with Component anatomy and SVG asset, switch, manual folder replacement, reset${process.argv.includes('--browser') ? ', browser integration health and moved mount repair, Skin/System folder selection, shell/Workbench fork and HMR' : ''}.\n`,
+    `Package smoke passed: pack, attach, clean managed setup, one System, versioned upgrade preserving edits, validated fork with Component anatomy and SVG asset, switch, manual folder replacement, reset${process.argv.includes('--browser') ? ', browser integration health, damaged config and moved mount repair, Skin/System folder selection, shell/Workbench fork and HMR' : ''}.\n`,
   )
 } finally {
   if (process.env.DESIGN_LAB_KEEP_SMOKE === '1')

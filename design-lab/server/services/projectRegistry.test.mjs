@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict'
 import test from 'node:test'
-import { mkdtemp, mkdir, rm, writeFile } from 'node:fs/promises'
+import { mkdtemp, mkdir, readFile, rm, writeFile } from 'node:fs/promises'
 import { join } from 'node:path'
 import { tmpdir } from 'node:os'
 import { listProjects, listSources, registerInstalledProject } from './projectRegistry.mjs'
@@ -54,6 +54,13 @@ test('an embedded source is rebuilt from its filesystem config without registry 
     const sources = await listSources()
     assert.equal(sources.sources[0].id, 'design-lab-system')
     assert.equal(sources.sources[0].path, join(integration, 'system'))
+
+    const configPath = join(integration, 'designlab.config.json')
+    const goodConfig = await readFile(configPath, 'utf8')
+    await writeFile(configPath, 'null\n')
+    assert.equal((await listProjects()).projects.length, 0)
+    assert.equal((await listSources()).sources[0].id, 'design-lab-system')
+    await writeFile(configPath, goodConfig)
 
     const registered = await registerInstalledProject({
       name: 'Existing product',

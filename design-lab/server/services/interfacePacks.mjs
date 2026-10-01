@@ -184,11 +184,12 @@ export function defaultInterfacePaths(options = {}) {
     options.workspaceDirectory ?? process.env.DESIGN_LAB_WORKSPACE_DIR ?? DEFAULT_WORKSPACE_ROOT,
   )
   let embeddedSystemPath = null
+  const setupConfigPath = join(workspaceDirectory, 'design-lab', 'designlab.config.json')
   try {
-    const config = JSON.parse(
-      readFileSync(join(workspaceDirectory, 'design-lab', 'designlab.config.json'), 'utf8'),
-    )
-    if (config.schemaVersion === 1 && config.interfaceSystem?.path) {
+    const config = JSON.parse(readFileSync(setupConfigPath, 'utf8'))
+    if (!config || typeof config !== 'object' || Array.isArray(config))
+      throw new SyntaxError('The setup config must be an object.')
+    if (config?.schemaVersion === 1 && config.interfaceSystem?.path) {
       const configured = normalizeRelativePath(config.interfaceSystem.path, 'interfaceSystem.path')
       const candidate = resolve(workspaceDirectory, configured)
       if (!isInside(workspaceDirectory, candidate))
@@ -199,7 +200,17 @@ export function defaultInterfacePaths(options = {}) {
       embeddedSystemPath = candidate
     }
   } catch (error) {
-    if (error.code !== 'ENOENT') throw error
+    if (error.code !== 'ENOENT') {
+      // A damaged setup config must not make the Settings repair screen unreachable.
+      // This is the same project-owned default slot, not a second interface System.
+      const defaultSlot = join(workspaceDirectory, 'design-lab', 'system')
+      if (!(error instanceof SyntaxError) || !existsSync(defaultSlot)) throw error
+      embeddedSystemPath = defaultSlot
+    }
+  }
+  if (!embeddedSystemPath && existsSync(setupConfigPath)) {
+    const defaultSlot = join(workspaceDirectory, 'design-lab', 'system')
+    if (existsSync(defaultSlot)) embeddedSystemPath = defaultSlot
   }
   const dataDirectory = resolve(
     options.dataDirectory ??

@@ -73,6 +73,7 @@ async function discoverWorkspaceInstallation() {
     if (error.code === 'ENOENT') return null
     return null
   }
+  if (!config || typeof config !== 'object' || Array.isArray(config)) return null
   if (config.schemaVersion !== 1 || !config.source || !config.name) return null
   const sourcePath = resolve(dirname(configPath), config.source.root ?? '..')
   if (!isInside(workspacePath, sourcePath)) return null

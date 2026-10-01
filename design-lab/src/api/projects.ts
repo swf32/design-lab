@@ -136,9 +136,18 @@ export type SetupRepairPlan =
       changes: Array<
         | { kind: 'restore-rule'; path: string }
         | { kind: 'append-agents-pointer'; path: string }
+        | { kind: 'backup-damaged-config'; path: string }
+        | { kind: 'restore-config'; path: string }
         | { kind: 'replace-mount'; path: string; mountKind: string; from: string; to: string }
       >
       blockers: Array<{ code: string; message: string; path: string }>
+      recovery: null | {
+        from: string
+        name: string
+        mode: string
+        mounts: Record<string, string[]>
+        warning: string
+      }
       fingerprint: string
       canApply: boolean
     }

@@ -17,7 +17,7 @@
 
 ## Вторая главная линия: Design Lab как устанавливаемый инструмент
 
-Локальный tarball, CLI, интеграционная папка, read-only scan, применение, post-apply self-check, repair managed rules/pointer и выбранных перенесённых mounts, безопасное обновление default System и запуск на отдельных портах проверены в чистом внешнем репозитории. Read-only `designlab footprint` показывает setup files, project-owned System/mounts, дополнительные файлы и AGENTS pointer как основу будущего uninstall. Пакет закрыт для публикации (`private: true`). До registry release нужны само удаление, исправление повреждённого config, миграции будущих контрактов и проверки на других платформах. См. [подробную модель](20-embedded-install-and-attach-mode.md) и [раздел об установке](25-interface-system-and-installation.md).
+Локальный tarball, CLI, интеграционная папка, read-only scan, применение, post-apply self-check, repair managed rules/pointer и выбранных перенесённых mounts, безопасное обновление default System и запуск на отдельных портах проверены в чистом внешнем репозитории. Для новых установок есть last-good копия config и подтверждаемый repair повреждённого JSON с сохранением точных старых байтов; старые установки без копии требуют отдельного решения. Read-only `designlab footprint` показывает setup files, project-owned System/mounts, дополнительные файлы и AGENTS pointer как основу будущего uninstall. Пакет закрыт для публикации (`private: true`). До registry release нужны само удаление, восстановление config без last-good, миграции будущих контрактов и проверки на других платформах. См. [подробную модель](20-embedded-install-and-attach-mode.md) и [раздел об установке](25-interface-system-and-installation.md).
 
 ## Остальные направления
 
@@ -40,7 +40,7 @@
 - [x] Проверить единые imports/discovery и живое обновление shell и Workbench Canvas из активной папки в clean external repo.
 - [x] Сделать первый read-only `system diff` активной System против bundled default с отчётом по файлам и Components.
 - [x] Добавить базовую версию для трёхстороннего сравнения и безопасный upgrade flow с локальными правками: при пересечении изменений применение целиком блокируется (D-095); reset остаётся отдельным recovery действием. Созданные из default авторские копии System сохраняют baseline и могут пользоваться тем же upgrade после смены ID; независимые System без baseline обновляются автором отдельно.
-- [ ] Доказать полный цикл clean install, restart, versioned upgrade и uninstall во внешнем fixture repo; attach и отдельный greenfield `Start clean` с dev проверены, как и patch upgrade с сохранением локальных правок System и reset. Repair/uninstall остаются открытыми.
+- [ ] Доказать полный цикл clean install, restart, versioned upgrade и uninstall во внешнем fixture repo; attach и отдельный greenfield `Start clean` с dev проверены, как и patch upgrade с сохранением локальных правок System и reset. Repair из last-good доступен; fallback без копии и uninstall остаются открытыми.
 - [x] Добавить read-only inventory для подготовки uninstall: различать setup files, project-owned System/mounts, дополнительные файлы и AGENTS pointer без удаления.
 
 ### P1 — простое создание и замена System
@@ -55,7 +55,7 @@
 
 ### P2 — завершить attach и web adapters
 
-- [ ] Довести mount resolver до watcher, runtime host и оставшихся scanners. Post-apply self-check config/mounts/rules/System, повторная диагностика и repair отсутствующих managed files в Settings уже есть; перенос source mount теперь исправляется выбором новой относительной папки. Повреждённый config и более сложные случаи остаются открытыми.
+- [ ] Довести mount resolver до watcher, runtime host и оставшихся scanners. Post-apply self-check config/mounts/rules/System, повторная диагностика и repair отсутствующих managed files в Settings уже есть; перенос source mount исправляется выбором новой относительной папки. Повреждённый config восстанавливается из last-good копии, если она есть; старые установки без неё и более сложные случаи остаются открытыми.
 - [ ] Закрыть Vue gaps, перенести React на isolated runtime, затем добавить Svelte по [feature matrix](21-web-runtime-feature-parity.md).
 - [ ] Убрать оставшиеся eager React registries после доказанной parity; сохранить честные capability errors.
 

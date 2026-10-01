@@ -20,7 +20,7 @@ function nextStep(code: string) {
   if (code === 'SETUP_AGENTS_POINTER_MISSING')
     return 'Restore the Design Lab pointer block in the project AGENTS.md without removing your own instructions.'
   if (code === 'SETUP_CONFIG_INVALID' || code === 'SETUP_SCHEMA_UNSUPPORTED')
-    return 'Check design-lab/designlab.config.json. Keep a backup before changing this project-owned configuration.'
+    return 'Preview safe repair. If a last-good config is available, Design Lab can save the damaged bytes and restore the reviewed copy.'
   if (code.startsWith('INTERFACE_') || code.startsWith('SETUP_SYSTEM_'))
     return 'Check the active System below. You can restore the bundled default from Settings after reviewing its snapshot warning.'
   return 'Review this path and the project configuration before changing files.'
@@ -186,7 +186,7 @@ export function IntegrationStatus() {
         open={repairOpen}
         title="Repair Design Lab integration?"
         eyebrow="Review file changes"
-        description="Review each proposed change. Missing managed rules and the AGENTS pointer can be restored; selected missing source mounts update only their relative paths in config. Source files and the active System stay in place."
+        description="Review each proposed change. The damaged config is kept as a separate file before a last-good copy is restored. Source files and the active System stay in place."
         onClose={() => setRepairOpen(false)}
         dismissible={!repairBusy}
         footer={
@@ -214,6 +214,23 @@ export function IntegrationStatus() {
         {repairPlan?.available ? (
           <div className="settings-integration__repair-plan">
             <h4>Changes to apply</h4>
+            {repairPlan.recovery && (
+              <div>
+                <p>
+                  <strong>Restore from:</strong> <code>{repairPlan.recovery.from}</code>
+                </p>
+                <p>
+                  <strong>Project:</strong> {repairPlan.recovery.name} · {repairPlan.recovery.mode}
+                </p>
+                <p>
+                  <strong>Source folders:</strong>{' '}
+                  {Object.entries(repairPlan.recovery.mounts)
+                    .flatMap(([kind, paths]) => paths.map((path) => `${kind}: ${path}`))
+                    .join(', ') || 'none'}
+                </p>
+                <p>{repairPlan.recovery.warning}</p>
+              </div>
+            )}
             {repairPlan.changes.length ? (
               <ul>
                 {repairPlan.changes.map((change) => (
@@ -225,7 +242,11 @@ export function IntegrationStatus() {
                       ? 'restore missing rule'
                       : change.kind === 'append-agents-pointer'
                         ? 'append managed pointer'
-                        : `${change.mountKind}: ${change.from} → ${change.to}`}
+                        : change.kind === 'backup-damaged-config'
+                          ? 'preserve damaged config bytes'
+                          : change.kind === 'restore-config'
+                            ? 'restore reviewed last-good config'
+                            : `${change.mountKind}: ${change.from} → ${change.to}`}
                   </li>
                 ))}
               </ul>
