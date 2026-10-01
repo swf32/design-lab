@@ -25,6 +25,7 @@ import {
   resetInterfacePack,
   resolveActiveInterface,
   stageLocalInterfaceSystemUpload,
+  stageLocalInterfaceSkinUpload,
   validateInterfacePack,
   versionSatisfies,
   writeSystemBaseline,
@@ -490,6 +491,39 @@ test('local Skin workflow creates, validates, installs, lists, and resets', asyn
     assert.equal((await doctorInterfacePacks(options)).skin.id, 'my-skin')
     assert.equal((await resetInterfacePack('skin', options)).active, null)
     assert.equal((await doctorInterfacePacks(options)).skin, null)
+  })
+})
+
+test('uploaded Skin folder is validated and installed from staging without changing the source', async () => {
+  await withPackWorkspace(async ({ sources, options }) => {
+    const source = join(sources, 'external-skin')
+    await writeSkin(source, { id: 'external-skin' })
+    const manifest = await readFile(join(source, 'design-lab-pack.json'))
+    const css = await readFile(join(source, 'theme.css'))
+    await assert.rejects(
+      stageLocalInterfaceSkinUpload([{ path: '../outside.css', bytes: css }], options),
+      { code: 'INTERFACE_UPLOAD_PATH_INVALID' },
+    )
+    await assert.rejects(
+      stageLocalInterfaceSkinUpload([{ path: 'design-lab-pack.json', bytes: manifest }], options),
+    )
+    const inspected = await stageLocalInterfaceSkinUpload(
+      [
+        { path: 'design-lab-pack.json', bytes: manifest },
+        { path: 'theme.css', bytes: css },
+      ],
+      options,
+    )
+    assert.equal(inspected.uploaded, true)
+    assert.equal(inspected.id, 'external-skin')
+    assert.notEqual(inspected.path, source)
+    const installed = await installLocalInterfaceSkin(inspected.path, {
+      ...options,
+      expectedFingerprint: inspected.fingerprint,
+    })
+    assert.equal(installed.active, true)
+    assert.equal((await doctorInterfacePacks(options)).skin.id, 'external-skin')
+    assert.deepEqual(await readFile(join(source, 'theme.css')), css)
   })
 })
 

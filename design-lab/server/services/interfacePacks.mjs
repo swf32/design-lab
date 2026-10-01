@@ -1178,11 +1178,12 @@ export async function inspectLocalInterfaceSystem(path, options = {}) {
   }
 }
 
-export async function stageLocalInterfaceSystemUpload(files, options = {}) {
+async function stageLocalInterfaceUpload(kind, files, options = {}) {
+  const label = kind === 'skin' ? 'Skin' : 'System'
   if (!Array.isArray(files) || files.length === 0 || files.length > 2000)
     throw Object.assign(
       packError(
-        'Choose a System folder containing up to 2000 files.',
+        `Choose a ${label} folder containing up to 2000 files.`,
         'INTERFACE_UPLOAD_FILES_INVALID',
       ),
       { status: 422 },
@@ -1191,12 +1192,12 @@ export async function stageLocalInterfaceSystemUpload(files, options = {}) {
   const uploadsRoot = join(paths.dataDirectory, 'interface-packs', 'uploads')
   await mkdir(uploadsRoot, { recursive: true })
   for (const entry of await readdir(uploadsRoot, { withFileTypes: true })) {
-    if (!entry.isDirectory() || !entry.name.startsWith('system-')) continue
+    if (!entry.isDirectory() || !entry.name.startsWith(`${kind}-`)) continue
     const path = join(uploadsRoot, entry.name)
     if (Date.now() - (await stat(path)).mtimeMs > 24 * 60 * 60 * 1000)
       await rm(path, { recursive: true, force: true })
   }
-  const staged = await mkdtemp(join(uploadsRoot, 'system-'))
+  const staged = await mkdtemp(join(uploadsRoot, `${kind}-`))
   let total = 0
   const seen = new Set()
   try {
@@ -1244,11 +1245,23 @@ export async function stageLocalInterfaceSystemUpload(files, options = {}) {
       await mkdir(dirname(destination), { recursive: true })
       await writeFile(destination, bytes, { flag: 'wx' })
     }
-    return { ...(await inspectLocalInterfaceSystem(staged, options)), uploaded: true }
+    const inspected =
+      kind === 'skin'
+        ? await inspectLocalInterfaceSkin(staged, options)
+        : await inspectLocalInterfaceSystem(staged, options)
+    return { ...inspected, uploaded: true }
   } catch (error) {
     await rm(staged, { recursive: true, force: true })
     throw error
   }
+}
+
+export async function stageLocalInterfaceSystemUpload(files, options = {}) {
+  return stageLocalInterfaceUpload('system', files, options)
+}
+
+export async function stageLocalInterfaceSkinUpload(files, options = {}) {
+  return stageLocalInterfaceUpload('skin', files, options)
 }
 
 export async function installLocalInterfaceSystem(path, options = {}) {
@@ -1535,7 +1548,7 @@ parts of Design Lab that should feel intentionally different.
 1. Read \`AGENTS.md\` and the linked local rules.
 2. Begin with ${firstEdit}; avoid changing more of the interface than the visual direction needs.
 3. Open Design Lab → Settings → Interface ${label}. Under "Install a ${label} from a folder", use
-   "Browse project" to select this folder${kind === 'system' ? ', "Choose folder on computer" to import an external copy,' : ''}
+   "Browse project" to select this folder, "Choose folder on computer" to import an external copy,
    or enter its path relative to the project root.
 4. Select "${kind === 'skin' ? 'Check Skin' : 'Check folder'}". Fix any reported problem, then
    select "Install this ${label}" and confirm the replacement. Restart Design Lab to load it.
@@ -1543,7 +1556,8 @@ parts of Design Lab that should feel intentionally different.
    content. Add representative files under \`screenshots/\`, then update version, compatibility,
    license, repository, and screenshot paths in \`design-lab-pack.json\` before sharing.
 
-The project folder browser only shows folders inside the current project. ${kind === 'system' ? 'For an external System folder, use "Choose folder on computer"; Design Lab validates a temporary copy before installation.' : 'For an external Skin folder, enter its path in Settings.'}
+The project folder browser only shows folders inside the current project. For an external ${label}
+folder, use "Choose folder on computer"; Design Lab validates a temporary copy before installation.
 The command line is optional for validation and automation:
 
    \`\`\`bash

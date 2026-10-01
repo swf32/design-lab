@@ -798,8 +798,9 @@ export type LocalInterfaceSystemInspection = {
   uploaded?: boolean
 }
 
-export function uploadLocalInterfaceSystemFolder(files: FileList) {
-  if (!files.length) throw new Error('Choose a System folder.')
+function uploadLocalInterfaceFolder<T>(kind: 'system' | 'skin', files: FileList) {
+  const label = kind === 'skin' ? 'Skin' : 'System'
+  if (!files.length) throw new Error(`Choose a ${label} folder.`)
   const root = files[0].webkitRelativePath.split('/')[0]
   if (!root || !files[0].webkitRelativePath.includes('/'))
     throw new Error(
@@ -808,14 +809,19 @@ export function uploadLocalInterfaceSystemFolder(files: FileList) {
   const form = new FormData()
   for (const file of files) {
     const parts = file.webkitRelativePath.split('/')
-    if (parts[0] !== root || parts.length < 2) throw new Error('Choose one complete System folder.')
+    if (parts[0] !== root || parts.length < 2)
+      throw new Error(`Choose one complete ${label} folder.`)
     form.append(parts.slice(1).join('/'), file, file.name)
   }
-  return request<LocalInterfaceSystemInspection>('/api/interface/system/upload', {
+  return request<T>(`/api/interface/${kind}/upload`, {
     method: 'POST',
     headers: { 'X-Design-Lab-UI': '1' },
     body: form,
   })
+}
+
+export function uploadLocalInterfaceSystemFolder(files: FileList) {
+  return uploadLocalInterfaceFolder<LocalInterfaceSystemInspection>('system', files)
 }
 
 export function inspectLocalInterfaceSystem(path: string) {
@@ -887,6 +893,11 @@ export type LocalInterfaceSkinInspection = {
   name: string
   version: string
   description: string
+  uploaded?: boolean
+}
+
+export function uploadLocalInterfaceSkinFolder(files: FileList) {
+  return uploadLocalInterfaceFolder<LocalInterfaceSkinInspection>('skin', files)
 }
 
 const interfaceUiHeaders = { 'Content-Type': 'application/json', 'X-Design-Lab-UI': '1' }

@@ -39,6 +39,7 @@ import {
   listInterfacePacks,
   resetInterfacePack,
   stageLocalInterfaceSystemUpload,
+  stageLocalInterfaceSkinUpload,
   useInterfacePack,
 } from './services/interfacePacks.mjs'
 import {
@@ -181,6 +182,18 @@ createServer(async (request, response) => {
       requireInterfaceUiRequest(request)
       const input = await readJson(request)
       return sendJson(response, 200, await inspectLocalInterfaceSkin(input.path))
+    }
+    if (request.method === 'POST' && url.pathname === '/api/interface/skin/upload') {
+      if (request.headers['x-design-lab-ui'] !== '1')
+        throw Object.assign(new Error('Choose a folder in the local Design Lab interface.'), {
+          code: 'INTERFACE_UI_REQUEST_REQUIRED',
+          status: 403,
+        })
+      return sendJson(
+        response,
+        201,
+        await stageLocalInterfaceSkinUpload(await readFolderUpload(request)),
+      )
     }
     if (request.method === 'POST' && url.pathname === '/api/interface/skin/install') {
       requireInterfaceUiRequest(request)

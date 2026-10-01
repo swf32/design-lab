@@ -78,7 +78,8 @@ density direction.
    of Design Lab that should feel different.
 2. Change the smallest relevant group in `theme.css`, starting with surfaces and readable text.
 3. In Design Lab Settings → Interface Skin, choose this folder under "Install a Skin from a folder".
-   "Browse project" finds folders inside the project; an external folder can be entered by path.
+   "Browse project" finds folders inside the project; "Choose folder on computer" checks an
+   external folder without entering its path.
 4. Select "Check Skin" and correct any diagnostics. Then select "Install this Skin", confirm,
    and restart Design Lab. CLI validation is optional for automation:
 

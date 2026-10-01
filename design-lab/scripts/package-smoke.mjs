@@ -28,6 +28,7 @@ const temporary = await realpath(await mkdtemp(join(tmpdir(), 'design-lab-packag
 const projectRoot = join(temporary, 'external-project')
 const alternateSystem = join(temporary, 'alternate-system')
 const smokeSkin = join(projectRoot, 'design-lab', 'skins', 'smoke-skin')
+const externalSkin = join(temporary, 'external-skin')
 const systemRoot = join(projectRoot, 'design-lab', 'system')
 
 async function run(command, args, cwd) {
@@ -116,6 +117,7 @@ async function browserSmoke(
     repairMovedMount = false,
     repairDamagedConfig = false,
     createSkinCandidate = null,
+    uploadSkinCandidate = null,
     verifySkinAndClear = false,
     expectDefaultMatch = false,
   } = {},
@@ -618,6 +620,29 @@ async function browserSmoke(
           .evaluate((element) => element.scrollWidth <= element.clientWidth + 1),
       )
     }
+    if (uploadSkinCandidate) {
+      const [uploaded] = await Promise.all([
+        page.waitForResponse((result) => result.url().endsWith('/api/interface/skin/upload')),
+        page
+          .locator('input[type="file"][aria-label="Skin folder from computer"]')
+          .setInputFiles(uploadSkinCandidate),
+      ])
+      assert.equal(uploaded.status(), 201)
+      const inspected = await uploaded.json()
+      assert.equal(inspected.id, 'smoke-skin')
+      assert.equal(inspected.uploaded, true)
+      await page
+        .locator('.settings-section--skin .settings-system__candidate code')
+        .getByText('Folder selected from your computer')
+        .waitFor()
+      await page.getByRole('button', { name: 'Install this Skin' }).click()
+      const [installed] = await Promise.all([
+        page.waitForResponse((result) => result.url().endsWith('/api/interface/skin/install')),
+        page.getByRole('dialog').getByRole('button', { name: 'Install Skin' }).click(),
+      ])
+      assert.equal(installed.status(), 200)
+      assert.equal((await installed.json()).id, 'smoke-skin')
+    }
     if (upgradeSystem) {
       await page.getByRole('button', { name: 'Review update' }).click()
       const [response] = await Promise.all([
@@ -1107,12 +1132,14 @@ try {
   if (process.argv.includes('--browser')) {
     await browserSmoke(cli, { createSkinCandidate: smokeSkin, expectDefaultMatch: true })
     assert.equal(parse(await run(cli, ['system', 'doctor'], projectRoot)).skin.id, 'smoke-skin')
+    await cp(smokeSkin, externalSkin, { recursive: true })
+    await browserSmoke(cli, { uploadSkinCandidate: externalSkin, expectDefaultMatch: true })
     await browserSmoke(cli, { verifySkinAndClear: true, expectDefaultMatch: true })
     assert.equal(parse(await run(cli, ['system', 'doctor'], projectRoot)).skin, null)
   }
 
   process.stdout.write(
-    `Package smoke passed: pack, attach, clean managed setup, one System, versioned upgrade preserving edits, validated fork with Component anatomy and SVG asset, switch, manual folder replacement, reset${process.argv.includes('--browser') ? ', browser external System folder upload, conflict resolution, integration health, damaged config and moved mount repair, Skin/System folder selection, shell/Workbench fork and HMR' : ''}.\n`,
+    `Package smoke passed: pack, attach, clean managed setup, one System, versioned upgrade preserving edits, validated fork with Component anatomy and SVG asset, switch, manual folder replacement, reset${process.argv.includes('--browser') ? ', browser external System/Skin folder upload, conflict resolution, integration health, damaged config and moved mount repair, Skin/System folder selection, shell/Workbench fork and HMR' : ''}.\n`,
   )
 } finally {
   if (process.env.DESIGN_LAB_KEEP_SMOKE === '1')

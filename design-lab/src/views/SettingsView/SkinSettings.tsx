@@ -8,6 +8,7 @@ import {
   installLocalInterfaceSkin,
   listInterfaceSkins,
   resetInterfaceSkin,
+  uploadLocalInterfaceSkinFolder,
   useInterfaceSkin,
   type InterfaceSkinPack,
   type InterfaceSystemDoctor,
@@ -28,11 +29,17 @@ export function SkinSettings({
   const [pickerOpen, setPickerOpen] = useState(false)
   const [candidate, setCandidate] = useState<LocalInterfaceSkinInspection | null>(null)
   const [checking, setChecking] = useState(false)
+  const [uploading, setUploading] = useState(false)
   const [busy, setBusy] = useState(false)
   const [confirmOpen, setConfirmOpen] = useState(false)
   const [message, setMessage] = useState<string | null>(null)
   const [error, setError] = useState<Error | null>(null)
   const candidateRequest = useRef(0)
+  const uploadInput = useRef<HTMLInputElement>(null)
+
+  useEffect(() => {
+    uploadInput.current?.setAttribute('webkitdirectory', '')
+  }, [])
 
   const refresh = useCallback(async () => {
     try {
@@ -60,6 +67,25 @@ export function SkinSettings({
       }
     } finally {
       if (candidateRequest.current === request) setChecking(false)
+    }
+  }
+
+  const uploadFolder = async (files: FileList) => {
+    const request = ++candidateRequest.current
+    setUploading(true)
+    setCandidate(null)
+    setError(null)
+    try {
+      const inspected = await uploadLocalInterfaceSkinFolder(files)
+      if (candidateRequest.current === request) {
+        setFolder('')
+        setCandidate(inspected)
+      }
+    } catch (cause) {
+      if (candidateRequest.current === request)
+        setError(cause instanceof Error ? cause : new Error('Could not check the Skin.'))
+    } finally {
+      if (candidateRequest.current === request) setUploading(false)
     }
   }
 
@@ -210,6 +236,26 @@ export function SkinSettings({
           <Button type="button" size="small" onClick={() => setPickerOpen(true)}>
             Browse project
           </Button>
+          <input
+            ref={uploadInput}
+            type="file"
+            multiple
+            hidden
+            aria-label="Skin folder from computer"
+            onChange={(event) => {
+              const files = event.currentTarget.files
+              if (files?.length) void uploadFolder(files)
+              event.currentTarget.value = ''
+            }}
+          />
+          <Button
+            type="button"
+            size="small"
+            loading={uploading}
+            onClick={() => uploadInput.current?.click()}
+          >
+            Choose folder on computer
+          </Button>
         </form>
         {candidate && (
           <div className="settings-system__candidate" role="status">
@@ -217,7 +263,9 @@ export function SkinSettings({
               {candidate.name} · {candidate.version}
             </strong>
             <p>{candidate.description || 'Visual Skin'}</p>
-            <code>{candidate.path}</code>
+            <code>
+              {candidate.uploaded ? 'Folder selected from your computer' : candidate.path}
+            </code>
             <Button type="button" size="small" onClick={() => setConfirmOpen(true)}>
               Install this Skin
             </Button>
@@ -303,7 +351,9 @@ export function SkinSettings({
               {candidate.name} {candidate.version}
             </strong>
             <br />
-            <code>{candidate.path}</code>
+            <code>
+              {candidate.uploaded ? 'Folder selected from your computer' : candidate.path}
+            </code>
           </p>
         )}
       </Dialog>

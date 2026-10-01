@@ -68,14 +68,14 @@ Two routes, identical handler (`getProjectTree`). Query: `?module=<moduleId>` (d
 
 The main entity endpoint. Returns the shape documented per-module in `05-entities-and-file-contracts.md` and produced by `getModuleEntities` (`server/services/moduleEntities.mjs`):
 
-| `moduleId` | Result shape |
-|---|---|
-| `components` | `{ kind: "components", folders, modes, themeVariables, families, components: Component[] }` — each Component carries normalized `implementation` (`platform`, `technology`, `adapter`, `locator`, `contract`, `capabilities`), optional explicit `familyId`, `import`, `files[]`, and `relations` (`uses`/`usedBy`/`examplesUse`/`usedInExamplesBy`/`diagnostics`). Strong framework evidence can discover a Component without `component.json`. |
-| `wireframes` | `{ kind: "wireframes", folders, modes, themeVariables, wireframes: Wireframe[] }` — each Wireframe carries the full manifest plus `diagnostics[]` and `files[]` |
-| `tokens` | `{ kind: "tokens", files, modes, tokens: Token[] }` |
-| `palette` | `{ kind: "palette", modes, colors: Token[] }` (derived by filtering `tokens` to `type === "color"`, not a separate palette store) |
-| `fonts` | `{ kind: "fonts", modes, typography: Token[], families }` (missing `fonts.json` returns an empty-but-valid shape, not an error) |
-| anything else | `{ kind: moduleId, entities: [] }` — a deliberate placeholder for not-yet-implemented modules (e.g. `pages`), not a 404 |
+| `moduleId`    | Result shape                                                                                                                                                                                                                                                                                                                                                                                                                                     |
+| ------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `components`  | `{ kind: "components", folders, modes, themeVariables, families, components: Component[] }` — each Component carries normalized `implementation` (`platform`, `technology`, `adapter`, `locator`, `contract`, `capabilities`), optional explicit `familyId`, `import`, `files[]`, and `relations` (`uses`/`usedBy`/`examplesUse`/`usedInExamplesBy`/`diagnostics`). Strong framework evidence can discover a Component without `component.json`. |
+| `wireframes`  | `{ kind: "wireframes", folders, modes, themeVariables, wireframes: Wireframe[] }` — each Wireframe carries the full manifest plus `diagnostics[]` and `files[]`                                                                                                                                                                                                                                                                                  |
+| `tokens`      | `{ kind: "tokens", files, modes, tokens: Token[] }`                                                                                                                                                                                                                                                                                                                                                                                              |
+| `palette`     | `{ kind: "palette", modes, colors: Token[] }` (derived by filtering `tokens` to `type === "color"`, not a separate palette store)                                                                                                                                                                                                                                                                                                                |
+| `fonts`       | `{ kind: "fonts", modes, typography: Token[], families }` (missing `fonts.json` returns an empty-but-valid shape, not an error)                                                                                                                                                                                                                                                                                                                  |
+| anything else | `{ kind: moduleId, entities: [] }` — a deliberate placeholder for not-yet-implemented modules (e.g. `pages`), not a 404                                                                                                                                                                                                                                                                                                                          |
 
 Every module scan is **stateless and rescans the filesystem on every request** — there is no server-side cache for this endpoint. A broken/unparseable `component.json`, `wireframe.json`, or `page.json` is localized to that entity as `manifest-parse-error`; neighboring entities remain available.
 
@@ -105,7 +105,7 @@ Returns the authored-SCSS handoff described in `10-inspection-architecture.md`: 
 Both stream a binary body (`sendBuffer`, not JSON) with `Cache-Control: no-store`. `:assetPath` may contain `/`.
 
 - `assets/...` serves the raw file with a strict allow-list content type (`avif/gif/jpeg/jpg/png/svg/webp` only — video files and `.tsx` icons have **no** raw-serving content type and return `415 ASSET_PREVIEW_UNSUPPORTED` from this route, even though they are valid discovered assets in the `components`/`assets` module payload).
-- `asset-previews/...` is the *rendered* preview path used by `AssetCard`: `.tsx` icons go through `renderTsxIcon` (regex-extract the `<svg>` literal, then `sanitizeSvg`), `.svg` files go through `sanitizeSvg` directly, everything else with a known image content type is passed through unchanged. Both routes resolve through configured Asset mounts and return `400 ASSET_PATH_OUTSIDE_SOURCE` for an escaping or ambiguous path, and `404 ASSET_NOT_FOUND` for a missing file.
+- `asset-previews/...` is the _rendered_ preview path used by `AssetCard`: `.tsx` icons go through `renderTsxIcon` (regex-extract the `<svg>` literal, then `sanitizeSvg`), `.svg` files go through `sanitizeSvg` directly, everything else with a known image content type is passed through unchanged. Both routes resolve through configured Asset mounts and return `400 ASSET_PATH_OUTSIDE_SOURCE` for an escaping or ambiguous path, and `404 ASSET_NOT_FOUND` for a missing file.
 - SVG/TSX sanitization rejects (`422`) content without exactly one `<svg>...</svg>` root (`ICON_SVG_ROOT_REQUIRED`), content containing `<script>`, `<foreignObject>`, `<iframe>`, `<object>`, `<embed>`, `<use>`, any `on*=` handler, or any `href`/`xlinkHref` (`ICON_PREVIEW_UNSAFE`), and any remaining dynamic `{}` JSX expression after the TSX-specific static prop rewriting pass (`ICON_PREVIEW_DYNAMIC_JSX`).
 
 ### `GET /api/entities?projectId=<id>&module=<moduleId>`
@@ -267,13 +267,19 @@ paths, and active flags. The following POST routes require the same JSON/UI head
 above. Install, use, and reset increment the API revision and report `restartRequired: true`;
 create and inspect leave the active selection unchanged:
 
-| Route | Body | Result |
-| --- | --- | --- |
-| `/api/interface/skin/create` | `{ name, path }` | `201` and an inactive local Skin scaffold with `theme.css` and authoring rules; the destination must be new and outside the active System. |
-| `/api/interface/skin/inspect` | `{ path }` | `200` with validated local Skin identity, version, and file fingerprint. |
+`POST /api/interface/skin/upload` accepts the same browser folder multipart format and
+`X-Design-Lab-UI: 1` guard as System upload. It stages and validates a Skin, then returns
+its inspection with `uploaded: true`. It does not activate or edit the external source.
+The 64 MiB, 2000 file, path, and 24-hour staging cleanup limits also apply. A fresh fingerprint
+and explicit confirmation are still required by `/api/interface/skin/install`.
+
+| Route                         | Body                                     | Result                                                                                                                                                  |
+| ----------------------------- | ---------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `/api/interface/skin/create`  | `{ name, path }`                         | `201` and an inactive local Skin scaffold with `theme.css` and authoring rules; the destination must be new and outside the active System.              |
+| `/api/interface/skin/inspect` | `{ path }`                               | `200` with validated local Skin identity, version, and file fingerprint.                                                                                |
 | `/api/interface/skin/install` | `{ path, fingerprint, confirmed: true }` | `200` after the copied files match the reviewed fingerprint, revalidation, caching, and activation; stale source or missing confirmation returns `409`. |
-| `/api/interface/skin/use` | `{ id, version }` | `200` after validating and selecting an installed Skin. |
-| `/api/interface/skin/reset` | `{}` | `200` after clearing the Skin selection without deleting its cached files. |
+| `/api/interface/skin/use`     | `{ id, version }`                        | `200` after validating and selecting an installed Skin.                                                                                                 |
+| `/api/interface/skin/reset`   | `{}`                                     | `200` after clearing the Skin selection without deleting its cached files.                                                                              |
 
 Relative create/inspect/install paths start at the product repository root. Skin changes load after
 an application restart because Vite resolves the selected CSS entrypoint at startup.
