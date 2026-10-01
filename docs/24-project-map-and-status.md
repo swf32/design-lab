@@ -1,6 +1,6 @@
 # Карта проекта и честный статус
 
-> Срез: 2026-09-30. Входная точка для человека и AI-агента после перерыва. [Оглавление](README.md) · [собственный интерфейс](25-interface-system-and-installation.md) · [следующие шаги](26-vision-and-next-steps.md).
+> Срез: 2026-10-01. Входная точка для человека и AI-агента после перерыва. [Оглавление](README.md) · [собственный интерфейс](25-interface-system-and-installation.md) · [следующие шаги](26-vision-and-next-steps.md).
 
 ## Идея в одном абзаце
 
@@ -20,7 +20,7 @@ Design Lab — локальное, ориентированное на диза�
 
 ## Реализовано и проверяется кодом
 
-- Локальные React/Vite UI и Node API запускаются вместе через [`scripts/dev.mjs`](../design-lab/scripts/dev.mjs). UI слушает `DESIGN_LAB_PORT` (по умолчанию `5317`), API — `DESIGN_LAB_API_PORT` (по умолчанию `4173`); конфигурация в [`vite.config.ts`](../design-lab/vite.config.ts) и [`server/index.mjs`](../design-lab/server/index.mjs).
+- Локальные React/Vite UI и Node API запускаются вместе через [`scripts/dev.mjs`](../design-lab/scripts/dev.mjs). До старта проверяются активные System/Skin и typed application contract; несовместимая System даёт явную ошибку и recovery команды. UI слушает `DESIGN_LAB_PORT` (по умолчанию `5317`), API — `DESIGN_LAB_API_PORT` (по умолчанию `4173`); конфигурация в [`vite.config.ts`](../design-lab/vite.config.ts) и [`server/index.mjs`](../design-lab/server/index.mjs).
 - Есть project/source registry, module-specific каталог и filesystem discovery. Основные модули, Workbench, React Components, Wireframes и Pages имеют реальные интерфейсы. Подробные возможности и пробелы перечислены в [checklist](IMPLEMENTATION-CHECKLIST.md).
 - Онбординг умеет сканировать существующий репозиторий, предложить относительные mounts и создать `design-lab/designlab.config.json` с копиями правил. CLI и UI используют [`setupService.mjs`](../design-lab/server/services/setupService.mjs). Запись требует отдельного подтверждения в сценарии setup; исходники подключаемого проекта не переносятся. После применения read-only self-check проверяет config, mounts, rules, AGENTS pointer и контракт скопированной System, возвращая структурированные диагностики.
 - Есть локальный AI context gateway, CLI и read-only MCP, поиск, source handoff и захват изображений компонентов. См. [AI context](09-ai-context-and-mcp.md) и [API](11-server-api.md).

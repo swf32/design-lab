@@ -48,6 +48,10 @@
       baseline переживает смену ID, авторская идентичность и локальные файлы сохраняются,
       пересекающиеся изменения по-прежнему блокируют применение. Unit fixture проверяет apply
       и конфликт; независимая System без baseline не получает автоматическое обновление.
+- [x] Проверять активные System/Skin и typed application contract перед запуском `designlab dev`:
+      при отсутствующем export запуск останавливается до старта серверов с именем export и путями
+      doctor/upgrade/reset; для Skin указан theme reset. Внешний package fixture ломает `SettingsPanel`, проверяет ошибку,
+      восстанавливает файл и затем запускает UI/API; автоматическая миграция контракта остаётся открытой.
 - [x] Первый read-only `system diff` показывает added/missing/changed authored файлы и Components
       между активной System и bundled default; внешний fixture проверяет результат после patch upgrade.
       Это отдельное двустороннее сравнение; `system upgrade` использует сохранённую базу.

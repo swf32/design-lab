@@ -1,7 +1,11 @@
 import { spawn } from 'node:child_process'
 import { fileURLToPath } from 'node:url'
 import { join, resolve } from 'node:path'
-import { defaultInterfacePaths } from '../server/services/interfacePacks.mjs'
+import {
+  defaultInterfacePaths,
+  resolveActiveInterface,
+  typecheckInterfaceSystem,
+} from '../server/services/interfacePacks.mjs'
 
 const viteBin = fileURLToPath(new URL('../../bin/vite.js', import.meta.resolve('vite')))
 const applicationRoot = resolve(fileURLToPath(new URL('..', import.meta.url)))
@@ -9,6 +13,18 @@ const { systemSlot } = defaultInterfacePaths()
 const componentIndexBuilder = join(systemSlot, 'scripts', 'build-component-index.mjs')
 const iconIndexBuilder = join(systemSlot, 'scripts', 'build-icon-index.mjs')
 const tokenBuilder = join(systemSlot, 'scripts', 'build-tokens.mjs')
+
+try {
+  const active = await resolveActiveInterface()
+  await typecheckInterfaceSystem(active.system)
+} catch (error) {
+  console.error(`[Design Lab] Cannot start: ${error.message}`)
+  console.error('Check the active System with `npx designlab system doctor`.')
+  console.error('For a default-derived System, review `npx designlab system upgrade`.')
+  console.error('If the interface cannot be repaired, run `npx designlab system reset`.')
+  console.error('If the active Skin is broken, run `npx designlab theme reset`.')
+  process.exit(1)
+}
 
 const commands = [
   ['node', ['server/index.mjs']],

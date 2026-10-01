@@ -697,6 +697,32 @@ try {
       .map((source) => source.id),
     ['design-lab-system'],
   )
+  const cleanComponentsIndex = join(cleanRoot, 'design-lab/system/components/index.ts')
+  const originalComponentsIndex = await readFile(cleanComponentsIndex, 'utf8')
+  assert(originalComponentsIndex.includes("export * from './organisms/shell/SettingsPanel/SettingsPanel'"))
+  await writeFile(
+    cleanComponentsIndex,
+    originalComponentsIndex.replace(
+      "export * from './organisms/shell/SettingsPanel/SettingsPanel'\n",
+      '',
+    ),
+  )
+  try {
+    await assert.rejects(
+      execFileAsync(cleanCli, ['dev'], {
+        cwd: cleanRoot,
+        env: process.env,
+        timeout: 15_000,
+      }),
+      (error) =>
+        error.code === 1 &&
+        error.stderr.includes('SettingsPanel') &&
+        error.stderr.includes('system upgrade') &&
+        error.stderr.includes('system reset'),
+    )
+  } finally {
+    await writeFile(cleanComponentsIndex, originalComponentsIndex)
+  }
   await cleanDevSmoke(cleanCli, cleanRoot)
 
   const marker = `Local edit ${randomUUID()}`
