@@ -1,0 +1,25 @@
+{
+  "id": "settings-panel",
+  "name": "Settings Panel",
+  "description": "Groups one settings task in a token-driven surface with a clear heading, guidance, and an optional action.",
+  "aliases": ["settings section", "settings card"],
+  "useWhen": ["present a settings workflow or integration status"],
+  "avoidWhen": ["render a modal confirmation", "render a Component Canvas"],
+  "entry": "SettingsPanel.tsx",
+  "preview": "SettingsPanel.preview.tsx",
+  "stories": "SettingsPanel.stories.tsx",
+  "docs": "README.md",
+  "changelog": "CHANGELOG.md",
+  "status": "ready",
+  "variants": ["default", "with-action", "prominent"],
+  "states": ["content", "long-content"],
+  "props": {
+    "eyebrow": { "type": "string", "required": true },
+    "title": { "type": "string", "required": true },
+    "description": { "type": "string" },
+    "action": { "type": "ReactNode", "slot": true },
+    "children": { "type": "ReactNode", "slot": true },
+    "prominent": { "type": "boolean", "default": false },
+    "className": { "type": "string" }
+  }
+}

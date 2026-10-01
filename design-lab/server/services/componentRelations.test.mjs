@@ -148,6 +148,7 @@ test('production and example relationships stay separate and direct', async () =
       'empty-state',
       'story-canvas',
       'dialog',
+      'settings-panel',
       'workspace-header',
       'playground-controls-rail',
       'wireframe-dev-panel',

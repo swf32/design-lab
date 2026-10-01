@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
-import { Button, Dialog, Input } from '@design-lab/system/components'
+import { Button, Dialog, Input, SettingsPanel } from '@design-lab/system/components'
 import { InterfaceFolderPicker } from './InterfaceFolderPicker'
 import { InterfacePackDiagnostic } from './InterfacePackDiagnostic'
 import {
@@ -130,18 +130,12 @@ export function SkinSettings({
   }
 
   return (
-    <section
-      className="settings-section settings-section--skin"
-      aria-labelledby="settings-skin-title"
+    <SettingsPanel
+      className="settings-section--skin"
+      eyebrow="Visual layer"
+      title="Interface Skin"
+      description="A Skin changes documented CSS variables over the active System. Use a full System for different Component structure or assets in Component code."
     >
-      <header>
-        <span>Visual layer</span>
-        <h3 id="settings-skin-title">Interface Skin</h3>
-        <p>
-          A Skin changes documented CSS variables over the active System. Use a full System for
-          different Component structure or assets in Component code.
-        </p>
-      </header>
       <p>
         Active:{' '}
         <strong>
@@ -313,6 +307,6 @@ export function SkinSettings({
           </p>
         )}
       </Dialog>
-    </section>
+    </SettingsPanel>
   )
 }

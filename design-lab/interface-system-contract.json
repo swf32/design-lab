@@ -29,6 +29,7 @@
         "PlaygroundControlsRail",
         "RadioButton",
         "RuntimeFrameSurface",
+        "SettingsPanel",
         "Slider",
         "StoryCanvas",
         "TabSwitcher",

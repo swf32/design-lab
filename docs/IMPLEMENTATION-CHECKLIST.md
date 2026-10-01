@@ -931,6 +931,9 @@ native backlog до Web DoD.
 - [x] Перевести полноэкранный React/Vue concept Playground на существующий
       `WorkbenchPlayground` для Canvas и background control; приложение хранит route state,
       renderer и mobile overlay. Browser fixture проверяет fullscreen режимы и мобильную панель.
+- [x] Вынести общий Settings section surface, заголовки и ведущий AI-блок в `SettingsPanel`
+      активной System без изменения default look; app-owned visual declarations сократились с
+      482 до 458, installed browser fixture проверяет dark/light, narrow width и заголовки.
 - [ ] Создать отдельный `design-lab-gallery` repository, remote verification workers, immutable
       checksums/signatures и generated screenshot publication flow.
 - [ ] Добавить gallery UI с status `community / validated / curated / incompatible` и установкой из

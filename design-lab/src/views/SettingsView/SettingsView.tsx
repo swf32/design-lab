@@ -4,7 +4,14 @@ import { InterfaceFolderPicker } from './InterfaceFolderPicker'
 import { InterfacePackDiagnostic } from './InterfacePackDiagnostic'
 import { IntegrationStatus } from './IntegrationStatus'
 import { useCallback, useEffect, useRef, useState } from 'react'
-import { Button, CodeBlock, Dialog, Input, ModuleHeader } from '@design-lab/system/components'
+import {
+  Button,
+  CodeBlock,
+  Dialog,
+  Input,
+  ModuleHeader,
+  SettingsPanel,
+} from '@design-lab/system/components'
 import {
   applyInterfaceSystemUpgrade,
   createLocalInterfaceSystem,
@@ -336,19 +343,12 @@ export function SettingsView({ onClose }: { onClose: () => void }) {
 
       <IntegrationStatus />
 
-      <section
-        className="settings-section settings-section--system"
-        aria-labelledby="settings-system-title"
-      >
-        <header className="settings-system__header">
-          <div>
-            <span>Interface System</span>
-            <h3 id="settings-system-title">Active System</h3>
-            <p>
-              Design Lab and its Workbench use the same editable System folder. Check its contract
-              and compare authored files before an update.
-            </p>
-          </div>
+      <SettingsPanel
+        className="settings-section--system"
+        eyebrow="Interface System"
+        title="Active System"
+        description="Design Lab and its Workbench use the same editable System folder. Check its contract and compare authored files before an update."
+        action={
           <Button
             type="button"
             size="small"
@@ -357,7 +357,8 @@ export function SettingsView({ onClose }: { onClose: () => void }) {
           >
             Check again
           </Button>
-        </header>
+        }
+      >
         {systemLoading && !systemDoctor && <p role="status">Checking System…</p>}
         {systemError && (
           <p className="settings-page__error" role="alert">
@@ -630,7 +631,7 @@ export function SettingsView({ onClose }: { onClose: () => void }) {
             </Button>
           </div>
         )}
-      </section>
+      </SettingsPanel>
 
       <InterfaceFolderPicker
         kind="System"
@@ -752,59 +753,48 @@ export function SettingsView({ onClose }: { onClose: () => void }) {
         onRefresh={() => void refreshSystem()}
       />
 
-      <div className="settings-page__intro">
-        <div>
-          <span>AI integration</span>
-          <h2>MCP and agent access</h2>
-          <p>
-            Give coding agents a verified, filesystem-backed view of components, tokens, assets,
-            fonts, and knowledge. Search returns descriptions and relevance first; a second lookup
-            reveals the real name and implementation contract.
-          </p>
-        </div>
-        <strong className={`settings-status${error ? ' settings-status--error' : ''}`}>
-          {error ? 'Unavailable' : integration ? 'Ready' : 'Checking'}
-        </strong>
-      </div>
+      <SettingsPanel
+        prominent
+        eyebrow="AI integration"
+        title="MCP and agent access"
+        description="Give coding agents a verified, filesystem-backed view of components, tokens, assets, fonts, and knowledge. Search returns descriptions and relevance first; a second lookup reveals the real name and implementation contract."
+        action={
+          <strong className={`settings-status${error ? ' settings-status--error' : ''}`}>
+            {error ? 'Unavailable' : integration ? 'Ready' : 'Checking'}
+          </strong>
+        }
+      />
 
       {error && <p className="settings-page__error">{error}</p>}
       {integration && (
         <>
-          <section className="settings-section">
-            <header>
-              <span>Recommended</span>
-              <h3>Connect the local MCP server</h3>
-              <p>
-                Add this stdio server to any MCP-compatible agent. The command uses the exact
-                Node.js runtime and absolute server path from this installation.
-              </p>
-            </header>
+          <SettingsPanel
+            eyebrow="Recommended"
+            title="Connect the local MCP server"
+            description="Add this stdio server to any MCP-compatible agent. The command uses the exact Node.js runtime and absolute server path from this installation."
+          >
             <CodeBlock language="json" code={JSON.stringify(integration.config, null, 2)} />
-          </section>
+          </SettingsPanel>
 
-          <section className="settings-section">
-            <header>
-              <span>Fallback</span>
-              <h3>Use the same context engine from a script</h3>
-              <p>
-                No MCP client is required. The CLI and MCP adapters call the same scanner, ranking,
-                and entity resolver.
-              </p>
-            </header>
+          <SettingsPanel
+            eyebrow="Fallback"
+            title="Use the same context engine from a script"
+            description="No MCP client is required. The CLI and MCP adapters call the same scanner, ranking, and entity resolver."
+          >
             <CodeBlock language="shell" code={integration.cli.examples.join('\n')} />
-          </section>
+          </SettingsPanel>
 
-          <section className="settings-section settings-section--workflow">
-            <header>
-              <span>Agent contract</span>
-              <h3>Search before generation</h3>
-            </header>
+          <SettingsPanel
+            className="settings-section--workflow"
+            eyebrow="Agent contract"
+            title="Search before generation"
+          >
             <ol>
               {integration.workflow.map((step) => (
                 <li key={step}>{step}</li>
               ))}
             </ol>
-          </section>
+          </SettingsPanel>
         </>
       )}
     </section>

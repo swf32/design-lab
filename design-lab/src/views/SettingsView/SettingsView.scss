@@ -8,17 +8,6 @@
 .settings-page > .dl-module-header {
   margin-bottom: 18px;
 }
-.settings-page__intro {
-  margin-top: 14px;
-  padding: 18px;
-  border: 1px solid var(--color-border-subtle);
-  border-radius: var(--corner-surface);
-  background: var(--color-surface-secondary);
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 24px;
-}
 .settings-section--system {
   margin-top: 0;
 }
@@ -50,15 +39,6 @@
 }
 .settings-integration__report summary {
   cursor: pointer;
-}
-.settings-system__header {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: var(--space-16);
-}
-.settings-system__header .dl-button {
-  flex: none;
 }
 .settings-system__status {
   margin-top: var(--space-16);
@@ -201,28 +181,6 @@
   border-bottom: 1px solid var(--color-border-subtle);
   color: var(--color-text-secondary);
 }
-.settings-page__intro span,
-.settings-section header > span {
-  color: var(--color-accent-primary);
-  font-size: 8px;
-  font-weight: 700;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-}
-.settings-page__intro h2 {
-  margin: 6px 0 8px;
-  color: var(--color-text-primary);
-  font-size: 17px;
-  font-weight: 580;
-}
-.settings-page__intro p,
-.settings-section header p {
-  max-width: 720px;
-  margin: 0;
-  color: var(--color-text-muted);
-  font-size: 10px;
-  line-height: 1.65;
-}
 .settings-status {
   padding: 5px 8px;
   border: 1px solid color-mix(in srgb, var(--color-status-success) 45%, var(--color-border-subtle));
@@ -263,22 +221,6 @@
   white-space: pre-wrap;
   overflow-wrap: anywhere;
 }
-.settings-section {
-  margin-top: 14px;
-  padding: 18px;
-  border: 1px solid var(--color-border-subtle);
-  border-radius: var(--corner-surface);
-  background: var(--color-surface-secondary);
-}
-.settings-section header h3 {
-  margin: 6px 0 7px;
-  color: var(--color-text-secondary);
-  font-size: 13px;
-  font-weight: 580;
-}
-.settings-section .dl-code-block {
-  margin: 14px 0 0;
-}
 .settings-section--workflow ol {
   margin: 14px 0 0;
   padding: 0;
@@ -314,10 +256,6 @@
 }
 
 @media (max-width: 760px) {
-  .settings-system__header {
-    flex-direction: column;
-  }
-
   .settings-system__diff-groups {
     grid-template-columns: minmax(0, 1fr);
   }
@@ -338,33 +276,8 @@
     margin-bottom: var(--space-16);
   }
 
-  .settings-page__intro {
-    padding: var(--space-16);
-    flex-direction: column;
-    gap: var(--space-12);
-  }
-
-  .settings-page__intro h2 {
-    font-size: 18px;
-  }
-
-  .settings-page__intro p,
-  .settings-section header p {
-    font-size: 12px;
-    line-height: 1.65;
-  }
-
   .settings-status {
-    align-self: flex-start;
     font-size: 9px;
-  }
-
-  .settings-section {
-    padding: var(--space-16);
-  }
-
-  .settings-section header h3 {
-    font-size: 15px;
   }
 
   .settings-section--workflow ol {

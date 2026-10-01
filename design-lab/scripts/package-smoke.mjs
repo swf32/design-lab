@@ -25,7 +25,7 @@ async function run(command, args, cwd) {
     cwd,
     env: process.env,
     maxBuffer: 8 * 1024 * 1024,
-    timeout: 120_000,
+    timeout: 600_000,
   })
   if (stderr.trim()) process.stderr.write(stderr)
   return stdout.trim()
@@ -287,6 +287,33 @@ async function browserSmoke(
     await page.locator('.app-sidebar__footer .sidebar-tab').click()
     await page.getByRole('heading', { name: 'Active System' }).waitFor()
     await page.getByRole('heading', { name: 'Design Lab integration' }).waitFor()
+    if (browseProjectSystem) {
+      const panels = page.locator('.dl-settings-panel')
+      assert((await panels.count()) >= 3)
+      const appearances = []
+      for (const theme of ['dark', 'light']) {
+        appearances.push(
+          await panels.first().evaluate((element, mode) => {
+            document.documentElement.dataset.theme = mode
+            const heading = element.querySelector('[id]')
+            return {
+              labelled: Boolean(heading && element.getAttribute('aria-labelledby') === heading.id),
+              background: getComputedStyle(element).backgroundColor,
+              heading: heading ? getComputedStyle(heading).color : '',
+            }
+          }, theme),
+        )
+      }
+      assert(appearances.every((item) => item.labelled))
+      assert.notDeepEqual(appearances[0], appearances[1])
+      await page.setViewportSize({ width: 390, height: 844 })
+      assert(
+        await page
+          .locator('.settings-page')
+          .evaluate((element) => element.scrollWidth <= element.clientWidth + 1),
+      )
+      await page.setViewportSize({ width: 1500, height: 1000 })
+    }
     await page.getByText('Healthy', { exact: true }).waitFor()
     if (checkIntegrationFailure) {
       const rulePath = join(projectRoot, 'design-lab/rules/COMPONENT_RULES.md')

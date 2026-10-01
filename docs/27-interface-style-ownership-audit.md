@@ -34,9 +34,12 @@ product composition и runtime geometry. Это ограничение пров�
 
 После удаления дублирующих Workbench overrides для трёх режимов Story Canvas в приложении
 осталась **491** visual declaration. Затем отдельный Canvas полноэкранного React/Vue Playground
-был заменён существующим `WorkbenchPlayground`: теперь осталось **482** app-local visual
+был заменён существующим `WorkbenchPlayground`: осталось **482** app-local visual
 declarations. Фон, floating background control и fullscreen stage presentation принадлежат
 System; приложение оставляет route state, рендерер и геометрию мобильной панели.
+После переноса общей поверхности, заголовка и ведущего AI-блока Settings в `SettingsPanel`
+из активной System осталось **458** app-local visual declarations. Браузерный fixture проверяет
+панели в dark/light и на узкой ширине; workflow state остаётся в приложении.
 `StoryCanvas.scss` владеет оформлением Story stage; `color.canvas-grid.light-text` хранит
 читаемый цвет светлой сетки для dark и light app modes. Таблица ниже показывает исходные лимиты
 baseline; десять записей из `ModuleView.scss` и девять из `ComponentPlaygroundView.scss`
@@ -45,7 +48,7 @@ baseline; десять записей из `ModuleView.scss` и девять и�
 | App-local stylesheet | Деклараций в базе | Следующая граница |
 | --- | ---: | --- |
 | [`ModuleView.scss`](../design-lab/src/views/ModuleView/ModuleView.scss) | 288 | Вынести повторяемые catalog rows/cards/tables и текстовые роли в Library Components. |
-| [`SettingsView.scss`](../design-lab/src/views/SettingsView/SettingsView.scss) | 73 | Вынести повторяемые sections, status, dialog и folder picker presentation. |
+| [`SettingsView.scss`](../design-lab/src/views/SettingsView/SettingsView.scss) | 73 | После `SettingsPanel` осталось 49; вынести status, dialog и folder picker presentation. |
 | [`ComponentPlaygroundView.scss`](../design-lab/src/views/ComponentPlaygroundView/ComponentPlaygroundView.scss) | 49 | Оставить orchestration/canvas geometry; визуал панели и controls передать System. |
 | [`PageView.scss`](../design-lab/src/views/PageView/PageView.scss) | 40 | Общие flow hint и dev controls должны иметь Library presentation. |
 | [`WireframeView.scss`](../design-lab/src/views/WireframeView/WireframeView.scss) | 38 | Объединить повторяемые Page/Wireframe patterns в System. |

@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from 'react'
-import { Button, Dialog } from '@design-lab/system/components'
+import { Button, Dialog, SettingsPanel } from '@design-lab/system/components'
 import {
   applySetupRepair,
   getSetupInstallationStatus,
@@ -85,23 +85,17 @@ export function IntegrationStatus() {
   }
 
   return (
-    <section
-      className="settings-section settings-integration"
-      aria-labelledby="settings-integration-title"
-    >
-      <header className="settings-system__header">
-        <div>
-          <span>Project files</span>
-          <h3 id="settings-integration-title">Design Lab integration</h3>
-          <p>
-            Check the project config, source mounts, local authoring rules, AGENTS pointer, and
-            active System. This check reads files without changing them.
-          </p>
-        </div>
+    <SettingsPanel
+      className="settings-integration"
+      eyebrow="Project files"
+      title="Design Lab integration"
+      description="Check the project config, source mounts, local authoring rules, AGENTS pointer, and active System. This check reads files without changing them."
+      action={
         <Button type="button" size="small" loading={loading} onClick={() => void refresh()}>
           Check integration
         </Button>
-      </header>
+      }
+    >
       {loading && !status && <p role="status">Checking project files…</p>}
       {error && (
         <p className="settings-page__error" role="alert">
@@ -207,6 +201,6 @@ export function IntegrationStatus() {
           <p>{repairPlan?.reason}</p>
         )}
       </Dialog>
-    </section>
+    </SettingsPanel>
   )
 }

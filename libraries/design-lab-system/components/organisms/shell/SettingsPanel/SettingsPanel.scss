@@ -1,0 +1,87 @@
+.dl-settings-panel {
+  margin-top: 14px;
+  padding: 18px;
+  border: 1px solid var(--color-border-subtle);
+  border-radius: var(--corner-surface);
+  background: var(--color-surface-secondary);
+}
+
+.dl-settings-panel__header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--space-16);
+}
+
+.dl-settings-panel--prominent .dl-settings-panel__header {
+  gap: 24px;
+}
+
+.dl-settings-panel__action {
+  flex: none;
+}
+
+.dl-settings-panel__eyebrow {
+  color: var(--color-accent-primary);
+  font-size: 8px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.dl-settings-panel__title {
+  margin: 6px 0 7px;
+  color: var(--color-text-secondary);
+  font-size: 13px;
+  font-weight: 580;
+}
+
+.dl-settings-panel--prominent .dl-settings-panel__title {
+  margin-bottom: 8px;
+  color: var(--color-text-primary);
+  font-size: 17px;
+}
+
+.dl-settings-panel__description {
+  max-width: 720px;
+  margin: 0;
+  color: var(--color-text-muted);
+  font-size: 10px;
+  line-height: 1.65;
+}
+
+.dl-settings-panel__content {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.dl-settings-panel__content > .dl-code-block {
+  margin: 14px 0 0;
+}
+
+@media (max-width: 760px) {
+  .dl-settings-panel {
+    padding: var(--space-16);
+  }
+
+  .dl-settings-panel__header {
+    flex-direction: column;
+  }
+
+  .dl-settings-panel--prominent .dl-settings-panel__header {
+    gap: var(--space-12);
+  }
+
+  .dl-settings-panel__title {
+    font-size: 15px;
+  }
+
+  .dl-settings-panel--prominent .dl-settings-panel__title {
+    font-size: 18px;
+  }
+
+  .dl-settings-panel__description {
+    font-size: 12px;
+    line-height: 1.65;
+  }
+}
