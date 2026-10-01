@@ -40,8 +40,10 @@ System; приложение оставляет route state, рендерер и
 После переноса общей поверхности, заголовка и ведущего AI-блока Settings в `SettingsPanel`
 из активной System осталось **458** app-local visual declarations. Затем оформление identity,
 token/palette values, swatches и copy affordance ячеек catalog `Table` перенесено в System:
-осталось **427**. Браузерный fixture проверяет панели и таблицы в dark/light, keyboard focus
-copy и узкую ширину; workflow state и данные остаются в приложении.
+осталось **427**. Затем responsive catalog grids, group spacing и общее пустое состояние
+перенесены в `ModulePage`; осталось **420**. Браузерный fixture проверяет панели, таблицы и
+каталожные сетки в dark/light, keyboard focus copy и узкую ширину; workflow state и данные
+остаются в приложении.
 `StoryCanvas.scss` владеет оформлением Story stage; `color.canvas-grid.light-text` хранит
 читаемый цвет светлой сетки для dark и light app modes. Таблица ниже показывает исходные лимиты
 baseline; десять записей из `ModuleView.scss` и девять из `ComponentPlaygroundView.scss`
@@ -49,7 +51,7 @@ baseline; десять записей из `ModuleView.scss` и девять и�
 
 | App-local stylesheet | Деклараций в базе | Следующая граница |
 | --- | ---: | --- |
-| [`ModuleView.scss`](../design-lab/src/views/ModuleView/ModuleView.scss) | 288 | После переноса 31 declaration из ячеек `Table` остаётся переносить catalog rows/cards и другие текстовые роли в Library Components. |
+| [`ModuleView.scss`](../design-lab/src/views/ModuleView/ModuleView.scss) | 288 | После переноса 31 declaration из ячеек `Table` и 7 из layout/empty state остаётся переносить catalog cards и другие текстовые роли в Library Components. |
 | [`SettingsView.scss`](../design-lab/src/views/SettingsView/SettingsView.scss) | 73 | После `SettingsPanel` осталось 49; вынести status, dialog и folder picker presentation. |
 | [`ComponentPlaygroundView.scss`](../design-lab/src/views/ComponentPlaygroundView/ComponentPlaygroundView.scss) | 49 | Оставить orchestration/canvas geometry; визуал панели и controls передать System. |
 | [`PageView.scss`](../design-lab/src/views/PageView/PageView.scss) | 40 | Общие flow hint и dev controls должны иметь Library presentation. |

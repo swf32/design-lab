@@ -952,6 +952,10 @@ native backlog до Web DoD.
       identity, path, value, swatches и copy affordance; app-owned visual declarations сократились
       с 458 до 427 без изменения default look. Installed browser fixture проверяет dark/light,
       keyboard focus и горизонтальный scroll на узкой ширине.
+- [x] Вынести responsive catalog grids, group spacing и общее empty state из `ModuleView` в
+      System-owned `ModulePage` classes: Components, Assets, Palette, Wireframes и Pages сохраняют
+      default layout; app-owned visual declarations сократились с 427 до 420. Installed browser
+      fixture проверяет grid columns на desktop и mobile в обеих interface themes.
 - [ ] Создать отдельный `design-lab-gallery` repository, remote verification workers, immutable
       checksums/signatures и generated screenshot publication flow.
 - [ ] Добавить gallery UI с status `community / validated / curated / incompatible` и установкой из

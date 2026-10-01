@@ -158,6 +158,23 @@ async function browserSmoke(
     await page.goto(`http://localhost:${uiPort}/components/design-lab-system`, {
       waitUntil: 'networkidle',
     })
+    if (browseProjectSystem) {
+      const grid = page.locator('.dl-module-page__grid--components').first()
+      await grid.waitFor()
+      assert(
+        await grid.evaluate(
+          (element) => getComputedStyle(element).gridTemplateColumns.split(' ').length > 1,
+        ),
+      )
+      await page.setViewportSize({ width: 390, height: 844 })
+      assert.equal(
+        await grid.evaluate(
+          (element) => getComputedStyle(element).gridTemplateColumns.split(' ').length,
+        ),
+        1,
+      )
+      await page.setViewportSize({ width: 1500, height: 1000 })
+    }
     await page.getByText('Button', { exact: true }).first().click()
     await page.locator('.story-comparison .dl-button').first().waitFor({ timeout: 20_000 })
     assert((await page.locator('.story-comparison .dl-button').count()) > 0)
@@ -676,6 +693,21 @@ async function browserSmoke(
         await page.goto(`http://localhost:${uiPort}/palette/design-lab-system`, {
           waitUntil: 'networkidle',
         })
+        const paletteGrid = page.locator('.dl-module-page__grid--palette')
+        await paletteGrid.waitFor()
+        assert(
+          await paletteGrid.evaluate(
+            (element) => getComputedStyle(element).gridTemplateColumns.split(' ').length > 1,
+          ),
+        )
+        await page.setViewportSize({ width: 390, height: 844 })
+        assert.equal(
+          await paletteGrid.evaluate(
+            (element) => getComputedStyle(element).gridTemplateColumns.split(' ').length,
+          ),
+          1,
+        )
+        await page.setViewportSize({ width: 1500, height: 1000 })
         await page.getByRole('button', { name: 'List view' }).click()
         const paletteTable = page.getByRole('table', { name: 'Color palette' })
         await paletteTable.waitFor()

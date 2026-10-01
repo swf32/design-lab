@@ -935,7 +935,7 @@ function Catalog({
         actions={<CatalogLayoutToggle value={layout} onChange={onLayoutChange} />}
       />
       {components.length ? (
-        <div className="component-groups">
+        <div className="dl-module-page__groups">
           {groups.map((group) => {
             const showHeader = groups.length > 1 || group.path !== folderPath
             return (
@@ -945,7 +945,7 @@ function Catalog({
                 count={showHeader ? group.components.length : undefined}
               >
                 {layout === 'cards' ? (
-                  <div className="component-grid">
+                  <div className="dl-module-page__grid dl-module-page__grid--components">
                     {group.components.map((component) => (
                       <ComponentCard
                         key={component.id}
@@ -982,7 +982,7 @@ function Catalog({
           })}
         </div>
       ) : (
-        <div className="module-filter-empty">
+        <div className="dl-module-page__empty">
           <strong>No components in this folder</strong>
           <span>Choose All or another folder in the Directory Panel.</span>
         </div>
@@ -1148,10 +1148,10 @@ function AssetsCatalog({
     <ModulePage>
       <ModuleHeader eyebrow="Filesystem inventory · Assets" title={title} count={assets.length} />
       {assets.length ? (
-        <div className="asset-groups">
+        <div className="dl-module-page__groups dl-module-page__groups--assets">
           {[...groups.entries()].map(([name, items]) => (
             <CatalogGroup key={name} title={name} count={items.length}>
-              <div className="asset-grid">
+              <div className="dl-module-page__grid dl-module-page__grid--assets">
                 {items.map((asset) => (
                   <AssetCard
                     key={asset.id}
@@ -1169,7 +1169,7 @@ function AssetsCatalog({
           ))}
         </div>
       ) : (
-        <div className="module-filter-empty">
+        <div className="dl-module-page__empty">
           <strong>No assets in this folder</strong>
           <span>Add files to this canonical directory or choose All.</span>
         </div>
@@ -1362,7 +1362,7 @@ export function ModuleView({
             />
           </>
         ) : (
-          <div className="module-filter-empty">
+          <div className="dl-module-page__empty">
             <strong>No tokens in this group</strong>
             <span>Choose All or another token group.</span>
           </div>
@@ -1385,7 +1385,7 @@ export function ModuleView({
           }
         />
         {catalogLayout === 'cards' ? (
-          <div className="palette-grid">
+          <div className="dl-module-page__grid dl-module-page__grid--palette">
             {data.colors.map((color) => (
               <ColorCard
                 key={color.path}
@@ -1524,14 +1524,14 @@ export function ModuleView({
           count={wireframes.length}
         />
         {wireframes.length ? (
-          <div className="component-groups">
+          <div className="dl-module-page__groups">
             {groups.map((group) => (
               <CatalogGroup
                 key={group.path}
                 title={groups.length > 1 ? group.label : undefined}
                 count={groups.length > 1 ? group.items.length : undefined}
               >
-                <div className="wireframe-catalog">
+                <div className="dl-module-page__grid dl-module-page__grid--screens">
                   {group.items.map((wireframe) => (
                     <WireframeCatalogCard
                       key={wireframe.id}
@@ -1546,7 +1546,7 @@ export function ModuleView({
             ))}
           </div>
         ) : (
-          <div className="module-filter-empty">
+          <div className="dl-module-page__empty">
             <strong>No Wireframes in this group</strong>
             <span>Choose All or add a canonical wireframe.json directory.</span>
           </div>
@@ -1615,7 +1615,7 @@ export function ModuleView({
               onPreview={(pageId) => onNavigateToPage?.(pageId)}
             />
           ) : (
-            <div className="module-filter-empty">
+            <div className="dl-module-page__empty">
               <strong>No Pages in this site map</strong>
               <span>
                 {prefix
@@ -1637,14 +1637,14 @@ export function ModuleView({
           actions={pagesViewToggle}
         />
         {pages.length ? (
-          <div className="component-groups">
+          <div className="dl-module-page__groups">
             {groups.map((group) => (
               <CatalogGroup
                 key={group.path}
                 title={groups.length > 1 ? group.label : undefined}
                 count={groups.length > 1 ? group.items.length : undefined}
               >
-                <div className="page-catalog">
+                <div className="dl-module-page__grid dl-module-page__grid--screens">
                   {group.items.map((page) => (
                     <PageCatalogCard
                       key={page.id}
@@ -1659,7 +1659,7 @@ export function ModuleView({
             ))}
           </div>
         ) : (
-          <div className="module-filter-empty">
+          <div className="dl-module-page__empty">
             <strong>No Pages in this group</strong>
             <span>Choose All or add a canonical page.json directory.</span>
           </div>

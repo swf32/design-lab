@@ -20,3 +20,97 @@
 .dl-module-page > .dl-module-header {
   margin-bottom: 18px;
 }
+
+.dl-module-page__groups {
+  display: grid;
+  gap: 26px;
+}
+
+.dl-module-page__groups--assets {
+  gap: 24px;
+}
+
+.dl-module-page__grid {
+  display: grid;
+  gap: var(--space-8);
+}
+
+.dl-module-page__grid--components {
+  grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
+  gap: var(--space-4);
+  align-items: start;
+}
+
+.dl-module-page__grid--assets {
+  grid-template-columns: repeat(auto-fill, minmax(190px, 1fr));
+  gap: 10px;
+}
+
+.dl-module-page__grid--palette {
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  gap: 10px;
+}
+
+.dl-module-page__grid--screens {
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+}
+
+.dl-module-page__empty {
+  min-height: 300px;
+  border: 1px dashed var(--color-border-default);
+  border-radius: var(--corner-surface);
+  color: var(--color-text-muted);
+  display: grid;
+  place-content: center;
+  justify-items: center;
+  gap: 6px;
+}
+
+.dl-module-page__empty strong {
+  color: var(--color-text-secondary);
+  font-size: 12px;
+  font-weight: 550;
+}
+
+.dl-module-page__empty span {
+  font-size: 9px;
+}
+
+@media (max-width: 760px) {
+  .dl-module-page__groups {
+    gap: var(--space-16);
+  }
+
+  .dl-module-page__grid--components,
+  .dl-module-page__grid--assets {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .dl-module-page__grid--palette {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: var(--space-8);
+  }
+
+  .dl-module-page__empty {
+    min-height: 220px;
+    padding: calc(var(--space-16) + var(--space-4));
+    text-align: center;
+  }
+}
+
+@media (max-width: 420px) {
+  .dl-module-page__grid--palette {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+@media (min-width: 520px) and (max-width: 760px) {
+  .dl-module-page__grid--components,
+  .dl-module-page__grid--assets {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .dl-module-page__grid--palette {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
