@@ -1,6 +1,6 @@
 # Поставка основы Design Lab: P0 и P1
 
-> Срез: 2026-10-02, проверенный этап — read-only uninstall footprint в установленном Settings. Кодовый коммит: `5b718ac` (публикация проверяется push). [Оглавление](README.md) · [видение](26-vision-and-next-steps.md) · [подробный checklist](IMPLEMENTATION-CHECKLIST.md) · [решения](DECISIONS.md). Это короткая доска результатов для человека, который не хочет читать историю Git.
+> Срез: 2026-10-02, проверенный этап — диагностика динамических CSS/SCSS asset URLs полной System. Кодовый коммит: `5d25bb0` (публикация проверяется push). [Оглавление](README.md) · [видение](26-vision-and-next-steps.md) · [подробный checklist](IMPLEMENTATION-CHECKLIST.md) · [решения](DECISIONS.md). Это короткая доска результатов для человека, который не хочет читать историю Git.
 
 ## Что считается готовым
 
