@@ -1,7 +1,7 @@
 {
   "id": "workbench-layout",
   "name": "Workbench Layout",
-  "description": "Shared scrolling workbench frame with a header region and documentation rail.",
+  "description": "Shared scrolling workbench frame, header, documentation sections, and responsive props grid.",
   "aliases": ["workbench frame", "component detail layout"],
   "useWhen": ["compose a Component or Page detail workbench"],
   "avoidWhen": ["render a catalog grid or standalone fullscreen Playground"],

@@ -26,6 +26,9 @@ import {
   WorkbenchLayout,
   WorkbenchLayoutHeader,
   WorkbenchLayoutRail,
+  WorkbenchMarkdown,
+  WorkbenchPropsTable,
+  WorkbenchSection,
   type CanvasMode,
   type ChipColor,
   type TableColumn,
@@ -608,10 +611,10 @@ function ManagedComponentWorkbench({
           </StoryCanvas>
         ))}
         {component.props && (
-          <div className="workbench-section">
+          <WorkbenchSection>
             <span>{t('workbench.propsApi')}</span>
-            <div className="workbench__props-table">
-              <div className="workbench__props-head">
+            <WorkbenchPropsTable>
+              <div className="dl-workbench-props-head">
                 <strong>{t('workbench.name')}</strong>
                 <strong>{t('workbench.type')}</strong>
                 <strong>{t('workbench.default')}</strong>
@@ -628,26 +631,26 @@ function ManagedComponentWorkbench({
                   </small>
                 </div>
               ))}
-            </div>
-          </div>
+            </WorkbenchPropsTable>
+          </WorkbenchSection>
         )}
-        <div className="workbench-section">
+        <WorkbenchSection>
           <span>{t('workbench.documentation')}</span>
-          <div className="workbench-markdown">
+          <WorkbenchMarkdown>
             <ReactMarkdown components={markdownComponents}>
               {component.documentation ?? 'Documentation has not been written yet.'}
             </ReactMarkdown>
-          </div>
-        </div>
+          </WorkbenchMarkdown>
+        </WorkbenchSection>
         {component.changelogDocumentation && (
-          <div className="workbench-section">
+          <WorkbenchSection>
             <span>{t('workbench.changelog')}</span>
-            <div className="workbench-markdown workbench-markdown--changelog">
+            <WorkbenchMarkdown>
               <ReactMarkdown components={markdownComponents}>
                 {component.changelogDocumentation}
               </ReactMarkdown>
-            </div>
-          </div>
+            </WorkbenchMarkdown>
+          </WorkbenchSection>
         )}
         <ComponentReferenceFiles files={component.files} />
       </WorkbenchLayoutRail>
@@ -751,10 +754,10 @@ function ComponentWorkbench({
           themeVariables={themeVariables}
         />
         {component.props && (
-          <div className="workbench-section">
+          <WorkbenchSection>
             <span>{t('workbench.propsApi')}</span>
-            <div className="workbench__props-table">
-              <div className="workbench__props-head">
+            <WorkbenchPropsTable>
+              <div className="dl-workbench-props-head">
                 <strong>{t('workbench.name')}</strong>
                 <strong>{t('workbench.type')}</strong>
                 <strong>{t('workbench.default')}</strong>
@@ -771,26 +774,26 @@ function ComponentWorkbench({
                   </small>
                 </div>
               ))}
-            </div>
-          </div>
+            </WorkbenchPropsTable>
+          </WorkbenchSection>
         )}
-        <div className="workbench-section">
+        <WorkbenchSection>
           <span>{t('workbench.documentation')}</span>
-          <div className="workbench-markdown">
+          <WorkbenchMarkdown>
             <ReactMarkdown components={markdownComponents}>
               {component.documentation ?? 'Documentation has not been written yet.'}
             </ReactMarkdown>
-          </div>
-        </div>
+          </WorkbenchMarkdown>
+        </WorkbenchSection>
         {component.changelogDocumentation && (
-          <div className="workbench-section">
+          <WorkbenchSection>
             <span>{t('workbench.changelog')}</span>
-            <div className="workbench-markdown workbench-markdown--changelog">
+            <WorkbenchMarkdown>
               <ReactMarkdown components={markdownComponents}>
                 {component.changelogDocumentation}
               </ReactMarkdown>
-            </div>
-          </div>
+            </WorkbenchMarkdown>
+          </WorkbenchSection>
         )}
         <ComponentReferenceFiles files={component.files} />
       </WorkbenchLayoutRail>
@@ -1073,9 +1076,9 @@ function ComponentConceptOverview({
         </section>
       )}
       <WorkbenchLayoutRail>
-        <div className="workbench-section">
+        <WorkbenchSection>
           <span>Implementation</span>
-          <div className="workbench-markdown">
+          <WorkbenchMarkdown>
             <p>
               {isWireframeConcept
                 ? 'This Component is intentionally discoverable before a production entry exists. Its typed Playground is the review surface for choosing a direction.'
@@ -1091,18 +1094,18 @@ function ComponentConceptOverview({
                 </Chip>
               ))}
             </div>
-          </div>
-        </div>
-        <div className="workbench-section">
+          </WorkbenchMarkdown>
+        </WorkbenchSection>
+        <WorkbenchSection>
           <span>Documentation</span>
-          <div className="workbench-markdown">
+          <WorkbenchMarkdown>
             <ReactMarkdown components={markdownComponents}>
               {component.documentation ?? 'Documentation has not been written yet.'}
             </ReactMarkdown>
-          </div>
-        </div>
+          </WorkbenchMarkdown>
+        </WorkbenchSection>
         {handoff && (
-          <div className="workbench-section">
+          <WorkbenchSection>
             <span>Developer handoff · {handoff.path}</span>
             <CodeBlock code={handoff.source} language={handoff.language} />
             {handoff.warnings.map((warning) => (
@@ -1110,13 +1113,13 @@ function ComponentConceptOverview({
                 {warning}
               </p>
             ))}
-          </div>
+          </WorkbenchSection>
         )}
         {handoffError && (
-          <div className="workbench-section">
+          <WorkbenchSection>
             <span>Developer handoff</span>
             <p className="component-handoff-warning">{handoffError}</p>
-          </div>
+          </WorkbenchSection>
         )}
         <ComponentReferenceFiles files={component.files} />
       </WorkbenchLayoutRail>
@@ -1855,27 +1858,27 @@ function PageOverview({
         />
       </WorkbenchLayoutHeader>
       <WorkbenchLayoutRail>
-        <div className="workbench-section">
+        <WorkbenchSection>
           <span>Status</span>
           <Chip size="small" color={pageStatusColors[page.status] ?? 'warning'} variant="soft">
             {page.status}
           </Chip>
-        </div>
-        <div className="workbench-section">
+        </WorkbenchSection>
+        <WorkbenchSection>
           <span>Description</span>
-          <div className="workbench-markdown">
+          <WorkbenchMarkdown>
             <p>{page.description || 'No description has been written yet.'}</p>
-          </div>
-        </div>
+          </WorkbenchMarkdown>
+        </WorkbenchSection>
         {page.derivedFromWireframe && (
-          <div className="workbench-section">
+          <WorkbenchSection>
             <span>Provenance</span>
-            <div className="workbench-markdown">
+            <WorkbenchMarkdown>
               <p>Graduated from Wireframe &quot;{page.derivedFromWireframe.wireframeId}&quot;.</p>
-            </div>
-          </div>
+            </WorkbenchMarkdown>
+          </WorkbenchSection>
         )}
-        <div className="workbench-section">
+        <WorkbenchSection>
           <span>Actions &amp; transitions</span>
           <div className="page-card-actions">
             {page.flow.edges.length ? (
@@ -1889,8 +1892,8 @@ function PageOverview({
               <span>This Page has no authored flow transitions yet.</span>
             )}
           </div>
-        </div>
-        <div className="workbench-section">
+        </WorkbenchSection>
+        <WorkbenchSection>
           <span>Diagnostics</span>
           {page.diagnostics.length ? (
             <div className="page-card-diagnostics">
@@ -1905,11 +1908,11 @@ function PageOverview({
               ))}
             </div>
           ) : (
-            <div className="workbench-markdown">
+            <WorkbenchMarkdown>
               <p>No diagnostics. This Page is ready for hand-off review.</p>
-            </div>
+            </WorkbenchMarkdown>
           )}
-        </div>
+        </WorkbenchSection>
       </WorkbenchLayoutRail>
     </WorkbenchLayout>
   )

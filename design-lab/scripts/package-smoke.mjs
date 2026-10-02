@@ -282,6 +282,28 @@ async function browserSmoke(
     assert.equal(await workbench.locator('.dl-workbench-layout__rail').count(), 1)
     if (browseProjectSystem) {
       const rail = workbench.locator('.dl-workbench-layout__rail')
+      const sections = rail.locator('.dl-workbench-section')
+      const markdown = rail.locator('.dl-workbench-markdown').first()
+      const propsTable = rail.locator('.dl-workbench-props-table')
+      assert((await sections.count()) >= 2)
+      await markdown.waitFor()
+      await propsTable.waitFor()
+      assert.equal(
+        await propsTable
+          .locator('.dl-workbench-props-head')
+          .evaluate((element) => getComputedStyle(element).display),
+        'grid',
+      )
+      const markdownColors = []
+      for (const theme of ['dark', 'light']) {
+        markdownColors.push(
+          await markdown.evaluate((element, mode) => {
+            document.documentElement.dataset.theme = mode
+            return getComputedStyle(element).color
+          }, theme),
+        )
+      }
+      assert.notEqual(markdownColors[0], markdownColors[1])
       const defaultPadding = await rail.evaluate((element) => getComputedStyle(element).paddingLeft)
       await writeFile(
         workbenchStylePath,
@@ -347,6 +369,12 @@ async function browserSmoke(
       }
       await page.setViewportSize({ width: 390, height: 700 })
       assert(await workbench.evaluate((element) => element.scrollWidth <= element.clientWidth + 1))
+      assert.equal(
+        await propsTable
+          .locator('.dl-workbench-props-head')
+          .evaluate((element) => getComputedStyle(element).display),
+        'none',
+      )
       const stageBounds = await page.locator('.dl-story-canvas__stage').first().boundingBox()
       assert(stageBounds && stageBounds.width > 0 && stageBounds.width <= 391)
       await page.setViewportSize({ width: 1500, height: 1000 })

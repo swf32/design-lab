@@ -1002,6 +1002,10 @@ native backlog до Web DoD.
       Workbench в System-owned `WorkbenchLayout` без визуального редизайна; app-owned visual
       declarations сократились с 420 до 392. Installed browser fixture проверяет desktop,
       узкую ширину и live-правку project-owned rail style.
+- [x] Вынести повторяемые documentation sections, Markdown и responsive props grid Component/Page
+      Workbench в `WorkbenchSection`, `WorkbenchMarkdown` и `WorkbenchPropsTable` активной System;
+      app-owned visual declarations сократились с 392 до 353. Installed browser fixture проверяет
+      desktop/mobile, dark/light и реальные документацию и props Button.
 - [ ] Создать отдельный `design-lab-gallery` repository, remote verification workers, immutable
       checksums/signatures и generated screenshot publication flow.
 - [ ] Добавить gallery UI с status `community / validated / curated / incompatible` и установкой из

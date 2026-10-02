@@ -1559,6 +1559,10 @@ loading/error/frame presentation делегирован `RuntimeFrameSurface`. �
 `WorkbenchLayoutRail` добавлены в обязательный application contract; ранее созданным полным
 Systems нужен upgrade с baseline либо ручное добавление совместимых exports. Оставшиеся
 section-specific стили Workbench пока принадлежат приложению и видны в ownership audit.
+Documentation rail далее получил `WorkbenchSection`, `WorkbenchMarkdown` и
+`WorkbenchPropsTable` с прежним default look и responsive поведением. Эти exports также входят
+в обязательный contract. Данные документации, props и состояние остаются в приложении;
+presentation повторяемого rail принадлежит одной активной System.
 
 ## D-091 — Community customization разделяется на Skin и полную System
 

@@ -47,7 +47,11 @@ token/palette values, swatches и copy affordance ячеек catalog `Table` п�
 Общая прокручиваемая оболочка, header и documentation rail четырёх Component/Page Workbench
 перенесены в `WorkbenchLayout` активной System без смены визуальных значений. Осталось **392**
 app-local visual declarations; installed browser fixture проверяет реальный Workbench, узкую ширину
-и изменение rail style через project-owned System. Секции и другие роли `ModuleView` ещё открыты.
+и изменение rail style через project-owned System.
+Затем `WorkbenchLayout` получил единые `WorkbenchSection`, `WorkbenchMarkdown` и
+`WorkbenchPropsTable`: Component и Page detail views используют одинаковые documentation groups,
+Markdown и мобильную таблицу props из активной System. Осталось **353** app-local visual
+declarations; остальные story/catalog роли `ModuleView` ещё открыты.
 `StoryCanvas.scss` владеет оформлением Story stage; `color.canvas-grid.light-text` хранит
 читаемый цвет светлой сетки для dark и light app modes. Таблица ниже показывает исходные лимиты
 baseline; десять записей из `ModuleView.scss` и девять из `ComponentPlaygroundView.scss`

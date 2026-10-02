@@ -48,11 +48,13 @@ Settings показывает совместимость активной System
 
 Прокручиваемую оболочку, header и documentation rail Component/Page Workbench теперь задаёт
 `WorkbenchLayout` с `WorkbenchLayoutHeader` и `WorkbenchLayoutRail` из активной System. Четыре
-детальных маршрута используют эти exports, сохраняя прежнее оформление; route state и реальные
-Canvas/Stories остаются под управлением приложения. Эти три exports обязательны в application
-contract. Ранее созданной полной System нужен совместимый Component перед обновлением инструмента:
-default-derived System обновляется через `system upgrade`, независимая System добавляет exports
-вручную. Startup preflight указывает отсутствующий export; автоматической миграции нет.
+детальных маршрута используют эти exports, сохраняя прежнее оформление. Секции rail, Markdown и
+таблица props теперь используют `WorkbenchSection`, `WorkbenchMarkdown` и `WorkbenchPropsTable`
+из той же System; route state и реальные Canvas/Stories остаются под управлением приложения.
+Все шесть exports обязательны в application contract. Ранее созданной полной System нужны
+совместимые Components перед обновлением инструмента: default-derived System обновляется через
+`system upgrade`, независимая System добавляет exports вручную. Startup preflight указывает
+отсутствующий export; автоматической миграции нет.
 
 Проверка выбранной System в Settings теперь показывает её read-only diff до установки. Во внешнем проекте эталон — bundled default, а в development checkout без отдельной default-копии — активная System. Проверка System выявляет отсутствующие локальные assets в буквальных и статически составленных путях; динамические `new URL`/`import()` и CSS/SCSS `url(var(...))`/`url($variable)` выводятся как непроверенные предупреждения с файлом и строкой. Проверка Skin/System запоминает отпечаток файлов выбранной папки. При установке Design Lab сверяет с ним уже скопированный пакет и повторно валидирует его; если папка поменялась после просмотра, активная версия сохраняется и Settings просит проверить папку снова. CLI остаётся пригодным для прямой установки без предварительного UI-просмотра.
 
