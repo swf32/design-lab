@@ -378,7 +378,7 @@ Vue/Svelte adapters; иначе каждый adapter придётся переп
 4. Перевести scanners, context gateway, MCP и CLI с fixed paths на mounts.
 5. Заменить eager build-time globs на runtime adapter host, способный загружать attached roots.
 6. Добавить deterministic repository scanner и scan result schema с evidence/confidence.
-7. Реализовать onboarding: existing/greenfield, scan, summary, attach/copy choice, apply, self-check. Первый read-only self-check после apply проверяет config, mounts, rules, AGENTS pointer и System contract/typecheck. Settings показывает повторяемую диагностику, безопасный repair отсутствующих rules/pointer и подтверждаемую замену относительного mount после move/rename. Исправление повреждённого config и полное покрытие resolver ещё нужны.
+7. Реализовать onboarding: existing/greenfield, scan, summary, attach/copy choice, apply, self-check. Первый read-only self-check после apply проверяет config, mounts, rules, AGENTS pointer и System contract/typecheck. Settings показывает повторяемую диагностику, безопасный repair отсутствующих rules/pointer, подтверждаемую замену относительного mount после move/rename и восстановление повреждённого config с last-good либо проверенным scan-черновиком. Полное покрытие resolver ещё нужно.
 8. Добавить package environment resolver без ручного `node_modules` path.
 9. Добавить managed root instruction blocks и AI integration status/repair/remove. Pointer, status и ограниченный repair отсутствующих managed files реализованы; remove и более широкий repair остаются.
 10. Только затем закрывать React runtime migration и Vue/Svelte/Custom Elements по Web Definition

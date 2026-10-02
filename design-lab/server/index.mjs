@@ -255,6 +255,7 @@ createServer(async (request, response) => {
         await createSetupRepairPlan({
           root: getWorkspaceDirectory(),
           mountReplacements: input.mountReplacements ?? [],
+          recoveryConfig: input.recoveryConfig ?? null,
         }),
       )
     }
@@ -266,6 +267,7 @@ createServer(async (request, response) => {
         fingerprint: input.fingerprint,
         confirmed: input.confirmed === true,
         mountReplacements: input.mountReplacements ?? [],
+        recoveryConfig: input.recoveryConfig ?? null,
       })
       if (result.applied) revision += 1
       return sendJson(response, 200, result)

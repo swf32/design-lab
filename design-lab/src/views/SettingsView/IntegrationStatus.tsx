@@ -20,7 +20,7 @@ function nextStep(code: string) {
   if (code === 'SETUP_AGENTS_POINTER_MISSING')
     return 'Restore the Design Lab pointer block in the project AGENTS.md without removing your own instructions.'
   if (code === 'SETUP_CONFIG_INVALID' || code === 'SETUP_SCHEMA_UNSUPPORTED')
-    return 'Preview safe repair. If a last-good config is available, Design Lab can save the damaged bytes and restore the reviewed copy.'
+    return 'Preview safe repair. Review the suggested config and every source mount if no last-good copy exists.'
   if (code.startsWith('INTERFACE_') || code.startsWith('SETUP_SYSTEM_'))
     return 'Check the active System below. You can restore the bundled default from Settings after reviewing its snapshot warning.'
   return 'Review this path and the project configuration before changing files.'
@@ -36,6 +36,8 @@ export function IntegrationStatus() {
   const [repairMessage, setRepairMessage] = useState<string | null>(null)
   const [mountPaths, setMountPaths] = useState<Record<string, string>>({})
   const [reviewedMounts, setReviewedMounts] = useState<MountReplacement[]>([])
+  const [recoveryDraft, setRecoveryDraft] = useState('')
+  const [reviewedRecovery, setReviewedRecovery] = useState<Record<string, unknown> | null>(null)
   const [pickerMount, setPickerMount] = useState<{ kind: string; path: string } | null>(null)
 
   const refresh = useCallback(async () => {
@@ -67,11 +69,32 @@ export function IntegrationStatus() {
               return to ? [{ kind: item.kind!, from: item.path, to }] : []
             })
         : []
-      setRepairPlan(await getSetupRepairPlan(replacements))
+      const plan = await getSetupRepairPlan(replacements)
+      setRepairPlan(plan)
+      setRecoveryDraft(
+        plan.available && plan.suggestedConfig ? JSON.stringify(plan.suggestedConfig, null, 2) : '',
+      )
+      setReviewedRecovery(null)
       setReviewedMounts(replacements)
       setRepairOpen(true)
     } catch (cause) {
       setError(cause instanceof Error ? cause.message : 'Could not prepare the repair plan.')
+    } finally {
+      setRepairBusy(false)
+    }
+  }
+
+  const previewRecovery = async () => {
+    setRepairBusy(true)
+    setError(null)
+    try {
+      const config = JSON.parse(recoveryDraft)
+      if (!config || typeof config !== 'object' || Array.isArray(config))
+        throw new Error('The reviewed config must be a JSON object.')
+      setRepairPlan(await getSetupRepairPlan(reviewedMounts, config))
+      setReviewedRecovery(config)
+    } catch (cause) {
+      setError(cause instanceof Error ? cause.message : 'Could not review the config.')
     } finally {
       setRepairBusy(false)
     }
@@ -82,7 +105,11 @@ export function IntegrationStatus() {
     setRepairBusy(true)
     setError(null)
     try {
-      const result = await applySetupRepair(repairPlan.fingerprint, reviewedMounts)
+      const result = await applySetupRepair(
+        repairPlan.fingerprint,
+        reviewedMounts,
+        reviewedRecovery,
+      )
       setRepairMessage(
         result.applied
           ? `Applied ${result.changes.length} integration repair(s). Review any remaining diagnostics below.`
@@ -91,6 +118,8 @@ export function IntegrationStatus() {
       setRepairOpen(false)
       setRepairPlan(null)
       setReviewedMounts([])
+      setReviewedRecovery(null)
+      setRecoveryDraft('')
       setMountPaths({})
       void refresh()
     } catch (cause) {
@@ -186,7 +215,7 @@ export function IntegrationStatus() {
         open={repairOpen}
         title="Repair Design Lab integration?"
         eyebrow="Review file changes"
-        description="Review each proposed change. The damaged config is kept as a separate file before a last-good copy is restored. Source files and the active System stay in place."
+        description="Review each proposed change. Damaged config bytes are saved separately before recovery. Source files and the active System stay in place."
         onClose={() => setRepairOpen(false)}
         dismissible={!repairBusy}
         footer={
@@ -203,7 +232,11 @@ export function IntegrationStatus() {
               type="button"
               variant="primary"
               loading={repairBusy}
-              disabled={!repairPlan?.available || !repairPlan.canApply}
+              disabled={
+                !repairPlan?.available ||
+                !repairPlan.canApply ||
+                (recoveryDraft !== '' && reviewedRecovery === null)
+              }
               onClick={() => void repair()}
             >
               Apply safe repair
@@ -213,6 +246,34 @@ export function IntegrationStatus() {
       >
         {repairPlan?.available ? (
           <div className="settings-integration__repair-plan">
+            {recoveryDraft && (
+              <div>
+                <p>
+                  No last-good config exists. Check the proposed name, mode, and every source mount;
+                  add any custom paths the scan missed. The current project-owned System stays in
+                  place.
+                </p>
+                <Input
+                  variant="textarea"
+                  label="Reviewed project config (JSON)"
+                  rows={14}
+                  value={recoveryDraft}
+                  onChange={(event) => {
+                    setRecoveryDraft(event.currentTarget.value)
+                    setReviewedRecovery(null)
+                  }}
+                  fullWidth
+                />
+                <Button
+                  type="button"
+                  size="small"
+                  loading={repairBusy}
+                  onClick={() => void previewRecovery()}
+                >
+                  Review config recovery
+                </Button>
+              </div>
+            )}
             <h4>Changes to apply</h4>
             {repairPlan.recovery && (
               <div>

@@ -148,22 +148,31 @@ export type SetupRepairPlan =
         mounts: Record<string, string[]>
         warning: string
       }
+      suggestedConfig: Record<string, unknown> | null
       fingerprint: string
       canApply: boolean
     }
 
 export type MountReplacement = { kind: string; from: string; to: string }
 
-export function getSetupRepairPlan(mountReplacements: MountReplacement[] = []) {
-  if (mountReplacements.length === 0) return request<SetupRepairPlan>('/api/onboarding/repair')
+export function getSetupRepairPlan(
+  mountReplacements: MountReplacement[] = [],
+  recoveryConfig: Record<string, unknown> | null = null,
+) {
+  if (mountReplacements.length === 0 && recoveryConfig === null)
+    return request<SetupRepairPlan>('/api/onboarding/repair')
   return request<SetupRepairPlan>('/api/onboarding/repair/preview', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json', 'X-Design-Lab-UI': '1' },
-    body: JSON.stringify({ mountReplacements }),
+    body: JSON.stringify({ mountReplacements, recoveryConfig }),
   })
 }
 
-export function applySetupRepair(fingerprint: string, mountReplacements: MountReplacement[] = []) {
+export function applySetupRepair(
+  fingerprint: string,
+  mountReplacements: MountReplacement[] = [],
+  recoveryConfig: Record<string, unknown> | null = null,
+) {
   return request<{
     applied: boolean
     changes: Array<{ kind: string; path: string }>
@@ -171,7 +180,7 @@ export function applySetupRepair(fingerprint: string, mountReplacements: MountRe
   }>('/api/onboarding/repair', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json', 'X-Design-Lab-UI': '1' },
-    body: JSON.stringify({ fingerprint, mountReplacements, confirmed: true }),
+    body: JSON.stringify({ fingerprint, mountReplacements, recoveryConfig, confirmed: true }),
   })
 }
 

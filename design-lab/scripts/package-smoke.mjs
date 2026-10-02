@@ -116,6 +116,7 @@ async function browserSmoke(
     checkIntegrationFailure = false,
     repairMovedMount = false,
     repairDamagedConfig = false,
+    repairWithoutSnapshot = false,
     createSkinCandidate = null,
     uploadSkinCandidate = null,
     verifySkinAndClear = false,
@@ -346,9 +347,9 @@ async function browserSmoke(
       )
       await page.setViewportSize({ width: 1500, height: 1000 })
     }
-    if (!repairMovedMount && !repairDamagedConfig)
+    if (!repairMovedMount && !repairDamagedConfig && !repairWithoutSnapshot)
       await page.getByText('Healthy', { exact: true }).waitFor()
-    if (repairDamagedConfig) {
+    if (repairDamagedConfig || repairWithoutSnapshot) {
       await page.getByText('Needs attention', { exact: true }).waitFor()
       await page.getByText('The setup config is missing or invalid JSON.').waitFor()
       const [preview] = await Promise.all([
@@ -360,8 +361,25 @@ async function browserSmoke(
       ])
       assert.equal(preview.status(), 200)
       const plan = await preview.json()
-      assert.equal(plan.recovery.name, 'External smoke')
-      assert(plan.changes.some((change) => change.kind === 'restore-config'))
+      if (repairWithoutSnapshot) {
+        assert(plan.suggestedConfig)
+        const draft = page.getByRole('dialog').getByRole('textbox', {
+          name: 'Reviewed project config (JSON)',
+        })
+        await draft.waitFor()
+        const suggested = JSON.parse(await draft.inputValue())
+        suggested.name = 'External smoke'
+        await draft.fill(JSON.stringify(suggested, null, 2))
+        const [reviewed] = await Promise.all([
+          page.waitForResponse((result) => result.url().endsWith('/api/onboarding/repair/preview')),
+          page.getByRole('dialog').getByRole('button', { name: 'Review config recovery' }).click(),
+        ])
+        assert.equal(reviewed.status(), 200)
+        assert((await reviewed.json()).changes.some((change) => change.kind === 'restore-config'))
+      } else {
+        assert.equal(plan.recovery.name, 'External smoke')
+        assert(plan.changes.some((change) => change.kind === 'restore-config'))
+      }
       await page.getByRole('dialog').getByText('Restore from:').waitFor()
       const [applied] = await Promise.all([
         page.waitForResponse(
@@ -999,6 +1017,18 @@ try {
       assert.equal(await readFile(configPath, 'utf8'), originalConfig)
     } finally {
       await writeFile(configPath, originalConfig)
+    }
+    const lastGoodPath = join(projectRoot, 'design-lab/designlab.config.last-good.json')
+    const originalLastGood = await readFile(lastGoodPath, 'utf8')
+    await rm(lastGoodPath)
+    await writeFile(configPath, '{ old installation config damaged\n')
+    try {
+      await browserSmoke(cli, { repairWithoutSnapshot: true })
+      assert.equal(JSON.parse(await readFile(configPath, 'utf8')).name, 'External smoke')
+      assert.equal(await readFile(lastGoodPath, 'utf8'), await readFile(configPath, 'utf8'))
+    } finally {
+      await writeFile(configPath, originalConfig)
+      await writeFile(lastGoodPath, originalLastGood)
     }
     await rename(join(projectRoot, 'src/components'), join(projectRoot, 'src/widgets'))
     try {

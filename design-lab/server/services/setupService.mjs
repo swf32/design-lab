@@ -760,6 +760,7 @@ export async function createSetupRepairPlan({
   integrationDirectory = DEFAULT_INTEGRATION_DIRECTORY,
   rulesSource = DEFAULT_RULES_SOURCE,
   mountReplacements = [],
+  recoveryConfig = null,
 }) {
   const projectRoot = assertRoot(root)
   const status = await inspectSetupInstallation({ root: projectRoot, integrationDirectory })
@@ -780,6 +781,7 @@ export async function createSetupRepairPlan({
   const inputs = []
   let configDigest = null
   let recovery = null
+  let suggestedConfig = null
   if (blockers.some((item) => item.code === 'SETUP_CONFIG_INVALID')) {
     const configPath = join(integrationRoot, 'designlab.config.json')
     const snapshotPath = join(integrationRoot, LAST_GOOD_CONFIG)
@@ -794,15 +796,23 @@ export async function createSetupRepairPlan({
         message: 'The config or its last-good copy is not a regular file.',
         path: portablePath(relative(projectRoot, configPath)),
       })
-    else if (!snapshotState)
-      blockers.push({
-        code: 'SETUP_REPAIR_CONFIG_SNAPSHOT_MISSING',
-        message: 'No last-good config is available. Keep the damaged file for manual recovery.',
-        path: portablePath(relative(projectRoot, snapshotPath)),
+    else if (!snapshotState && recoveryConfig === null) {
+      const draft = await createSetupPlan({
+        root: projectRoot,
+        integrationDirectory,
       })
-    else {
+      suggestedConfig = draft.config
+      blockers.push({
+        code: 'SETUP_REPAIR_CONFIG_REVIEW_REQUIRED',
+        message:
+          'No last-good copy exists. Review every source mount in the suggested config before recovery.',
+        path: portablePath(relative(projectRoot, configPath)),
+      })
+    } else {
       const damaged = await readFile(configPath)
-      const snapshot = await readFile(snapshotPath, 'utf8')
+      const snapshot = snapshotState
+        ? await readFile(snapshotPath, 'utf8')
+        : JSON.stringify(recoveryConfig)
       let candidate = null
       try {
         candidate = JSON.parse(snapshot)
@@ -812,10 +822,42 @@ export async function createSetupRepairPlan({
       if (!validRecoveryConfig(candidate, integrationDirectory))
         blockers.push({
           code: 'SETUP_REPAIR_CONFIG_SNAPSHOT_INVALID',
-          message: 'The last-good config cannot be safely restored.',
-          path: portablePath(relative(projectRoot, snapshotPath)),
+          message: snapshotState
+            ? 'The last-good config cannot be safely restored.'
+            : 'The reviewed config must use this project, the existing System, and safe relative mounts.',
+          path: portablePath(relative(projectRoot, snapshotState ? snapshotPath : configPath)),
         })
       else {
+        if (!snapshotState) {
+          const canonicalRoot = await realpath(projectRoot)
+          for (const mount of Object.values(candidate.source.mounts).flat()) {
+            const actual = await realpath(resolve(projectRoot, mount)).catch(() => null)
+            if (!actual || !isInside(actual, canonicalRoot) || !(await stat(actual)).isDirectory())
+              blockers.push({
+                code: 'SETUP_REPAIR_MOUNT_INVALID',
+                message: 'The reviewed source mount must be an existing project directory.',
+                path: mount,
+              })
+          }
+          const systemState = await lstat(join(integrationRoot, 'system')).catch(() => null)
+          if (!systemState?.isDirectory())
+            blockers.push({
+              code: 'SETUP_REPAIR_SYSTEM_MISSING',
+              message: 'The project-owned System must exist before reconstructing config.',
+              path: `${integrationDirectory}/system`,
+            })
+        }
+        if (!snapshotState && blockers.some((item) => item.code.startsWith('SETUP_REPAIR_')))
+          return {
+            available: true,
+            changes,
+            blockers,
+            configDigest,
+            recovery,
+            suggestedConfig,
+            fingerprint: repairFingerprint({ changes, blockers, snapshot }),
+            canApply: false,
+          }
         const backupName = `designlab.config.damaged.${createHash('sha256').update(damaged).digest('hex').slice(0, 12)}.json`
         const backupPath = join(integrationRoot, backupName)
         const backupState = await lstat(backupPath).catch((error) => {
@@ -839,17 +881,20 @@ export async function createSetupRepairPlan({
             path: portablePath(relative(projectRoot, configPath)),
           })
           recovery = {
-            from: portablePath(relative(projectRoot, snapshotPath)),
+            from: snapshotState
+              ? portablePath(relative(projectRoot, snapshotPath))
+              : 'reviewed config draft',
             name: candidate.name,
             mode: candidate.mode,
             mounts: candidate.source.mounts,
-            warning:
-              'Changes made to the config after the last managed write may be absent from this copy.',
+            warning: snapshotState
+              ? 'Changes made to the config after the last managed write may be absent from this copy.'
+              : 'The suggested config comes from a fresh scan. Confirm every mount, including custom folders the scan may miss.',
           }
           configDigest = createHash('sha256').update(damaged).digest('hex')
           inputs.push(
             ['damaged-config', configDigest],
-            ['last-good-config', repairFingerprint(snapshot)],
+            [snapshotState ? 'last-good-config' : 'reviewed-config', repairFingerprint(snapshot)],
           )
           for (let index = blockers.length - 1; index >= 0; index -= 1)
             if (blockers[index].code === 'SETUP_CONFIG_INVALID') blockers.splice(index, 1)
@@ -1003,6 +1048,7 @@ export async function createSetupRepairPlan({
     blockers,
     configDigest,
     recovery,
+    suggestedConfig,
     fingerprint: repairFingerprint({ changes, blockers, inputs }),
     canApply: changes.length > 0,
   }
@@ -1015,6 +1061,7 @@ export async function applySetupRepair({
   integrationDirectory = DEFAULT_INTEGRATION_DIRECTORY,
   rulesSource = DEFAULT_RULES_SOURCE,
   mountReplacements = [],
+  recoveryConfig = null,
 }) {
   if (!confirmed)
     throw setupError(
@@ -1027,6 +1074,7 @@ export async function applySetupRepair({
     integrationDirectory,
     rulesSource,
     mountReplacements,
+    recoveryConfig,
   })
   if (!plan.available) throw setupError(plan.reason, 'SETUP_REPAIR_UNAVAILABLE', 409)
   if (typeof fingerprint !== 'string' || plan.fingerprint !== fingerprint)
@@ -1100,10 +1148,12 @@ export async function applySetupRepair({
     const integrationRoot = resolve(projectRoot, integrationDirectory)
     const configPath = join(integrationRoot, 'designlab.config.json')
     const snapshotPath = join(integrationRoot, LAST_GOOD_CONFIG)
+    const snapshotState = await lstat(snapshotPath).catch(() => null)
     if (
       !(await lstat(integrationRoot)).isDirectory() ||
       !(await lstat(configPath)).isFile() ||
-      !(await lstat(snapshotPath)).isFile()
+      (snapshotState && !snapshotState.isFile()) ||
+      (!snapshotState && recoveryConfig === null)
     )
       throw setupError(
         'Config recovery paths changed. Review the plan again.',
@@ -1111,7 +1161,9 @@ export async function applySetupRepair({
         409,
       )
     const damaged = await readFile(configPath)
-    const snapshot = await readFile(snapshotPath, 'utf8')
+    const snapshot = snapshotState
+      ? await readFile(snapshotPath, 'utf8')
+      : JSON.stringify(recoveryConfig)
     if (
       createHash('sha256').update(damaged).digest('hex') !== plan.configDigest ||
       !validRecoveryConfig(JSON.parse(snapshot), integrationDirectory)
@@ -1137,6 +1189,7 @@ export async function applySetupRepair({
       }
     }
     await writeJsonAtomic(configPath, JSON.parse(snapshot))
+    if (!snapshotState) await writeJsonAtomic(snapshotPath, JSON.parse(snapshot))
   }
   if (mountChanges.length) {
     const configPath = join(projectRoot, integrationDirectory, 'designlab.config.json')
