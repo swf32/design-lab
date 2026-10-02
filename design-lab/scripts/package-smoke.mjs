@@ -396,6 +396,34 @@ async function browserSmoke(
     await page.locator('.app-sidebar__footer .sidebar-tab').click()
     await page.getByRole('heading', { name: 'Active System' }).waitFor()
     await page.getByRole('heading', { name: 'Design Lab integration' }).waitFor()
+    const [footprintResponse] = await Promise.all([
+      page.waitForResponse((result) => result.url().endsWith('/api/onboarding/footprint')),
+      page.getByRole('button', { name: 'Review removal footprint' }).click(),
+    ])
+    assert.equal(footprintResponse.status(), 200)
+    const footprint = await footprintResponse.json()
+    assert(footprint.projectOwned.some((item) => item.path === 'design-lab/system'))
+    if (footprint.externalMountsKnown) {
+      assert(
+        footprint.externalMounts.some(
+          (item) => item.kind === 'components' && item.path === 'src/components',
+        ),
+      )
+      await page
+        .getByRole('dialog', { name: 'Review Design Lab files' })
+        .getByText('src/components')
+        .waitFor()
+    } else {
+      await page
+        .getByRole('dialog', { name: 'Review Design Lab files' })
+        .getByText('source mounts outside this folder cannot be listed', { exact: false })
+        .waitFor()
+    }
+    await page
+      .getByRole('dialog', { name: 'Review Design Lab files' })
+      .getByRole('button', { name: 'Close' })
+      .last()
+      .click()
     if (browseProjectSystem) {
       const panels = page.locator('.dl-settings-panel')
       assert((await panels.count()) >= 3)

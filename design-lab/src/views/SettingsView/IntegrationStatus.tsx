@@ -3,8 +3,10 @@ import { Button, Dialog, Input, SettingsPanel } from '@design-lab/system/compone
 import { InterfaceFolderPicker } from './InterfaceFolderPicker'
 import {
   applySetupRepair,
+  getSetupFootprint,
   getSetupInstallationStatus,
   getSetupRepairPlan,
+  type SetupFootprint,
   type SetupInstallationStatus,
   type SetupRepairPlan,
   type MountReplacement,
@@ -39,6 +41,9 @@ export function IntegrationStatus() {
   const [recoveryDraft, setRecoveryDraft] = useState('')
   const [reviewedRecovery, setReviewedRecovery] = useState<Record<string, unknown> | null>(null)
   const [pickerMount, setPickerMount] = useState<{ kind: string; path: string } | null>(null)
+  const [footprint, setFootprint] = useState<SetupFootprint | null>(null)
+  const [footprintOpen, setFootprintOpen] = useState(false)
+  const [footprintBusy, setFootprintBusy] = useState(false)
 
   const refresh = useCallback(async () => {
     setLoading(true)
@@ -131,6 +136,19 @@ export function IntegrationStatus() {
     }
   }
 
+  const previewFootprint = async () => {
+    setFootprintBusy(true)
+    setError(null)
+    try {
+      setFootprint(await getSetupFootprint())
+      setFootprintOpen(true)
+    } catch (cause) {
+      setError(cause instanceof Error ? cause.message : 'Could not inspect integration files.')
+    } finally {
+      setFootprintBusy(false)
+    }
+  }
+
   return (
     <SettingsPanel
       className="settings-integration"
@@ -150,6 +168,14 @@ export function IntegrationStatus() {
         </p>
       )}
       {repairMessage && <p role="status">{repairMessage}</p>}
+      <Button
+        type="button"
+        size="small"
+        loading={footprintBusy}
+        onClick={() => void previewFootprint()}
+      >
+        Review removal footprint
+      </Button>
       {status && !status.available && <p role="status">{status.reason}</p>}
       {status?.available && (
         <div className="settings-integration__report" role="status">
@@ -329,6 +355,74 @@ export function IntegrationStatus() {
           </div>
         ) : (
           <p>{repairPlan?.reason}</p>
+        )}
+      </Dialog>
+      <Dialog
+        open={footprintOpen}
+        title="Review Design Lab files"
+        eyebrow="Read-only removal preview"
+        description="This inventory does not remove files or decide which edited files are safe to remove. Review project-owned content before uninstall."
+        onClose={() => setFootprintOpen(false)}
+        footer={
+          <Button type="button" variant="ghost" onClick={() => setFootprintOpen(false)}>
+            Close
+          </Button>
+        }
+      >
+        {footprint?.available ? (
+          <div className="settings-integration__repair-plan">
+            <h4>Integration setup files</h4>
+            <ul>
+              {footprint.setupFiles.map((item) => (
+                <li key={item.path}>
+                  <code>{item.path}</code> · {item.state}
+                  {item.matchesBundled === false ? ' · edited' : ''}
+                </li>
+              ))}
+            </ul>
+            <h4>Project-owned files inside the integration</h4>
+            <ul>
+              {footprint.projectOwned.map((item) => (
+                <li key={item.path}>
+                  <code>{item.path}</code> · {item.state}
+                </li>
+              ))}
+            </ul>
+            <h4>Source mounts outside the integration</h4>
+            {footprint.externalMountsKnown ? (
+              footprint.externalMounts.length ? (
+                <ul>
+                  {footprint.externalMounts.map((item) => (
+                    <li key={`${item.kind}:${item.path}`}>
+                      {item.kind}: <code>{item.path}</code>
+                    </li>
+                  ))}
+                </ul>
+              ) : (
+                <p>None recorded in the current config.</p>
+              )
+            ) : (
+              <p>The config is unavailable; source mounts outside this folder cannot be listed.</p>
+            )}
+            <h4>Other files needing review</h4>
+            {footprint.unclassified.length ? (
+              <ul>
+                {footprint.unclassified.map((path) => (
+                  <li key={path}>
+                    <code>{path}</code>
+                  </li>
+                ))}
+              </ul>
+            ) : (
+              <p>None found at the integration folder level.</p>
+            )}
+            <p>
+              Root <code>{footprint.agentsPointer.path}</code> pointer:{' '}
+              {footprint.agentsPointer.markers}
+            </p>
+          </div>
+        ) : (
+          <p>{footprint?.reason}</p>
         )}
       </Dialog>
       <InterfaceFolderPicker

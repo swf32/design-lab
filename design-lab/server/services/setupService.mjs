@@ -700,15 +700,15 @@ export async function inspectSetupFootprint({
       ? await readJson(join(integrationRoot, 'designlab.config.json'))
       : null
   const authoredPaths = new Set([`${integrationDirectory}/system`])
-  for (const mounts of Object.values(config?.source?.mounts ?? {})) {
+  const externalMounts = []
+  for (const [kind, mounts] of Object.entries(config?.source?.mounts ?? {})) {
     if (!Array.isArray(mounts)) continue
     for (const mount of mounts) {
-      if (
-        typeof mount === 'string' &&
-        mount.startsWith(`${integrationDirectory}/`) &&
-        isInside(resolve(projectRoot, mount), integrationRoot)
-      )
-        authoredPaths.add(mount)
+      if (typeof mount !== 'string' || mount.startsWith('/')) continue
+      const absolute = resolve(projectRoot, mount)
+      if (!isInside(absolute, projectRoot)) continue
+      if (isInside(absolute, integrationRoot)) authoredPaths.add(mount)
+      else externalMounts.push({ kind, path: mount })
     }
   }
   const projectOwned = await Promise.all([...authoredPaths].sort().map((path) => describe(path)))
@@ -752,6 +752,8 @@ export async function inspectSetupFootprint({
     integrationDirectory,
     setupFiles,
     projectOwned,
+    externalMounts,
+    externalMountsKnown: config !== null,
     unclassified,
     agentsPointer,
     note: 'This inventory is read-only. It does not decide which edited files may be removed.',

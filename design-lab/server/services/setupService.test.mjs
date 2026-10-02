@@ -375,6 +375,12 @@ test('footprint inventory preserves the distinction between setup files and auth
     const footprint = await inspectSetupFootprint({ root })
     assert.equal(footprint.available, true)
     assert.equal(footprint.agentsPointer.markers, 'complete')
+    assert.equal(footprint.externalMountsKnown, true)
+    assert(
+      footprint.externalMounts.some(
+        (item) => item.kind === 'components' && item.path === 'src/components',
+      ),
+    )
     assert(
       footprint.projectOwned.some(
         (item) => item.path === 'design-lab/system' && item.state === 'directory',
@@ -388,6 +394,10 @@ test('footprint inventory preserves the distinction between setup files and auth
       false,
     )
     assert.equal(await readFile(join(root, 'design-lab/rules/TOKEN_RULES.md'), 'utf8'), before)
+    await writeFile(join(root, 'design-lab/designlab.config.json'), '{ damaged\n')
+    const damagedFootprint = await inspectSetupFootprint({ root })
+    assert.equal(damagedFootprint.externalMountsKnown, false)
+    assert.equal(damagedFootprint.externalMounts.length, 0)
   } finally {
     await rm(root, { recursive: true, force: true })
   }

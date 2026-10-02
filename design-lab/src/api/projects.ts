@@ -129,6 +129,24 @@ export function getSetupInstallationStatus() {
   return request<SetupInstallationStatus>('/api/onboarding/status')
 }
 
+export type SetupFootprint =
+  | { available: false; reason: string }
+  | {
+      available: true
+      integrationDirectory: string
+      setupFiles: Array<{ path: string; state: string; matchesBundled?: boolean }>
+      projectOwned: Array<{ path: string; state: string }>
+      externalMounts: Array<{ kind: string; path: string }>
+      externalMountsKnown: boolean
+      unclassified: string[]
+      agentsPointer: { path: string; state: string; markers: string }
+      note: string
+    }
+
+export function getSetupFootprint() {
+  return request<SetupFootprint>('/api/onboarding/footprint')
+}
+
 export type SetupRepairPlan =
   | { available: false; reason: string }
   | {

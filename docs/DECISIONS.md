@@ -1647,6 +1647,10 @@ default System без скрытого fallback kernel. Реализованны
 Установка следующей patch version локального tarball не перезаписывает проектную папку. `system reset` явно
 восстанавливает template. Diff/migration и update UX остаются открытыми.
 
+Для будущего uninstall Settings показывает read-only состав integration folder, отдельно
+project-owned System и mounts, внешние source mounts и нераспознанные файлы. Это не решает,
+куда перемещать изменённую System при удалении: вопрос ownership остаётся открытым.
+
 В нынешнем development checkout D-092 продолжает описывать физический слот
 `libraries/design-lab-system/`; D-093 не объявляет текущий private package опубликованным в npm registry. Связанный
 план: [собственная System и установка](25-interface-system-and-installation.md),
