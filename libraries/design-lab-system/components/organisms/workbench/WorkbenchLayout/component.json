@@ -1,0 +1,20 @@
+{
+  "id": "workbench-layout",
+  "name": "Workbench Layout",
+  "description": "Shared scrolling workbench frame with a header region and documentation rail.",
+  "aliases": ["workbench frame", "component detail layout"],
+  "useWhen": ["compose a Component or Page detail workbench"],
+  "avoidWhen": ["render a catalog grid or standalone fullscreen Playground"],
+  "entry": "WorkbenchLayout.tsx",
+  "preview": "WorkbenchLayout.preview.tsx",
+  "stories": "WorkbenchLayout.stories.tsx",
+  "docs": "README.md",
+  "changelog": "CHANGELOG.md",
+  "status": "ready",
+  "variants": ["with-playground", "documentation-only"],
+  "states": ["long-content", "narrow-viewport"],
+  "props": {
+    "children": { "type": "ReactNode", "slot": true },
+    "className": { "type": "string" }
+  }
+}

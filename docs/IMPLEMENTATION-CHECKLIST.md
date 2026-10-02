@@ -998,6 +998,10 @@ native backlog до Web DoD.
       System-owned `ModulePage` classes: Components, Assets, Palette, Wireframes и Pages сохраняют
       default layout; app-owned visual declarations сократились с 427 до 420. Installed browser
       fixture проверяет grid columns на desktop и mobile в обеих interface themes.
+- [x] Вынести общую прокручиваемую оболочку, header и documentation rail четырёх Component/Page
+      Workbench в System-owned `WorkbenchLayout` без визуального редизайна; app-owned visual
+      declarations сократились с 420 до 392. Installed browser fixture проверяет desktop,
+      узкую ширину и live-правку project-owned rail style.
 - [ ] Создать отдельный `design-lab-gallery` repository, remote verification workers, immutable
       checksums/signatures и generated screenshot publication flow.
 - [ ] Добавить gallery UI с status `community / validated / curated / incompatible` и установкой из

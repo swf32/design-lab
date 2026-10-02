@@ -47,6 +47,9 @@
         "WireframeScreenPreview",
         "WorkbenchAction",
         "WorkbenchInspector",
+        "WorkbenchLayout",
+        "WorkbenchLayoutHeader",
+        "WorkbenchLayoutRail",
         "WorkbenchPlayground"
       ]
     },

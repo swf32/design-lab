@@ -51,4 +51,5 @@ export * from './organisms/workbench/TypedPlaygroundControls/TypedPlaygroundCont
 export * from './organisms/workbench/UserFlowCanvas/UserFlowCanvas'
 export * from './organisms/workbench/WireframeDevPanel/WireframeDevPanel'
 export * from './organisms/workbench/WorkbenchInspector/WorkbenchInspector'
+export * from './organisms/workbench/WorkbenchLayout/WorkbenchLayout'
 export * from './organisms/workbench/WorkbenchPlayground/WorkbenchPlayground'

@@ -23,6 +23,9 @@ import {
   WireframeCard,
   WireframeScreenPreview,
   WorkbenchPlayground,
+  WorkbenchLayout,
+  WorkbenchLayoutHeader,
+  WorkbenchLayoutRail,
   type CanvasMode,
   type ChipColor,
   type TableColumn,
@@ -502,8 +505,8 @@ function ManagedComponentWorkbench({
     if (setup) setValues(setup.values)
   }, [component.id, runtime?.profile.id])
   return (
-    <div className="workbench">
-      <div className="workbench__top">
+    <WorkbenchLayout>
+      <WorkbenchLayoutHeader>
         <ModuleHeader
           eyebrow={component.directory}
           title={component.name}
@@ -523,7 +526,7 @@ function ManagedComponentWorkbench({
             ) : undefined
           }
         />
-      </div>
+      </WorkbenchLayoutHeader>
       <ComponentFamilyNavigation
         family={family}
         activeId={component.id}
@@ -575,7 +578,7 @@ function ManagedComponentWorkbench({
           onRuntime={setRuntime}
         />
       </WorkbenchPlayground>
-      <section className="workbench__rail">
+      <WorkbenchLayoutRail>
         {runtime?.stories.map((item) => (
           <StoryCanvas
             key={item.id}
@@ -647,8 +650,8 @@ function ManagedComponentWorkbench({
           </div>
         )}
         <ComponentReferenceFiles files={component.files} />
-      </section>
-    </div>
+      </WorkbenchLayoutRail>
+    </WorkbenchLayout>
   )
 }
 
@@ -688,8 +691,8 @@ function ComponentWorkbench({
   )
 
   return (
-    <div className="workbench">
-      <div className="workbench__top">
+    <WorkbenchLayout>
+      <WorkbenchLayoutHeader>
         <ModuleHeader
           eyebrow={component.directory}
           title={component.name}
@@ -709,7 +712,7 @@ function ComponentWorkbench({
             ) : undefined
           }
         />
-      </div>
+      </WorkbenchLayoutHeader>
       <ComponentFamilyNavigation
         family={family}
         activeId={component.id}
@@ -735,7 +738,7 @@ function ComponentWorkbench({
         onProductModeChange={onProductModeChange}
         themeVariables={themeVariables}
       />
-      <section className="workbench__rail">
+      <WorkbenchLayoutRail>
         <DiscoveredComponentStories
           component={component}
           canvasMode={canvasMode}
@@ -790,8 +793,8 @@ function ComponentWorkbench({
           </div>
         )}
         <ComponentReferenceFiles files={component.files} />
-      </section>
-    </div>
+      </WorkbenchLayoutRail>
+    </WorkbenchLayout>
   )
 }
 
@@ -1031,8 +1034,8 @@ function ComponentConceptOverview({
     }
   }, [component.id, component.capabilities, sourceId])
   return (
-    <div className="workbench">
-      <div className="workbench__top">
+    <WorkbenchLayout>
+      <WorkbenchLayoutHeader>
         <ModuleHeader
           eyebrow={component.directory}
           title={component.name}
@@ -1051,7 +1054,7 @@ function ComponentConceptOverview({
             )
           }
         />
-      </div>
+      </WorkbenchLayoutHeader>
       <ComponentFamilyNavigation
         family={family}
         activeId={component.id}
@@ -1069,7 +1072,7 @@ function ComponentConceptOverview({
           />
         </section>
       )}
-      <section className="workbench__rail">
+      <WorkbenchLayoutRail>
         <div className="workbench-section">
           <span>Implementation</span>
           <div className="workbench-markdown">
@@ -1116,8 +1119,8 @@ function ComponentConceptOverview({
           </div>
         )}
         <ComponentReferenceFiles files={component.files} />
-      </section>
-    </div>
+      </WorkbenchLayoutRail>
+    </WorkbenchLayout>
   )
 }
 
@@ -1836,8 +1839,8 @@ function PageOverview({
     return `Exits to ${target?.name ?? to.pageId}`
   }
   return (
-    <div className="workbench">
-      <div className="workbench__top">
+    <WorkbenchLayout>
+      <WorkbenchLayoutHeader>
         <ModuleHeader
           eyebrow={page.directory}
           title={page.name}
@@ -1850,8 +1853,8 @@ function PageOverview({
             </Button>
           }
         />
-      </div>
-      <section className="workbench__rail">
+      </WorkbenchLayoutHeader>
+      <WorkbenchLayoutRail>
         <div className="workbench-section">
           <span>Status</span>
           <Chip size="small" color={pageStatusColors[page.status] ?? 'warning'} variant="soft">
@@ -1907,7 +1910,7 @@ function PageOverview({
             </div>
           )}
         </div>
-      </section>
-    </div>
+      </WorkbenchLayoutRail>
+    </WorkbenchLayout>
   )
 }

@@ -210,6 +210,12 @@ async function browserSmoke(
   const stylePath = join(systemRoot, 'components/atoms/actions/Button/Button.scss')
   const originalStyle = await readFile(stylePath, 'utf8')
   let styleChanged = false
+  const workbenchStylePath = join(
+    systemRoot,
+    'components/organisms/workbench/WorkbenchLayout/WorkbenchLayout.scss',
+  )
+  const originalWorkbenchStyle = await readFile(workbenchStylePath, 'utf8')
+  let workbenchStyleChanged = false
   const logs = []
   const server = spawn(cli, ['dev'], {
     cwd: projectRoot,
@@ -270,7 +276,34 @@ async function browserSmoke(
     await page.locator('.story-comparison .dl-button').first().waitFor({ timeout: 20_000 })
     assert((await page.locator('.story-comparison .dl-button').count()) > 0)
     assert((await page.locator('.dl-button').count()) > 1)
+    const workbench = page.locator('.dl-workbench-layout')
+    await workbench.waitFor()
+    assert.equal(await workbench.locator('.dl-workbench-layout__header').count(), 1)
+    assert.equal(await workbench.locator('.dl-workbench-layout__rail').count(), 1)
     if (browseProjectSystem) {
+      const rail = workbench.locator('.dl-workbench-layout__rail')
+      const defaultPadding = await rail.evaluate((element) => getComputedStyle(element).paddingLeft)
+      await writeFile(
+        workbenchStylePath,
+        `${originalWorkbenchStyle}\n.dl-workbench-layout__rail { padding-left: 37px !important; }\n`,
+      )
+      workbenchStyleChanged = true
+      await page.waitForFunction(
+        () =>
+          getComputedStyle(document.querySelector('.dl-workbench-layout__rail')).paddingLeft ===
+          '37px',
+        null,
+        { timeout: 15_000 },
+      )
+      await writeFile(workbenchStylePath, originalWorkbenchStyle)
+      workbenchStyleChanged = false
+      await page.waitForFunction(
+        (expected) =>
+          getComputedStyle(document.querySelector('.dl-workbench-layout__rail')).paddingLeft ===
+          expected,
+        defaultPadding,
+        { timeout: 15_000 },
+      )
       for (const [mode, theme] of [
         ['dark-grid', 'dark'],
         ['light-grid', 'dark'],
@@ -313,6 +346,7 @@ async function browserSmoke(
         if (mode === 'light-grid') assert.equal(appearance.color, 'rgb(23, 26, 24)')
       }
       await page.setViewportSize({ width: 390, height: 700 })
+      assert(await workbench.evaluate((element) => element.scrollWidth <= element.clientWidth + 1))
       const stageBounds = await page.locator('.dl-story-canvas__stage').first().boundingBox()
       assert(stageBounds && stageBounds.width > 0 && stageBounds.width <= 391)
       await page.setViewportSize({ width: 1500, height: 1000 })
@@ -956,6 +990,7 @@ async function browserSmoke(
     }
   } finally {
     if (styleChanged) await writeFile(stylePath, originalStyle)
+    if (workbenchStyleChanged) await writeFile(workbenchStylePath, originalWorkbenchStyle)
     await browser?.close()
     if (server.exitCode === null) {
       server.kill('SIGINT')

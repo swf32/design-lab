@@ -1553,6 +1553,13 @@ Ownership audit завершён: `TypedPlaygroundControls` и presentation `Cre
 loading/error/frame presentation делегирован `RuntimeFrameSurface`. В `design-lab/src/components/`
 остаётся только этот технический controller, пустые остаточные directories удалены.
 
+Общая scroll/header/documentation rail оболочка четырёх Component/Page Workbench теперь
+`WorkbenchLayout` в активной System. Приложение передаёт route data, Canvas и Stories как
+содержимое, сохраняя поведение. `WorkbenchLayout`, `WorkbenchLayoutHeader` и
+`WorkbenchLayoutRail` добавлены в обязательный application contract; ранее созданным полным
+Systems нужен upgrade с baseline либо ручное добавление совместимых exports. Оставшиеся
+section-specific стили Workbench пока принадлежат приложению и видны в ownership audit.
+
 ## D-091 — Community customization разделяется на Skin и полную System
 
 **Статус:** package contract сохранён; multi-Library installation заменена D-092, 2026-08-01.

@@ -35,7 +35,7 @@ Design Lab — локальное, ориентированное на диза�
 визуальный редизайн исключён из текущей цели по [D-096](DECISIONS.md). Текущий прогресс и
 следующий пользовательский результат отслеживаются в [плане поставки](28-delivery-board.md).
 Новые app-local визуальные CSS/SCSS декларации и прямые inline TSX styles блокируются проверками;
-501 CSS-декларация в baseline (420 остались после переносов Canvas, Settings Panel и catalog presentation) и 9 inline-деклараций зафиксированы для review в
+501 CSS-декларация в baseline (392 остались после переносов Canvas, Settings Panel, catalog presentation и Workbench layout) и 9 inline-деклараций зафиксированы для review в
 [аудите ownership](27-interface-style-ownership-audit.md), а не как
 подтверждение, что весь визуал уже перенесён в System.
 
