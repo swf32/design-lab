@@ -829,6 +829,43 @@ async function collectExports(file, root, seen = new Set()) {
 async function validateSystemAssetImports(root, assetsRoot) {
   const unresolvedReferences = []
   let unresolvedReferenceCount = 0
+  const reportUnresolved = (file, line, kind, expression) => {
+    unresolvedReferenceCount += 1
+    if (unresolvedReferences.length < 20)
+      unresolvedReferences.push({
+        source: portablePath(relative(root, file)),
+        line,
+        kind,
+        expression: expression.slice(0, 160),
+      })
+  }
+  const stylesheetUrls = (value) => {
+    const references = []
+    for (const match of value.matchAll(/\burl\s*\(/gi)) {
+      const start = match.index + match[0].length
+      let depth = 1
+      let quote = null
+      let index = start
+      for (; index < value.length; index += 1) {
+        const char = value[index]
+        if (quote) {
+          if (char === '\\') index += 1
+          else if (char === quote) quote = null
+        } else if (char === '"' || char === "'") quote = char
+        else if (char === '(') depth += 1
+        else if (char === ')' && --depth === 0) break
+      }
+      if (depth !== 0) continue
+      let reference = value.slice(start, index).trim()
+      if (
+        (reference.startsWith('"') && reference.endsWith('"')) ||
+        (reference.startsWith("'") && reference.endsWith("'"))
+      )
+        reference = reference.slice(1, -1)
+      references.push({ reference, offset: match.index })
+    }
+    return references
+  }
   async function checkReference(file, reference) {
     const cleanReference = reference.split(/[?#]/, 1)[0]
     if (!STATIC_ASSET_EXTENSIONS.has(extname(cleanReference).toLowerCase())) return
@@ -882,9 +919,21 @@ async function validateSystemAssetImports(root, assetsRoot) {
         }
         const references = []
         stylesheet.walkDecls((declaration) => {
-          const value = declaration.value.replace(/\/\*[\s\S]*?\*\//g, '')
-          for (const match of value.matchAll(/\burl\(\s*(?:"([^"]*)"|'([^']*)'|([^)]*))\s*\)/gi))
-            references.push((match[1] ?? match[2] ?? match[3]).trim())
+          const value = declaration.value.replace(/\/\*[\s\S]*?\*\//g, (comment) =>
+            comment.replace(/[^\n]/g, ' '),
+          )
+          for (const { reference, offset } of stylesheetUrls(value)) {
+            if (/\bvar\s*\(|#\{|\$[A-Za-z_]/.test(reference))
+              reportUnresolved(
+                file,
+                (declaration.source?.start?.line ?? 1) +
+                  value.slice(0, offset).split('\n').length -
+                  1,
+                'CSS url()',
+                reference,
+              )
+            else references.push(reference)
+          }
         })
         for (const reference of references) await checkReference(file, reference)
         continue
@@ -932,14 +981,12 @@ async function validateSystemAssetImports(root, assetsRoot) {
       const checkExpression = async (node, kind) => {
         const reference = staticReference(node)
         if (reference !== null) return checkReference(file, reference)
-        unresolvedReferenceCount += 1
-        if (unresolvedReferences.length < 20)
-          unresolvedReferences.push({
-            source: portablePath(relative(root, file)),
-            line: node?.loc?.start.line ?? 1,
-            kind,
-            expression: source.slice(node?.start ?? 0, node?.end ?? 0).slice(0, 160),
-          })
+        reportUnresolved(
+          file,
+          node?.loc?.start.line ?? 1,
+          kind,
+          source.slice(node?.start ?? 0, node?.end ?? 0),
+        )
       }
       const isImportMetaUrl = (node) =>
         node?.type === 'MemberExpression' &&

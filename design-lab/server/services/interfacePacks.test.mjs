@@ -1070,3 +1070,36 @@ test('System validation checks local CSS and SCSS asset URLs without treating da
     )
   })
 })
+
+test('System inspection reports CSS and SCSS runtime asset URLs for manual review', async () => {
+  await withPackWorkspace(async ({ sources, options }) => {
+    const source = join(sources, 'dynamic-style-system')
+    await writeSystem(source)
+    await mkdir(join(source, 'components/Badge'), { recursive: true })
+    await writeFile(
+      join(source, 'components/Badge/Badge.scss'),
+      '.badge { background: url(var(--badge-image)); }\n.badge2 { mask: url($mask-file); }\n.badge3 { background: url(data:image/svg+xml;base64,PHN2Zy8+); }\n',
+    )
+    const inspected = await inspectLocalInterfaceSystem(source, {
+      ...options,
+      typecheckSystem: false,
+    })
+    assert.deepEqual(inspected.unresolvedAssetReferences, {
+      total: 2,
+      references: [
+        {
+          source: 'components/Badge/Badge.scss',
+          line: 1,
+          kind: 'CSS url()',
+          expression: 'var(--badge-image)',
+        },
+        {
+          source: 'components/Badge/Badge.scss',
+          line: 2,
+          kind: 'CSS url()',
+          expression: '$mask-file',
+        },
+      ],
+    })
+  })
+})

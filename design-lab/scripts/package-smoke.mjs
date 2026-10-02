@@ -850,8 +850,9 @@ async function browserSmoke(
       assert.equal(inspection.id, 'alternate-smoke')
       assert.equal(inspection.uploaded, true)
       assert(inspection.diff.files.added.includes('assets/images/system-accent.svg'))
-      assert.equal(inspection.unresolvedAssetReferences.total, 1)
+      assert.equal(inspection.unresolvedAssetReferences.total, 2)
       await page.getByText('Review these dynamic paths before installing.').waitFor()
+      await page.getByText('CSS url():').waitFor()
       await page
         .locator('.settings-system__candidate code')
         .getByText('Folder selected from your computer')
@@ -1259,9 +1260,13 @@ try {
 export const dynamicAsset = (name: string) => new URL(name, import.meta.url).href
 `,
   )
+  await writeFile(
+    join(alternateSystem, 'components/atoms/actions/Button/Button.scss'),
+    `${await readFile(join(alternateSystem, 'components/atoms/actions/Button/Button.scss'), 'utf8')}\n.unresolved-asset-smoke { background-image: url(var(--icon-url)); }\n`,
+  )
   const validatedFork = parse(await run(cli, ['system', 'validate', alternateSystem], projectRoot))
   assert.equal(validatedFork.valid, true)
-  assert.equal(validatedFork.unresolvedAssetReferences.total, 1)
+  assert.equal(validatedFork.unresolvedAssetReferences.total, 2)
   if (process.argv.includes('--browser'))
     await browserSmoke(cli, { uploadCandidate: alternateSystem })
   else {

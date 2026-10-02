@@ -102,7 +102,8 @@ new folder is inactive until you validate and install it.
    long content, narrow viewports, dialogs, navigation, Canvas modes, and browser console output.
    The validator checks literal and statically composed local asset paths. If a `new URL` or
    `import()` path depends on runtime values, Settings lists its source line for manual review;
-   validation cannot prove that every runtime value names an existing file.
+   CSS/SCSS `url(var(...))` and `url($variable)` are also reported as unresolved with their source
+   line. Validation cannot prove that every runtime value names an existing file.
 8. Add deterministic screenshots, append changelogs, and update semantic versions before release.
 
 ## Adding new Components and features
