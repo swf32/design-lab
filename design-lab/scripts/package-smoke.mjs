@@ -102,6 +102,82 @@ async function cleanDevSmoke(cli, root) {
   }
 }
 
+async function managedLegacyRecoveryBrowserSmoke(cli, root) {
+  const { chromium } = await import('playwright')
+  const uiPort = await freePort()
+  const apiPort = await freePort()
+  const logs = []
+  const server = spawn(cli, ['dev'], {
+    cwd: root,
+    env: { ...process.env, DESIGN_LAB_PORT: String(uiPort), DESIGN_LAB_API_PORT: String(apiPort) },
+    stdio: ['ignore', 'pipe', 'pipe'],
+  })
+  for (const stream of [server.stdout, server.stderr])
+    stream.on('data', (chunk) => logs.push(String(chunk)))
+  let browser
+  try {
+    let ready = false
+    for (let attempt = 0; attempt < 80; attempt += 1) {
+      if (server.exitCode !== null) break
+      try {
+        if ((await fetch(`http://localhost:${uiPort}/`)).ok) {
+          ready = true
+          break
+        }
+      } catch {
+        /* Wait for installed servers. */
+      }
+      await delay(250)
+    }
+    assert(ready, `Managed recovery UI did not start:\n${logs.join('').slice(-3000)}`)
+    const browserPath =
+      process.env.DESIGN_LAB_BROWSER_PATH ??
+      (existsSync('/Applications/Google Chrome.app/Contents/MacOS/Google Chrome')
+        ? '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome'
+        : undefined)
+    browser = await chromium.launch({
+      headless: true,
+      ...(browserPath ? { executablePath: browserPath } : {}),
+    })
+    const page = await browser.newPage({ viewport: { width: 1500, height: 1000 } })
+    await page.goto(`http://localhost:${uiPort}/`, { waitUntil: 'networkidle' })
+    await page.locator('.app-sidebar__footer .sidebar-tab').click()
+    await page.getByText('Needs attention', { exact: true }).waitFor()
+    const [preview] = await Promise.all([
+      page.waitForResponse((result) => result.url().endsWith('/api/onboarding/repair')),
+      page.getByRole('button', { name: 'Preview safe repair' }).click(),
+    ])
+    const plan = await preview.json()
+    assert.equal(plan.suggestedConfig.mode, 'managed')
+    assert.deepEqual(plan.suggestedConfig.source.mounts.components, ['design-lab/components'])
+    const draft = page.getByRole('dialog').getByRole('textbox', {
+      name: 'Reviewed project config (JSON)',
+    })
+    assert.equal(JSON.parse(await draft.inputValue()).mode, 'managed')
+    const [reviewed] = await Promise.all([
+      page.waitForResponse((result) => result.url().endsWith('/api/onboarding/repair/preview')),
+      page.getByRole('dialog').getByRole('button', { name: 'Review config recovery' }).click(),
+    ])
+    assert.equal((await reviewed.json()).canApply, true)
+    const [applied] = await Promise.all([
+      page.waitForResponse(
+        (result) =>
+          result.url().endsWith('/api/onboarding/repair') && result.request().method() === 'POST',
+      ),
+      page.getByRole('dialog').getByRole('button', { name: 'Apply safe repair' }).click(),
+    ])
+    assert.equal((await applied.json()).selfCheck.ok, true)
+    await page.getByText('Healthy', { exact: true }).waitFor()
+  } finally {
+    if (browser) await browser.close()
+    if (server.exitCode === null) {
+      server.kill('SIGINT')
+      await Promise.race([once(server, 'exit'), delay(5000)])
+      if (server.exitCode === null) server.kill('SIGKILL')
+    }
+  }
+}
+
 async function browserSmoke(
   cli,
   {
@@ -976,6 +1052,26 @@ try {
     await writeFile(cleanComponentsIndex, originalComponentsIndex)
   }
   await cleanDevSmoke(cleanCli, cleanRoot)
+  if (process.argv.includes('--browser')) {
+    const cleanConfigPath = join(cleanRoot, 'design-lab/designlab.config.json')
+    const cleanLastGoodPath = join(cleanRoot, 'design-lab/designlab.config.last-good.json')
+    const originalCleanConfig = await readFile(cleanConfigPath, 'utf8')
+    const originalCleanLastGood = await readFile(cleanLastGoodPath, 'utf8')
+    const authoredManagedComponent = join(cleanRoot, 'design-lab/components/Custom.tsx')
+    await writeFile(authoredManagedComponent, 'export const Custom = true\n')
+    await rm(cleanLastGoodPath)
+    await rm(cleanConfigPath)
+    try {
+      await managedLegacyRecoveryBrowserSmoke(cleanCli, cleanRoot)
+      const recovered = parse(await readFile(cleanConfigPath, 'utf8'))
+      assert.equal(recovered.mode, 'managed')
+      assert.deepEqual(recovered.source.mounts.components, ['design-lab/components'])
+      assert.equal(await readFile(authoredManagedComponent, 'utf8'), 'export const Custom = true\n')
+    } finally {
+      await writeFile(cleanConfigPath, originalCleanConfig)
+      await writeFile(cleanLastGoodPath, originalCleanLastGood)
+    }
+  }
 
   const marker = `Local edit ${randomUUID()}`
   await writeFile(join(systemRoot, 'local-smoke-marker.txt'), marker)
@@ -1177,7 +1273,7 @@ export const dynamicAsset = (name: string) => new URL(name, import.meta.url).hre
   }
 
   process.stdout.write(
-    `Package smoke passed: pack, attach, clean managed setup, one System, versioned upgrade preserving edits, validated fork with Component anatomy and SVG asset, switch, manual folder replacement, reset${process.argv.includes('--browser') ? ', browser external System/Skin folder upload, conflict resolution, integration health, damaged config and moved mount repair, Skin/System folder selection, shell/Workbench fork and HMR' : ''}.\n`,
+    `Package smoke passed: pack, attach, clean managed setup, one System, versioned upgrade preserving edits, validated fork with Component anatomy and SVG asset, switch, manual folder replacement, reset${process.argv.includes('--browser') ? ', browser external System/Skin folder upload, conflict resolution, integration health, damaged config and moved mount repair, legacy managed config recovery, Skin/System folder selection, shell/Workbench fork and HMR' : ''}.\n`,
   )
 } finally {
   if (process.env.DESIGN_LAB_KEEP_SMOKE === '1')

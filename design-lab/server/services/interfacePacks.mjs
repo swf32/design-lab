@@ -201,7 +201,12 @@ export function defaultInterfacePaths(options = {}) {
       embeddedSystemPath = candidate
     }
   } catch (error) {
-    if (error.code !== 'ENOENT') {
+    if (error.code === 'ENOENT') {
+      const integrationRoot = join(workspaceDirectory, 'design-lab')
+      const defaultSlot = join(integrationRoot, 'system')
+      if (existsSync(join(integrationRoot, 'rules')) && existsSync(defaultSlot))
+        embeddedSystemPath = defaultSlot
+    } else {
       // A damaged setup config must not make the Settings repair screen unreachable.
       // This is the same project-owned default slot, not a second interface System.
       const defaultSlot = join(workspaceDirectory, 'design-lab', 'system')

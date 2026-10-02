@@ -215,7 +215,7 @@ export function IntegrationStatus() {
         open={repairOpen}
         title="Repair Design Lab integration?"
         eyebrow="Review file changes"
-        description="Review each proposed change. Damaged config bytes are saved separately before recovery. Source files and the active System stay in place."
+        description="Review each proposed change. Existing damaged config bytes are saved separately before recovery. Source files and the active System stay in place."
         onClose={() => setRepairOpen(false)}
         dismissible={!repairBusy}
         footer={

@@ -589,7 +589,14 @@ export async function inspectSetupInstallation({
 }) {
   const projectRoot = assertRoot(root)
   const configPath = join(projectRoot, integrationDirectory, 'designlab.config.json')
-  if (!(await exists(configPath)))
+  const integrationRoot = join(projectRoot, integrationDirectory)
+  const configState = await lstat(configPath).catch((error) => {
+    if (error.code === 'ENOENT') return null
+    throw error
+  })
+  const rulesState = await lstat(join(integrationRoot, 'rules')).catch(() => null)
+  const systemState = await lstat(join(integrationRoot, 'system')).catch(() => null)
+  if (!configState && !(rulesState?.isDirectory() && systemState?.isDirectory()))
     return {
       available: false,
       reason: 'No embedded Design Lab setup is present in this workspace.',
@@ -785,12 +792,15 @@ export async function createSetupRepairPlan({
   if (blockers.some((item) => item.code === 'SETUP_CONFIG_INVALID')) {
     const configPath = join(integrationRoot, 'designlab.config.json')
     const snapshotPath = join(integrationRoot, LAST_GOOD_CONFIG)
-    const configState = await lstat(configPath)
+    const configState = await lstat(configPath).catch((error) => {
+      if (error.code === 'ENOENT') return null
+      throw error
+    })
     const snapshotState = await lstat(snapshotPath).catch((error) => {
       if (error.code === 'ENOENT') return null
       throw error
     })
-    if (!configState.isFile() || (snapshotState && !snapshotState.isFile()))
+    if ((configState && !configState.isFile()) || (snapshotState && !snapshotState.isFile()))
       blockers.push({
         code: 'SETUP_REPAIR_CONFIG_UNSAFE',
         message: 'The config or its last-good copy is not a regular file.',
@@ -802,6 +812,20 @@ export async function createSetupRepairPlan({
         integrationDirectory,
       })
       suggestedConfig = draft.config
+      const managedKinds = ['components', 'tokens', 'assets', 'fonts', 'wireframes', 'pages']
+      const existingManaged = []
+      for (const kind of managedKinds) {
+        const mount = `${integrationDirectory}/${kind}`
+        const state = await lstat(resolve(projectRoot, mount)).catch((error) => {
+          if (error.code === 'ENOENT') return null
+          throw error
+        })
+        if (!state?.isDirectory()) continue
+        existingManaged.push(kind)
+        const mounts = suggestedConfig.source.mounts[kind]
+        if (!mounts.includes(mount)) mounts.push(mount)
+      }
+      if (existingManaged.length === managedKinds.length) suggestedConfig.mode = 'managed'
       blockers.push({
         code: 'SETUP_REPAIR_CONFIG_REVIEW_REQUIRED',
         message:
@@ -809,7 +833,7 @@ export async function createSetupRepairPlan({
         path: portablePath(relative(projectRoot, configPath)),
       })
     } else {
-      const damaged = await readFile(configPath)
+      const damaged = configState ? await readFile(configPath) : null
       const snapshot = snapshotState
         ? await readFile(snapshotPath, 'utf8')
         : JSON.stringify(recoveryConfig)
@@ -858,12 +882,16 @@ export async function createSetupRepairPlan({
             fingerprint: repairFingerprint({ changes, blockers, snapshot }),
             canApply: false,
           }
-        const backupName = `designlab.config.damaged.${createHash('sha256').update(damaged).digest('hex').slice(0, 12)}.json`
-        const backupPath = join(integrationRoot, backupName)
-        const backupState = await lstat(backupPath).catch((error) => {
-          if (error.code === 'ENOENT') return null
-          throw error
-        })
+        const backupName = damaged
+          ? `designlab.config.damaged.${createHash('sha256').update(damaged).digest('hex').slice(0, 12)}.json`
+          : null
+        const backupPath = backupName ? join(integrationRoot, backupName) : null
+        const backupState = backupPath
+          ? await lstat(backupPath).catch((error) => {
+              if (error.code === 'ENOENT') return null
+              throw error
+            })
+          : null
         if (backupState && (!backupState.isFile() || !(await readFile(backupPath)).equals(damaged)))
           blockers.push({
             code: 'SETUP_REPAIR_CONFIG_BACKUP_OCCUPIED',
@@ -871,7 +899,7 @@ export async function createSetupRepairPlan({
             path: portablePath(relative(projectRoot, backupPath)),
           })
         else {
-          if (!backupState)
+          if (damaged && !backupState)
             changes.push({
               kind: 'backup-damaged-config',
               path: portablePath(relative(projectRoot, backupPath)),
@@ -891,9 +919,9 @@ export async function createSetupRepairPlan({
               ? 'Changes made to the config after the last managed write may be absent from this copy.'
               : 'The suggested config comes from a fresh scan. Confirm every mount, including custom folders the scan may miss.',
           }
-          configDigest = createHash('sha256').update(damaged).digest('hex')
+          configDigest = damaged ? createHash('sha256').update(damaged).digest('hex') : 'missing'
           inputs.push(
-            ['damaged-config', configDigest],
+            [damaged ? 'damaged-config' : 'missing-config', configDigest],
             [snapshotState ? 'last-good-config' : 'reviewed-config', repairFingerprint(snapshot)],
           )
           for (let index = blockers.length - 1; index >= 0; index -= 1)
@@ -1148,10 +1176,14 @@ export async function applySetupRepair({
     const integrationRoot = resolve(projectRoot, integrationDirectory)
     const configPath = join(integrationRoot, 'designlab.config.json')
     const snapshotPath = join(integrationRoot, LAST_GOOD_CONFIG)
+    const configState = await lstat(configPath).catch((error) => {
+      if (error.code === 'ENOENT') return null
+      throw error
+    })
     const snapshotState = await lstat(snapshotPath).catch(() => null)
     if (
       !(await lstat(integrationRoot)).isDirectory() ||
-      !(await lstat(configPath)).isFile() ||
+      (configState && !configState.isFile()) ||
       (snapshotState && !snapshotState.isFile()) ||
       (!snapshotState && recoveryConfig === null)
     )
@@ -1160,12 +1192,13 @@ export async function applySetupRepair({
         'SETUP_REPAIR_STALE',
         409,
       )
-    const damaged = await readFile(configPath)
+    const damaged = configState ? await readFile(configPath) : null
     const snapshot = snapshotState
       ? await readFile(snapshotPath, 'utf8')
       : JSON.stringify(recoveryConfig)
     if (
-      createHash('sha256').update(damaged).digest('hex') !== plan.configDigest ||
+      (damaged ? createHash('sha256').update(damaged).digest('hex') : 'missing') !==
+        plan.configDigest ||
       !validRecoveryConfig(JSON.parse(snapshot), integrationDirectory)
     )
       throw setupError(
@@ -1188,7 +1221,18 @@ export async function applySetupRepair({
         await handle.close()
       }
     }
-    await writeJsonAtomic(configPath, JSON.parse(snapshot))
+    if (configState) await writeJsonAtomic(configPath, JSON.parse(snapshot))
+    else {
+      const handle = await open(
+        configPath,
+        constants.O_CREAT | constants.O_EXCL | constants.O_WRONLY | constants.O_NOFOLLOW,
+      )
+      try {
+        await handle.writeFile(`${JSON.stringify(JSON.parse(snapshot), null, 2)}\n`)
+      } finally {
+        await handle.close()
+      }
+    }
     if (!snapshotState) await writeJsonAtomic(snapshotPath, JSON.parse(snapshot))
   }
   if (mountChanges.length) {

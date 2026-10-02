@@ -878,7 +878,12 @@ where they are` и confirm-gated apply plan; post-apply self-check возвра�
       из повторного scan в Settings: человек проверяет все source mounts, включая не найденные
       автоматически; preview и apply проверяют существование/containment, fingerprint, сохраняют
       повреждённые байты и создают новую last-good копию. Unit и installed browser fixture покрывают
-      путь без обязательного CLI. Нельзя считать scan полным списком mounts без просмотра человеком.
+      путь без обязательного CLI. Стандартные managed mounts, пропущенные общим scan из-за
+      исключения integration folder, теперь включаются в черновик; managed recovery отдельно
+      проверен в unit и installed browser fixture, включая полностью отсутствующий config.
+      Сохранившиеся rules/System позволяют открыть Settings без config; отсутствующий файл
+      восстанавливается без фиктивной damaged-копии. Нельзя считать scan полным списком mounts
+      без просмотра человеком.
 - [ ] Добавить uninstall, сохраняющий исходники пользователя.
 - [ ] Подготовить registry release, проверить установку на других ОС и package managers.
 

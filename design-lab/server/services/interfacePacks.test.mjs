@@ -676,6 +676,19 @@ test('damaged embedded config keeps the project-owned System available for Setti
   }
 })
 
+test('missing embedded config keeps the project-owned System available when setup files remain', async () => {
+  const workspaceDirectory = await mkdtemp(join(tmpdir(), 'design-lab-missing-config-'))
+  try {
+    await mkdir(join(workspaceDirectory, 'design-lab', 'system'), { recursive: true })
+    await mkdir(join(workspaceDirectory, 'design-lab', 'rules'))
+    const paths = defaultInterfacePaths({ workspaceDirectory })
+    assert.equal(paths.systemSlot, join(workspaceDirectory, 'design-lab', 'system'))
+    assert.equal(paths.dataDirectory, join(workspaceDirectory, 'design-lab', '.cache'))
+  } finally {
+    await rm(workspaceDirectory, { recursive: true, force: true })
+  }
+})
+
 test('embedded reset restores the package default without relying on a cache snapshot', async () => {
   const workspaceDirectory = await mkdtemp(join(tmpdir(), 'design-lab-embedded-reset-'))
   const systemSlot = join(workspaceDirectory, 'design-lab', 'system')

@@ -198,6 +198,61 @@ test('repair reconstructs an older config without last-good after reviewing sour
   }
 })
 
+test('legacy managed recovery proposes existing managed mounts and keeps authored files', async () => {
+  const root = await fixture()
+  try {
+    await applySetupPlan({ root, name: 'Managed recovery', mode: 'managed', confirmed: true })
+    const authored = join(root, 'design-lab/components/Custom.tsx')
+    await writeFile(authored, 'export const Custom = true\n')
+    const configPath = join(root, 'design-lab/designlab.config.json')
+    await rm(join(root, 'design-lab/designlab.config.last-good.json'))
+    await rm(configPath)
+    const draft = await createSetupRepairPlan({ root })
+    assert.equal(draft.suggestedConfig.mode, 'managed')
+    for (const kind of ['components', 'tokens', 'assets', 'fonts', 'wireframes', 'pages'])
+      assert(draft.suggestedConfig.source.mounts[kind].includes(`design-lab/${kind}`))
+    const reviewed = draft.suggestedConfig
+    const plan = await createSetupRepairPlan({ root, recoveryConfig: reviewed })
+    assert.equal(plan.canApply, true)
+    const result = await applySetupRepair({
+      root,
+      recoveryConfig: reviewed,
+      fingerprint: plan.fingerprint,
+      confirmed: true,
+    })
+    assert.equal(result.selfCheck.ok, true)
+    assert.equal(await readFile(authored, 'utf8'), 'export const Custom = true\n')
+  } finally {
+    await rm(root, { recursive: true, force: true })
+  }
+})
+
+test('missing config is restored from last-good without inventing a damaged-file backup', async () => {
+  const root = await fixture()
+  try {
+    await applySetupPlan({ root, name: 'Missing config recovery', confirmed: true })
+    const configPath = join(root, 'design-lab/designlab.config.json')
+    const lastGoodPath = join(root, 'design-lab/designlab.config.last-good.json')
+    const expected = await readFile(lastGoodPath, 'utf8')
+    await rm(configPath)
+    const status = await inspectSetupInstallation({ root })
+    assert.equal(status.available, true)
+    assert(status.diagnostics.some((item) => item.code === 'SETUP_CONFIG_INVALID'))
+    const plan = await createSetupRepairPlan({ root })
+    assert.equal(plan.canApply, true)
+    assert(plan.changes.some((change) => change.kind === 'restore-config'))
+    assert.equal(
+      plan.changes.some((change) => change.kind === 'backup-damaged-config'),
+      false,
+    )
+    const applied = await applySetupRepair({ root, fingerprint: plan.fingerprint, confirmed: true })
+    assert.equal(applied.selfCheck.ok, true)
+    assert.equal(await readFile(configPath, 'utf8'), expected)
+  } finally {
+    await rm(root, { recursive: true, force: true })
+  }
+})
+
 test('repair will not restore a damaged config from a linked or invalid last-good copy', async () => {
   const root = await fixture()
   try {
