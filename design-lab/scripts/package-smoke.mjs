@@ -936,9 +936,15 @@ async function browserSmoke(
       assert.equal(inspection.id, 'alternate-smoke')
       assert.equal(inspection.uploaded, true)
       assert(inspection.diff.files.added.includes('assets/images/system-accent.svg'))
-      assert.equal(inspection.unresolvedAssetReferences.total, 2)
+      assert(inspection.unresolvedAssetReferences.total >= 4)
+      assert(
+        inspection.unresolvedAssetReferences.references.some(
+          (reference) => reference.kind === 'JSX media' && reference.expression === 'src',
+        ),
+      )
       await page.getByText('Review these dynamic paths before installing.').waitFor()
       await page.getByText('CSS url():').waitFor()
+      await page.getByText('JSX media:').first().waitFor()
       await page
         .locator('.settings-system__candidate code')
         .getByText('Folder selected from your computer')
@@ -1071,6 +1077,8 @@ async function browserSmoke(
       ])
       assert.equal(applied.status(), 200)
       assert.equal((await applied.json()).applied, true)
+      await delay(1200)
+      assert.equal(existsSync(join(projectRoot, 'design-lab')), false)
     }
   } finally {
     if (styleChanged) await writeFile(stylePath, originalStyle)
@@ -1377,6 +1385,7 @@ try {
       '      <span data-system-decoration="alternate-smoke"><img src={systemAccent} alt="" /></span>\n      {loading ? (',
     )}
 export const dynamicAsset = (name: string) => new URL(name, import.meta.url).href
+export function DynamicMediaProbe({ src }: { src: string }) { return <img src={src} alt="" /> }
 `,
   )
   await writeFile(
@@ -1385,7 +1394,12 @@ export const dynamicAsset = (name: string) => new URL(name, import.meta.url).hre
   )
   const validatedFork = parse(await run(cli, ['system', 'validate', alternateSystem], projectRoot))
   assert.equal(validatedFork.valid, true)
-  assert.equal(validatedFork.unresolvedAssetReferences.total, 2)
+  assert(validatedFork.unresolvedAssetReferences.total >= 4)
+  assert(
+    validatedFork.unresolvedAssetReferences.references.some(
+      (reference) => reference.kind === 'JSX media' && reference.expression === 'src',
+    ),
+  )
   if (process.argv.includes('--browser'))
     await browserSmoke(cli, { uploadCandidate: alternateSystem })
   else {
@@ -1442,7 +1456,15 @@ export const dynamicAsset = (name: string) => new URL(name, import.meta.url).hre
       true,
     )
   }
-  assert.equal(existsSync(join(projectRoot, 'design-lab')), false)
+  assert.equal(
+    existsSync(join(projectRoot, 'design-lab')),
+    false,
+    `Remaining integration entries: ${JSON.stringify(
+      existsSync(join(projectRoot, 'design-lab'))
+        ? await readdir(join(projectRoot, 'design-lab'))
+        : [],
+    )}`,
+  )
   assert.equal(
     await readFile(join(projectRoot, 'design-lab-preserved/notes.md'), 'utf8'),
     '# Authored project notes\n',

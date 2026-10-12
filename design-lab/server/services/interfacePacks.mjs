@@ -868,7 +868,9 @@ async function validateSystemAssetImports(root, assetsRoot) {
   }
   async function checkReference(file, reference, line = null, kind = 'asset path') {
     const cleanReference = reference.split(/[?#]/, 1)[0]
-    if (!STATIC_ASSET_EXTENSIONS.has(extname(cleanReference).toLowerCase())) return
+    const jsxMedia = kind.startsWith('JSX media')
+    if (jsxMedia && (reference.startsWith('data:') || reference.startsWith('#'))) return
+    if (!jsxMedia && !STATIC_ASSET_EXTENSIONS.has(extname(cleanReference).toLowerCase())) return
     const canonicalPrefix = '@design-lab/system/assets/'
     const target = cleanReference.startsWith(canonicalPrefix)
       ? resolve(assetsRoot, cleanReference.slice(canonicalPrefix.length))
@@ -1012,10 +1014,10 @@ async function validateSystemAssetImports(root, assetsRoot) {
       const visitNode = async (node) => {
         if (node.type === 'JSXOpeningElement' && node.name?.type === 'JSXIdentifier') {
           const mediaAttributes = {
-            img: ['src'],
+            img: ['src', 'srcSet'],
             video: ['src', 'poster'],
             audio: ['src'],
-            source: ['src'],
+            source: ['src', 'srcSet'],
             track: ['src'],
             image: ['href', 'xlinkHref'],
             use: ['href', 'xlinkHref'],
@@ -1023,6 +1025,15 @@ async function validateSystemAssetImports(root, assetsRoot) {
             object: ['data'],
           }[node.name.name]
           for (const attribute of node.attributes ?? []) {
+            if (mediaAttributes && attribute.type === 'JSXSpreadAttribute') {
+              reportUnresolved(
+                file,
+                attribute.loc?.start.line ?? 1,
+                'JSX media spread',
+                source.slice(attribute.argument.start, attribute.argument.end),
+              )
+              continue
+            }
             if (
               !mediaAttributes?.includes(attribute.name?.name) ||
               attribute.type !== 'JSXAttribute' ||
@@ -1034,9 +1045,23 @@ async function validateSystemAssetImports(root, assetsRoot) {
                 ? attribute.value.expression
                 : attribute.value
             const reference = staticReference(value)
-            if (reference !== null)
+            if (reference !== null && attribute.name.name === 'srcSet') {
+              if (reference.includes('data:'))
+                reportUnresolved(
+                  file,
+                  attribute.loc?.start.line ?? 1,
+                  'JSX media srcSet',
+                  reference,
+                )
+              else
+                for (const candidate of reference.split(',')) {
+                  const asset = candidate.trim().split(/\s+/, 1)[0]
+                  if (asset)
+                    await checkReference(file, asset, attribute.loc?.start.line, 'JSX media srcSet')
+                }
+            } else if (reference !== null)
               await checkReference(file, reference, attribute.loc?.start.line, 'JSX media')
-            else if (value?.type === 'TemplateLiteral' || value?.type === 'BinaryExpression')
+            else if (value?.type !== 'JSXEmptyExpression')
               reportUnresolved(
                 file,
                 attribute.loc?.start.line ?? 1,

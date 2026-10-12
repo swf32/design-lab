@@ -1014,6 +1014,10 @@ test('System validation checks literal JSX media paths and reports unbundled URL
     <img src="./assets/images/missing.svg" alt="" />
     <video poster="/shared/poster.webp" />
     <img src={\`./assets/images/\${name}.svg\`} alt="" />
+    <img src={name} alt="" />
+    <img {...{ src: name }} alt="" />
+    <source srcSet="./assets/images/missing-large 2x" />
+    <img src="https://example.com/photo" alt="" />
   </>
 }
 `,
@@ -1028,12 +1032,20 @@ test('System validation checks literal JSX media paths and reports unbundled URL
     )
     await mkdir(join(source, 'assets/images'), { recursive: true })
     await writeFile(join(source, 'assets/images/missing.svg'), '<svg/>\n')
+    await assert.rejects(
+      validateInterfacePack(source, { ...options, expectedKind: 'system' }),
+      (error) =>
+        error.code === 'INTERFACE_PACK_ASSET_MISSING' &&
+        error.details.path === 'assets/images/missing-large' &&
+        error.details.line === 8,
+    )
+    await writeFile(join(source, 'assets/images/missing-large'), 'media\n')
     const inspected = await inspectLocalInterfaceSystem(source, {
       ...options,
       typecheckSystem: false,
     })
     assert.deepEqual(inspected.unresolvedAssetReferences, {
-      total: 2,
+      total: 5,
       references: [
         { source: 'Media.tsx', line: 4, kind: 'JSX media', expression: '/shared/poster.webp' },
         {
@@ -1041,6 +1053,14 @@ test('System validation checks literal JSX media paths and reports unbundled URL
           line: 5,
           kind: 'JSX media',
           expression: '\`./assets/images/\${name}.svg\`',
+        },
+        { source: 'Media.tsx', line: 6, kind: 'JSX media', expression: 'name' },
+        { source: 'Media.tsx', line: 7, kind: 'JSX media spread', expression: '{ src: name }' },
+        {
+          source: 'Media.tsx',
+          line: 9,
+          kind: 'JSX media',
+          expression: 'https://example.com/photo',
         },
       ],
     })

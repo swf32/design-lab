@@ -34,10 +34,14 @@ const commands = [
   ['node', [tokenBuilder, '--watch']],
 ]
 
-const children = commands.map(([command, args]) =>
-  spawn(command, args, { stdio: 'inherit', cwd: applicationRoot }),
+const children = commands.map(([command, args], index) =>
+  spawn(command, args, {
+    stdio: index === 0 ? ['inherit', 'inherit', 'inherit', 'ipc'] : 'inherit',
+    cwd: applicationRoot,
+  }),
 )
 let stopping = false
+let uninstallPreparing = false
 
 const stop = (exitCode = 0) => {
   if (stopping) return
@@ -48,13 +52,28 @@ const stop = (exitCode = 0) => {
   })
 }
 
-children.forEach((child) => {
+children[0].on('message', async (message) => {
+  if (message?.type !== 'design-lab:stop-generators' || uninstallPreparing) return
+  uninstallPreparing = true
+  await Promise.all(
+    children.slice(2).map(async (child) => {
+      if (child.exitCode !== null || child.signalCode !== null) return
+      const exited = new Promise((resolve) => child.once('exit', resolve))
+      child.kill('SIGTERM')
+      await exited
+    }),
+  )
+  if (children[0].connected)
+    children[0].send({ type: 'design-lab:generators-stopped', requestId: message.requestId })
+})
+
+children.forEach((child, index) => {
   child.on('error', (error) => {
     console.error(error)
     stop(1)
   })
   child.on('exit', (code, signal) => {
-    if (!stopping) {
+    if (!stopping && !(uninstallPreparing && index >= 2)) {
       console.error(`Development process stopped (${signal ?? `exit ${code ?? 1}`})`)
       stop(code ?? 1)
     }

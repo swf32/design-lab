@@ -887,6 +887,7 @@ export async function applySetupUninstall({
   fingerprint,
   confirmed = false,
   integrationDirectory = DEFAULT_INTEGRATION_DIRECTORY,
+  beforeMove = null,
 }) {
   if (!confirmed)
     throw setupError(
@@ -914,6 +915,7 @@ export async function applySetupUninstall({
   const originalAgents = plan.agentsBackupPath ? await readFile(agentsPath, 'utf8') : null
   const cleanedAgents =
     originalAgents === null ? null : withoutManagedAgentsBlock(originalAgents).content
+  if (beforeMove) await beforeMove()
   await rename(integrationRoot, archiveRoot)
   try {
     if (originalAgents !== null) {

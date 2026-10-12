@@ -895,6 +895,8 @@ where they are` и confirm-gated apply plan; post-apply self-check возвра�
       занятый архивный путь блокируют опасное применение, исходный root `AGENTS.md` сохраняется
       в архиве, действующий managed блок убирается. Unit, установленный CLI и browser fixture
       проверяют сохранность и отдельное удаление npm dependency после закрытия приложения.
+      Dev API останавливает генераторы System до переноса, чтобы watcher не восстановил
+      производные файлы по старому пути.
 - [ ] Подготовить registry release, проверить установку на других ОС и package managers.
 
 ## Ближайший конкретный шаг
@@ -950,10 +952,10 @@ native backlog до Web DoD.
       исходниках System и локальных CSS/SCSS `url()` до установки с указанием файла и пути;
       динамически вычисленные пути остаются открытыми, но известные динамические CSS/SCSS
       `url()` теперь показываются как предупреждения с файлом и строкой.
-- [x] Проверять literal/statically composed native JSX media `src`, `poster` и SVG `href` до
+- [x] Проверять literal/statically composed native JSX media `src`, `srcSet`, `poster` и SVG `href` до
       установки System; отсутствующий локальный asset блокирует Check в Settings с файлом и
-      строкой. Root-relative/external URLs и runtime JSX template paths выводятся как
-      непроверенные; значения из обычных variables/props требуют ручной проверки.
+      строкой. Root-relative/external URLs, JSX identifiers/spreads и runtime expressions
+      выводятся как непроверенные; значения custom Component props требуют ручной проверки.
 - [x] Реализовать transactional local/GitHub/npm/tarball install без npm lifecycle scripts и без
       перезаписи unmanaged Library directories.
 - [x] Реализовать CLI `create / validate / install / use / list / doctor / reset` для Skin и System.

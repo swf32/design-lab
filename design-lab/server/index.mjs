@@ -51,6 +51,40 @@ import {
 
 let revision = 0
 const apiPort = Number.parseInt(process.env.DESIGN_LAB_API_PORT ?? '4173', 10)
+let uninstallRequestId = 0
+
+async function stopSystemGeneratorsBeforeUninstall() {
+  if (typeof process.send !== 'function') return
+  const requestId = ++uninstallRequestId
+  await new Promise((resolve, reject) => {
+    const cleanup = () => {
+      clearTimeout(timeout)
+      process.off('message', onMessage)
+    }
+    const onMessage = (message) => {
+      if (message?.type !== 'design-lab:generators-stopped' || message.requestId !== requestId)
+        return
+      cleanup()
+      resolve()
+    }
+    const timeout = setTimeout(() => {
+      cleanup()
+      reject(
+        Object.assign(new Error('System generators did not stop before uninstall.'), {
+          code: 'SETUP_UNINSTALL_GENERATORS_BUSY',
+          status: 503,
+        }),
+      )
+    }, 10_000)
+    process.on('message', onMessage)
+    process.send({ type: 'design-lab:stop-generators', requestId }, (error) => {
+      if (error) {
+        cleanup()
+        reject(error)
+      }
+    })
+  })
+}
 
 function requireInterfaceUiRequest(request) {
   if (
@@ -259,6 +293,7 @@ createServer(async (request, response) => {
         root: getWorkspaceDirectory(),
         fingerprint: input.fingerprint,
         confirmed: input.confirmed === true,
+        beforeMove: stopSystemGeneratorsBeforeUninstall,
       })
       revision += 1
       return sendJson(response, 200, result)
