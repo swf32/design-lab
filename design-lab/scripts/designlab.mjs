@@ -20,8 +20,10 @@ import {
 import {
   applySetupPlan,
   applySetupRepair,
+  applySetupUninstall,
   createSetupPlan,
   createSetupRepairPlan,
+  createSetupUninstallPlan,
   inspectSetupFootprint,
 } from '../server/services/setupService.mjs'
 import {
@@ -113,6 +115,8 @@ Usage:
   designlab setup [--root <project-folder>] [--mode attach|managed] [--name <name>]
   designlab repair [--root <project-folder>]
   designlab footprint [--root <project-folder>]
+  designlab uninstall [--root <project-folder>]
+  designlab uninstall --apply --confirm --fingerprint <preview-fingerprint> [--root <project-folder>]
   designlab repair --apply --confirm --fingerprint <preview-fingerprint> [--root <project-folder>]
   npm run designlab -- setup [--root <project-folder>] [--mode attach|managed] [--name <name>]
   npm run designlab -- setup --apply --confirm [--root <project-folder>] [--mode attach|managed]
@@ -212,6 +216,18 @@ try {
     else print(await createSetupRepairPlan({ root }))
   } else if (command === 'footprint') {
     print(await inspectSetupFootprint({ root: resolve(option('--root') ?? defaultWorkspaceRoot) }))
+  } else if (command === 'uninstall') {
+    const root = resolve(option('--root') ?? defaultWorkspaceRoot)
+    process.env.DESIGN_LAB_WORKSPACE_DIR = root
+    if (args.includes('--apply'))
+      print(
+        await applySetupUninstall({
+          root,
+          fingerprint: option('--fingerprint'),
+          confirmed: args.includes('--confirm'),
+        }),
+      )
+    else print(await createSetupUninstallPlan({ root }))
   } else if (command === 'sources') {
     const result = await listSources()
     print(result.sources.map(({ id, name, kind, available }) => ({ id, name, kind, available })))

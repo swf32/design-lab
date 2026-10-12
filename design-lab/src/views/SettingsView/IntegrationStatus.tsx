@@ -3,12 +3,15 @@ import { Button, Dialog, Input, SettingsPanel } from '@design-lab/system/compone
 import { InterfaceFolderPicker } from './InterfaceFolderPicker'
 import {
   applySetupRepair,
+  applySetupUninstall,
   getSetupFootprint,
   getSetupInstallationStatus,
   getSetupRepairPlan,
+  getSetupUninstallPlan,
   type SetupFootprint,
   type SetupInstallationStatus,
   type SetupRepairPlan,
+  type SetupUninstallPlan,
   type MountReplacement,
 } from '../../api/projects'
 
@@ -44,6 +47,10 @@ export function IntegrationStatus() {
   const [footprint, setFootprint] = useState<SetupFootprint | null>(null)
   const [footprintOpen, setFootprintOpen] = useState(false)
   const [footprintBusy, setFootprintBusy] = useState(false)
+  const [uninstallPlan, setUninstallPlan] = useState<SetupUninstallPlan | null>(null)
+  const [uninstallOpen, setUninstallOpen] = useState(false)
+  const [uninstallBusy, setUninstallBusy] = useState(false)
+  const [uninstallResult, setUninstallResult] = useState<string | null>(null)
 
   const refresh = useCallback(async () => {
     setLoading(true)
@@ -149,6 +156,38 @@ export function IntegrationStatus() {
     }
   }
 
+  const previewUninstall = async () => {
+    setUninstallBusy(true)
+    setError(null)
+    try {
+      setUninstallPlan(await getSetupUninstallPlan())
+      setUninstallOpen(true)
+    } catch (cause) {
+      setError(cause instanceof Error ? cause.message : 'Could not prepare uninstall.')
+    } finally {
+      setUninstallBusy(false)
+    }
+  }
+
+  const uninstall = async () => {
+    if (!uninstallPlan?.available || !uninstallPlan.canApply) return
+    setUninstallBusy(true)
+    setError(null)
+    try {
+      const result = await applySetupUninstall(uninstallPlan.fingerprint)
+      setUninstallResult(
+        `Integration archived at ${result.archivePath}. Project source mounts were left in place. Close Design Lab, then remove its npm dependency from this project.`,
+      )
+      setUninstallOpen(false)
+      setUninstallPlan(null)
+    } catch (cause) {
+      setError(cause instanceof Error ? cause.message : 'Could not uninstall the integration.')
+      setUninstallOpen(false)
+    } finally {
+      setUninstallBusy(false)
+    }
+  }
+
   return (
     <SettingsPanel
       className="settings-integration"
@@ -168,6 +207,7 @@ export function IntegrationStatus() {
         </p>
       )}
       {repairMessage && <p role="status">{repairMessage}</p>}
+      {uninstallResult && <p role="status">{uninstallResult}</p>}
       <Button
         type="button"
         size="small"
@@ -175,6 +215,14 @@ export function IntegrationStatus() {
         onClick={() => void previewFootprint()}
       >
         Review removal footprint
+      </Button>
+      <Button
+        type="button"
+        size="small"
+        loading={uninstallBusy}
+        onClick={() => void previewUninstall()}
+      >
+        Preview safe uninstall
       </Button>
       {status && !status.available && <p role="status">{status.reason}</p>}
       {status?.available && (
@@ -423,6 +471,87 @@ export function IntegrationStatus() {
           </div>
         ) : (
           <p>{footprint?.reason}</p>
+        )}
+      </Dialog>
+      <Dialog
+        open={uninstallOpen}
+        title="Uninstall Design Lab integration"
+        eyebrow="Preserve project files"
+        description="The entire design-lab folder, including your System and any extra files, will move to a visible preserved folder. External source mounts stay where they are. Review this plan before applying it."
+        onClose={() => setUninstallOpen(false)}
+        footer={
+          <>
+            <Button type="button" variant="ghost" onClick={() => setUninstallOpen(false)}>
+              Cancel
+            </Button>
+            {uninstallPlan?.available && uninstallPlan.canApply && (
+              <Button type="button" loading={uninstallBusy} onClick={() => void uninstall()}>
+                Archive integration and uninstall
+              </Button>
+            )}
+          </>
+        }
+      >
+        {uninstallPlan?.available ? (
+          <div className="settings-integration__repair-plan">
+            <p>
+              Move <code>design-lab/</code> to <code>{uninstallPlan.archivePath}/</code>.
+            </p>
+            <p>
+              {uninstallPlan.removeAgentsPointer
+                ? 'Remove only the managed Design Lab block from root AGENTS.md; save the original file in the archive.'
+                : 'Root AGENTS.md has no managed block to remove.'}
+            </p>
+            <p>{uninstallPlan.note}</p>
+            <h4>Project-owned files preserved in the archive</h4>
+            <ul>
+              {uninstallPlan.projectOwned.map((item) => (
+                <li key={item.path}>
+                  <code>{item.path}</code> · {item.state}
+                </li>
+              ))}
+            </ul>
+            <h4>Other files preserved in the archive</h4>
+            {uninstallPlan.unclassified.length ? (
+              <ul>
+                {uninstallPlan.unclassified.map((path) => (
+                  <li key={path}>
+                    <code>{path}</code>
+                  </li>
+                ))}
+              </ul>
+            ) : (
+              <p>None found.</p>
+            )}
+            <h4>External source mounts left in place</h4>
+            {uninstallPlan.externalMountsKnown ? (
+              <ul>
+                {uninstallPlan.externalMounts.map((item) => (
+                  <li key={`${item.kind}:${item.path}`}>
+                    {item.kind}: <code>{item.path}</code>
+                  </li>
+                ))}
+              </ul>
+            ) : (
+              <p>
+                Config unavailable; external source mounts cannot be listed, but are not changed.
+              </p>
+            )}
+            {uninstallPlan.blockers.length > 0 && (
+              <>
+                <h4>Resolve before uninstalling</h4>
+                <ul>
+                  {uninstallPlan.blockers.map((item) => (
+                    <li key={item.code}>
+                      <code>{item.path}</code> · {item.message}
+                    </li>
+                  ))}
+                </ul>
+              </>
+            )}
+          </div>
+        ) : (
+          <p>{uninstallPlan?.reason}</p>
         )}
       </Dialog>
       <InterfaceFolderPicker

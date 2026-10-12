@@ -1,13 +1,15 @@
 import assert from 'node:assert/strict'
-import { mkdtemp, mkdir, readFile, rename, rm, symlink, writeFile } from 'node:fs/promises'
+import { lstat, mkdtemp, mkdir, readFile, rename, rm, symlink, writeFile } from 'node:fs/promises'
 import { join } from 'node:path'
 import { tmpdir } from 'node:os'
 import test from 'node:test'
 import {
   applySetupRepair,
+  applySetupUninstall,
   applySetupPlan,
   checkSetupInstallation,
   createSetupRepairPlan,
+  createSetupUninstallPlan,
   createSetupPlan,
   inspectSetupFootprint,
   inspectSetupInstallation,
@@ -428,6 +430,80 @@ test('footprint inventory ignores an unrelated folder named design-lab', async (
     await mkdir(join(root, 'design-lab'))
     await writeFile(join(root, 'design-lab/notes.md'), '# Not an installation\n')
     assert.equal((await inspectSetupFootprint({ root })).available, false)
+  } finally {
+    await rm(root, { recursive: true, force: true })
+  }
+})
+
+test('uninstall archives all project-owned files and removes only the managed root pointer', async () => {
+  const root = await fixture()
+  try {
+    await writeFile(join(root, 'AGENTS.md'), '# My instructions\n')
+    await applySetupPlan({ root, name: 'Removal smoke', confirmed: true })
+    await writeFile(join(root, 'design-lab/system/my-component.tsx'), 'export const Mine = true\n')
+    await writeFile(join(root, 'design-lab/rules/TOKEN_RULES.md'), '# Edited by me\n')
+    await writeFile(join(root, 'design-lab/notes.md'), '# Keep this\n')
+    const originalSource = await readFile(join(root, 'src/components/Button.tsx'), 'utf8')
+    const plan = await createSetupUninstallPlan({ root })
+    assert.equal(plan.canApply, true)
+    assert.equal(plan.archivePath, 'design-lab-preserved')
+    await assert.rejects(applySetupUninstall({ root, fingerprint: plan.fingerprint }), {
+      code: 'SETUP_UNINSTALL_CONFIRMATION_REQUIRED',
+    })
+    await writeFile(join(root, 'design-lab/notes.md'), '# Changed after review\n')
+    await assert.rejects(
+      applySetupUninstall({ root, fingerprint: plan.fingerprint, confirmed: true }),
+      { code: 'SETUP_UNINSTALL_STALE' },
+    )
+    const current = await createSetupUninstallPlan({ root })
+    const result = await applySetupUninstall({
+      root,
+      fingerprint: current.fingerprint,
+      confirmed: true,
+    })
+    assert.equal(result.applied, true)
+    await assert.rejects(lstat(join(root, 'design-lab')), { code: 'ENOENT' })
+    assert.equal(
+      await readFile(join(root, 'design-lab-preserved/notes.md'), 'utf8'),
+      '# Changed after review\n',
+    )
+    assert.equal(
+      await readFile(join(root, 'design-lab-preserved/system/my-component.tsx'), 'utf8'),
+      'export const Mine = true\n',
+    )
+    assert.equal(
+      await readFile(join(root, 'design-lab-preserved/rules/TOKEN_RULES.md'), 'utf8'),
+      '# Edited by me\n',
+    )
+    assert.equal(await readFile(join(root, 'src/components/Button.tsx'), 'utf8'), originalSource)
+    assert.equal(await readFile(join(root, 'AGENTS.md'), 'utf8'), '# My instructions\n')
+    assert.match(
+      await readFile(join(root, result.agentsBackupPath), 'utf8'),
+      /design-lab:setup:start/,
+    )
+    assert.equal((await inspectSetupInstallation({ root })).available, false)
+  } finally {
+    await rm(root, { recursive: true, force: true })
+  }
+})
+
+test('uninstall blocks an occupied archive or ambiguous AGENTS pointer', async () => {
+  const root = await fixture()
+  try {
+    await applySetupPlan({ root, name: 'Removal blockers', confirmed: true })
+    await mkdir(join(root, 'design-lab-preserved'))
+    let plan = await createSetupUninstallPlan({ root })
+    assert(plan.blockers.some((item) => item.code === 'SETUP_UNINSTALL_ARCHIVE_EXISTS'))
+    await rm(join(root, 'design-lab-preserved'), { recursive: true })
+    await writeFile(join(root, 'AGENTS.md'), '<!-- design-lab:setup:start -->\n')
+    plan = await createSetupUninstallPlan({ root })
+    assert.equal(plan.canApply, false)
+    assert(plan.blockers.some((item) => item.code === 'SETUP_UNINSTALL_AGENTS_PARTIAL'))
+    await assert.rejects(
+      applySetupUninstall({ root, fingerprint: plan.fingerprint, confirmed: true }),
+      { code: 'SETUP_UNINSTALL_BLOCKED' },
+    )
+    assert.equal((await lstat(join(root, 'design-lab'))).isDirectory(), true)
   } finally {
     await rm(root, { recursive: true, force: true })
   }

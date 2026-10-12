@@ -197,6 +197,7 @@ async function browserSmoke(
     uploadSkinCandidate = null,
     verifySkinAndClear = false,
     expectDefaultMatch = false,
+    uninstallIntegration = false,
   } = {},
 ) {
   const { chromium } = await import('playwright')
@@ -899,6 +900,29 @@ async function browserSmoke(
       } finally {
         await writeFile(candidateButton, originalButton)
       }
+      try {
+        await writeFile(
+          candidateButton,
+          `${originalButton}\nexport function MissingMediaProbe() { return <img src="../../../../assets/images/missing-inline.svg" alt="" /> }\n`,
+        )
+        const [invalid] = await Promise.all([
+          page.waitForResponse((result) => result.url().endsWith('/api/interface/system/inspect')),
+          page.getByRole('button', { name: 'Check folder' }).click(),
+        ])
+        assert.equal(invalid.status(), 422)
+        const failure = await invalid.json()
+        assert.equal(failure.error.code, 'INTERFACE_PACK_ASSET_MISSING')
+        assert.equal(failure.error.details.path, 'assets/images/missing-inline.svg')
+        assert(Number.isInteger(failure.error.details.line))
+        await page
+          .getByText(
+            'Add the missing media or font file to this System, or correct its path, then check the folder again.',
+          )
+          .waitFor()
+        await page.getByText('Referenced in components/atoms/actions/Button/Button.tsx:').waitFor()
+      } finally {
+        await writeFile(candidateButton, originalButton)
+      }
     }
     if (uploadCandidate) {
       const [uploaded] = await Promise.all([
@@ -1015,6 +1039,38 @@ async function browserSmoke(
         assert(await shell.evaluate((element) => element.scrollWidth > element.clientWidth))
         await page.setViewportSize({ width: 1500, height: 1000 })
       }
+    }
+    if (uninstallIntegration) {
+      await page.locator('.app-sidebar__footer .sidebar-tab').click()
+      const [preview] = await Promise.all([
+        page.waitForResponse(
+          (result) =>
+            result.url().endsWith('/api/onboarding/uninstall') &&
+            result.request().method() === 'GET',
+        ),
+        page.getByRole('button', { name: 'Preview safe uninstall' }).click(),
+      ])
+      assert.equal(preview.status(), 200)
+      const plan = await preview.json()
+      assert.equal(plan.canApply, true)
+      assert.equal(plan.archivePath, 'design-lab-preserved')
+      assert(plan.projectOwned.some((item) => item.path === 'design-lab/system'))
+      assert(plan.unclassified.includes('design-lab/notes.md'))
+      assert(plan.externalMounts.some((item) => item.path === 'src/components'))
+      await page.getByRole('dialog').getByText('design-lab-preserved/', { exact: true }).waitFor()
+      const [applied] = await Promise.all([
+        page.waitForResponse(
+          (result) =>
+            result.url().endsWith('/api/onboarding/uninstall') &&
+            result.request().method() === 'POST',
+        ),
+        page
+          .getByRole('dialog')
+          .getByRole('button', { name: 'Archive integration and uninstall' })
+          .click(),
+      ])
+      assert.equal(applied.status(), 200)
+      assert.equal((await applied.json()).applied, true)
     }
   } finally {
     if (styleChanged) await writeFile(stylePath, originalStyle)
@@ -1144,13 +1200,13 @@ try {
     await writeFile(cleanComponentsIndex, originalComponentsIndex)
   }
   await cleanDevSmoke(cleanCli, cleanRoot)
+  const authoredManagedComponent = join(cleanRoot, 'design-lab/components/Custom.tsx')
+  await writeFile(authoredManagedComponent, 'export const Custom = true\n')
   if (process.argv.includes('--browser')) {
     const cleanConfigPath = join(cleanRoot, 'design-lab/designlab.config.json')
     const cleanLastGoodPath = join(cleanRoot, 'design-lab/designlab.config.last-good.json')
     const originalCleanConfig = await readFile(cleanConfigPath, 'utf8')
     const originalCleanLastGood = await readFile(cleanLastGoodPath, 'utf8')
-    const authoredManagedComponent = join(cleanRoot, 'design-lab/components/Custom.tsx')
-    await writeFile(authoredManagedComponent, 'export const Custom = true\n')
     await rm(cleanLastGoodPath)
     await rm(cleanConfigPath)
     try {
@@ -1368,8 +1424,89 @@ export const dynamicAsset = (name: string) => new URL(name, import.meta.url).hre
     assert.equal(parse(await run(cli, ['system', 'doctor'], projectRoot)).skin, null)
   }
 
+  await writeFile(join(projectRoot, 'design-lab/notes.md'), '# Authored project notes\n')
+  await writeFile(join(systemRoot, 'authored-system-file.txt'), 'Keep this System edit\n')
+  await writeFile(join(projectRoot, 'design-lab/rules/TOKEN_RULES.md'), '# Authored local rules\n')
+  if (process.argv.includes('--browser')) await browserSmoke(cli, { uninstallIntegration: true })
+  else {
+    const uninstallPlan = parse(await run(cli, ['uninstall'], projectRoot))
+    assert.equal(uninstallPlan.canApply, true)
+    assert.equal(
+      parse(
+        await run(
+          cli,
+          ['uninstall', '--apply', '--confirm', '--fingerprint', uninstallPlan.fingerprint],
+          projectRoot,
+        ),
+      ).applied,
+      true,
+    )
+  }
+  assert.equal(existsSync(join(projectRoot, 'design-lab')), false)
+  assert.equal(
+    await readFile(join(projectRoot, 'design-lab-preserved/notes.md'), 'utf8'),
+    '# Authored project notes\n',
+  )
+  assert.equal(
+    await readFile(
+      join(projectRoot, 'design-lab-preserved/system/authored-system-file.txt'),
+      'utf8',
+    ),
+    'Keep this System edit\n',
+  )
+  assert.equal(
+    await readFile(join(projectRoot, 'design-lab-preserved/rules/TOKEN_RULES.md'), 'utf8'),
+    '# Authored local rules\n',
+  )
+  assert.equal(
+    await readFile(join(projectRoot, 'src/components/Button.tsx'), 'utf8'),
+    authoredComponent,
+  )
+  assert.equal(existsSync(join(projectRoot, 'AGENTS.md')), false)
+  assert(
+    (await readdir(join(projectRoot, 'design-lab-preserved'))).some((name) =>
+      name.startsWith('.designlab-root-AGENTS-'),
+    ),
+  )
+  await run(
+    'npm',
+    ['uninstall', 'design-lab', '--ignore-scripts', '--no-audit', '--no-fund'],
+    projectRoot,
+  )
+  assert.equal(
+    parse(await readFile(join(projectRoot, 'package.json'), 'utf8')).dependencies['design-lab'],
+    undefined,
+  )
+  assert.equal(
+    await readFile(join(projectRoot, 'src/components/Button.tsx'), 'utf8'),
+    authoredComponent,
+  )
+
+  const cleanUninstall = parse(await run(cleanCli, ['uninstall'], cleanRoot))
+  assert.equal(cleanUninstall.canApply, true)
+  assert.equal(
+    parse(
+      await run(
+        cleanCli,
+        ['uninstall', '--apply', '--confirm', '--fingerprint', cleanUninstall.fingerprint],
+        cleanRoot,
+      ),
+    ).applied,
+    true,
+  )
+  assert.equal(existsSync(join(cleanRoot, 'design-lab')), false)
+  assert.equal(
+    await readFile(join(cleanRoot, 'design-lab-preserved/components/Custom.tsx'), 'utf8'),
+    'export const Custom = true\n',
+  )
+  await run(
+    'npm',
+    ['uninstall', 'design-lab', '--ignore-scripts', '--no-audit', '--no-fund'],
+    cleanRoot,
+  )
+
   process.stdout.write(
-    `Package smoke passed: pack, attach, clean managed setup, one System, versioned upgrade preserving edits, validated fork with Component anatomy and SVG asset, switch, manual folder replacement, reset${process.argv.includes('--browser') ? ', browser external System/Skin folder upload, conflict resolution, integration health, damaged config and moved mount repair, legacy managed config recovery, Skin/System folder selection, shell/Workbench fork and HMR' : ''}.\n`,
+    `Package smoke passed: pack, attach, clean managed setup, one System, versioned upgrade preserving edits, validated fork with Component anatomy and SVG asset, switch, manual folder replacement, reset, safe uninstall preserving project files and npm dependency removal${process.argv.includes('--browser') ? ', browser external System/Skin folder upload, conflict resolution, integration health, damaged config and moved mount repair, legacy managed config recovery, Skin/System folder selection, shell/Workbench fork and HMR, UI uninstall' : ''}.\n`,
   )
 } finally {
   if (process.env.DESIGN_LAB_KEEP_SMOKE === '1')

@@ -100,10 +100,13 @@ new folder is inactive until you validate and install it.
 7. Select "Install this System", confirm, restart Design Lab, and review every module in dark and
    light modes. Verify
    long content, narrow viewports, dialogs, navigation, Canvas modes, and browser console output.
-   The validator checks literal and statically composed local asset paths. If a `new URL` or
-   `import()` path depends on runtime values, Settings lists its source line for manual review;
-   CSS/SCSS `url(var(...))` and `url($variable)` are also reported as unresolved with their source
-   line. Validation cannot prove that every runtime value names an existing file.
+   The validator checks literal and statically composed local asset paths, including native JSX
+   media `src`, `poster`, and SVG `href` attributes. Root-relative or external media URLs and
+   runtime-composed JSX media paths are listed as unverified with their source line. Runtime
+   `new URL`/`import()` paths and CSS/SCSS `url(var(...))`/`url($variable)` receive the same
+   warning. Values passed through ordinary variables or Component props are not traced through
+   runtime execution; review those uses manually before installation. Validation cannot prove
+   that every runtime value names an existing file.
 8. Add deterministic screenshots, append changelogs, and update semantic versions before release.
 
 ## Adding new Components and features

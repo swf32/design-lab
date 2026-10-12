@@ -76,7 +76,8 @@ dependencies проекта и подбирает framework configuration. Эт�
 - одна компактная integration folder;
 - package/binary приложения устанавливается отдельно от пользовательских сущностей;
 - существующий production code не переносится;
-- все добавленные root-level изменения известны и удаляются командой uninstall;
+- managed блок в root `AGENTS.md` удаляется при подтверждённом uninstall; npm dependency
+  удаляется отдельно после закрытия приложения;
 - caches и indexes производны и могут быть удалены без потери исходников.
 
 ## Три модели
@@ -401,7 +402,10 @@ Vue/Svelte adapters; иначе каждый adapter придётся переп
 
 Installer добавляет Design Lab package/script в существующий package manager, создаёт одну
 `design-lab/` или `.designlab/` folder и, с разрешения, ограниченные root instruction pointers.
-`designlab uninstall` удаляет только то, что installer добавил; production source не трогается.
+Текущий `designlab uninstall` после preview и подтверждения переносит всю integration folder в
+`design-lab-preserved/`, сохраняя даже неизвестные и изменённые файлы; внешние production sources
+не трогаются. Корневой managed `AGENTS.md` block убирается с сохранением исходного файла в архиве.
+Package dependency удаляется отдельно после закрытия приложения.
 
 Это максимально близко к Storybook и даёт надёжные dependencies, команды и AI rules. Минус: это не
 буквально один filesystem entry, потому что меняются `package.json`, lockfile и optional root

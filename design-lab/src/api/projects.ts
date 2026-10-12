@@ -147,6 +147,41 @@ export function getSetupFootprint() {
   return request<SetupFootprint>('/api/onboarding/footprint')
 }
 
+export type SetupUninstallPlan =
+  | { available: false; reason: string }
+  | {
+      available: true
+      canApply: boolean
+      archivePath: string
+      agentsBackupPath: string | null
+      removeAgentsPointer: boolean
+      externalMountsKnown: boolean
+      externalMounts: Array<{ kind: string; path: string }>
+      projectOwned: Array<{ path: string; state: string }>
+      unclassified: string[]
+      blockers: Array<{ code: string; message: string; path: string }>
+      fingerprint: string
+      note: string
+    }
+
+export function getSetupUninstallPlan() {
+  return request<SetupUninstallPlan>('/api/onboarding/uninstall')
+}
+
+export function applySetupUninstall(fingerprint: string) {
+  return request<{
+    applied: true
+    archivePath: string
+    agentsBackupPath: string | null
+    externalMounts: Array<{ kind: string; path: string }>
+    dependencyRemoval: string
+  }>('/api/onboarding/uninstall', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', 'X-Design-Lab-UI': '1' },
+    body: JSON.stringify({ fingerprint, confirmed: true }),
+  })
+}
+
 export type SetupRepairPlan =
   | { available: false; reason: string }
   | {

@@ -155,6 +155,17 @@ inside the integration folder. `unclassified` identifies extra top-level files a
 rules. The endpoint does not produce a deletion plan or modify any file; a setup file may have
 user edits even if its name is managed. Linked paths are reported without traversing them.
 
+### `GET /api/onboarding/uninstall` and `POST /api/onboarding/uninstall`
+
+`GET` returns a read-only plan with `archivePath`, project-owned files, external mounts,
+unclassified files, blockers and a content fingerprint. `POST` requires the local UI request
+header plus `{ fingerprint, confirmed: true }`. It rechecks the plan, moves the complete
+`design-lab/` folder to `design-lab-preserved/`, backs up root `AGENTS.md` there and removes
+only its managed Design Lab block. External mounts are untouched. An occupied archive path,
+ambiguous AGENTS markers, missing confirmation or stale fingerprint blocks apply. The npm
+dependency is removed separately after closing the running app. The CLI exposes the same
+preview and apply as `designlab uninstall`.
+
 ### `GET /api/interface/system/doctor` and `GET /api/interface/system/diff`
 
 Read-only Settings diagnostics over the same services as `designlab system doctor` and `designlab system diff`.

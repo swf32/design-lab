@@ -1002,6 +1002,51 @@ test('System validation checks literal asset URLs and lazy imports before instal
   })
 })
 
+test('System validation checks literal JSX media paths and reports unbundled URLs', async () => {
+  await withPackWorkspace(async ({ sources, options }) => {
+    const source = join(sources, 'jsx-media-system')
+    await writeSystem(source)
+    const componentPath = join(source, 'Media.tsx')
+    await writeFile(
+      componentPath,
+      `export function Media({ name }: { name: string }) {
+  return <>
+    <img src="./assets/images/missing.svg" alt="" />
+    <video poster="/shared/poster.webp" />
+    <img src={\`./assets/images/\${name}.svg\`} alt="" />
+  </>
+}
+`,
+    )
+    await assert.rejects(
+      validateInterfacePack(source, { ...options, expectedKind: 'system' }),
+      (error) =>
+        error.code === 'INTERFACE_PACK_ASSET_MISSING' &&
+        error.details.source === 'Media.tsx' &&
+        error.details.line === 3 &&
+        error.details.path === 'assets/images/missing.svg',
+    )
+    await mkdir(join(source, 'assets/images'), { recursive: true })
+    await writeFile(join(source, 'assets/images/missing.svg'), '<svg/>\n')
+    const inspected = await inspectLocalInterfaceSystem(source, {
+      ...options,
+      typecheckSystem: false,
+    })
+    assert.deepEqual(inspected.unresolvedAssetReferences, {
+      total: 2,
+      references: [
+        { source: 'Media.tsx', line: 4, kind: 'JSX media', expression: '/shared/poster.webp' },
+        {
+          source: 'Media.tsx',
+          line: 5,
+          kind: 'JSX media',
+          expression: '\`./assets/images/\${name}.svg\`',
+        },
+      ],
+    })
+  })
+})
+
 test('System validation resolves constant asset expressions and reports runtime-dependent paths', async () => {
   await withPackWorkspace(async ({ sources, options }) => {
     const source = join(sources, 'computed-asset-system')

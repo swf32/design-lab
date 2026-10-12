@@ -8,9 +8,11 @@ import {
   mkdir,
   open,
   readFile,
+  readlink,
   readdir,
   realpath,
   rename,
+  rm,
   stat,
   writeFile,
 } from 'node:fs/promises'
@@ -757,6 +759,186 @@ export async function inspectSetupFootprint({
     unclassified,
     agentsPointer,
     note: 'This inventory is read-only. It does not decide which edited files may be removed.',
+  }
+}
+
+async function setupTreeDigest(root) {
+  const entries = []
+  async function visit(directory, prefix = '') {
+    for (const name of (await readdir(directory)).sort()) {
+      const absolute = join(directory, name)
+      const path = prefix ? `${prefix}/${name}` : name
+      const state = await lstat(absolute)
+      if (state.isDirectory()) {
+        entries.push([path, 'directory'])
+        await visit(absolute, path)
+      } else if (state.isFile()) {
+        entries.push([
+          path,
+          'file',
+          createHash('sha256')
+            .update(await readFile(absolute))
+            .digest('hex'),
+        ])
+      } else if (state.isSymbolicLink()) {
+        entries.push([path, 'link', await readlink(absolute)])
+      } else entries.push([path, 'other'])
+    }
+  }
+  await visit(root)
+  return repairFingerprint(entries)
+}
+
+function withoutManagedAgentsBlock(content) {
+  const start = content.indexOf(MANAGED_AGENTS_START)
+  const end = content.indexOf(MANAGED_AGENTS_END)
+  if (start < 0 && end < 0) return { content, markers: 'absent' }
+  if (
+    start < 0 ||
+    end < start ||
+    content.indexOf(MANAGED_AGENTS_START, start + MANAGED_AGENTS_START.length) >= 0 ||
+    content.indexOf(MANAGED_AGENTS_END, end + MANAGED_AGENTS_END.length) >= 0
+  )
+    return { content, markers: 'partial' }
+  let before = content.slice(0, start)
+  let after = content.slice(end + MANAGED_AGENTS_END.length)
+  if (before.endsWith('\n\n')) before = before.slice(0, -1)
+  if (after.startsWith('\n')) after = after.slice(1)
+  return { content: before + after, markers: 'complete' }
+}
+
+export async function createSetupUninstallPlan({
+  root,
+  integrationDirectory = DEFAULT_INTEGRATION_DIRECTORY,
+  rulesSource = DEFAULT_RULES_SOURCE,
+}) {
+  const projectRoot = assertRoot(root)
+  const footprint = await inspectSetupFootprint({
+    root: projectRoot,
+    integrationDirectory,
+    rulesSource,
+  })
+  if (!footprint.available) return footprint
+  const integrationRoot = resolve(projectRoot, integrationDirectory)
+  const archivePath = `${integrationDirectory}-preserved`
+  const archiveRoot = resolve(projectRoot, archivePath)
+  if (!isInside(integrationRoot, projectRoot) || !isInside(archiveRoot, projectRoot))
+    throw setupError(
+      'Uninstall paths must stay inside the project.',
+      'SETUP_UNINSTALL_PATH_INVALID',
+    )
+  const blockers = []
+  const archiveState = await lstat(archiveRoot).catch((error) => {
+    if (error.code === 'ENOENT') return null
+    throw error
+  })
+  if (archiveState)
+    blockers.push({
+      code: 'SETUP_UNINSTALL_ARCHIVE_EXISTS',
+      message: 'Move or rename the existing preserved folder before uninstalling.',
+      path: archivePath,
+    })
+  const agentsPath = join(projectRoot, 'AGENTS.md')
+  const agentsState = await lstat(agentsPath).catch((error) => {
+    if (error.code === 'ENOENT') return null
+    throw error
+  })
+  if (agentsState && !agentsState.isFile())
+    blockers.push({
+      code: 'SETUP_UNINSTALL_AGENTS_UNSAFE',
+      message: 'The root AGENTS.md is not a regular file.',
+      path: 'AGENTS.md',
+    })
+  const agents = agentsState?.isFile() ? await readFile(agentsPath, 'utf8') : ''
+  const pointer = withoutManagedAgentsBlock(agents)
+  if (pointer.markers === 'partial')
+    blockers.push({
+      code: 'SETUP_UNINSTALL_AGENTS_PARTIAL',
+      message: 'The Design Lab AGENTS.md block has missing or duplicate markers.',
+      path: 'AGENTS.md',
+    })
+  const agentsBackupPath = `.designlab-root-AGENTS-${createHash('sha256').update(agents).digest('hex').slice(0, 12)}.md`
+  if (agentsState?.isFile() && (await exists(join(integrationRoot, agentsBackupPath))))
+    blockers.push({
+      code: 'SETUP_UNINSTALL_BACKUP_EXISTS',
+      message: 'A root AGENTS.md backup already occupies the planned archive path.',
+      path: `${integrationDirectory}/${agentsBackupPath}`,
+    })
+  const treeDigest = await setupTreeDigest(integrationRoot)
+  const fingerprint = repairFingerprint({ archivePath, treeDigest, agents, blockers })
+  return {
+    available: true,
+    canApply: blockers.length === 0,
+    archivePath,
+    agentsBackupPath: agentsState?.isFile() ? `${archivePath}/${agentsBackupPath}` : null,
+    removeAgentsPointer: pointer.markers === 'complete',
+    externalMountsKnown: footprint.externalMountsKnown,
+    externalMounts: footprint.externalMounts,
+    projectOwned: footprint.projectOwned,
+    unclassified: footprint.unclassified,
+    blockers,
+    fingerprint,
+    note: 'The entire integration folder is moved intact. External source mounts are untouched. The npm dependency is removed separately after this running app closes.',
+  }
+}
+
+export async function applySetupUninstall({
+  root,
+  fingerprint,
+  confirmed = false,
+  integrationDirectory = DEFAULT_INTEGRATION_DIRECTORY,
+}) {
+  if (!confirmed)
+    throw setupError(
+      'Review and confirm the uninstall plan first.',
+      'SETUP_UNINSTALL_CONFIRMATION_REQUIRED',
+      409,
+    )
+  const projectRoot = assertRoot(root)
+  const plan = await createSetupUninstallPlan({ root: projectRoot, integrationDirectory })
+  if (!plan.available || !plan.canApply)
+    throw setupError(
+      'Uninstall has blockers. Review the plan again.',
+      'SETUP_UNINSTALL_BLOCKED',
+      409,
+    )
+  if (plan.fingerprint !== fingerprint)
+    throw setupError(
+      'Project files changed. Review the uninstall plan again.',
+      'SETUP_UNINSTALL_STALE',
+      409,
+    )
+  const integrationRoot = resolve(projectRoot, integrationDirectory)
+  const archiveRoot = resolve(projectRoot, plan.archivePath)
+  const agentsPath = join(projectRoot, 'AGENTS.md')
+  const originalAgents = plan.agentsBackupPath ? await readFile(agentsPath, 'utf8') : null
+  const cleanedAgents =
+    originalAgents === null ? null : withoutManagedAgentsBlock(originalAgents).content
+  await rename(integrationRoot, archiveRoot)
+  try {
+    if (originalAgents !== null) {
+      await writeFile(join(archiveRoot, basename(plan.agentsBackupPath)), originalAgents, 'utf8')
+      if (plan.removeAgentsPointer) {
+        if (cleanedAgents.trim()) {
+          const temporary = `${agentsPath}.${randomUUID()}.tmp`
+          await writeFile(temporary, cleanedAgents, 'utf8')
+          await rename(temporary, agentsPath)
+        } else await rm(agentsPath)
+      }
+    }
+  } catch (error) {
+    if (originalAgents !== null) await writeFile(agentsPath, originalAgents, 'utf8')
+    if (plan.agentsBackupPath)
+      await rm(join(archiveRoot, basename(plan.agentsBackupPath)), { force: true })
+    await rename(archiveRoot, integrationRoot)
+    throw error
+  }
+  return {
+    applied: true,
+    archivePath: plan.archivePath,
+    agentsBackupPath: plan.agentsBackupPath,
+    externalMounts: plan.externalMounts,
+    dependencyRemoval: 'Close Design Lab, then remove its npm dependency from this project.',
   }
 }
 

@@ -16,8 +16,10 @@ import { patchEntityManifest } from './services/manifestWrite.mjs'
 import { getComponentHandoff } from './services/componentHandoff.mjs'
 import {
   applySetupRepair,
+  applySetupUninstall,
   applySetupPlan,
   createSetupRepairPlan,
+  createSetupUninstallPlan,
   createSetupPlan,
   inspectSetupFootprint,
   inspectSetupInstallation,
@@ -242,6 +244,24 @@ createServer(async (request, response) => {
     }
     if (request.method === 'GET' && url.pathname === '/api/onboarding/footprint') {
       return sendJson(response, 200, await inspectSetupFootprint({ root: getWorkspaceDirectory() }))
+    }
+    if (request.method === 'GET' && url.pathname === '/api/onboarding/uninstall') {
+      return sendJson(
+        response,
+        200,
+        await createSetupUninstallPlan({ root: getWorkspaceDirectory() }),
+      )
+    }
+    if (request.method === 'POST' && url.pathname === '/api/onboarding/uninstall') {
+      requireInterfaceUiRequest(request)
+      const input = await readJson(request)
+      const result = await applySetupUninstall({
+        root: getWorkspaceDirectory(),
+        fingerprint: input.fingerprint,
+        confirmed: input.confirmed === true,
+      })
+      revision += 1
+      return sendJson(response, 200, result)
     }
     if (request.method === 'GET' && url.pathname === '/api/onboarding/repair') {
       return sendJson(response, 200, await createSetupRepairPlan({ root: getWorkspaceDirectory() }))

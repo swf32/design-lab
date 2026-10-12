@@ -866,7 +866,7 @@ async function validateSystemAssetImports(root, assetsRoot) {
     }
     return references
   }
-  async function checkReference(file, reference) {
+  async function checkReference(file, reference, line = null, kind = 'asset path') {
     const cleanReference = reference.split(/[?#]/, 1)[0]
     if (!STATIC_ASSET_EXTENSIONS.has(extname(cleanReference).toLowerCase())) return
     const canonicalPrefix = '@design-lab/system/assets/'
@@ -875,13 +875,17 @@ async function validateSystemAssetImports(root, assetsRoot) {
       : cleanReference.startsWith('.')
         ? resolve(dirname(file), cleanReference)
         : null
-    if (!target) return
     const sourcePath = portablePath(relative(root, file))
+    if (!target) {
+      reportUnresolved(file, line ?? 1, kind, reference)
+      return
+    }
+    const sourceLocation = line ? `${sourcePath}:${line}` : sourcePath
     if (!isInside(root, target))
       throw packError(
-        `${sourcePath} imports an asset outside this System: ${reference}.`,
+        `${sourceLocation} references an asset outside this System: ${reference}.`,
         'INTERFACE_PACK_ASSET_OUTSIDE',
-        { source: sourcePath, reference },
+        { source: sourcePath, line, reference },
       )
     if (
       !(
@@ -892,9 +896,9 @@ async function validateSystemAssetImports(root, assetsRoot) {
       )?.isFile()
     )
       throw packError(
-        `${sourcePath} imports a missing asset: ${reference}.`,
+        `${sourceLocation} references a missing asset: ${reference}.`,
         'INTERFACE_PACK_ASSET_MISSING',
-        { source: sourcePath, reference, path: portablePath(relative(root, target)) },
+        { source: sourcePath, line, reference, path: portablePath(relative(root, target)) },
       )
   }
 
@@ -932,10 +936,18 @@ async function validateSystemAssetImports(root, assetsRoot) {
                 'CSS url()',
                 reference,
               )
-            else references.push(reference)
+            else
+              references.push({
+                reference,
+                line:
+                  (declaration.source?.start?.line ?? 1) +
+                  value.slice(0, offset).split('\n').length -
+                  1,
+              })
           }
         })
-        for (const reference of references) await checkReference(file, reference)
+        for (const { reference, line } of references)
+          await checkReference(file, reference, line, 'CSS url()')
         continue
       }
       let ast
@@ -953,7 +965,8 @@ async function validateSystemAssetImports(root, assetsRoot) {
         )
           continue
         const reference = node.source?.value
-        if (typeof reference === 'string') await checkReference(file, reference)
+        if (typeof reference === 'string')
+          await checkReference(file, reference, node.loc?.start.line, 'import')
       }
       const staticReference = (node) => {
         if (node?.type === 'StringLiteral') return node.value
@@ -980,7 +993,7 @@ async function validateSystemAssetImports(root, assetsRoot) {
       }
       const checkExpression = async (node, kind) => {
         const reference = staticReference(node)
-        if (reference !== null) return checkReference(file, reference)
+        if (reference !== null) return checkReference(file, reference, node?.loc?.start.line, kind)
         reportUnresolved(
           file,
           node?.loc?.start.line ?? 1,
@@ -997,6 +1010,41 @@ async function validateSystemAssetImports(root, assetsRoot) {
         node.object.meta?.name === 'import' &&
         node.object.property?.name === 'meta'
       const visitNode = async (node) => {
+        if (node.type === 'JSXOpeningElement' && node.name?.type === 'JSXIdentifier') {
+          const mediaAttributes = {
+            img: ['src'],
+            video: ['src', 'poster'],
+            audio: ['src'],
+            source: ['src'],
+            track: ['src'],
+            image: ['href', 'xlinkHref'],
+            use: ['href', 'xlinkHref'],
+            embed: ['src'],
+            object: ['data'],
+          }[node.name.name]
+          for (const attribute of node.attributes ?? []) {
+            if (
+              !mediaAttributes?.includes(attribute.name?.name) ||
+              attribute.type !== 'JSXAttribute' ||
+              !attribute.value
+            )
+              continue
+            const value =
+              attribute.value.type === 'JSXExpressionContainer'
+                ? attribute.value.expression
+                : attribute.value
+            const reference = staticReference(value)
+            if (reference !== null)
+              await checkReference(file, reference, attribute.loc?.start.line, 'JSX media')
+            else if (value?.type === 'TemplateLiteral' || value?.type === 'BinaryExpression')
+              reportUnresolved(
+                file,
+                attribute.loc?.start.line ?? 1,
+                'JSX media',
+                source.slice(value.start, value.end),
+              )
+          }
+        }
         if (
           node.type === 'NewExpression' &&
           node.callee?.type === 'Identifier' &&
