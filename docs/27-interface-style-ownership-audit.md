@@ -29,6 +29,15 @@ product composition и runtime geometry. Это ограничение пров�
 
 ## Существующий долг
 
+**Текущий срез 2026-11-04.** После решения D-090 не использовать общий System stylesheet
+подготовленный перенос разместил presentation в соседних SCSS `ReviewSurface`,
+`SettingsSurface`, `PlaygroundSurface`, `CaptureSurface`, `ModulePage`, `WorkbenchLayout` и
+`RuntimeFrameSurface`; `ColorSwatch` и `FontCatalog` также владеют своей визуальной ролью.
+`check:app-styles` находит только 2 browser-level declarations (`button` inherit и reduced
+motion), а `check:app-inline-styles` — 3 технических записи. Installed browser fixture проверил
+project-owned HMR каталога и Settings после перестройки. Таблица и этапы ниже
+сохраняют историю baseline, а не текущее расположение файлов.
+
 Текущая база содержит **501** visual declarations. Они не объявлены правильным конечным ownership;
 список только фиксирует состояние, чтобы оно не росло во время миграции.
 

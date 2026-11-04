@@ -1,4 +1,3 @@
-import './ModuleView.scss'
 import { isValidElement, useEffect, useRef, useState, type ReactNode } from 'react'
 import ReactMarkdown, { type Components } from 'react-markdown'
 import { useDesignLabI18n } from '@design-lab/system/i18n'
@@ -9,10 +8,12 @@ import {
   Chip,
   CodeBlock,
   ColorCard,
+  ColorSwatch,
   ComponentCard,
   ComponentReferencePanel,
   ComponentReferenceFiles,
   ComponentThumbnail,
+  FontCatalog,
   ModuleHeader,
   ModulePage,
   TabSwitcher,
@@ -1308,13 +1309,7 @@ export function ModuleView({
         header: `Value · ${previewMode}`,
         cell: (token) => (
           <span className="dl-table__value">
-            {token.type === 'color' && (
-              <i
-                className="dl-table__swatch"
-                style={{ background: token.value }}
-                aria-hidden="true"
-              />
-            )}
+            {token.type === 'color' && <ColorSwatch value={token.value} />}
             <strong>{token.value}</strong>
           </span>
         ),
@@ -1409,12 +1404,9 @@ export function ModuleView({
                 header: 'Color',
                 cell: (color) => (
                   <span className="dl-table__swatch-label">
-                    <i
-                      className="dl-table__swatch--large"
-                      style={{
-                        background: String(color.values[previewMode] ?? color.value),
-                      }}
-                      aria-hidden="true"
+                    <ColorSwatch
+                      value={String(color.values[previewMode] ?? color.value)}
+                      size="large"
                     />
                     <strong>{color.path.replace(/^color\./, '')}</strong>
                   </span>
@@ -1449,9 +1441,6 @@ export function ModuleView({
       </ModulePage>
     )
   if (data.kind === 'fonts') {
-    const typography = Object.fromEntries(
-      data.typography.map((token) => [token.path, token.values[previewMode] ?? token.value]),
-    )
     return (
       <ModulePage>
         <ModuleHeader
@@ -1460,47 +1449,15 @@ export function ModuleView({
           count={data.families.length}
           actions={modeActions}
         />
-        <div className="font-list">
-          {data.families.map((family) => (
-            <article
-              className="font-card"
-              key={family.id}
-              style={{
-                fontFamily: String(typography['typography.interface.family'] ?? family.cssFamily),
-              }}
-            >
-              <span>
-                {family.source} · {previewMode}
-              </span>
-              <h2 style={{ fontWeight: Number(typography['typography.heading.weight'] ?? 600) }}>
-                {family.name}
-              </h2>
-              <p
-                style={{
-                  fontSize: String(typography['typography.body.size'] ?? '42px'),
-                  lineHeight: Number(typography['typography.body.line-height'] ?? 1.5),
-                }}
-              >
-                Hamburgefontsiv 012345
-              </p>
-              <div className="font-mode-values">
-                {data.typography.map((token) => (
-                  <div key={token.id}>
-                    <code>{token.path}</code>
-                    <strong>{String(token.values[previewMode] ?? token.value)}</strong>
-                  </div>
-                ))}
-              </div>
-              <footer>
-                {family.styles.map((style) => (
-                  <code key={`${style.weight}-${style.style}`}>
-                    {style.weight} {style.style}
-                  </code>
-                ))}
-              </footer>
-            </article>
-          ))}
-        </div>
+        <FontCatalog
+          families={data.families}
+          typography={data.typography.map((token) => ({
+            id: token.id,
+            path: token.path,
+            value: token.values[previewMode] ?? token.value,
+          }))}
+          mode={previewMode}
+        />
       </ModulePage>
     )
   }

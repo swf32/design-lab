@@ -9,12 +9,6 @@ body,
   min-width: 0;
   min-height: 100%;
 }
-:root {
-  font-family: var(--typography-interface-family);
-  color: var(--color-text-primary);
-  background: transparent;
-  font-synthesis: none;
-}
 body {
   margin: 0;
   min-height: 100dvh;
@@ -22,16 +16,11 @@ body {
   overscroll-behavior: none;
 }
 button {
-  font: inherit;
   touch-action: manipulation;
+  font: inherit;
 }
 @media (prefers-reduced-motion: reduce) {
   * {
     transition-duration: 0.01ms !important;
   }
-}
-
-.dl-flow-action-origin {
-  outline: 2px solid var(--color-accent-primary);
-  outline-offset: 2px;
 }

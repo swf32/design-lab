@@ -1,10 +1,10 @@
-import './PageView.scss'
 import { useCallback, useEffect, useMemo, useRef, useState, type CSSProperties } from 'react'
 import {
   Button,
   Checkbox,
   Chip,
   RadioButton,
+  ReviewSurface,
   Slider,
   TabSwitcher,
   UserFlowCanvas,
@@ -389,7 +389,7 @@ export function PageView({
   }, [activeFlowActionId, page.flow.edges])
 
   return (
-    <main className="page-view">
+    <ReviewSurface kind="page">
       <section ref={stageRef} className={`page-view__stage page-view__stage--${view}`}>
         {view === 'flow' ? (
           <UserFlowCanvas
@@ -644,6 +644,6 @@ export function PageView({
             ? 'Copy is unavailable. Select the browser address.'
             : ''}
       </span>
-    </main>
+    </ReviewSurface>
   )
 }

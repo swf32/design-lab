@@ -1,0 +1,102 @@
+.font-list {
+  display: grid;
+  gap: 10px;
+}
+
+.font-card {
+  padding: 18px;
+  border: 1px solid var(--color-border-subtle);
+  border-radius: var(--corner-surface);
+  background: var(--color-surface-secondary);
+}
+
+.font-card > span {
+  color: var(--color-accent-secondary);
+  font-size: 8px;
+  text-transform: uppercase;
+}
+
+.font-card h2 {
+  margin: 8px 0 18px;
+  font-size: 15px;
+  font-weight: 600;
+}
+
+.font-card p {
+  margin: 0 0 18px;
+  color: var(--color-text-secondary);
+  font-size: clamp(22px, 4vw, 42px);
+  letter-spacing: -0.035em;
+}
+
+.font-card footer {
+  display: flex;
+  gap: 6px;
+}
+
+.font-card code {
+  padding: 4px 6px;
+  border-radius: 4px;
+  background: var(--color-surface-raised);
+  color: var(--color-text-muted);
+  font-size: 9px;
+}
+
+.font-mode-values {
+  margin: 0 0 14px;
+  overflow: hidden;
+  border: 1px solid var(--color-border-subtle);
+  border-radius: var(--corner-control);
+}
+
+.font-mode-values > div {
+  min-height: 30px;
+  padding: 0 9px;
+  border-bottom: 1px solid var(--color-border-subtle);
+  display: grid;
+  grid-template-columns: minmax(180px, 1fr) minmax(100px, auto);
+  align-items: center;
+  gap: 12px;
+}
+
+.font-mode-values > div:last-child {
+  border-bottom: 0;
+}
+
+.font-mode-values code {
+  overflow: hidden;
+  color: var(--color-code);
+  text-overflow: ellipsis;
+}
+
+.font-mode-values strong {
+  color: var(--color-text-secondary);
+  font-size: 9px;
+  font-weight: 500;
+}
+
+.font-card > p {
+  font-size: clamp(28px, 4vw, 42px) !important;
+}
+
+@media (max-width: 760px) {
+  .font-card {
+    padding: var(--space-16);
+  }
+
+  .font-card > p {
+    overflow-wrap: anywhere;
+    font-size: clamp(24px, 9vw, 34px) !important;
+  }
+
+  .font-mode-values > div {
+    min-height: 44px;
+    padding-block: 7px;
+    grid-template-columns: 1fr;
+    gap: 4px;
+  }
+
+  .font-card footer {
+    flex-wrap: wrap;
+  }
+}

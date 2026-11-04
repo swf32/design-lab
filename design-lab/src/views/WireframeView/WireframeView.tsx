@@ -1,10 +1,10 @@
-import './WireframeView.scss'
 import { useCallback, useEffect, useMemo, useRef, useState, type CSSProperties } from 'react'
 import {
   Button,
   Checkbox,
   Chip,
   RadioButton,
+  ReviewSurface,
   Slider,
   TabSwitcher,
   UserFlowCanvas,
@@ -320,7 +320,7 @@ export function WireframeView({
   }, [activeFlowActionId, wireframe.flow.edges])
 
   return (
-    <main className="wireframe-view">
+    <ReviewSurface kind="wireframe">
       <section ref={stageRef} className={`wireframe-view__stage wireframe-view__stage--${view}`}>
         {view === 'flow' ? (
           <UserFlowCanvas
@@ -608,6 +608,6 @@ export function WireframeView({
             ? 'Copy is unavailable. Select the browser address.'
             : ''}
       </span>
-    </main>
+    </ReviewSurface>
   )
 }

@@ -28,6 +28,9 @@ then expose the smallest necessary System contract.
   does not use it. Render a coherent alternative while preserving the callable contract.
 - Generated barrels and token CSS are derived files. Change canonical Components, assets, and token
   JSON, then run their generators; do not maintain parallel registries.
+- Keep visual presentation in each responsible Component's adjacent production SCSS. The active
+  System does not require a package-wide presentation stylesheet; a new surface needs a real
+  Component with its own manifest, preview, Stories, README, and changelog.
 
 ## One active installation slot
 

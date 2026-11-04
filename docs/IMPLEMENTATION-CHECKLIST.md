@@ -1017,6 +1017,11 @@ native backlog до Web DoD.
       Workbench в `WorkbenchSection`, `WorkbenchMarkdown` и `WorkbenchPropsTable` активной System;
       app-owned visual declarations сократились с 392 до 353. Installed browser fixture проверяет
       desktop/mobile, dark/light и реальные документацию и props Button.
+- [x] Проверить установленным браузерным fixture перенос остальных catalog, Workbench, Settings,
+      Page/Wireframe review, fullscreen Playground и capture presentation в соседние SCSS реальных
+      System Components. По подтверждённому уточнению D-090 общий `presentation.scss` запрещён;
+      style guard показывает 2 browser-level CSS и 3 технические inline записи; браузерный fixture
+      проверяет project-owned HMR каталога и Settings.
 - [ ] Создать отдельный `design-lab-gallery` repository, remote verification workers, immutable
       checksums/signatures и generated screenshot publication flow.
 - [ ] Добавить gallery UI с status `community / validated / curated / incompatible` и установкой из

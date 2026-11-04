@@ -1,4 +1,3 @@
-import './SettingsView.scss'
 import { SkinSettings } from './SkinSettings'
 import { InterfaceFolderPicker } from './InterfaceFolderPicker'
 import { InterfacePackDiagnostic } from './InterfacePackDiagnostic'
@@ -12,6 +11,7 @@ import {
   ModuleHeader,
   Select,
   SettingsPanel,
+  SettingsSurface,
 } from '@design-lab/system/components'
 import {
   applyInterfaceSystemUpgrade,
@@ -409,7 +409,7 @@ export function SettingsView({ onClose }: { onClose: () => void }) {
       : systemUpgrade.canApply)
 
   return (
-    <section className="settings-page">
+    <SettingsSurface>
       <ModuleHeader eyebrow="Application" title="Settings" backLabel="Workspace" onBack={onClose} />
 
       <IntegrationStatus />
@@ -946,6 +946,6 @@ export function SettingsView({ onClose }: { onClose: () => void }) {
           </SettingsPanel>
         </>
       )}
-    </section>
+    </SettingsSurface>
   )
 }

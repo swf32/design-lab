@@ -64,3 +64,10 @@
     transition: none;
   }
 }
+
+:root {
+  font-family: var(--typography-interface-family);
+  color: var(--color-text-primary);
+  background: transparent;
+  font-synthesis: none;
+}

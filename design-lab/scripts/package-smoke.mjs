@@ -211,6 +211,18 @@ async function browserSmoke(
   const stylePath = join(systemRoot, 'components/atoms/actions/Button/Button.scss')
   const originalStyle = await readFile(stylePath, 'utf8')
   let styleChanged = false
+  const catalogStylePath = join(
+    systemRoot,
+    'components/organisms/workbench/ModulePage/ModulePage.scss',
+  )
+  const originalCatalogStyle = await readFile(catalogStylePath, 'utf8')
+  let catalogStyleChanged = false
+  const settingsStylePath = join(
+    systemRoot,
+    'components/organisms/shell/SettingsSurface/SettingsSurface.scss',
+  )
+  const originalSettingsStyle = await readFile(settingsStylePath, 'utf8')
+  let settingsStyleChanged = false
   const workbenchStylePath = join(
     systemRoot,
     'components/organisms/workbench/WorkbenchLayout/WorkbenchLayout.scss',
@@ -259,6 +271,21 @@ async function browserSmoke(
     if (browseProjectSystem) {
       const grid = page.locator('.dl-module-page__grid--components').first()
       await grid.waitFor()
+      await writeFile(
+        catalogStylePath,
+        `${originalCatalogStyle}\n.dl-module-page__grid--components { gap: 37px !important; }\n`,
+      )
+      catalogStyleChanged = true
+      await writeFile(
+        settingsStylePath,
+        `${originalSettingsStyle}\n.settings-page { border-top: 7px solid rgb(12 34 56) !important; }\n`,
+      )
+      settingsStyleChanged = true
+      await page.waitForFunction(
+        () =>
+          getComputedStyle(document.querySelector('.dl-module-page__grid--components')).gap ===
+          '37px',
+      )
       assert(
         await grid.evaluate(
           (element) => getComputedStyle(element).gridTemplateColumns.split(' ').length > 1,
@@ -458,6 +485,18 @@ async function browserSmoke(
     styleChanged = false
     await page.locator('.app-sidebar__footer .sidebar-tab').click()
     await page.getByRole('heading', { name: 'Active System' }).waitFor()
+    if (browseProjectSystem) {
+      await page.waitForFunction(
+        () => getComputedStyle(document.querySelector('.settings-page')).borderTopWidth === '7px',
+      )
+      await writeFile(catalogStylePath, originalCatalogStyle)
+      catalogStyleChanged = false
+      await writeFile(settingsStylePath, originalSettingsStyle)
+      settingsStyleChanged = false
+      await page.waitForFunction(
+        () => getComputedStyle(document.querySelector('.settings-page')).borderTopWidth !== '7px',
+      )
+    }
     await page.getByRole('heading', { name: 'Design Lab integration' }).waitFor()
     const [footprintResponse] = await Promise.all([
       page.waitForResponse((result) => result.url().endsWith('/api/onboarding/footprint')),
@@ -876,6 +915,28 @@ async function browserSmoke(
       } finally {
         await writeFile(barrel, originalBarrel)
       }
+      const presentation = join(
+        createCandidate,
+        'components/organisms/shell/SettingsSurface/SettingsSurface.tsx',
+      )
+      const originalPresentation = await readFile(presentation, 'utf8')
+      try {
+        await rm(presentation)
+        const [invalid] = await Promise.all([
+          page.waitForResponse((result) => result.url().endsWith('/api/interface/system/inspect')),
+          page.getByRole('button', { name: 'Check folder' }).click(),
+        ])
+        assert.equal(invalid.status(), 422)
+        const failure = await invalid.json()
+        assert.equal(failure.error.code, 'INTERFACE_PACK_EXPORT_MISSING')
+        await page
+          .getByText(
+            'Export the required names from the declared System entrypoint, then check the folder again.',
+          )
+          .waitFor()
+      } finally {
+        await writeFile(presentation, originalPresentation)
+      }
       const candidateButton = join(createCandidate, 'components/atoms/actions/Button/Button.tsx')
       const originalButton = await readFile(candidateButton, 'utf8')
       try {
@@ -943,6 +1004,9 @@ async function browserSmoke(
         ),
       )
       await page.getByText('Review these dynamic paths before installing.').waitFor()
+      await page
+        .getByText('Values passed through custom Component props', { exact: false })
+        .waitFor()
       await page.getByText('CSS url():').waitFor()
       await page.getByText('JSX media:').first().waitFor()
       await page
@@ -959,6 +1023,10 @@ async function browserSmoke(
       }
       await page.getByRole('button', { name: 'Install this System' }).waitFor()
       await page.getByRole('button', { name: 'Install this System' }).click()
+      await page
+        .getByRole('dialog')
+        .getByText('Review media paths in custom Component props', { exact: false })
+        .waitFor()
       const [response] = await Promise.all([
         page.waitForResponse((result) => result.url().endsWith('/api/interface/system/install')),
         page.getByRole('button', { name: 'Install System', exact: true }).click(),
@@ -985,7 +1053,7 @@ async function browserSmoke(
         const tokenTable = page.getByRole('grid', { name: 'Design tokens' })
         await tokenTable.waitFor()
         const identity = tokenTable.locator('.dl-table__token-identity').first()
-        const swatch = tokenTable.locator('.dl-table__swatch').first()
+        const swatch = tokenTable.locator('.dl-color-swatch--small').first()
         await identity.waitFor()
         await swatch.waitFor()
         const appearance = await identity.evaluate((element) => {
@@ -1035,7 +1103,7 @@ async function browserSmoke(
         await page.getByRole('button', { name: 'List view' }).click()
         const paletteTable = page.getByRole('table', { name: 'Color palette' })
         await paletteTable.waitFor()
-        const largeSwatch = paletteTable.locator('.dl-table__swatch--large').first()
+        const largeSwatch = paletteTable.locator('.dl-color-swatch--large').first()
         assert.equal(
           await largeSwatch.evaluate((element) => getComputedStyle(element).width),
           '24px',
@@ -1082,6 +1150,8 @@ async function browserSmoke(
     }
   } finally {
     if (styleChanged) await writeFile(stylePath, originalStyle)
+    if (catalogStyleChanged) await writeFile(catalogStylePath, originalCatalogStyle)
+    if (settingsStyleChanged) await writeFile(settingsStylePath, originalSettingsStyle)
     if (workbenchStyleChanged) await writeFile(workbenchStylePath, originalWorkbenchStyle)
     await browser?.close()
     if (server.exitCode === null) {

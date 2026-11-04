@@ -1564,6 +1564,13 @@ Documentation rail далее получил `WorkbenchSection`, `WorkbenchMarkd
 в обязательный contract. Данные документации, props и состояние остаются в приложении;
 presentation повторяемого rail принадлежит одной активной System.
 
+**Уточнение 2026-11-04 (подтверждено пользователем):** визуальные правила остаются в соседних SCSS
+реальных System Components. Общий обязательный `presentation.scss` не добавляется в контракт.
+Для полноэкранных Page/Wireframe review, Settings, Component Playground и capture введены
+`ReviewSurface`, `SettingsSurface`, `PlaygroundSurface` и `CaptureSurface`; приложение передаёт
+данные и действия. Оставшиеся catalog/Workbench presentation rules принадлежат `ModulePage`,
+`WorkbenchLayout` и `RuntimeFrameSurface`. Значения и default look при переносе не менялись.
+
 ## D-091 — Community customization разделяется на Skin и полную System
 
 **Статус:** package contract сохранён; multi-Library installation заменена D-092, 2026-08-01.

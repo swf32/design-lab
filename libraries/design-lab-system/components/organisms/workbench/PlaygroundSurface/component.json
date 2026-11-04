@@ -1,0 +1,20 @@
+{
+  "id": "playground-surface",
+  "name": "Playground Surface",
+  "description": "Fullscreen Component Playground presentation with responsive Canvas and controls layout.",
+  "aliases": ["fullscreen playground", "component playground layout"],
+  "useWhen": ["Show an interactive Component Playground outside the application shell."],
+  "avoidWhen": ["Show an inline Workbench specimen or a Page review."],
+  "entry": "PlaygroundSurface.tsx",
+  "preview": "PlaygroundSurface.preview.tsx",
+  "stories": "PlaygroundSurface.stories.tsx",
+  "docs": "README.md",
+  "changelog": "CHANGELOG.md",
+  "status": "ready",
+  "variants": ["default"],
+  "states": ["controls-closed", "controls-open"],
+  "props": {
+    "controlsOpen": { "type": "boolean", "default": false },
+    "children": { "type": "ReactNode", "required": true, "slot": true }
+  }
+}

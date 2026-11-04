@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.2.2 — 2026-10-12
+
+- Changed: token and palette row swatch presentation moved to the reusable ColorSwatch Component; Table keeps row layout and labels.
+
 ## 0.2.1 — 2026-10-01
 
 - Changed: moved registry cell identity, token and palette swatch, value, and copy affordance styles from the application into the System-owned Table presentation classes without changing the default appearance.

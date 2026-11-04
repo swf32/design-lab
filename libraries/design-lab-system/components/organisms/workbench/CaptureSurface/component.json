@@ -1,0 +1,20 @@
+{
+  "id": "capture-surface",
+  "name": "Capture Surface",
+  "description": "System-owned presentation boundary for Component preview and story capture routes.",
+  "aliases": ["component capture", "preview capture", "story capture"],
+  "useWhen": ["Render an automated Component capture surface or its status."],
+  "avoidWhen": ["Render an interactive Workbench Canvas."],
+  "entry": "CaptureSurface.tsx",
+  "preview": "CaptureSurface.preview.tsx",
+  "stories": "CaptureSurface.stories.tsx",
+  "docs": "README.md",
+  "changelog": "CHANGELOG.md",
+  "status": "ready",
+  "variants": ["state", "preview", "story"],
+  "states": ["loading", "ready", "error"],
+  "props": {
+    "kind": { "type": "enum", "values": ["state", "preview", "story"], "required": true },
+    "children": { "type": "ReactNode", "required": true, "slot": true }
+  }
+}

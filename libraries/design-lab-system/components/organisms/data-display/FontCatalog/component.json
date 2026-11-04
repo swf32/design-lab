@@ -1,0 +1,21 @@
+{
+  "id": "font-catalog",
+  "name": "Font Catalog",
+  "description": "Shows discovered font families and resolved typography tokens for one design mode.",
+  "aliases": ["font registry", "typography specimen"],
+  "useWhen": ["inspect mounted font families", "compare resolved typography tokens"],
+  "avoidWhen": ["edit a font", "show a compact typography label"],
+  "entry": "FontCatalog.tsx",
+  "preview": "FontCatalog.preview.tsx",
+  "stories": "FontCatalog.stories.tsx",
+  "docs": "README.md",
+  "changelog": "CHANGELOG.md",
+  "status": "ready",
+  "states": ["default"],
+  "variants": [],
+  "props": {
+    "families": { "type": "readonly FontCatalogFamily[]", "required": true },
+    "typography": { "type": "readonly FontCatalogToken[]", "required": true },
+    "mode": { "type": "string", "required": true }
+  }
+}

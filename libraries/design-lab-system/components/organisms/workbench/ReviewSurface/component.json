@@ -1,0 +1,20 @@
+{
+  "id": "review-surface",
+  "name": "Review Surface",
+  "description": "Fullscreen presentation surface for Page and Wireframe review, including stage and control layout.",
+  "aliases": ["page review", "wireframe review", "fullscreen review"],
+  "useWhen": ["Show a Page or Wireframe renderer with its flow and dev controls."],
+  "avoidWhen": ["Display a catalog card or Component Workbench."],
+  "entry": "ReviewSurface.tsx",
+  "preview": "ReviewSurface.preview.tsx",
+  "stories": "ReviewSurface.stories.tsx",
+  "docs": "README.md",
+  "changelog": "CHANGELOG.md",
+  "status": "ready",
+  "variants": ["page", "wireframe"],
+  "states": ["screen", "flow", "missing"],
+  "props": {
+    "kind": { "type": "enum", "values": ["page", "wireframe"], "required": true },
+    "children": { "type": "ReactNode", "required": true, "slot": true }
+  }
+}

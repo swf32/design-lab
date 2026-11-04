@@ -11,7 +11,8 @@ code, swatches, chips, and composed Components.
 
 For registry cells, the System owns optional presentation classes under `dl-table__*`: `identity`
 for a primary label and secondary code, `path` and `source` for clipped paths, `type`, `comment`,
-`value` and `value-text`, plus `swatch`, `swatch--large`, and `swatch-label`. The `token-identity`
+`value` and `value-text`, plus `swatch-label`. Use the adjacent `ColorSwatch` Component for the
+resolved color and its small/large sizes. The `token-identity`
 and `copy` classes present a token path with a keyboard-focusable copy button; the application
 still owns its copy action and live announcement in `copy-status`. Use these classes only inside
 `Table` cells (apart from the adjacent live status) so a replacement System can restyle registry

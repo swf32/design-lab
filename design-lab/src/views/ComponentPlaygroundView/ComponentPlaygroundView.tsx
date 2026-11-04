@@ -1,9 +1,9 @@
-import './ComponentPlaygroundView.scss'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import {
   Button,
   Chip,
   PlaygroundControlsRail,
+  PlaygroundSurface,
   TabSwitcher,
   TypedPlaygroundControls,
   WorkbenchAction,
@@ -125,7 +125,7 @@ function ManagedVueDraftPlayground({
   }, [mode, playground, values, variant])
   const selectedVariant = playground?.variants.find((item) => item.id === variant)
   return (
-    <main className="component-playground-page">
+    <PlaygroundSurface>
       <PlaygroundControlsRail
         id="component-playground-settings"
         className="component-playground-panel"
@@ -208,7 +208,7 @@ function ManagedVueDraftPlayground({
           />
         </WorkbenchPlayground>
       </section>
-    </main>
+    </PlaygroundSurface>
   )
 }
 
@@ -354,7 +354,7 @@ function LoadedComponentPlayground({
   }, [mode, module.playground.controls, values, variant])
 
   return (
-    <main className={`component-playground-page${controlsOpen ? ' is-controls-open' : ''}`}>
+    <PlaygroundSurface controlsOpen={controlsOpen}>
       <button
         type="button"
         className="component-playground-page__scrim"
@@ -469,6 +469,6 @@ function LoadedComponentPlayground({
         Settings
       </WorkbenchAction>
       <WorkbenchInspector surfaceRef={canvasRef} />
-    </main>
+    </PlaygroundSurface>
   )
 }

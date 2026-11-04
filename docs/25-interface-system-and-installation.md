@@ -34,6 +34,14 @@ Design Lab shell + каталог/Workbench
 
 Полноэкранный React/Vue concept Playground теперь использует тот же `WorkbenchPlayground` из активной System, что и Component Workbench: фон Canvas, плавающий control и stage presentation не поддерживаются второй копией в приложении. Route state, source renderer и открытие мобильной панели остаются поведением приложения. Browser fixture проверяет React fullscreen Canvas и mobile overlay; Vue runtime capture проверяется отдельно.
 
+Для повторяемого оформления Page/Wireframe review, Settings, fullscreen Component Playground и
+capture используются `ReviewSurface`, `SettingsSurface`, `PlaygroundSurface` и `CaptureSurface`.
+Их production SCSS лежат рядом с Components в активной project-owned System; общий stylesheet
+System не является обязательным entrypoint. Catalog и Workbench используют соседние стили
+`ModulePage`, `WorkbenchLayout` и `RuntimeFrameSurface`. Приложение сохраняет состояние и
+действия. Installed browser fixture проверяет project-owned HMR каталога и Settings, а также
+создание, проверку, установку и восстановление полной System через UI.
+
 ## Что делает существующий installer
 
 [`interfacePacks.mjs`](../design-lab/server/services/interfacePacks.mjs) создаёт, проверяет и устанавливает Skin или полную System. Для System валидируются manifest, относительные entrypoints, обязательные exports из [`interface-system-contract.json`](../design-lab/interface-system-contract.json) и typecheck приложения. Выбранный пакет копируется в один физический слот, предварительно сохраняется snapshot; неактивные версии лежат в управляемом cache. В embedded проекте выбор хранится в `design-lab/.cache/interface.json`, а в development checkout — в `design-lab/.designlab/interface.json`. CLI документирован в [корневом README](../README.md) и [контракте пакетов](23-interface-skins-systems-and-gallery.md).

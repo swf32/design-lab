@@ -72,3 +72,8 @@
 .dl-inspector-code-popover .dl-code-block pre {
   max-height: 310px;
 }
+
+.dl-flow-action-origin {
+  outline: 2px solid var(--color-accent-primary);
+  outline-offset: 2px;
+}

@@ -1,5 +1,10 @@
 import { useEffect, useState, type CSSProperties, type ReactNode } from 'react'
-import { ComponentCard, ComponentThumbnail, StoryCanvas } from '@design-lab/system/components'
+import {
+  CaptureSurface,
+  ComponentCard,
+  ComponentThumbnail,
+  StoryCanvas,
+} from '@design-lab/system/components'
 import { getModuleData, type ModuleData } from '../../api/projects'
 import { designSystemModeStyle } from '../../designSystemMode'
 import { createRuntimeCaptureInfo } from '../../../shared/runtimeProtocol.mjs'
@@ -9,8 +14,6 @@ import {
   type ComponentEntity,
   type StoryDefinition,
 } from '../../componentRuntime'
-import '../ModuleView/ModuleView.scss'
-import './ComponentCaptureView.scss'
 
 type CaptureRequest = {
   sourceId: string
@@ -141,24 +144,24 @@ export function ComponentCaptureView() {
       )
   }, [request.interfaceTheme, request.sourceId])
 
-  if (error) return <main className="component-capture-state">{error}</main>
-  if (!data) return <main className="component-capture-state">Loading capture…</main>
+  if (error) return <CaptureSurface kind="state">{error}</CaptureSurface>
+  if (!data) return <CaptureSurface kind="state">Loading capture…</CaptureSurface>
 
   const component = data.components.find((candidate) => candidate.id === request.componentId)
-  if (!component) return <main className="component-capture-state">Component was not found</main>
+  if (!component) return <CaptureSurface kind="state">Component was not found</CaptureSurface>
   if (!component.capabilities.includes('capture'))
     return (
-      <main className="component-capture-state">
+      <CaptureSurface kind="state">
         {component.technology} adapter does not provide a capture surface for this Component yet.
-      </main>
+      </CaptureSurface>
     )
 
   const sourceMode = request.sourceMode ?? data.modes[0] ?? 'default'
   if (data.modes.length && !data.modes.includes(sourceMode))
     return (
-      <main className="component-capture-state">
+      <CaptureSurface kind="state">
         Unknown source mode “{sourceMode}”. Available: {data.modes.join(', ')}
-      </main>
+      </CaptureSurface>
     )
 
   const sourceStyle = designSystemModeStyle(data.themeVariables, sourceMode) as CSSProperties
@@ -208,20 +211,20 @@ export function ComponentCaptureView() {
   })
   if (request.capture === 'info')
     return (
-      <main
-        className="component-capture-state"
+      <CaptureSurface
+        kind="state"
         data-designlab-capture-ready="info"
         data-capture-info={JSON.stringify(captureInfo)}
       >
         Capture information ready
-      </main>
+      </CaptureSurface>
     )
 
   if (request.capture === 'preview') {
     const Preview = previewComponentFor(component, request.sourceId)
     return (
-      <main
-        className="component-capture component-capture--preview"
+      <CaptureSurface
+        kind="preview"
         data-designlab-capture-ready="preview"
         data-capture-info={JSON.stringify(captureInfo)}
         data-source-mode={sourceMode}
@@ -236,27 +239,27 @@ export function ComponentCaptureView() {
             </span>
           }
         />
-      </main>
+      </CaptureSurface>
     )
   }
 
   const story = module?.stories?.find((candidate) => candidate.id === request.storyId)
   if (!request.storyId || !story)
     return (
-      <main className="component-capture-state">
+      <CaptureSurface kind="state">
         Story was not found. Available: {module?.stories?.map(({ id }) => id).join(', ') || 'none'}
-      </main>
+      </CaptureSurface>
     )
 
   return (
-    <main
-      className="component-capture component-capture--story"
+    <CaptureSurface
+      kind="story"
       data-designlab-capture-ready="story"
       data-capture-info={JSON.stringify(captureInfo)}
       data-source-mode={sourceMode}
       data-story-id={story.id}
     >
       <StoryCapture component={component} story={story} sourceStyle={sourceStyle} />
-    </main>
+    </CaptureSurface>
   )
 }

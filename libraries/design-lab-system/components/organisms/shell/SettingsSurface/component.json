@@ -1,0 +1,19 @@
+{
+  "id": "settings-surface",
+  "name": "Settings Surface",
+  "description": "Owns the scrolling Settings page and its System, integration, and diagnostic presentation.",
+  "aliases": ["settings page", "interface system settings"],
+  "useWhen": ["Compose Settings panels and diagnostics inside the workspace."],
+  "avoidWhen": ["Create a single settings card or a fullscreen review route."],
+  "entry": "SettingsSurface.tsx",
+  "preview": "SettingsSurface.preview.tsx",
+  "stories": "SettingsSurface.stories.tsx",
+  "docs": "README.md",
+  "changelog": "CHANGELOG.md",
+  "status": "ready",
+  "variants": ["default"],
+  "states": ["healthy", "diagnostic"],
+  "props": {
+    "children": { "type": "ReactNode", "required": true, "slot": true }
+  }
+}

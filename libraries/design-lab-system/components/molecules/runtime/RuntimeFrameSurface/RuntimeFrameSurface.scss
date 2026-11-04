@@ -23,3 +23,18 @@
 .dl-runtime-frame-surface[tabindex='-1'] {
   pointer-events: none;
 }
+
+.managed-runtime-frame--catalog {
+  width: 260px;
+  height: 150px;
+}
+
+.managed-runtime-frame--playground {
+  min-height: 240px;
+}
+
+.managed-runtime-frame--story {
+  width: min(600px, 100%);
+  height: 180px;
+  margin: 0 auto;
+}
