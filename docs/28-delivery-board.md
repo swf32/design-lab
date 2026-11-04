@@ -1,6 +1,6 @@
 # Поставка основы Design Lab: P0 и P1
 
-> Срез: 2026-10-12, проверенный этап — uninstall без повторного создания файлов генераторами и предупреждения о непроверенных JSX media путях. Кодовый коммит: `e30e8bc` (публикация проверяется push). [Оглавление](README.md) · [видение](26-vision-and-next-steps.md) · [подробный checklist](IMPLEMENTATION-CHECKLIST.md) · [решения](DECISIONS.md). Это короткая доска результатов для человека, который не хочет читать историю Git.
+> Срез: 2026-11-04, проверенный этап — повторяемое оформление из соседних SCSS активной System без общего stylesheet. Кодовый коммит: `a5722f3` (публикация проверяется push). [Оглавление](README.md) · [видение](26-vision-and-next-steps.md) · [подробный checklist](IMPLEMENTATION-CHECKLIST.md) · [решения](DECISIONS.md). Это короткая доска результатов для человека, который не хочет читать историю Git.
 
 ## Что считается готовым
 
@@ -23,11 +23,11 @@
 - [x] Read-only footprint в CLI и Settings показывает setup files, project-owned содержимое и внешние source mounts; при повреждённом config список mounts отмечен как неизвестный.
 - [x] Полный внешний сценарий: clean install → restart → versioned upgrade → repair повреждённого config → uninstall с сохранением пользовательских исходников и проверкой остатка файлов. UI переносит всю `design-lab/` в `design-lab-preserved/`; fixture проверяет изменённую System, локальные rules, заметки, внешний Component и удаление npm dependency. Clean managed CLI fixture проверяет сохранение authored Component.
 
-## P1 — работа дизайнера с System: 5/7
+## P1 — работа дизайнера с System: 6/7
 
 - [x] Эксперимент Glass удалён; существующий default look восстановлен. Визуальный редизайн исключён из текущей цели ([D-096](DECISIONS.md#d-096--визуальный-редизайн-исключён-из-текущей-цели)).
 - [ ] Старт от bundled default или активной System доступен в Settings; базовые экспорты, совместимость, статические imports и assets диагностируются. Статически составленные пути и native JSX media-атрибуты, включая `srcSet` и пути без расширения, проверяются; root-relative/external JSX URLs, identifiers/spreads, runtime-зависимые `new URL`/`import()` и CSS/SCSS `url(var(...))`/`url($variable)` показываются как предупреждения. Для закрытия пункта остаётся полнота UI-подсказок и явная граница проверки значений custom Component props.
-- [ ] Весь повторяемый интерфейс shell → catalog → Component Workbench → Settings оформляется из активной System. Оболочка и documentation rail четырёх Component/Page Workbench принадлежат System и проверяются в installed browser fixture; в `design-lab/src` ещё 353 app-local visual CSS declarations и 9 inline declarations ([аудит](27-interface-style-ownership-audit.md)).
+- [x] Весь повторяемый интерфейс shell → catalog → Component Workbench → Settings оформляется из активной System. Перенос использует соседние SCSS реальных Components без общего stylesheet; style guard находит только 2 browser-level CSS и 3 технические inline-декларации. Installed browser fixture проверил project-owned HMR каталога и Settings, shell/Workbench fork и UI lifecycle ([аудит](27-interface-style-ownership-audit.md)).
 - [x] Внешний fixture устанавливает fork, который меняет анатомию Button и добавляет SVG, и видит его в shell и Workbench.
 - [x] UI-путь создания, проверки, установки, обновления и восстановления полной System закрыт для локальных папок: проектные папки доступны через Browse, внешняя папка выбирается без ввода пути, а конфликт разрешается явным выбором local/bundled для каждого файла. Объединение текста двух версий остаётся задачей обычного редактора; внешняя Skin-папка тоже выбирается с компьютера без ручного пути; архивы требуют отдельного улучшения.
 - [x] Settings показывает doctor, diff, создание копии, проверку/установку из папки проекта и восстановление default после подтверждения.
@@ -41,8 +41,9 @@
 Старые установки без last-good config восстанавливаются после просмотра mounts в Settings;
 черновик также предлагает сохранившиеся managed folders. Полностью отсутствующий config
 восстанавливается, если rules и System сохранились. Для P1 остаются полнота
-System validation/template и перенос повторяемого оформления из application source в активную
-System; текстовое слияние конфликтов и архивы — дополнительные улучшения UX.
+System validation/template и полнота UI-подсказок; текстовое слияние конфликтов и архивы —
+дополнительные улучшения UX. Повторяемое оформление из активной System проверено установленным
+браузерным fixture; визуальный редизайн не выполнялся.
 Перед каждым завершением проверить рабочую копию, тесты и установленный браузерный fixture;
 сохранить существующие пользовательские изменения.
 
